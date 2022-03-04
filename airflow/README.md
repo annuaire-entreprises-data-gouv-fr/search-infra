@@ -1,12 +1,14 @@
 # Infrastructure Airflow
 
-Ce repo a pour objectif de mettre en place rapidement une infrastructure Airflow permettant à chacun de tester son DAG avant mise en production.
+Ce repository a pour objectif de mettre en place rapidement une infrastructure Airflow permettant à chacun de tester son DAG
+avant mise en production.
 
-L'infrastructure actuelle est basée sur du LocalExecutor (le scheduler, le webserver et worker sont hébergés sur le même container)
+L'infrastructure actuelle est basée sur du LocalExecutor (le scheduler, le webserver et worker sont hébergés sur le même
+container)
 
 ## Installation
 
-```
+```bash
 git clone git@gitlab.com:etalab/data-engineering/airflow-stack.git
 cd airflow-stack
 
@@ -30,11 +32,13 @@ docker-compose up --build -d
 
 ## Refresh dags
 
-```
+```bash
 # Airflow used to have a little time before dag refreshing when dag is created. You can force refreshing with :
 ./refreshBagDags.sh
 ```
 
 ## Connections
 
-Connections can be created manually or with python scripts `createConn.py` (using Airflow API) inside each projects. You need also to add your ssh key inside `ssh` folder of repo for the container to be able to see it in `/home/airflow/.ssh/` folder of container.
+Connections can be created manually or with python scripts `createConn.py` (using Airflow API) inside each projects. You
+need also to add your ssh key inside `ssh` folder of repository for the container to be able to see it
+in `/home/airflow/.ssh/` folder of container.
