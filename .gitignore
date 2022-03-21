@@ -3,3 +3,4 @@ pg-airflow/
 .DS_Store
 logs/
 variables.py
+.env
