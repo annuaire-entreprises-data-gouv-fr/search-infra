@@ -2,7 +2,7 @@ import json
 
 import requests
 
-AIO_URL = "http://localhost:4500"
+AIO_URL = 'http://api.sirene.dataeng.etalab.studio'
 
 
 def get_next_color():
