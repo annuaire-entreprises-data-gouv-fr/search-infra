@@ -2,7 +2,7 @@ import json
 
 import requests
 
-AIO_URL = 'http://api.sirene.dataeng.etalab.studio'
+from operators.secrets import AIO_URL
 
 
 def get_next_color():
