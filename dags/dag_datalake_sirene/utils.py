@@ -9,7 +9,6 @@ from dag_datalake_sirene.variables import (
     DAG_FOLDER,
     DAG_NAME,
     TMP_FOLDER,
-    TODAY,
 )
 from operators.elastic_create_siren import ElasticCreateSirenOperator
 from operators.elastic_fill_siren import ElasticFillSirenOperator
@@ -33,7 +32,7 @@ def format_sirene_notebook(**kwargs):
     format_notebook = PapermillMinioOperator(
         task_id="format_sirene_notebook",
         input_nb=AIRFLOW_DAG_HOME + DAG_FOLDER + "process-data-before-indexation.ipynb",
-        output_nb=TODAY + ".ipynb",
+        output_nb="latest.ipynb",
         tmp_path=TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/",
         minio_url=secrets.MINIO_URL,
         minio_bucket=secrets.MINIO_BUCKET,
@@ -41,11 +40,9 @@ def format_sirene_notebook(**kwargs):
         minio_password=secrets.MINIO_PASSWORD,
         minio_output_filepath=DAG_FOLDER
         + DAG_NAME
-        + "/"
-        + TODAY
-        + "/format_sirene_notebook/",
+        + "/latest/format_sirene_notebook/",
         parameters={
-            "msgs": "Ran from Airflow " + TODAY + "!",
+            "msgs": "Ran from Airflow latest !",
             "DATA_DIR": TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
             "OUTPUT_DATA_FOLDER": TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/output/",
             "ELASTIC_INDEX": elastic_index,
@@ -86,9 +83,7 @@ def fill_siren(**kwargs):
         print(
             DAG_FOLDER
             + DAG_NAME
-            + "/"
-            + TODAY
-            + "/"
+            + "/latest/"
             + elastic_index
             + "_"
             + dep
@@ -107,9 +102,7 @@ def fill_siren(**kwargs):
             minio_password=secrets.MINIO_PASSWORD,
             minio_filepath=DAG_FOLDER
             + DAG_NAME
-            + "/"
-            + TODAY
-            + "/format_sirene_notebook/output/"
+            + "/latest/format_sirene_notebook/output/"
             + elastic_index
             + "_"
             + dep
