@@ -72,9 +72,9 @@ class Siren(Document):
     concat_nom_adr_siren = Text(
         analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
     )
-    date_debut_activite = Date()
     date_creation = Date()
     date_creation_entreprise = Date()
+    date_debut_activite = Date()
     date_mise_a_jour = Date()
     economie_sociale_solidaire_unite_legale = Keyword()
     enseigne = Text()
