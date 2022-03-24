@@ -8,7 +8,7 @@ services:
     env_file:
       - .env
     ports:
-      - "5439:5432"
+      - "${PORT_POSTGRES}:${PORT_POSTGRES_OUT}"
   webserver:
     build:
       context: .
@@ -27,8 +27,8 @@ services:
       - ./plugins:/opt/airflow/plugins
       - ./requirements.txt:/opt/airflow/requirements.txt
     ports:
-      - "8046:8080"
-      - "8796:8793"
+      - "${PORT_WEBSERVER_1}:${PORT_WEBSERVER_OUT_1}"
+      - "${PORT_WEBSERVER_2}:${PORT_WEBSERVER_OUT_2}"
     entrypoint: ./scripts/airflow-entrypoint.sh
     healthcheck:
       test: ["CMD-SHELL", "[ -f /opt/airflow/airflow-webserver.pid ]"]
