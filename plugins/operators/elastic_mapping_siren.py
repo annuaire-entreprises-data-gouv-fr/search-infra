@@ -82,6 +82,7 @@ class Siren(Document):
     etat_administratif_etablissement = Keyword()
     geo_adresse = Text(analyzer=annuaire_analyzer)
     identifiant_association_unite_legale = Keyword()
+    indice_repetition = Text()
     is_siege = Text()
     latitude = Text()
     libelle_commune = Text()
@@ -100,6 +101,7 @@ class Siren(Document):
     sigle = Keyword()
     siren = Keyword(required=True)
     siret = Keyword(required=True)
+    type_voie = Text()
     tranche_effectif_salarie = Keyword()
     tranche_effectif_salarie_entreprise = Keyword()
 
