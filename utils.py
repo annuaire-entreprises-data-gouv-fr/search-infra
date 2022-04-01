@@ -43,7 +43,7 @@ def format_sirene_notebook(**kwargs):
     format_notebook = PapermillMinioOperator(
         task_id="format_sirene_notebook",
         input_nb=AIRFLOW_DAG_HOME + DAG_FOLDER + "process-data-before-indexation.ipynb",
-        output_nb="latest.ipynb",
+        output_nb="latest" + ENV + ".ipynb",
         tmp_path=TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/",
         minio_url=MINIO_URL,
         minio_bucket=MINIO_BUCKET,
@@ -55,7 +55,7 @@ def format_sirene_notebook(**kwargs):
         + ENV
         + "/format_sirene_notebook/",
         parameters={
-            "msgs": "Ran from Airflow latest !",
+            "msgs": "Ran from Airflow " + ENV + " !",
             "DATA_DIR": TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
             "OUTPUT_DATA_FOLDER": TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/output/",
             "ELASTIC_INDEX": elastic_index,
