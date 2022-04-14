@@ -28,17 +28,18 @@ def format_sirene_notebook(**kwargs):
     format_notebook = PapermillMinioOperator(
         task_id="format_sirene_notebook",
         input_nb=f'{os.getenv("AIRFLOW_DAG_HOME")}{os.getenv("DAG_FOLDER")}process-data-before-indexation.ipynb',
-        output_nb="latest.ipynb",
+        output_nb=f'latest_{os.getenv("AIRFLOW_DAG_HOME")}.ipynb',
         tmp_path=f'{os.getenv("TMP_FOLDER")}{os.getenv("DAG_FOLDER")}{os.getenv("DAG_NAME")}/',
         minio_url=os.getenv("MINIO_URL"),
         minio_bucket=os.getenv("MINIO_BUCKET"),
         minio_user=os.getenv("MINIO_USER"),
         minio_password=os.getenv("MINIO_PASSWORD"),
         minio_output_filepath=f'{os.getenv("DAG_FOLDER")}'
-        + f'{os.getenv("DAG_NAME")}'
-        + "/latest/format_sirene_notebook/",
+        + f'{os.getenv("DAG_NAME")}/'
+        + f'{os.getenv("ENV")}'
+        + "/format_sirene_notebook/",
         parameters={
-            "msgs": "Ran from Airflow latest !",
+            "msgs": f'Ran from Airflow latest {os.getenv("ENV")}!',
             "DATA_DIR": f'{os.getenv("TMP_FOLDER")}{os.getenv("DAG_FOLDER")}{os.getenv("DAG_NAME")}/data/',
             "OUTPUT_DATA_FOLDER": f'{os.getenv("TMP_FOLDER")}{os.getenv("DAG_FOLDER")}{os.getenv("DAG_NAME")}/output/',
             "ELASTIC_INDEX": elastic_index,
@@ -79,7 +80,7 @@ def fill_siren(**kwargs):
         print(
             f'{os.getenv("DAG_FOLDER")}\
             {os.getenv("DAG_NAME")}\
-            /latest/'
+            /{os.getenv("ENV")}/'
             + elastic_index
             + "_"
             + dep
@@ -98,7 +99,8 @@ def fill_siren(**kwargs):
             minio_password=os.getenv("MINIO_PASSWORD"),
             minio_filepath=f'{os.getenv("DAG_FOLDER")}\
             {os.getenv("DAG_NAME")}\
-            /latest/format_sirene_notebook/output/'
+            /{os.getenv("ENV")}\
+            /format_sirene_notebook/output/'
             + elastic_index
             + "_"
             + dep
