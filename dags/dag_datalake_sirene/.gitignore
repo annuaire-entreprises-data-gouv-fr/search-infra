@@ -3,3 +3,4 @@ __pycache__
 variables.py
 secrets.py
 data
+output/
