@@ -1,5 +1,5 @@
+import os
 from datetime import timedelta
-
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
@@ -9,11 +9,13 @@ from dag_datalake_sirene.utils import (
     format_sirene_notebook,
     get_next_color,
 )
-from dag_datalake_sirene.variables import DAG_FOLDER, DAG_NAME, TMP_FOLDER
+from dotenv import load_dotenv
 from operators.clean_folder import CleanFolderOperator
 
+load_dotenv()
+
 with DAG(
-    dag_id=DAG_NAME,
+    dag_id=os.getenv("DAG_NAME"),
     schedule_interval="0 23 10 * *",
     start_date=days_ago(10),
     dagrun_timeout=timedelta(minutes=60 * 8),
@@ -25,7 +27,7 @@ with DAG(
 
     clean_previous_folder = CleanFolderOperator(
         task_id="clean_previous_folder",
-        folder_path=TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/",
+        folder_path=f'{os.getenv("TMP_FOLDER")}{os.getenv("DAG_FOLDER")}{os.getenv("DAG_NAME")}/',
     )
 
     format_sirene_notebook = PythonOperator(
@@ -35,7 +37,8 @@ with DAG(
     )
 
     clean_tmp_folder = CleanFolderOperator(
-        task_id="clean_tmp_folder", folder_path=TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/"
+        task_id="clean_tmp_folder", folder_path=f'{os.getenv("TMP_FOLDER")}{os.getenv("DAG_FOLDER")}\
+        {os.getenv("DAG_NAME")}/'
     )
 
     create_elastic_siren = PythonOperator(

@@ -13,3 +13,4 @@ openpyxl==3.0.9
 elasticsearch==7.17.0
 elasticsearch_dsl==7.4.0
 requests==2.27.1
+python-dotenv==0.20.0

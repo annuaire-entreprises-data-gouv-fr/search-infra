@@ -1,6 +1,5 @@
 .ipynb_checkpoints
 __pycache__
-variables.py
-secrets.py
-data
+data/
 output/
+.env
