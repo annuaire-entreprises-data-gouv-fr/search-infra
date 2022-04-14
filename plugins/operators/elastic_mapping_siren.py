@@ -1,4 +1,5 @@
 from elasticsearch_dsl import (
+    Boolean,
     Date,
     Document,
     Float,
@@ -84,6 +85,7 @@ class Siren(Document):
     geo_adresse = Text(analyzer=annuaire_analyzer)
     identifiant_association_unite_legale = Keyword()
     indice_repetition = Text()
+    is_entrepreneur_individuel = Text()
     is_siege = Text()
     latitude = Text()
     libelle_commune = Text()
