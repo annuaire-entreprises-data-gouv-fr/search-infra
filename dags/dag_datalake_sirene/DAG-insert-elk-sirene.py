@@ -1,14 +1,11 @@
 import os
 from datetime import timedelta
+
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.utils import (
-    create_elastic_siren,
-    fill_siren,
-    format_sirene_notebook,
-    get_next_color,
-)
+from dag_datalake_sirene.utils import (create_elastic_siren, fill_siren,
+                                       format_sirene_notebook, get_next_color)
 from dotenv import load_dotenv
 from operators.clean_folder import CleanFolderOperator
 

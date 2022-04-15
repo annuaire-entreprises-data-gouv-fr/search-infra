@@ -1,7 +1,6 @@
 import json
 
 import requests
-
 from operators.secrets import AIO_URL
 
 

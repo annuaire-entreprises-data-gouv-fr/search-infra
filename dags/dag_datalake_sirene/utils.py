@@ -1,8 +1,8 @@
 import json
 import logging
 import os
-import requests
 
+import requests
 from dotenv import load_dotenv
 from operators.elastic_create_siren import ElasticCreateSirenOperator
 from operators.elastic_fill_siren import ElasticFillSirenOperator
@@ -94,15 +94,7 @@ def fill_siren(**kwargs):
 
     for dep in all_deps:
         print(
-            DAG_FOLDER
-            + DAG_NAME
-            + "/"
-            + ENV
-            + "/"
-            + elastic_index
-            + "_"
-            + dep
-            + ".csv"
+            DAG_FOLDER + DAG_NAME + "/" + ENV + "/" + elastic_index + "_" + dep + ".csv"
         )
         fill_elastic = ElasticFillSirenOperator(
             task_id="fill_elastic_index",

@@ -1,9 +1,10 @@
 import codecs
 import os
 from typing import Dict, Optional
-import papermill as pm
+
 import attr
 import nbformat
+import papermill as pm
 from airflow.lineage.entities import File
 from airflow.models import BaseOperator
 from minio import Minio
