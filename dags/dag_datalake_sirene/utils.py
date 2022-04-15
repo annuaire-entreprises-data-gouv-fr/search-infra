@@ -10,10 +10,25 @@ from operators.papermill_minio import PapermillMinioOperator
 
 load_dotenv()
 
+AIO_URL = os.getenv("AIO_URL")
+AIRFLOW_URL = os.getenv("AIRFLOW_URL")
+ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
+ELASTIC_URL = os.getenv("ELASTIC_URL")
+ELASTIC_USER = os.getenv("ELASTIC_USER")
+MINIO_BUCKET = os.getenv("MINIO_BUCKET")
+MINIO_PASSWORD = os.getenv("MINIO_PASSWORD")
+MINIO_URL = os.getenv("MINIO_URL")
+MINIO_USER = os.getenv("MINIO_USER")
+DAG_FOLDER = os.getenv("DAG_FOLDER")
+DAG_NAME = os.getenv("DAG_NAME")
+AIRFLOW_DAG_HOME = os.getenv("AIRFLOW_DAG_HOME")
+TMP_FOLDER = os.getenv("TMP_FOLDER")
+ENV = os.getenv("ENV")
+
 
 def get_next_color(**kwargs):
     try:
-        response = requests.get(os.getenv("AIO_URL") + "/colors")
+        response = requests.get(AIO_URL + "/colors")
         next_color = json.loads(response.content)["NEXT_COLOR"]
     except requests.exceptions.RequestException:
         next_color = "blue"
@@ -27,21 +42,22 @@ def format_sirene_notebook(**kwargs):
 
     format_notebook = PapermillMinioOperator(
         task_id="format_sirene_notebook",
-        input_nb=f'{os.getenv("AIRFLOW_DAG_HOME")}{os.getenv("DAG_FOLDER")}process-data-before-indexation.ipynb',
-        output_nb=f'latest_{os.getenv("AIRFLOW_DAG_HOME")}.ipynb',
-        tmp_path=f'{os.getenv("TMP_FOLDER")}{os.getenv("DAG_FOLDER")}{os.getenv("DAG_NAME")}/',
-        minio_url=os.getenv("MINIO_URL"),
-        minio_bucket=os.getenv("MINIO_BUCKET"),
-        minio_user=os.getenv("MINIO_USER"),
-        minio_password=os.getenv("MINIO_PASSWORD"),
-        minio_output_filepath=f'{os.getenv("DAG_FOLDER")}'
-        + f'{os.getenv("DAG_NAME")}/'
-        + f'{os.getenv("ENV")}'
+        input_nb=AIRFLOW_DAG_HOME + DAG_FOLDER + "process-data-before-indexation.ipynb",
+        output_nb="latest.ipynb",
+        tmp_path=TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/",
+        minio_url=MINIO_URL,
+        minio_bucket=MINIO_BUCKET,
+        minio_user=MINIO_USER,
+        minio_password=MINIO_PASSWORD,
+        minio_output_filepath=DAG_FOLDER
+        + DAG_NAME
+        + "/"
+        + ENV
         + "/format_sirene_notebook/",
         parameters={
-            "msgs": f'Ran from Airflow latest {os.getenv("ENV")}!',
-            "DATA_DIR": f'{os.getenv("TMP_FOLDER")}{os.getenv("DAG_FOLDER")}{os.getenv("DAG_NAME")}/data/',
-            "OUTPUT_DATA_FOLDER": f'{os.getenv("TMP_FOLDER")}{os.getenv("DAG_FOLDER")}{os.getenv("DAG_NAME")}/output/',
+            "msgs": "Ran from Airflow latest !",
+            "DATA_DIR": TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            "OUTPUT_DATA_FOLDER": TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/output/",
             "ELASTIC_INDEX": elastic_index,
         },
     )
@@ -53,10 +69,10 @@ def create_elastic_siren(**kwargs):
     elastic_index = "siren-" + next_color
     create_index = ElasticCreateSirenOperator(
         task_id="create_elastic_index",
-        elastic_url=os.getenv("ELASTIC_URL"),
+        elastic_url=ELASTIC_URL,
         elastic_index=elastic_index,
-        elastic_user=os.getenv("ELASTIC_USER"),
-        elastic_password=os.getenv("ELASTIC_PASSWORD"),
+        elastic_user=ELASTIC_USER,
+        elastic_password=ELASTIC_PASSWORD,
     )
     create_index.execute(dict())
 
@@ -78,9 +94,11 @@ def fill_siren(**kwargs):
 
     for dep in all_deps:
         print(
-            f'{os.getenv("DAG_FOLDER")}\
-            {os.getenv("DAG_NAME")}\
-            /{os.getenv("ENV")}/'
+            DAG_FOLDER
+            + DAG_NAME
+            + "/"
+            + ENV
+            + "/"
             + elastic_index
             + "_"
             + dep
@@ -88,19 +106,20 @@ def fill_siren(**kwargs):
         )
         fill_elastic = ElasticFillSirenOperator(
             task_id="fill_elastic_index",
-            elastic_url=os.getenv("ELASTIC_URL"),
+            elastic_url=ELASTIC_URL,
             elastic_index=elastic_index,
-            elastic_user=os.getenv("ELASTIC_USER"),
-            elastic_password=os.getenv("ELASTIC_PASSWORD"),
+            elastic_user=ELASTIC_USER,
+            elastic_password=ELASTIC_PASSWORD,
             elastic_bulk_size=1500,
-            minio_url=os.getenv("MINIO_URL"),
-            minio_bucket=os.getenv("MINIO_BUCKET"),
-            minio_user=os.getenv("MINIO_USER"),
-            minio_password=os.getenv("MINIO_PASSWORD"),
-            minio_filepath=f'{os.getenv("DAG_FOLDER")}\
-            {os.getenv("DAG_NAME")}\
-            /{os.getenv("ENV")}\
-            /format_sirene_notebook/output/'
+            minio_url=MINIO_URL,
+            minio_bucket=MINIO_BUCKET,
+            minio_user=MINIO_USER,
+            minio_password=MINIO_PASSWORD,
+            minio_filepath=DAG_FOLDER
+            + DAG_NAME
+            + "/"
+            + ENV
+            + "/format_sirene_notebook/output/"
             + elastic_index
             + "_"
             + dep

@@ -14,6 +14,11 @@ from operators.clean_folder import CleanFolderOperator
 
 load_dotenv()
 
+DAG_FOLDER = os.getenv("DAG_FOLDER")
+DAG_NAME = os.getenv("DAG_NAME")
+TMP_FOLDER = os.getenv("TMP_FOLDER")
+
+
 with DAG(
     dag_id=os.getenv("DAG_NAME"),
     schedule_interval="0 23 10 * *",
@@ -27,7 +32,7 @@ with DAG(
 
     clean_previous_folder = CleanFolderOperator(
         task_id="clean_previous_folder",
-        folder_path=f'{os.getenv("TMP_FOLDER")}{os.getenv("DAG_FOLDER")}{os.getenv("DAG_NAME")}/',
+        folder_path=TMP_FOLDER + DAG_FOLDER + DAG_NAME,
     )
 
     format_sirene_notebook = PythonOperator(
@@ -37,8 +42,8 @@ with DAG(
     )
 
     clean_tmp_folder = CleanFolderOperator(
-        task_id="clean_tmp_folder", folder_path=f'{os.getenv("TMP_FOLDER")}{os.getenv("DAG_FOLDER")}\
-        {os.getenv("DAG_NAME")}/'
+        task_id="clean_tmp_folder",
+        folder_path=TMP_FOLDER + DAG_FOLDER + DAG_NAME,
     )
 
     create_elastic_siren = PythonOperator(
