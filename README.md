@@ -2,9 +2,9 @@
 
 Ce site est disponible en ligne : [L’Annuaire des Entreprises](https://annuaire-entreprises.data.gouv.fr)
 
-Ce repo met en place l'infrastructure Airflow permettant d'exécuter le workflow qui récupère, traite et indexe les données publiques d'entreprises.
+Ce repository décrit le workflow qui récupère, traite et indexe les données publiques d'entreprises.
 
-L'infrastructure actuelle est basée sur du LocalExecutor (le scheduler, le webserver et worker sont hébergés sur le même container)
+Ce code s'exécute dans une infrastructure Airflow basée sur cette stack 👉 https://github.com/etalab/data-engineering-stack.
 
 ## Architecture du service 🏗
 
@@ -16,7 +16,3 @@ Ce repository fait partie d'un ensemble de services qui constituent l'[Annuaire 
 |L’API du Moteur de recherche | [par ici 👉](https://github.com/etalab/annuaire-entreprises-search-api) |
 |L‘API de redondance de Sirene | [par ici 👉](https://github.com/etalab/annuaire-entreprises-sirene-api) |
 |Le traitement permettant la génération de données à ingérer dans le moteur de recherche | [par ici 👉](https://github.com/etalab/annuaire-entreprises-search-infra) |
-
-## A propos de l'infrastructure
-
-L'architecture se base sur cette stack 👉 https://github.com/etalab/data-engineering-stack
