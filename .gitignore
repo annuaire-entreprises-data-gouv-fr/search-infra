@@ -1,6 +1,5 @@
-es-data/
-pg-airflow/
-.DS_Store
-logs/
-variables.py
+.ipynb_checkpoints
+__pycache__
+data/
+output/
 .env
