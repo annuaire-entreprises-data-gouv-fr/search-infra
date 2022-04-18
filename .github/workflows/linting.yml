@@ -1,5 +1,6 @@
+---
 name: Lint Code Base
-on: [ push, pull_request ]
+on: [push, pull_request]
 jobs:
   build:
     name: Lint Code Base
@@ -8,7 +9,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
-          # Full git history is needed to get a proper list of changed files within `super-linter`
+          # Full git history is needed to get a proper list
+          # of changed files within `super-linter`
           fetch-depth: 0
       - name: Lint Code Base
         uses: github/super-linter@v4

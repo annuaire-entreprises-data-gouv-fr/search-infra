@@ -4,8 +4,12 @@ from datetime import timedelta
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.utils import (create_elastic_siren, fill_siren,
-                                       format_sirene_notebook, get_next_color)
+from dag_datalake_sirene.utils import (
+    create_elastic_siren,
+    fill_siren,
+    format_sirene_notebook,
+    get_next_color,
+)
 from dotenv import load_dotenv
 from operators.clean_folder import CleanFolderOperator
 
@@ -29,7 +33,7 @@ with DAG(
 
     clean_previous_folder = CleanFolderOperator(
         task_id="clean_previous_folder",
-        folder_path=TMP_FOLDER + DAG_FOLDER + DAG_NAME,
+        folder_path=f"{TMP_FOLDER}+{DAG_FOLDER}+{DAG_NAME}",
     )
 
     format_sirene_notebook = PythonOperator(
@@ -40,7 +44,7 @@ with DAG(
 
     clean_tmp_folder = CleanFolderOperator(
         task_id="clean_tmp_folder",
-        folder_path=TMP_FOLDER + DAG_FOLDER + DAG_NAME,
+        folder_path=f"{TMP_FOLDER}+{DAG_FOLDER}+{DAG_NAME}",
     )
 
     create_elastic_siren = PythonOperator(
