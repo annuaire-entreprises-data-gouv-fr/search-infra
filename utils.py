@@ -6,7 +6,7 @@ import requests
 from dotenv import load_dotenv
 from operators.elastic_create_siren import ElasticCreateSirenOperator
 from operators.elastic_fill_siren import ElasticFillSirenOperator
-from operators.papermill_minio_siren import PapermillMinioOperator
+from operators.papermill_minio_siren import PapermillMinioSirenOperator
 
 load_dotenv()
 
@@ -40,7 +40,7 @@ def format_sirene_notebook(**kwargs):
     next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_next_color")
     elastic_index = "siren-" + next_color
 
-    format_notebook = PapermillMinioOperator(
+    format_notebook = PapermillMinioSirenOperator(
         task_id="format_sirene_notebook",
         input_nb=AIRFLOW_DAG_HOME + DAG_FOLDER + "process-data-before-indexation.ipynb",
         output_nb="latest" + ENV + ".ipynb",
