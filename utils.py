@@ -6,7 +6,7 @@ import requests
 from dotenv import load_dotenv
 from operators.elastic_create_siren import ElasticCreateSirenOperator
 from operators.elastic_fill_siren import ElasticFillSirenOperator
-from operators.papermill_minio import PapermillMinioOperator
+from operators.papermill_minio_siren import PapermillMinioOperator
 
 load_dotenv()
 
