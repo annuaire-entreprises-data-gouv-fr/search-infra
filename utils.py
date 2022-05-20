@@ -34,12 +34,7 @@ def get_next_color(**kwargs):
         logging.info(f'******************** AIO URL: {AIO_URL}/colors')
         logging.info(f'******************** NEXT COLOR: {next_color}')
         kwargs["ti"].xcom_push(key="next_color", value=next_color)
-    except (
-        requests.exceptions.HTTPError,
-        requests.exceptions.ConnectionError,
-        requests.exceptions.Timeout,
-        requests.exceptions.RequestException,
-    ) as error:
+    except requests.exceptions.RequestException as error:
         raise Exception("OOps: Error", error)
 
 
