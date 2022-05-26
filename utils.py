@@ -60,6 +60,7 @@ def format_sirene_notebook(**kwargs):
             "msgs": "Ran from Airflow " + ENV + " !",
             "DATA_DIR": TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
             "OUTPUT_DATA_FOLDER": TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/output/",
+            "LABELS_FOLDER": TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/labels/",
             "ELASTIC_INDEX": elastic_index,
         },
     )
