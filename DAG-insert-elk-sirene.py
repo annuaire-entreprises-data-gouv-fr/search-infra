@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from airflow.models import DAG
+from airflow.models import DAG, Variable
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from dag_datalake_sirene.utils import (
@@ -16,6 +16,7 @@ from operators.clean_folder import CleanFolderOperator
 DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "insert-elk-sirene"
 TMP_FOLDER = "/tmp/"
+EMAIL_LIST = Variable.get("EMAIL_LIST")
 
 default_args = {
     "depends_on_past": False,
