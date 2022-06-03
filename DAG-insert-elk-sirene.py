@@ -19,7 +19,7 @@ TMP_FOLDER = "/tmp/"
 
 default_args = {
     "depends_on_past": False,
-    "email": EMAIL_LIST.split(",") if os.getenv("EMAIL_LIST") is not None else "",
+    "email": EMAIL_LIST,
     "email_on_failure": True,
     "email_on_retry": True,
     "retries": 1,
