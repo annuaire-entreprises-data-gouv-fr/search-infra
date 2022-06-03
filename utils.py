@@ -1,30 +1,28 @@
 import json
 import logging
-import os
 from urllib.request import urlopen
 
-from dotenv import load_dotenv
+from airflow.models import Variable
 from minio import Minio
 from operators.elastic_create_siren import ElasticCreateSirenOperator
 from operators.elastic_fill_siren import ElasticFillSirenOperator
 from operators.papermill_minio_siren import PapermillMinioSirenOperator
 
-load_dotenv()
+TMP_FOLDER = "/tmp/"
+DAG_FOLDER = "dag_datalake_sirene/"
+DAG_NAME = "insert-elk-sirene"
+AIRFLOW_DAG_HOME = "/opt/airflow/dags/"
 
-AIRFLOW_URL = os.getenv("AIRFLOW_URL")
-COLOR_URL = os.getenv("COLOR_URL")
-ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
-ELASTIC_URL = os.getenv("ELASTIC_URL")
-ELASTIC_USER = os.getenv("ELASTIC_USER")
-MINIO_BUCKET = os.getenv("MINIO_BUCKET")
-MINIO_PASSWORD = os.getenv("MINIO_PASSWORD")
-MINIO_URL = os.getenv("MINIO_URL")
-MINIO_USER = os.getenv("MINIO_USER")
-DAG_FOLDER = os.getenv("DAG_FOLDER")
-DAG_NAME = os.getenv("DAG_NAME")
-AIRFLOW_DAG_HOME = os.getenv("AIRFLOW_DAG_HOME")
-TMP_FOLDER = os.getenv("TMP_FOLDER")
-ENV = os.getenv("ENV")
+AIRFLOW_URL = Variable.get("AIRFLOW_URL")
+COLOR_URL = Variable.get("COLOR_URL")
+ELASTIC_PASSWORD = Variable.get("ELASTIC_PASSWORD")
+ELASTIC_URL = Variable.get("ELASTIC_URL")
+ELASTIC_USER = Variable.get("ELASTIC_USER")
+MINIO_BUCKET = Variable.get("MINIO_BUCKET")
+MINIO_PASSWORD = Variable.get("MINIO_PASSWORD")
+MINIO_URL = Variable.get("MINIO_URL")
+MINIO_USER = Variable.get("MINIO_USER")
+ENV = Variable.get("ENV")
 
 
 def get_colors(**kwargs):
@@ -33,6 +31,7 @@ def get_colors(**kwargs):
             data = json.loads(url.read().decode())
             next_color = data["NEXT_COLOR"]
             current_color = data["CURRENT_COLOR"]
+            logging.info(f"******************** Color file URL: {COLOR_URL}")
             logging.info(f"******************** Next color from file: {next_color}")
             kwargs["ti"].xcom_push(key="next_color", value=next_color)
             kwargs["ti"].xcom_push(key="current_color", value=current_color)
