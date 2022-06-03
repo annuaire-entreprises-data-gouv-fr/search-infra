@@ -29,7 +29,7 @@ ENV = os.getenv("ENV")
 
 def get_colors(**kwargs):
     try:
-        with urlopen(COLOR_URL) as url:
+        with urlopen(COLOR_URL, timeout=5) as url:
             data = json.loads(url.read().decode())
             next_color = data["NEXT_COLOR"]
             current_color = data["CURRENT_COLOR"]
