@@ -8,7 +8,6 @@ from operators.elastic_create_siren import ElasticCreateSirenOperator
 from operators.elastic_fill_siren import ElasticFillSirenOperator
 from operators.papermill_minio_siren import PapermillMinioSirenOperator
 
-
 AIRFLOW_URL = Variable.get("airflow_url")
 COLOR_URL = Variable.get("color_url")
 ELASTIC_PASSWORD = Variable.get("elastic_password")

@@ -13,7 +13,6 @@ from dag_datalake_sirene.utils import (
 )
 from operators.clean_folder import CleanFolderOperator
 
-
 DAG_FOLDER = Variable.get("dag_folder")
 DAG_NAME = Variable.get("dag_name")
 TMP_FOLDER = Variable.get("tmp_folder")
