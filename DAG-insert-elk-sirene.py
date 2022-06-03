@@ -23,11 +23,11 @@ TMP_FOLDER = os.getenv("TMP_FOLDER")
 
 
 with DAG(
-        dag_id=os.getenv("DAG_NAME"),
-        schedule_interval="0 23 10 * *",
-        start_date=days_ago(10),
-        dagrun_timeout=timedelta(minutes=60 * 8),
-        tags=["siren"],
+    dag_id=os.getenv("DAG_NAME"),
+    schedule_interval="0 23 10 * *",
+    start_date=days_ago(10),
+    dagrun_timeout=timedelta(minutes=60 * 8),
+    tags=["siren"],
 ) as dag:
     get_colors = PythonOperator(
         task_id="get_colors", provide_context=True, python_callable=get_colors
@@ -60,12 +60,14 @@ with DAG(
     )
 
     check_elastic_index = PythonOperator(
-        task_id="check_elastic_index", provide_context=True,
+        task_id="check_elastic_index",
+        provide_context=True,
         python_callable=check_elastic_index,
     )
 
     update_color_file = PythonOperator(
-        task_id="update_color_file", provide_context=True,
+        task_id="update_color_file",
+        provide_context=True,
         python_callable=update_color_file,
     )
 
