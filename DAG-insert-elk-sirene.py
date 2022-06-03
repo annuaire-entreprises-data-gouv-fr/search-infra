@@ -13,9 +13,9 @@ from dag_datalake_sirene.utils import (
 )
 from operators.clean_folder import CleanFolderOperator
 
-DAG_FOLDER = Variable.get("dag_folder")
-DAG_NAME = Variable.get("dag_name")
-TMP_FOLDER = Variable.get("tmp_folder")
+DAG_FOLDER = Variable.get("DAG_FOLDER")
+DAG_NAME = Variable.get("DAG_NAME")
+TMP_FOLDER = Variable.get("TMP_FOLDER")
 
 
 with DAG(
