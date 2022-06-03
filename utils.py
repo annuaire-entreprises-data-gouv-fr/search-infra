@@ -8,20 +8,20 @@ from operators.elastic_create_siren import ElasticCreateSirenOperator
 from operators.elastic_fill_siren import ElasticFillSirenOperator
 from operators.papermill_minio_siren import PapermillMinioSirenOperator
 
-AIRFLOW_URL = Variable.get("airflow_url")
-COLOR_URL = Variable.get("color_url")
-ELASTIC_PASSWORD = Variable.get("elastic_password")
-ELASTIC_URL = Variable.get("elastic_url")
-ELASTIC_USER = Variable.get("elastic_user")
-MINIO_BUCKET = Variable.get("minio_bucket")
-MINIO_PASSWORD = Variable.get("minio_password")
-MINIO_URL = Variable.get("minio_url")
-MINIO_USER = Variable.get("minio_user")
-DAG_FOLDER = Variable.get("dag_folder")
-DAG_NAME = Variable.get("dag_name")
-AIRFLOW_DAG_HOME = Variable.get("airflow_dag_home")
-TMP_FOLDER = Variable.get("tmp_folder")
-ENV = Variable.get("env")
+AIRFLOW_URL = Variable.get("AIRFLOW_URL")
+COLOR_URL = Variable.get("COLOR_URL")
+ELASTIC_PASSWORD = Variable.get("ELASTIC_PASSWORD")
+ELASTIC_URL = Variable.get("ELASTIC_URL")
+ELASTIC_USER = Variable.get("ELASTIC_USER")
+MINIO_BUCKET = Variable.get("MINIO_BUCKET")
+MINIO_PASSWORD = Variable.get("MINIO_PASSWORD")
+MINIO_URL = Variable.get("MINIO_URL")
+MINIO_USER = Variable.get("MINIO_USER")
+DAG_FOLDER = Variable.get("DAG_FOLDER")
+DAG_NAME = Variable.get("DAG_NAME")
+AIRFLOW_DAG_HOME = Variable.get("AIRFLOW_DAG_HOME")
+TMP_FOLDER = Variable.get("TMP_FOLDER")
+ENV = Variable.get("ENV")
 
 
 def get_colors(**kwargs):
