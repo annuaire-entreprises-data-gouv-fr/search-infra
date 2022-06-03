@@ -4,14 +4,16 @@ import os
 
 import requests
 from dotenv import load_dotenv
+from minio import Minio
 from operators.elastic_create_siren import ElasticCreateSirenOperator
 from operators.elastic_fill_siren import ElasticFillSirenOperator
 from operators.papermill_minio_siren import PapermillMinioSirenOperator
+from urllib.request import urlopen
 
 load_dotenv()
 
-AIO_URL = os.getenv("AIO_URL")
 AIRFLOW_URL = os.getenv("AIRFLOW_URL")
+COLOR_URL = os.getenv("COLOR_URL")
 ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
 ELASTIC_URL = os.getenv("ELASTIC_URL")
 ELASTIC_USER = os.getenv("ELASTIC_USER")
@@ -26,20 +28,25 @@ TMP_FOLDER = os.getenv("TMP_FOLDER")
 ENV = os.getenv("ENV")
 
 
-def get_next_color(**kwargs):
+def get_colors(**kwargs):
     try:
-        response = requests.get(f"{AIO_URL}/colors")
-        next_color = json.loads(response.content)["NEXT_COLOR"]
-        response.raise_for_status()
-        logging.info(f"******************** AIO URL: {AIO_URL}/colors")
-        logging.info(f"******************** NEXT COLOR: {next_color}")
-        kwargs["ti"].xcom_push(key="next_color", value=next_color)
-    except requests.exceptions.RequestException as error:
-        raise Exception("OOps: Error", error)
+        with urlopen(COLOR_URL) as url:
+            data = json.loads(url.read().decode())
+            next_color = data["NEXT_COLOR"]
+            current_color = data["CURRENT_COLOR"]
+            logging.info(
+                f"******************** Next color from file: {next_color}"
+            )
+            kwargs["ti"].xcom_push(key="next_color", value=next_color)
+            kwargs["ti"].xcom_push(key="current_color", value=current_color)
+    except BaseException as error:
+        raise Exception(
+            f"******************** Ouuups Error: {error}"
+        )
 
 
 def format_sirene_notebook(**kwargs):
-    next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_next_color")
+    next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
     elastic_index = "siren-" + next_color
 
     format_notebook = PapermillMinioSirenOperator(
@@ -52,10 +59,10 @@ def format_sirene_notebook(**kwargs):
         minio_user=MINIO_USER,
         minio_password=MINIO_PASSWORD,
         minio_output_filepath=DAG_FOLDER
-        + DAG_NAME
-        + "/"
-        + ENV
-        + "/format_sirene_notebook/",
+                              + DAG_NAME
+                              + "/"
+                              + ENV
+                              + "/format_sirene_notebook/",
         parameters={
             "msgs": "Ran from Airflow " + ENV + " !",
             "DATA_DIR": TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
@@ -68,8 +75,11 @@ def format_sirene_notebook(**kwargs):
 
 
 def create_elastic_siren(**kwargs):
-    next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_next_color")
+    next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
     elastic_index = "siren-" + next_color
+    logging.info(
+        f"******************** Index to create: {elastic_index}"
+    )
     create_index = ElasticCreateSirenOperator(
         task_id="create_elastic_index",
         elastic_url=ELASTIC_URL,
@@ -81,7 +91,7 @@ def create_elastic_siren(**kwargs):
 
 
 def fill_siren(**kwargs):
-    next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_next_color")
+    next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
     elastic_index = "siren-" + next_color
 
     all_deps = [
@@ -111,13 +121,62 @@ def fill_siren(**kwargs):
             minio_user=MINIO_USER,
             minio_password=MINIO_PASSWORD,
             minio_filepath=DAG_FOLDER
-            + DAG_NAME
-            + "/"
-            + ENV
-            + "/format_sirene_notebook/output/"
-            + elastic_index
-            + "_"
-            + dep
-            + ".csv",
+           + DAG_NAME
+           + "/"
+           + ENV
+           + "/format_sirene_notebook/output/"
+           + elastic_index
+           + "_"
+           + dep
+           + ".csv",
         )
         fill_elastic.execute(dict())
+
+    doc_count = fill_elastic.count_docs(dict())
+    kwargs["ti"].xcom_push(key="doc_count", value=doc_count)
+
+
+def check_elastic_index(**kwargs):
+    doc_count = kwargs["ti"].xcom_pull(key="doc_count", task_ids="fill_elastic_siren")
+    logging.info(
+        f"******************** Documents indexed: {doc_count}"
+    )
+    if float(doc_count) < 20e6:
+        raise ValueError(f"*******The data has not been correctly indexed: "
+                         f"{doc_count} documents indexed.")
+
+
+def update_color_file(**kwargs):
+    next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
+    current_color = kwargs["ti"].xcom_pull(key="current_color",
+                                           task_ids="get_colors")
+    colors = {"CURRENT_COLOR": next_color, "NEXT_COLOR": current_color}
+    logging.info(
+        f"******************** Next color configuration: {colors}"
+    )
+
+    with open("colors.json", 'w') as write_file:
+        json.dump(colors, write_file)
+    minio_filepath = f"ae/colors-{ENV}.json"
+    minio_url = MINIO_URL
+    minio_bucket = MINIO_BUCKET
+    minio_user = MINIO_USER
+    minio_password = MINIO_PASSWORD
+
+    # start client
+    client = Minio(
+        minio_url,
+        access_key=minio_user,
+        secret_key=minio_password,
+        secure=True,
+    )
+
+    # check if bucket exists.
+    found = client.bucket_exists(minio_bucket)
+    if found:
+        client.fput_object(
+            bucket_name=minio_bucket,
+            object_name=minio_filepath,
+            file_path="colors.json",
+            content_type="application/json",
+        )
