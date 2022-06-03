@@ -13,9 +13,9 @@ from dag_datalake_sirene.utils import (
 )
 from operators.clean_folder import CleanFolderOperator
 
-DAG_FOLDER = Variable.get("DAG_FOLDER")
-DAG_NAME = Variable.get("DAG_NAME")
-TMP_FOLDER = Variable.get("TMP_FOLDER")
+DAG_FOLDER = "dag_datalake_sirene/"
+DAG_HOME = "/opt/airflow/dags/"
+TMP_FOLDER = "/tmp/"
 
 
 with DAG(

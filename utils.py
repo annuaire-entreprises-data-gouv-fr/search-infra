@@ -8,6 +8,11 @@ from operators.elastic_create_siren import ElasticCreateSirenOperator
 from operators.elastic_fill_siren import ElasticFillSirenOperator
 from operators.papermill_minio_siren import PapermillMinioSirenOperator
 
+TMP_FOLDER = "/tmp/"
+DAG_FOLDER = "dag_datalake_sirene/"
+DAG_NAME = "insert-elk-sirene"
+AIRFLOW_DAG_HOME = "/opt/airflow/dags/"
+
 AIRFLOW_URL = Variable.get("AIRFLOW_URL")
 COLOR_URL = Variable.get("COLOR_URL")
 ELASTIC_PASSWORD = Variable.get("ELASTIC_PASSWORD")
@@ -17,10 +22,6 @@ MINIO_BUCKET = Variable.get("MINIO_BUCKET")
 MINIO_PASSWORD = Variable.get("MINIO_PASSWORD")
 MINIO_URL = Variable.get("MINIO_URL")
 MINIO_USER = Variable.get("MINIO_USER")
-DAG_FOLDER = Variable.get("DAG_FOLDER")
-DAG_NAME = Variable.get("DAG_NAME")
-AIRFLOW_DAG_HOME = Variable.get("AIRFLOW_DAG_HOME")
-TMP_FOLDER = Variable.get("TMP_FOLDER")
 ENV = Variable.get("ENV")
 
 
