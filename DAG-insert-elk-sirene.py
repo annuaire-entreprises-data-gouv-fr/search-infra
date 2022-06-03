@@ -1,7 +1,6 @@
-import os
 from datetime import timedelta
 
-from airflow.models import DAG
+from airflow.models import DAG, Variable
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from dag_datalake_sirene.utils import (
@@ -12,18 +11,16 @@ from dag_datalake_sirene.utils import (
     get_colors,
     update_color_file,
 )
-from dotenv import load_dotenv
 from operators.clean_folder import CleanFolderOperator
 
-load_dotenv()
 
-DAG_FOLDER = os.getenv("DAG_FOLDER")
-DAG_NAME = os.getenv("DAG_NAME")
-TMP_FOLDER = os.getenv("TMP_FOLDER")
+DAG_FOLDER = Variable.get("dag_folder")
+DAG_NAME = Variable.get("dag_name")
+TMP_FOLDER = Variable.get("tmp_folder")
 
 
 with DAG(
-    dag_id=os.getenv("DAG_NAME"),
+    dag_id=DAG_NAME,
     schedule_interval="0 23 10 * *",
     start_date=days_ago(10),
     dagrun_timeout=timedelta(minutes=60 * 8),
