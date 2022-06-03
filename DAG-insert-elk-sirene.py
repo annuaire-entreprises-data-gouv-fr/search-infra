@@ -5,10 +5,12 @@ from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from dag_datalake_sirene.utils import (
+    check_elastic_index,
     create_elastic_siren,
     fill_siren,
     format_sirene_notebook,
-    get_next_color,
+    get_colors,
+    update_color_file,
 )
 from dotenv import load_dotenv
 from operators.clean_folder import CleanFolderOperator
@@ -27,8 +29,8 @@ with DAG(
     dagrun_timeout=timedelta(minutes=60 * 8),
     tags=["siren"],
 ) as dag:
-    get_next_color = PythonOperator(
-        task_id="get_next_color", provide_context=True, python_callable=get_next_color
+    get_colors = PythonOperator(
+        task_id="get_colors", provide_context=True, python_callable=get_colors
     )
 
     clean_previous_folder = CleanFolderOperator(
@@ -52,12 +54,27 @@ with DAG(
         provide_context=True,
         python_callable=create_elastic_siren,
     )
+
     fill_elastic_siren = PythonOperator(
         task_id="fill_elastic_siren", provide_context=True, python_callable=fill_siren
     )
 
-    clean_previous_folder.set_upstream(get_next_color)
+    check_elastic_index = PythonOperator(
+        task_id="check_elastic_index",
+        provide_context=True,
+        python_callable=check_elastic_index,
+    )
+
+    update_color_file = PythonOperator(
+        task_id="update_color_file",
+        provide_context=True,
+        python_callable=update_color_file,
+    )
+
+    clean_previous_folder.set_upstream(get_colors)
     format_sirene_notebook.set_upstream(clean_previous_folder)
     clean_tmp_folder.set_upstream(format_sirene_notebook)
     create_elastic_siren.set_upstream(clean_tmp_folder)
     fill_elastic_siren.set_upstream(create_elastic_siren)
+    check_elastic_index.set_upstream(fill_elastic_siren)
+    update_color_file.set_upstream(check_elastic_index)
