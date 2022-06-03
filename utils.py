@@ -9,7 +9,6 @@ from operators.elastic_create_siren import ElasticCreateSirenOperator
 from operators.elastic_fill_siren import ElasticFillSirenOperator
 from operators.papermill_minio_siren import PapermillMinioSirenOperator
 
-
 load_dotenv()
 
 AIRFLOW_URL = os.getenv("AIRFLOW_URL")
