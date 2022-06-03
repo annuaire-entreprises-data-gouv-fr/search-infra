@@ -14,7 +14,7 @@ from dag_datalake_sirene.utils import (
 from operators.clean_folder import CleanFolderOperator
 
 DAG_FOLDER = "dag_datalake_sirene/"
-DAG_NAME = "/opt/airflow/dags/"
+DAG_NAME = "insert-elk-sirene"
 TMP_FOLDER = "/tmp/"
 
 
