@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from airflow.models import DAG
+from airflow.models import DAG, Variable
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from dag_datalake_sirene.utils import (
@@ -16,10 +16,20 @@ from operators.clean_folder import CleanFolderOperator
 DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "insert-elk-sirene"
 TMP_FOLDER = "/tmp/"
+EMAIL_LIST = Variable.get("EMAIL_LIST")
 
+default_args = {
+    "depends_on_past": False,
+    "email": EMAIL_LIST,
+    "email_on_failure": True,
+    "email_on_retry": True,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
+}
 
 with DAG(
     dag_id=DAG_NAME,
+    default_args=default_args,
     schedule_interval="0 23 10 * *",
     start_date=days_ago(10),
     dagrun_timeout=timedelta(minutes=60 * 8),
