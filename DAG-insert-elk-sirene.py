@@ -83,7 +83,7 @@ with DAG(
         ssh_conn_id="SERVER",
         task_id="execute_aio_container",
         command=f"cd {PATH_AIO} "
-                f"&& docker-compose -f docker-compose-aio.yml up --build -d --force",
+        f"&& docker-compose -f docker-compose-aio.yml up --build -d --force",
         dag=dag,
     )
 
