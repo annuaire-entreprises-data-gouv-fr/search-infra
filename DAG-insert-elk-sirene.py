@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.models import DAG, Variable
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
@@ -17,6 +18,7 @@ DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "insert-elk-sirene"
 TMP_FOLDER = "/tmp/"
 EMAIL_LIST = Variable.get("EMAIL_LIST")
+PATH_AIO = Variable.get("PATH_AIO")
 
 default_args = {
     "depends_on_past": False,
@@ -77,6 +79,14 @@ with DAG(
         python_callable=update_color_file,
     )
 
+    execute_aio_container = SSHOperator(
+        ssh_conn_id="SERVER",
+        task_id="execute_aio_container",
+        command=f"cd {PATH_AIO} "
+                f"&& docker-compose -f docker-compose-aio.yml up --build -d --force",
+        dag=dag,
+    )
+
     clean_previous_folder.set_upstream(get_colors)
     format_sirene_notebook.set_upstream(clean_previous_folder)
     clean_tmp_folder.set_upstream(format_sirene_notebook)
@@ -84,3 +94,4 @@ with DAG(
     fill_elastic_siren.set_upstream(create_elastic_siren)
     check_elastic_index.set_upstream(fill_elastic_siren)
     update_color_file.set_upstream(check_elastic_index)
+    execute_aio_container.set_upstream(update_color_file)
