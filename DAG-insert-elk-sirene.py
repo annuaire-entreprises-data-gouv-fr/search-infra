@@ -1,7 +1,8 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.models import DAG, Variable
+from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from dag_datalake_sirene.utils import (
@@ -18,6 +19,7 @@ DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "insert-elk-sirene"
 TMP_FOLDER = "/tmp/"
 EMAIL_LIST = Variable.get("EMAIL_LIST")
+ENV = Variable.get("ENV")
 PATH_AIO = Variable.get("PATH_AIO")
 
 default_args = {
@@ -87,6 +89,19 @@ with DAG(
         dag=dag,
     )
 
+    success_email_body = f"""
+    Hi, <br><br>
+    insert-elk-sirene-{ENV} DAG has been executed successfully at {datetime.now()}.
+    """
+
+    send_email = EmailOperator(
+        task_id="send_email",
+        to=EMAIL_LIST,
+        subject=f"Airflow Success: DAG-{ENV}!",
+        html_content=success_email_body,
+        dag=dag,
+    )
+
     clean_previous_folder.set_upstream(get_colors)
     format_sirene_notebook.set_upstream(clean_previous_folder)
     clean_tmp_folder.set_upstream(format_sirene_notebook)
@@ -95,3 +110,4 @@ with DAG(
     check_elastic_index.set_upstream(fill_elastic_siren)
     update_color_file.set_upstream(check_elastic_index)
     execute_aio_container.set_upstream(update_color_file)
+    send_email.set_upstream(execute_aio_container)
