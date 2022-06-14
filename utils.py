@@ -90,9 +90,10 @@ def fill_siren(**kwargs):
         *"-0".join(list(str(x) for x in range(0, 10))).split("-")[1:],
         *list(str(x) for x in range(10, 20)),
         *["2A", "2B"],
-        *list(str(x) for x in range(21, 95)),
+        *list(str(x) for x in range(21, 96)),
         *"-7510".join(list(str(x) for x in range(0, 10))).split("-")[1:],
         *"-751".join(list(str(x) for x in range(10, 21))).split("-")[1:],
+        *["971", "972", "973", "974", "976"],
         *[""],
     ]
     all_deps.remove("75")
