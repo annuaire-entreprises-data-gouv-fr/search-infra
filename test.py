@@ -9,10 +9,10 @@ import math
 import json
 from csv import reader
 from os.path import exists
+from psutil import virtual_memory, swap_memory
 import gc
 
 start_time = time.time()
-
 
 if "DATA_DIR" not in locals():
     DATA_DIR = "./data/"
@@ -56,18 +56,23 @@ all_deps = [
 all_deps.remove("75")
 # all_deps = ["13", "69", "59", "33", "06", "92", "93", "34", "83", "31","94","78","44","38","77","91","95","67","76"]
 
-from psutil import virtual_memory, swap_memory
+sections_NAF = {
+"01":"A","02":"A","03":"A","05":"B","06":"B","07":"B","08":"B","09":"B","10":"C","11":"C","12":"C","13":"C","14":"C",
+ "15":"C","16":"C","17":"C","18":"C","19":"C","20":"C","21":"C","22":"C","23":"C","24":"C","25":"C","26":"C","27":"C",
+ "28":"C","29":"C","30":"C","31":"C","32":"C","33":"C","35":"D","36":"E","37":"E","38":"E","39":"E","41":"F","42":"F",
+ "43":"F","45":"G","46":"G","47":"G","49":"H","50":"H","51":"H","52":"H","53":"H","55":"I","56":"I","58":"J","59":"J",
+ "60":"J","61":"J","62":"J","63":"J","64":"K","65":"K","66":"K","68":"L","69":"M","70":"M","71":"M","72":"M","73":"M",
+ "74":"M","75":"M","77":"N","78":"N","79":"N","80":"N","81":"N","82":"N","84":"O","85":"P","86":"Q","87":"Q","88":"Q",
+ "90":"R","91":"R","92":"R","93":"R","94":"S","95":"S","96":"S","97":"T","98":"T","99":"U"
+}
+
 
 def mem():
     print(f'swap memory : {round(swap_memory()[1]/(1024*1024*1024)*10)/10}Go')
     print(f'used memory : {round(virtual_memory()[3]/(1024*1024*1024)*10)/10}Go')
 
 
-# Upload geo data by departement
-
-# we can reduce this to only the download time by scrapping pandas entirey and only saving csv on disk
-# I didnot do it as it requires to rewrite column names
-# should save ~ 4~5min
+# Etablissements by departement
 
 for dep in all_deps:
     file_path = DATA_DIR + "geo_siret_" + dep + ".csv"
@@ -177,7 +182,61 @@ for dep in all_deps:
     )
     df_dep.to_csv(file_path, index=False)
 
-def adresse_complete(cols, row, adresse_2=False):
+
+# UNITE LEGALE
+
+unite_file = DATA_DIR + "unite_legales.csv"
+
+unite_legale_file_exists = exists(unite_file)
+
+if not unite_legale_file_exists:
+    start_time = time.time()
+    chunk = pd.read_csv(
+        "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip",
+        compression="zip",
+        dtype=str,
+        chunksize=100000,
+        usecols=[
+            "siren",
+            "dateCreationUniteLegale",
+            "sigleUniteLegale",
+            "prenom1UniteLegale",
+            "identifiantAssociationUniteLegale",
+            "trancheEffectifsUniteLegale",
+            "dateDernierTraitementUniteLegale",
+            "categorieEntreprise",
+            "etatAdministratifUniteLegale",
+            "nomUniteLegale",
+            "nomUsageUniteLegale",
+            "denominationUniteLegale",
+            "categorieJuridiqueUniteLegale",
+            "activitePrincipaleUniteLegale",
+            "economieSocialeSolidaireUniteLegale",
+        ],
+    )
+    # Rename columns
+    df_unite_legale = pd.concat(chunk)
+    df_unite_legale = df_unite_legale.rename(
+        columns={
+            "dateCreationUniteLegale": "date_creation_unite_legale",
+            "sigleUniteLegale": "sigle",
+            "prenom1UniteLegale": "prenom",
+            "trancheEffectifsUniteLegale": "tranche_effectif_salarie_unite_legale",
+            "dateDernierTraitementUniteLegale": "date_mise_a_jour_unite_legale",
+            "categorieEntreprise": "categorie_entreprise",
+            "etatAdministratifUniteLegale":"etat_administratif_unite_legale",
+            "nomUniteLegale": "nom",
+            "nomUsageUniteLegale": "nom_usage",
+            "denominationUniteLegale": "nom_raison_sociale",
+            "categorieJuridiqueUniteLegale": "nature_juridique_unite_legale",
+            "activitePrincipaleUniteLegale": "activite_principale_unite_legale",
+            "economieSocialeSolidaireUniteLegale":"economie_sociale_solidaire_unite_legale",
+            "identifiantAssociationUniteLegale":"identifiant_association_unite_legale",
+        }
+    )
+    df_unite_legale.to_csv(unite_file, index=False)
+
+def get_adresse_complete(cols, row, adresse_2=False):
     def get(x, default=None): 
         val = row[cols[x]]
         if not val:
@@ -209,64 +268,166 @@ def get_key(k, dico, default=0):
     
     return default
 
+    
 def parse_etab(cols, row, all_unite_legale, index):
-    get = lambda x: row[cols[x]]
+    def get(x, default=None): 
+        val = row[cols[x]]
+        if not val:
+            return default
+        return val
 
     siren = get('siren')
-    unite_legale = get_key(siren, all_unite_legale, [
-        siren,
-        0, # nombre_etablissements
-        0, # nombre_etablissements_ouverts
-        [],
-        '', # adresse_complete
-        '', # adresse_complete_2
-    ])
+    unite_legale = get_key(siren, all_unite_legale, {
+        'siren':siren,
+        'nombre_etablissements_ouverts':0,
+        'nombre_etablissements':0,
+        "etablissements":[]
+    })
+        
+    etat_administratif_etablissement = get("etat_administratif_etablissement")
+    date_creation = get("date_creation")
+    tranche_effectif_salarie = get("tranche_effectif_salarie")
+    date_debut_activite = get("date_debut_activite")
+    activite_principale = get("activite_principale")
+    numero_voie = get("numero_voie")
+    type_voie = get("type_voie")
+    libelle_voie = get("libelle_voie")
+    distribution_speciale = get("distribution_speciale")
+    cedex = get("cedex")
+    libelle_cedex = get("libelle_cedex")
+    commune = get("commune")
+    libelle_commune = get("libelle_commune")
+    code_pays_etranger = get("code_pays_etranger")
+    code_postal = get("code_postal")
+    geo_id = get("geo_id")
+    longitude = get("longitude")
+    latitude = get("latitude")
+    activite_principale_registre_metier = get("activite_principale_registre_metier")
+        
+    departement = str(get("commune"))[:3] if str(get("commune"))[:2]== "97" else (None if get("commune") is None else str(get("commune"))[:2])
+    coordonnees = None if (longitude is None) or (latitude is None) else f'{latitude},{longitude}'
     
     siret = get('siret')
     enseigne = ''.join([
-                    get("enseigne_1"),
-                    get("enseigne_2"),
-                    get("enseigne_3"),
-                    get("nom_commercial"),
-                ])
+                    get("enseigne_1", ""),
+                    get("enseigne_2", ""),
+                    get("enseigne_3", ""),
+                    get("nom_commercial", ""),
+                ]).strip() or None
 
-    adresse = get("geo_adresse")
-    isSiege = get('is_siege')
+    adresse_complete = get_adresse_complete(cols, row)
+    adresse_complete_2 = get_adresse_complete(cols, row, adresse_2=True)
+    is_siege = get('is_siege')
     
     etablissement = [
         siret,
         enseigne,
-        adresse
+        adresse_complete,
+        adresse_complete_2,
+        is_siege,
+        etat_administratif_etablissement,
+        date_creation,
+        tranche_effectif_salarie,
+        date_debut_activite,
+        activite_principale,
+        numero_voie,
+        type_voie,
+        libelle_voie,
+        distribution_speciale,
+        cedex,
+        libelle_cedex,
+        commune,
+        libelle_commune,
+        code_pays_etranger,
+        code_postal,
+        geo_id,
+        longitude,
+        latitude,
+        activite_principale_registre_metier,
+        departement,
+        coordonnees,
     ]
     
-    unite_legale[3].append(etablissement)
-    unite_legale[1] = unite_legale[1] + 1
-    
-    if isSiege:
-        unite_legale[4] = str.encode(adresse_complete(cols, row))
-        unite_legale[5] = str.encode(adresse_complete(cols, row, adresse_2=True))
-    
-    is_etablissement_ouvert = get("etat_administratif_etablissement") == "A"
+    unite_legale['etablissements'].append(etablissement)
+    unite_legale["nombre_etablissements"] = unite_legale["nombre_etablissements"] + 1
+
+    is_etablissement_ouvert = etat_administratif_etablissement == "A"
     
     if is_etablissement_ouvert: 
-        unite_legale[2] = unite_legale[2] + 1
+        unite_legale["nombre_etablissements_ouverts"] = unite_legale["nombre_etablissements_ouverts"] + 1
     
     all_unite_legale[siren] = unite_legale
 
+def nom_complet(cols, row):
+    def get(x, default=None): 
+        val = row[cols[x]]
+        if not val:
+            return default
+        return val
+    
+    is_auto_entrepreneur = get("nature_juridique_unite_legale") == "1000"
+    
+    sigle = get("sigle")
+    
+    if is_auto_entrepreneur:
+        prenom = get("prenom")
+        nom = get("nom")
+        nom_usage = get("nom_usage", " ")
+        formatted_nom_usage = " " + nom_usage.lower() if nom_usage else ""
+        formatted_sigle = ", "+ sigle if sigle else ""
+        
+        if (prenom is None and nom is None):
+            return None
+        else:
+            return f'{prenom}{formatted_nom_usage} ({nom}{formatted_sigle})'.lower()
+    else:
+        nom_raison_sociale = get("nom_raison_sociale")
+        
+        if nom_raison_sociale is None and sigle is None:
+            return None
+        else:
+            formatted_sigle = f' ({sigle})' if sigle else ""
+            return f'{nom_raison_sociale}{formatted_sigle}'.lower()
+
+def parse_unite(cols, row, all_unite_legale, index):
+    def get(x, default=None): 
+        val = row[cols[x]]
+        if not val:
+            return default
+        return val
+
+    siren = get('siren')
+    unite_legale = get_key(siren, all_unite_legale, {
+        'siren':siren,
+        'nombre_etablissements_ouverts':0,
+        'nombre_etablissements':0,
+        "etablissements":[]
+    })
+
+    
+    unite_legale["nom_complet"] = nom_complet(cols, row)
+
+    col_list = ["date_creation_unite_legale", "sigle", "prenom", "tranche_effectif_salarie_unite_legale", "date_mise_a_jour_unite_legale", "categorie_entreprise",
+                "etat_administratif_unite_legale", "nom", "nom_usage", "nom_raison_sociale", "nature_juridique_unite_legale", "activite_principale_unite_legale",
+                "economie_sociale_solidaire_unite_legale", "identifiant_association_unite_legale"]
+    
+    for col in col_list:
+        unite_legale[col] = get(col)
+
+    activite_principale_unite_legale = get("activite_principale_unite_legale", '')
+    code_naf = activite_principale_unite_legale[:2]
+    unite_legale["section_activite_principale"] = sections_NAF[code_naf] if code_naf in sections_NAF else None
+    unite_legale["is_entrepreneur_individuel"] = True if unite_legale["nature_juridique_unite_legale"] in ['1', '10', '1000'] else False
+
+    all_unite_legale[siren] = unite_legale
 
 def main ():
+    geo_files_filtered = [DATA_DIR+"geo_siret_"+dep+".csv" for dep in all_deps]
+
     all_unite_legale = {}
     total = len(geo_files_filtered)
     count= 0
     total_etab=0
-
-    # Get geo data file paths
-    geo_files = glob.glob(DATA_DIR + "geo_siret*.csv")
-
-    geo_files_filtered = [DATA_DIR+"geo_siret_"+dep+".csv" for dep in all_deps]
-    geo_files_filtered.shuffle()
-    geo_files_filtered = geo_files_filtered[0:60]
-
 
     for geo_file in geo_files_filtered:
         count = count+1
@@ -275,6 +436,8 @@ def main ():
         mem()
         print(str(count)+'/'+str(total))
         print("file : "+geo_file)
+        
+        break
 
         cols = {}
         with open(geo_file, 'r') as read_obj:
@@ -293,10 +456,31 @@ def main ():
             print("etablissements added : "+str(last))
             print("computed in : %s seconds" % (round(time.time() - start_time))) 
             total_etab = total_etab+last
-                    
+
+    for unite_legale in all_unite_legale.values():
+        unite_legale["liste_enseigne"] = list(filter(None, set(etab[1] for etab in unite_legale["etablissements"])))
+        unite_legale["liste_adresse"] = list(filter(None, set(etab[2] for etab in unite_legale["etablissements"])))
+        unite_legale["concat_enseigne_adresse"] = unite_legale["liste_enseigne"] + unite_legale["liste_adresse"]
+
     print(total_etab)
     print(len(all_unite_legale))
 
+    print('process unite légale')
+
+    start_time = time.time()
+    with open(unite_file, 'r') as read_obj:
+        cols = {}
+        # pass the file object to reader() to get the reader object
+        csv_reader = reader(read_obj)
+        # Iterate over each row in the csv using reader object
+        for index, row in enumerate(csv_reader):
+            if(index==0):
+                cols = { val: index for (index, val) in enumerate(row)}
+            else:
+                parse_unite(cols, row, all_unite_legale, index) 
+    
+    print("computed in : %s seconds" % (round(time.time() - start_time))) 
+    print(len(all_unite_legale))
 
 if __name__ == '__main__':
     main()
