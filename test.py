@@ -177,12 +177,6 @@ for dep in all_deps:
     )
     df_dep.to_csv(file_path, index=False)
 
-# Get geo data file paths
-geo_files = glob.glob(DATA_DIR + "geo_siret*.csv")
-
-geo_files_filtered = [DATA_DIR+"geo_siret_"+dep+".csv" for dep in all_deps]
-geo_files_filtered
-
 def adresse_complete(cols, row, adresse_2=False):
     def get(x, default=None): 
         val = row[cols[x]]
@@ -241,8 +235,8 @@ def parse_etab(cols, row, all_unite_legale, index):
     
     etablissement = [
         siret,
-        # enseigne,
-        # adresse
+        enseigne,
+        adresse
     ]
     
     unite_legale[3].append(etablissement)
@@ -265,6 +259,14 @@ def main ():
     total = len(geo_files_filtered)
     count= 0
     total_etab=0
+
+    # Get geo data file paths
+    geo_files = glob.glob(DATA_DIR + "geo_siret*.csv")
+
+    geo_files_filtered = [DATA_DIR+"geo_siret_"+dep+".csv" for dep in all_deps]
+    geo_files_filtered.shuffle()
+    geo_files_filtered = geo_files_filtered[0:60]
+
 
     for geo_file in geo_files_filtered:
         count = count+1
