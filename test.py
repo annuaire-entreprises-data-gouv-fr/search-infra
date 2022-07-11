@@ -316,14 +316,13 @@ def parse_etab(cols, row, all_unite_legale, index):
                 ]).strip() or None
 
     adresse_complete = get_adresse_complete(cols, row)
-    adresse_complete_2 = get_adresse_complete(cols, row, adresse_2=True)
+    # adresse_complete_2 = get_adresse_complete(cols, row, adresse_2=True)
     is_siege = get('is_siege')
     
     etablissement = [
         siret,
         enseigne,
         adresse_complete,
-        adresse_complete_2,
         is_siege,
         etat_administratif_etablissement,
         date_creation,
