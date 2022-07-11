@@ -303,10 +303,7 @@ def parse_etab(cols, row, all_unite_legale, index):
     longitude = get("longitude")
     latitude = get("latitude")
     activite_principale_registre_metier = get("activite_principale_registre_metier")
-        
-    departement = str(get("commune"))[:3] if str(get("commune"))[:2]== "97" else (None if get("commune") is None else str(get("commune"))[:2])
-    coordonnees = None if (longitude is None) or (latitude is None) else f'{latitude},{longitude}'
-    
+     
     siret = get('siret')
     enseigne = ''.join([
                     get("enseigne_1", ""),
@@ -315,14 +312,11 @@ def parse_etab(cols, row, all_unite_legale, index):
                     get("nom_commercial", ""),
                 ]).strip() or None
 
-    adresse_complete = get_adresse_complete(cols, row)
-    # adresse_complete_2 = get_adresse_complete(cols, row, adresse_2=True)
     is_siege = get('is_siege')
     
     etablissement = [
         siret,
         enseigne,
-        adresse_complete,
         is_siege,
         etat_administratif_etablissement,
         date_creation,
@@ -343,8 +337,6 @@ def parse_etab(cols, row, all_unite_legale, index):
         longitude,
         latitude,
         activite_principale_registre_metier,
-        departement,
-        coordonnees,
     ]
     
     unite_legale['etablissements'].append(etablissement)
@@ -404,19 +396,13 @@ def parse_unite(cols, row, all_unite_legale, index):
     })
 
     
-    unite_legale["nom_complet"] = nom_complet(cols, row)
 
     col_list = ["date_creation_unite_legale", "sigle", "prenom", "tranche_effectif_salarie_unite_legale", "date_mise_a_jour_unite_legale", "categorie_entreprise",
                 "etat_administratif_unite_legale", "nom", "nom_usage", "nom_raison_sociale", "nature_juridique_unite_legale", "activite_principale_unite_legale",
-                "economie_sociale_solidaire_unite_legale", "identifiant_association_unite_legale"]
+                "economie_sociale_solidaire_unite_legale", "identifiant_association_unite_legale", "activite_principale_unite_legale"]
     
     for col in col_list:
         unite_legale[col] = get(col)
-
-    activite_principale_unite_legale = get("activite_principale_unite_legale", '')
-    code_naf = activite_principale_unite_legale[:2]
-    unite_legale["section_activite_principale"] = sections_NAF[code_naf] if code_naf in sections_NAF else None
-    unite_legale["is_entrepreneur_individuel"] = True if unite_legale["nature_juridique_unite_legale"] in ['1', '10', '1000'] else False
 
     all_unite_legale[siren] = unite_legale
 
@@ -436,8 +422,6 @@ def main ():
         print(str(count)+'/'+str(total))
         print("file : "+geo_file)
         
-        break
-
         cols = {}
         with open(geo_file, 'r') as read_obj:
             start_time = time.time()
@@ -455,11 +439,6 @@ def main ():
             print("etablissements added : "+str(last))
             print("computed in : %s seconds" % (round(time.time() - start_time))) 
             total_etab = total_etab+last
-
-    for unite_legale in all_unite_legale.values():
-        unite_legale["liste_enseigne"] = list(filter(None, set(etab[1] for etab in unite_legale["etablissements"])))
-        unite_legale["liste_adresse"] = list(filter(None, set(etab[2] for etab in unite_legale["etablissements"])))
-        unite_legale["concat_enseigne_adresse"] = unite_legale["liste_enseigne"] + unite_legale["liste_adresse"]
 
     print(total_etab)
     print(len(all_unite_legale))
@@ -480,6 +459,21 @@ def main ():
     
     print("computed in : %s seconds" % (round(time.time() - start_time))) 
     print(len(all_unite_legale))
+
+# def postTreatment():
+#     for unite_legale in all_unite_legale.values():
+#         unite_legale["liste_enseigne"] = list(filter(None, set(etab[1] for etab in unite_legale["etablissements"])))
+#         unite_legale["liste_adresse"] = list(filter(None, set(etab[2] for etab in unite_legale["etablissements"])))
+#         unite_legale["concat_enseigne_adresse"] = unite_legale["liste_enseigne"] + unite_legale["liste_adresse"]
+#         activite_principale_unite_legale = get("activite_principale_unite_legale", '')
+#         code_naf = activite_principale_unite_legale[:2]
+#         unite_legale["nom_complet"] = nom_complet(cols, row)
+#         unite_legale["section_activite_principale"] = sections_NAF[code_naf] if code_naf in sections_NAF else None
+#         unite_legale["is_entrepreneur_individuel"] = True if unite_legale["nature_juridique_unite_legale"] in ['1', '10', '1000'] else False
+
+#         departement = str(get("commune"))[:3] if str(get("commune"))[:2]== "97" else (None if get("commune") is None else str(get("commune"))[:2])
+#         coordonnees = None if (longitude is None) or (latitude is None) else f'{latitude},{longitude}'
+#         adresse_complete = get_adresse_complete(cols, row)
 
 if __name__ == '__main__':
     main()
