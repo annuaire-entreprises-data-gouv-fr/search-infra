@@ -148,12 +148,18 @@ with DAG(
         dag=dag,
     )
 
-    create_sqlite_database << clean_previous_folder << get_colors
-    create_etablissement_table << create_unite_legale_table << create_sqlite_database
-    count_nombre_etablissements_ouverts << count_nombre_etablissements\
-    << create_etablissement_table
-    add_liste_adresses << add_liste_enseignes << count_nombre_etablissements_ouverts
-    create_elastic_index << create_siege_only_table << add_liste_adresses
-    check_elastic_index << fill_elastic_index << create_elastic_index
-    execute_aio_container << update_color_file << check_elastic_index
-    send_email << execute_aio_container
+    clean_previous_folder.set_upstream(get_colors)
+    create_sqlite_database.set_upstream(clean_previous_folder)
+    create_unite_legale_table.set_upstream(create_sqlite_database)
+    create_etablissement_table.set_upstream(create_unite_legale_table)
+    count_nombre_etablissements.set_upstream(create_etablissement_table)
+    count_nombre_etablissements_ouverts.set_upstream(count_nombre_etablissements)
+    add_liste_enseignes.set_upstream(count_nombre_etablissements_ouverts)
+    add_liste_adresses.set_upstream(add_liste_enseignes)
+    create_siege_only_table.set_upstream(add_liste_adresses)
+    create_elastic_index.set_upstream(create_siege_only_table)
+    fill_elastic_index.set_upstream(create_elastic_index)
+    check_elastic_index.set_upstream(fill_elastic_index)
+    update_color_file.set_upstream(check_elastic_index)
+    execute_aio_container.set_upstream(update_color_file)
+    send_email.set_upstream(execute_aio_container)
