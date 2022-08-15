@@ -104,9 +104,9 @@ def create_unite_legale_table(**kwargs):
     )
     siren_db_cursor.execute(
         """
-                    CREATE UNIQUE INDEX index_siren
-                    ON unite_legale (siren);
-                    """
+        CREATE UNIQUE INDEX index_siren
+        ON unite_legale (siren);
+        """
     )
     url = "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip"
     r = requests.get(url, allow_redirects=True)
@@ -167,8 +167,10 @@ def create_unite_legale_table(**kwargs):
     del df_unite_legale
 
     for count_unites_legales in siren_db_cursor.execute(
-        """SELECT COUNT() FROM 
-    unite_legale"""
+        """
+        SELECT COUNT() FROM 
+        unite_legale
+        """
     ):
         logging.info(
             f"************ {count_unites_legales} records have been added to the "
@@ -248,9 +250,9 @@ def create_etablissement_table():
     )
     siren_db_cursor.execute(
         """
-                        CREATE INDEX index_siret
-                        ON siret (siren);
-                        """
+        CREATE INDEX index_siret
+        ON siret (siren);
+        """
     )
 
     # Upload geo data by departement
@@ -372,12 +374,16 @@ def count_nombre_etablissements():
     # Create index
     siren_db_cursor.execute(
         """
-                    CREATE UNIQUE INDEX index_count_siren
-                    ON count_etab (siren);
-                    """
+        CREATE UNIQUE INDEX index_count_siren
+        ON count_etab (siren);
+        """
     )
     siren_db_cursor.execute(
-        """INSERT INTO count_etab (siren, count) SELECT siren, count(*) as count FROM siret GROUP BY siren;"""
+        """
+        INSERT INTO count_etab (siren, count) 
+        SELECT siren, count(*) as count 
+        FROM siret GROUP BY siren;
+        """
     )
     commit_and_close_conn(siren_db_conn)
 
@@ -390,12 +396,17 @@ def count_nombre_etablissements_ouverts():
     )
     siren_db_cursor.execute(
         """
-                    CREATE UNIQUE INDEX index_count_ouvert_siren
-                    ON count_etab_ouvert (siren);
-                    """
+        CREATE UNIQUE INDEX index_count_ouvert_siren
+        ON count_etab_ouvert (siren);
+        """
     )
     siren_db_cursor.execute(
-        """INSERT INTO count_etab_ouvert (siren, count) SELECT siren, count(*) as count FROM siret WHERE etat_administratif_etablissement = 'A' GROUP BY siren;"""
+        """
+        INSERT INTO count_etab_ouvert (siren, count) 
+        SELECT siren, count(*) as count 
+        FROM siret 
+        WHERE etat_administratif_etablissement = 'A' GROUP BY siren;
+        """
     )
     commit_and_close_conn(siren_db_conn)
 
@@ -550,9 +561,9 @@ def create_siege_only_table(**kwargs):
     )
     siren_db_cursor.execute(
         """
-                    CREATE INDEX index_siret_siren
-                    ON siretsiege (siren);
-                    """
+        CREATE INDEX index_siret_siren
+        ON siretsiege (siren);
+        """
     )
     for count_sieges in siren_db_cursor.execute("""SELECT COUNT() FROM siretsiege"""):
         logging.info(
