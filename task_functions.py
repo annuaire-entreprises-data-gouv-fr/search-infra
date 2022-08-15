@@ -151,9 +151,9 @@ def create_unite_legale_table(**kwargs):
                 "categorieJuridiqueUniteLegale": "nature_juridique_unite_legale",
                 "activitePrincipaleUniteLegale": "activite_principale_unite_legale",
                 "economieSocialeSolidaireUniteLegale":
-                "economie_sociale_solidaire_unite_legale",
+                    "economie_sociale_solidaire_unite_legale",
                 "identifiantAssociationUniteLegale":
-                "identifiant_association_unite_legale",
+                    "identifiant_association_unite_legale",
             }
         )
         df_unite_legale.to_sql(
@@ -168,9 +168,10 @@ def create_unite_legale_table(**kwargs):
     del df_unite_legale
 
     for count_unites_legales in siren_db_cursor.execute(
-        """SELECT COUNT() FROM 
-        unite_legale
-        """ # noqa
+        """
+        SELECT COUNT()
+        FROM unite_legale
+        """
     ):
         logging.info(
             f"************ {count_unites_legales} records have been added to the "
@@ -316,7 +317,7 @@ def create_etablissement_table():
                 "dateCreationEtablissement": "date_creation",
                 "trancheEffectifsEtablissement": "tranche_effectif_salarie",
                 "activitePrincipaleRegistreMetiersEtablissement":
-                "activite_principale_registre_metier",
+                    "activite_principale_registre_metier",
                 "etablissementSiege": "is_siege",
                 "numeroVoieEtablissement": "numero_voie",
                 "typeVoieEtablissement": "type_voie",
@@ -380,9 +381,11 @@ def count_nombre_etablissements():
         """
     )
     siren_db_cursor.execute(
-        """ INSERT INTO count_etab (siren, count) 
-        SELECT siren, count(*) as count 
-        FROM siret GROUP BY siren; """
+        """
+        INSERT INTO count_etab (siren, count)
+        SELECT siren, count(*) as count
+        FROM siret GROUP BY siren;
+        """
     )
     commit_and_close_conn(siren_db_conn)
 
@@ -394,14 +397,18 @@ def count_nombre_etablissements_ouverts():
         """CREATE TABLE count_etab_ouvert (siren VARCHAR(10), count INTEGER)"""
     )
     siren_db_cursor.execute(
-        """CREATE UNIQUE INDEX index_count_ouvert_siren
-        ON count_etab_ouvert (siren);"""
+        """
+        CREATE UNIQUE INDEX index_count_ouvert_siren
+        ON count_etab_ouvert (siren);
+        """
     )
     siren_db_cursor.execute(
-        """INSERT INTO count_etab_ouvert (siren, count) 
-        SELECT siren, count(*) as count 
-        FROM siret 
-        WHERE etat_administratif_etablissement = 'A' GROUP BY siren;"""
+        """
+        INSERT INTO count_etab_ouvert (siren, count)
+        SELECT siren, count(*) as count
+        FROM siret
+        WHERE etat_administratif_etablissement = 'A' GROUP BY siren;
+        """
     )
     commit_and_close_conn(siren_db_conn)
 
@@ -504,7 +511,7 @@ def create_siege_only_table(**kwargs):
             longitude,
             latitude,
             geo_adresse,
-            geo_id) 
+            geo_id)
         SELECT
             siren,
             siret,
@@ -620,18 +627,18 @@ def fill_elastic_index(**kwargs):
         ul.nom_raison_sociale as nom_raison_sociale,
         ul.nature_juridique_unite_legale as nature_juridique_unite_legale,
         ul.activite_principale_unite_legale as activite_principale_unite_legale,
-        ul.economie_sociale_solidaire_unite_legale as  
+        ul.economie_sociale_solidaire_unite_legale as
         economie_sociale_solidaire_unite_legale,
-        (SELECT count FROM count_etab ce WHERE ce.siren = st.siren) as 
+        (SELECT count FROM count_etab ce WHERE ce.siren = st.siren) as
         nombre_etablissements,
-        (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = st.siren) as 
+        (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = st.siren) as
         nombre_etablissements_ouverts,
         (SELECT json_group_array(
             json_object(
                 'enseigne_1', enseigne_1,
                 'enseigne_2', enseigne_2,
                 'enseigne_3', enseigne_3)
-            ) FROM 
+            ) FROM
             (SELECT enseigne_1, enseigne_2, enseigne_3 from siret
             WHERE siren = st.siren)
         ) as enseignes,
@@ -649,13 +656,13 @@ def fill_elastic_index(**kwargs):
             'cedex', cedex,
             'libelle_commune_etranger', libelle_commune_etranger,
             'libelle_pays_etranger', libelle_pays_etranger)
-            ) FROM 
-            (SELECT complement_adresse, numero_voie, indice_repetition, 
-            type_voie, libelle_voie, libelle_commune, distribution_speciale, 
+            ) FROM
+            (SELECT complement_adresse, numero_voie, indice_repetition,
+            type_voie, libelle_voie, libelle_commune, distribution_speciale,
             commune, cedex, libelle_commune_etranger, libelle_pays_etranger
             FROM siret
             WHERE siren = st.siren)
-            ) as adresses,            
+            ) as adresses,
             ul.sigle as sigle,
             ul.prenom as prenom,
             ul.nom as nom,
@@ -663,10 +670,10 @@ def fill_elastic_index(**kwargs):
             st.is_siege as is_siege
         FROM
             siretsiege st
-        LEFT JOIN 
-            unite_legale ul 
+        LEFT JOIN
+            unite_legale ul
         ON
-            ul.siren = st.siren;""" # noqa
+            ul.siren = st.siren;"""  # noqa
     )
     connections.create_connection(
         hosts=[ELASTIC_URL],
