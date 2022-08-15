@@ -6,6 +6,7 @@ from elasticsearch_dsl import (
     GeoPoint,
     Integer,
     Keyword,
+    Object,
     Text,
     analyzer,
     token_filter,
@@ -72,6 +73,7 @@ class ElasticsearchSireneIndex(Document):
     activite_principale_unite_legale = Keyword()
     activite_principale_registre_metier = Keyword()
     adresse_etablissement = Text()
+    adresse_etablissement_2 = Text()
     categorie_entreprise = Text()
     cedex = Keyword()
     code_pays_etranger = Text()
@@ -88,6 +90,12 @@ class ElasticsearchSireneIndex(Document):
     date_debut_activite_siege = Date()
     date_mise_a_jour = Date()
     departement = Keyword()
+    dirigeants_pp = Object(
+        properties={'siren': Text(), 'noms': Text(), 'prenoms': Text(),
+                    'date_naissance': Date(), 'ville_naissance': Text(),
+                    'pays_naissance': Text(), 'qualite': Text()})
+    dirigeants_pm = Object(
+        properties={'siren': Text(), 'denomination': Text(), 'qualite': Text()})
     distribution_speciale = Text()
     economie_sociale_solidaire_unite_legale = Keyword()
     enseigne = Text()
@@ -105,8 +113,10 @@ class ElasticsearchSireneIndex(Document):
     libelle_commune_etranger = Text()
     libelle_pays_etranger = Text()
     libelle_voie = Text()
-    liste_adresses = Text(analyzer=annuaire_analyzer)
-    liste_enseignes = Text(analyzer=annuaire_analyzer)
+    liste_adresse = Text(analyzer=annuaire_analyzer)
+    liste_conventions_collectives = Text()
+    liste_dirigeants = Text()
+    liste_enseigne = Text(analyzer=annuaire_analyzer)
     longitude = Text()
     nature_juridique_unite_legale = Integer()
     nom = Text()
@@ -126,4 +136,6 @@ class ElasticsearchSireneIndex(Document):
 
     class Index:
         name = f"siren-{NEXT_COLOR}"
-        settings = {"number_of_shards": 1, "number_of_replicas": 0}
+        settings = {"number_of_shards": elastic_index_shards,
+                    "number_of_replicas": 0,
+                    'mapping': {'ignore_malformed': True}}
