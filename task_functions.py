@@ -733,7 +733,7 @@ def create_elastic_index(**kwargs):
 def fill_elastic_index(**kwargs):
     next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
     elastic_index = f"siren-{next_color}"
-    siren_db_conn, siren_db_cursor = connect_to_db()
+    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
     siren_db_cursor.execute(
         """SELECT
         ul.siren,
@@ -822,7 +822,9 @@ def fill_elastic_index(**kwargs):
                     )
                 ) FROM 
                 (
-                    SELECT siren, rep_noms, rep_prenoms, rep_datenaissance, rep_villenaissance, rep_paysnaissance, rep_qualite from dirigeant_pp 
+                    SELECT siren, rep_noms, rep_prenoms, rep_datenaissance,
+                    rep_villenaissance, rep_paysnaissance, rep_qualite
+                    FROM dirigeant_pp
                     WHERE siren = st.siren
                 )
             ) as dirigeants_pp,
@@ -832,9 +834,10 @@ def fill_elastic_index(**kwargs):
                     'denomination', rep_denomination,
                     'qualite', rep_qualite
                     )
-                ) FROM 
+                ) FROM
                 (
-                    SELECT siren, rep_denomination, rep_qualite from dirigeant_pm
+                    SELECT siren, rep_denomination, rep_qualite
+                    FROM dirigeant_pm
                     WHERE siren = st.siren
                 )
             ) as dirigeants_pm
