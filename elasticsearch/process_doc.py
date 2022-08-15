@@ -1,3 +1,4 @@
+import json
 from dag_datalake_sirene.data_enrichment import (
     create_nom_complet,
     create_departement,

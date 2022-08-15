@@ -20,7 +20,7 @@ def index_by_chunk(cursor, elastic_connection, elastic_bulk_size, elastic_index)
         res = cursor.fetchmany(elastic_bulk_size)
         columns = tuple([x[0] for x in cursor.description])
         res = tuple([{column: val for column, val in zip(columns, x)} for x in res])
-        res2 = process_res(res)
+        res2 = process_doc(res)
         i = i + 1
         if i % 1000 == 0:
             logging.info("i={i}")
