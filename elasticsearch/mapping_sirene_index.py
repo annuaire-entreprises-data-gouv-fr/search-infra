@@ -114,7 +114,6 @@ class ElasticsearchSireneIndex(Document):
     libelle_pays_etranger = Text()
     libelle_voie = Text()
     liste_adresse = Text(analyzer=annuaire_analyzer)
-    liste_conventions_collectives = Text()
     liste_dirigeants = Text()
     liste_enseigne = Text(analyzer=annuaire_analyzer)
     longitude = Text()
