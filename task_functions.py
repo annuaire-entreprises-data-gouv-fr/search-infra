@@ -3,18 +3,15 @@ import logging
 import os
 import shutil
 import sqlite3
-import subprocess
 from urllib.request import urlopen
 
 import pandas as pd
 import requests
 from airflow.models import Variable
-from dag_datalake_sirene.data_enrichment import create_adresse_complete
 from dag_datalake_sirene.elasticsearch.create_siren import ElasticCreateSiren
 from dag_datalake_sirene.elasticsearch.index_doc import index_by_chunk
-from dag_datalake_sirene.helpers.single_dispatch_funcs import dict_from_row
-from minio import Minio
 from elasticsearch_dsl import connections
+from minio import Minio
 
 
 TMP_FOLDER = "/tmp/"
@@ -54,7 +51,7 @@ def get_colors(**kwargs):
 # Connect to database
 def connect_to_db():
     siren_db_conn = sqlite3.connect(DATABASE_LOCATION)
-    logging.info(f"******************* Connecting to database! *******************")
+    logging.info("******************* Connecting to database! *******************")
     siren_db_cursor = siren_db_conn.cursor()
     return siren_db_conn, siren_db_cursor
 
@@ -71,20 +68,20 @@ def create_sqlite_database():
     if os.path.exists(DATABASE_LOCATION):
         os.remove(DATABASE_LOCATION)
         logging.info(
-            f"******************** Existing database removed from {DATABASE_LOCATION}"
+            "******************** Existing database removed from {DATABASE_LOCATION}"
         )
     siren_db_conn = sqlite3.connect(DATABASE_LOCATION)
     logging.info(
-        f"******************* Creating and connecting to database! *******************"
+        "******************* Creating and connecting to database! *******************"
     )
     commit_and_close_conn(siren_db_conn)
 
 
 def create_unite_legale_table(**kwargs):
     siren_db_conn, siren_db_cursor = connect_to_db()
-    siren_db_cursor.execute(f"""DROP TABLE IF EXISTS unite_legale""")
+    siren_db_cursor.execute("""DROP TABLE IF EXISTS unite_legale""")
     siren_db_cursor.execute(
-        f"""
+        """
         CREATE TABLE IF NOT EXISTS unite_legale
         (
             siren,
@@ -106,7 +103,7 @@ def create_unite_legale_table(**kwargs):
     """
     )
     siren_db_cursor.execute(
-        f"""
+        """
                     CREATE UNIQUE INDEX index_siren
                     ON unite_legale (siren);
                     """
@@ -170,7 +167,7 @@ def create_unite_legale_table(**kwargs):
     del df_unite_legale
 
     for count_unites_legales in siren_db_cursor.execute(
-        f"""SELECT COUNT() FROM 
+        """SELECT COUNT() FROM 
     unite_legale"""
     ):
         logging.info(
@@ -198,9 +195,9 @@ def create_etablissement_table():
     all_deps.remove("75")
 
     # Create database
-    siren_db_cursor.execute(f"""DROP TABLE IF EXISTS siret""")
+    siren_db_cursor.execute("""DROP TABLE IF EXISTS siret""")
     siren_db_cursor.execute(
-        f"""CREATE TABLE IF NOT EXISTS siret
+        """CREATE TABLE IF NOT EXISTS siret
             (
             id INTEGER NOT NULL PRIMARY KEY,
             siren,
@@ -356,7 +353,7 @@ def create_etablissement_table():
         )
         df_dep.to_sql("siret", siren_db_conn, if_exists="append", index=False)
         siren_db_conn.commit()
-        for row in siren_db_cursor.execute(f"""SELECT COUNT() FROM siret"""):
+        for row in siren_db_cursor.execute("""SELECT COUNT() FROM siret"""):
             logging.info(
                 f"************ {row} records have been added to the unite_legale table!"
             )
@@ -368,7 +365,7 @@ def count_nombre_etablissements():
     # Connect to database
     siren_db_conn, siren_db_cursor = connect_to_db()
     # Create a count table
-    siren_db_cursor.execute(f"""DROP TABLE IF EXISTS count_etab""")
+    siren_db_cursor.execute("""DROP TABLE IF EXISTS count_etab""")
     siren_db_cursor.execute(
         """CREATE TABLE count_etab (siren VARCHAR(10), count INTEGER)"""
     )
@@ -387,7 +384,7 @@ def count_nombre_etablissements():
 
 def count_nombre_etablissements_ouverts():
     siren_db_conn, siren_db_cursor = connect_to_db()
-    siren_db_cursor.execute(f"""DROP TABLE IF EXISTS count_etab_ouvert""")
+    siren_db_cursor.execute("""DROP TABLE IF EXISTS count_etab_ouvert""")
     siren_db_cursor.execute(
         """CREATE TABLE count_etab_ouvert (siren VARCHAR(10), count INTEGER)"""
     )
@@ -405,9 +402,9 @@ def count_nombre_etablissements_ouverts():
 
 def create_siege_only_table(**kwargs):
     siren_db_conn, siren_db_cursor = connect_to_db()
-    siren_db_cursor.execute(f"""DROP TABLE IF EXISTS siretsiege""")
+    siren_db_cursor.execute("""DROP TABLE IF EXISTS siretsiege""")
     siren_db_cursor.execute(
-        f"""CREATE TABLE IF NOT EXISTS siretsiege
+        """CREATE TABLE IF NOT EXISTS siretsiege
             (
             id INTEGER NOT NULL PRIMARY KEY,
             siren,
@@ -557,7 +554,7 @@ def create_siege_only_table(**kwargs):
                     ON siretsiege (siren);
                     """
     )
-    for count_sieges in siren_db_cursor.execute(f"""SELECT COUNT() FROM siretsiege"""):
+    for count_sieges in siren_db_cursor.execute("""SELECT COUNT() FROM siretsiege"""):
         logging.info(
             f"************ {count_sieges} records have been added to the "
             f"unite_legale table!"
@@ -585,7 +582,7 @@ def fill_elastic_index(**kwargs):
     elastic_index = f"siren-{next_color}"
     siren_db_conn, siren_db_cursor = connect_to_db()
     siren_db_cursor.execute(
-        f"""
+        """
         SELECT 
             ul.siren,
             st.siret as siret_siege,
@@ -694,10 +691,11 @@ def fill_elastic_index(**kwargs):
 
 def check_elastic_index(**kwargs):
     doc_count = kwargs["ti"].xcom_pull(key="doc_count", task_ids="fill_elastic_index")
+    """
     count_sieges = kwargs["ti"].xcom_pull(
         key="count_sieges", task_ids="create_siege_only_table"
     )[0]
-
+    """
     logging.info(f"******************** Documents indexed: {doc_count}")
     """
     if float(doc_count) != float(count_sieges):
