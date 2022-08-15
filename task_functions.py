@@ -809,13 +809,41 @@ def fill_elastic_index(**kwargs):
             ul.prenom as prenom,
             ul.nom as nom,
             ul.nom_usage as nom_usage,
-            st.is_siege as is_siege
+            st.is_siege as is_siege,
+            (SELECT json_group_array(
+                json_object(
+                    'siren', siren,
+                    'noms', rep_noms,
+                    'prenoms', rep_prenoms,
+                    'date_naissance', rep_datenaissance,
+                    'ville_naissance', rep_villenaissance,
+                    'pays_naissance', rep_paysnaissance,
+                    'qualite', rep_qualite
+                    )
+                ) FROM 
+                (
+                    SELECT siren, rep_noms, rep_prenoms, rep_datenaissance, rep_villenaissance, rep_paysnaissance, rep_qualite from dirigeant_pp 
+                    WHERE siren = st.siren
+                )
+            ) as dirigeants_pp,
+        (SELECT json_group_array(
+                json_object(
+                    'siren', siren,
+                    'denomination', rep_denomination,
+                    'qualite', rep_qualite
+                    )
+                ) FROM 
+                (
+                    SELECT siren, rep_denomination, rep_qualite from dirigeant_pm
+                    WHERE siren = st.siren
+                )
+            ) as dirigeants_pm
         FROM
             siretsiege st
         LEFT JOIN
             unite_legale ul
         ON
-            ul.siren = st.siren;"""  # noqa
+            ul.siren = st.siren;"""
     )
     connections.create_connection(
         hosts=[ELASTIC_URL],
