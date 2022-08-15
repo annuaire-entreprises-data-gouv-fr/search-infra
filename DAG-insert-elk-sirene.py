@@ -9,6 +9,8 @@ from dag_datalake_sirene.task_functions import (
     check_elastic_index,
     count_nombre_etablissements,
     count_nombre_etablissements_ouverts,
+    create_dirig_pm_table,
+    create_dirig_pp_table,
     create_elastic_index,
     create_etablissement_table,
     create_siege_only_table,
@@ -16,6 +18,7 @@ from dag_datalake_sirene.task_functions import (
     create_unite_legale_table,
     fill_elastic_index,
     get_colors,
+    get_dirig_database,
     update_color_file,
 )
 from operators.clean_folder import CleanFolderOperator
@@ -89,6 +92,24 @@ with DAG(
         python_callable=create_siege_only_table,
     )
 
+    get_dirigeants_database = PythonOperator(
+        task_id="get_dirig_database",
+        provide_context=True,
+        python_callable=get_dirig_database,
+    )
+
+    create_dirig_pp_table = PythonOperator(
+        task_id="create_dirig_pp_table",
+        provide_context=True,
+        python_callable=create_dirig_pp_table,
+    )
+
+    create_dirig_pm_table = PythonOperator(
+        task_id="create_dirig_pm_table",
+        provide_context=True,
+        python_callable=create_dirig_pm_table,
+    )
+
     create_elastic_index = PythonOperator(
         task_id="create_elastic_index",
         provide_context=True,
@@ -141,7 +162,10 @@ with DAG(
     count_nombre_etablissements.set_upstream(create_etablissement_table)
     count_nombre_etablissements_ouverts.set_upstream(count_nombre_etablissements)
     create_siege_only_table.set_upstream(count_nombre_etablissements_ouverts)
-    create_elastic_index.set_upstream(create_siege_only_table)
+    get_dirig_database.set_upstream(create_siege_only_table)
+    create_dirig_pp_table.set_upstream(get_dirig_database)
+    create_dirig_pm_table.set_upstream(create_dirig_pp_table)
+    create_elastic_index.set_upstream(create_dirig_pm_table)
     fill_elastic_index.set_upstream(create_elastic_index)
     check_elastic_index.set_upstream(fill_elastic_index)
     update_color_file.set_upstream(check_elastic_index)
