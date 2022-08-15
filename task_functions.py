@@ -22,9 +22,11 @@ TMP_FOLDER = "/tmp/"
 DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "insert-elk-sirene"
 DATA_DIR = TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/"
-DATABASE_LOCATION = DATA_DIR + "sirene.db"
+SIRENE_DATABASE_LOCATION = DATA_DIR + "sirene.db"
+DIRIG_DATABASE_LOCATION = DATA_DIR + "inpi.db"
 AIRFLOW_DAG_HOME = "/opt/airflow/dags/"
 ELASTIC_BULK_SIZE = 1500
+PATH_MINIO_INPI_DATA = "inpi/"
 
 AIRFLOW_URL = Variable.get("AIRFLOW_URL")
 COLOR_URL = Variable.get("COLOR_URL")
@@ -53,28 +55,49 @@ def get_colors(**kwargs):
 
 
 # Connect to database
-def connect_to_db():
-    siren_db_conn = sqlite3.connect(DATABASE_LOCATION)
-    logging.info("******************* Connecting to database! *******************")
-    siren_db_cursor = siren_db_conn.cursor()
-    return siren_db_conn, siren_db_cursor
+def connect_to_db(db_location):
+    db_conn = sqlite3.connect(db_location)
+    logging.info(f"*********** Connecting to database {db_location}! ***********")
+    db_cursor = db_conn.cursor()
+    return db_conn, db_cursor
 
 
-def commit_and_close_conn(siren_db_conn):
-    siren_db_conn.commit()
-    siren_db_conn.close()
+def commit_and_close_conn(db_conn):
+    db_conn.commit()
+    db_conn.close()
+
+
+def preprocess_dirigeants_pp(query):
+    cols = [column[0] for column in query.description]
+    rep_chunk= pd.DataFrame.from_records(data = query.fetchall(), columns = cols)
+    rep_chunk.sort_values(by=["siren", "rep_noms", "rep_prenoms", "rep_datenaissance", "rep_villenaissance", "rep_paysnaissance", "rep_qualite"],
+                    inplace =True, ascending=[True, False, False, False, False, False, False])
+    rep_chunk.drop_duplicates(subset=["siren", "rep_noms", "rep_prenoms", "rep_qualite"], keep="first", inplace=True)
+    rep_clean = rep_chunk.groupby(by=["siren", "rep_noms", "rep_prenoms", "rep_datenaissance", "rep_villenaissance", "rep_paysnaissance"])['rep_qualite'].apply(lambda x: ', '.join(x)).reset_index()
+    return rep_clean
+
+
+def preprocess_dirigeant_pm(query):
+    cols = [column[0] for column in query.description]
+    rep_chunk= pd.DataFrame.from_records(data = query.fetchall(), columns = cols)
+    rep_chunk.sort_values(by=["siren", "rep_denomination", "rep_qualite"],
+                    inplace =True, ascending=[True, False, False])
+    rep_chunk.drop_duplicates(subset=["siren", "rep_denomination", "rep_qualite"], keep="first", inplace=True)
+    rep_clean = rep_chunk.groupby(by=["siren", "rep_denomination"])['rep_qualite'].apply(lambda x: ', '.join(x)).reset_index()
+    return rep_clean
 
 
 def create_sqlite_database():
     if os.path.exists(DATA_DIR) and os.path.isdir(DATA_DIR):
         shutil.rmtree(DATA_DIR)
     os.makedirs(os.path.dirname(DATA_DIR), exist_ok=True)
-    if os.path.exists(DATABASE_LOCATION):
-        os.remove(DATABASE_LOCATION)
+    if os.path.exists(SIRENE_DATABASE_LOCATION):
+        os.remove(SIRENE_DATABASE_LOCATION)
         logging.info(
-            "******************** Existing database removed from {DATABASE_LOCATION}"
+            f"******************** Existing database removed from "
+            f"{SIRENE_DATABASE_LOCATION}"
         )
-    siren_db_conn = sqlite3.connect(DATABASE_LOCATION)
+    siren_db_conn = sqlite3.connect(SIRENE_DATABASE_LOCATION)
     logging.info(
         "******************* Creating and connecting to database! *******************"
     )
@@ -82,7 +105,7 @@ def create_sqlite_database():
 
 
 def create_unite_legale_table(**kwargs):
-    siren_db_conn, siren_db_cursor = connect_to_db()
+    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
     siren_db_cursor.execute("""DROP TABLE IF EXISTS unite_legale""")
     siren_db_cursor.execute(
         """
@@ -187,7 +210,7 @@ def create_unite_legale_table(**kwargs):
 
 
 def create_etablissement_table():
-    siren_db_conn, siren_db_cursor = connect_to_db()
+    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
     # Create list of departement zip codes
     all_deps = [
         *"-0".join(list(str(x) for x in range(0, 10))).split("-")[1:],
@@ -372,7 +395,7 @@ def create_etablissement_table():
 
 def count_nombre_etablissements():
     # Connect to database
-    siren_db_conn, siren_db_cursor = connect_to_db()
+    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
     # Create a count table
     siren_db_cursor.execute("""DROP TABLE IF EXISTS count_etab""")
     siren_db_cursor.execute(
@@ -396,7 +419,7 @@ def count_nombre_etablissements():
 
 
 def count_nombre_etablissements_ouverts():
-    siren_db_conn, siren_db_cursor = connect_to_db()
+    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
     siren_db_cursor.execute("""DROP TABLE IF EXISTS count_etab_ouvert""")
     siren_db_cursor.execute(
         """CREATE TABLE count_etab_ouvert (siren VARCHAR(10), count INTEGER)"""
@@ -419,7 +442,7 @@ def count_nombre_etablissements_ouverts():
 
 
 def create_siege_only_table(**kwargs):
-    siren_db_conn, siren_db_cursor = connect_to_db()
+    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
     siren_db_cursor.execute("""DROP TABLE IF EXISTS siretsiege""")
     siren_db_cursor.execute(
         """CREATE TABLE IF NOT EXISTS siretsiege
@@ -577,6 +600,121 @@ def create_siege_only_table(**kwargs):
         )
     kwargs["ti"].xcom_push(key="count_sieges", value=count_sieges[0])
     commit_and_close_conn(siren_db_conn)
+
+
+def get_dirig_database():
+    minio_url = MINIO_URL
+    minio_bucket = MINIO_BUCKET
+    minio_user = MINIO_USER
+    minio_password = MINIO_PASSWORD
+
+    client = Minio(
+        minio_url,
+        access_key=minio_user,
+        secret_key=minio_password,
+        secure=True,
+    )
+    client.fget_object(
+        minio_bucket,
+        f"{PATH_MINIO_INPI_DATA}inpi.db",
+        DIRIG_DATABASE_LOCATION,
+    )
+
+
+def create_dirig_pp_table():
+    dirig_db_conn, dirig_db_cursor = connect_to_db(DIRIG_DATABASE_LOCATION)
+    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
+
+    chunk_size = int(100000)
+    for row in dirig_db_cursor.execute('''SELECT count(DISTINCT siren) FROM rep_pp;'''):
+        nb_iter = int(int(row[0]) / chunk_size) + 1
+
+    # Create table dirigeants_pp in siren database
+    siren_db_cursor.execute("""DROP TABLE IF EXISTS dirigeant_pp""")
+    siren_db_cursor.execute("""
+        CREATE TABLE IF NOT EXISTS dirigeant_pp
+        (
+            siren,
+            rep_noms,
+            rep_prenoms,
+            rep_datenaissance,
+            rep_villenaissance,
+            rep_paysnaissance,
+            rep_qualite
+        )
+    """)
+    siren_db_cursor.execute("""
+                    CREATE INDEX siren_pp
+                    ON dirigeant_pp (siren);
+                    """)
+
+    for i in range(nb_iter):
+        query = dirig_db_cursor.execute(f"""
+        SELECT DISTINCT siren, rep_noms, rep_prenoms, rep_datenaissance,
+        rep_villenaissance, rep_paysnaissance, rep_qualite
+        FROM rep_pp
+        WHERE siren IN
+            (
+            SELECT DISTINCT siren
+            FROM rep_pp
+            WHERE siren != '' 
+            LIMIT {chunk_size}
+            OFFSET {int(i * chunk_size)})
+        """)
+        dir_pp_clean = preprocess_dirigeants_pp(query)
+        dir_pp_clean.to_sql(
+            "dirigeant_pp",
+            siren_db_conn,
+            if_exists='append',
+            index=False,
+        )
+        logging.info(f"Iter: {i}")
+    del dir_pp_clean
+    commit_and_close_conn(siren_db_conn)
+    commit_and_close_conn(dirig_db_conn)
+
+
+def create_dirig_pm_table():
+    dirig_db_conn, dirig_db_cursor = connect_to_db(DIRIG_DATABASE_LOCATION)
+    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
+
+    chunk_size = int(100000)
+    for row in dirig_db_cursor.execute("""SELECT count(DISTINCT siren) FROM rep_pm;"""):
+        nb_iter = int(int(row[0]) / chunk_size) + 1
+
+    # Create table dirigeants_pm in siren database
+    siren_db_cursor.execute("""DROP TABLE IF EXISTS dirigeant_pm""")
+    siren_db_cursor.execute("""
+        CREATE TABLE IF NOT EXISTS dirigeant_pm
+        (
+            siren,
+            rep_denomination,
+            rep_qualite
+        )
+    """)
+    siren_db_cursor.execute("""
+                    CREATE INDEX siren_pm
+                    ON dirigeant_pm (siren);
+                    """)
+
+    for i in range(nb_iter):
+        query = cur.execute(f"""
+        SELECT DISTINCT siren, rep_denomination, rep_qualite
+        FROM rep_pm
+        WHERE siren IN 
+        (
+            SELECT DISTINCT siren
+            FROM rep_pm
+            WHERE siren != ''
+            LIMIT {chunk_size}
+            OFFSET {int(i * chunk_size)})
+        """)
+        dir_pm_clean = preprocess_dirigeant_pm(query)
+        dir_pm_clean.to_sql("dirigeant_pm", siren_db_conn, if_exists='append', index=False)
+        logging.info(f"Iter: {i}")
+    del dir_pm_clean
+    commit_and_close_conn(siren_db_conn)
+    commit_and_close_conn(dirig_db_conn)
 
 
 def create_elastic_index(**kwargs):
