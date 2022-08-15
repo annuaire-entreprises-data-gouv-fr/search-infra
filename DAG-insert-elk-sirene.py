@@ -12,8 +12,6 @@ from dag_datalake_sirene.utils import (
     create_etablissement_table,
     count_nombre_etablissements,
     count_nombre_etablissements_ouverts,
-    add_liste_enseignes,
-    add_liste_adresses,
     create_siege_only_table,
     create_elastic_index,
     fill_elastic_index,
@@ -85,18 +83,6 @@ with DAG(
         python_callable=count_nombre_etablissements_ouverts
     )
 
-    add_liste_enseignes = PythonOperator(
-        task_id="add_liste_enseignes",
-        provide_context=True,
-        python_callable=add_liste_enseignes
-    )
-
-    add_liste_adresses = PythonOperator(
-        task_id="add_liste_adresses",
-        provide_context=True,
-        python_callable=add_liste_adresses
-    )
-
     create_siege_only_table = PythonOperator(
         task_id="create_siege_only_table",
         provide_context=True,
@@ -154,9 +140,7 @@ with DAG(
     create_etablissement_table.set_upstream(create_unite_legale_table)
     count_nombre_etablissements.set_upstream(create_etablissement_table)
     count_nombre_etablissements_ouverts.set_upstream(count_nombre_etablissements)
-    add_liste_enseignes.set_upstream(count_nombre_etablissements_ouverts)
-    add_liste_adresses.set_upstream(add_liste_enseignes)
-    create_siege_only_table.set_upstream(add_liste_adresses)
+    create_siege_only_table.set_upstream(count_nombre_etablissements_ouverts)
     create_elastic_index.set_upstream(create_siege_only_table)
     fill_elastic_index.set_upstream(create_elastic_index)
     check_elastic_index.set_upstream(fill_elastic_index)

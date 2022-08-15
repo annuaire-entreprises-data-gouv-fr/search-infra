@@ -1,4 +1,5 @@
 import json
+from dag_datalake_sirene.helpers.single_dispatch_funcs import get_string
 
 labels_file_path = "dags/dag_datalake_sirene/labels/"
 
@@ -24,9 +25,11 @@ def create_nom_complet(nature_juridique_unite_legale=None, nom=None, nom_usage=N
         if prenom is None and nom is None:
             return None
         if nom_usage is None:
-            return f"{prenom} {nom} ({formatted_sigle})".lower()
+            return f"{prenom} {nom} ({formatted_sigle})".lower().replace(" ()", "")
         else:
-            return f"{prenom} {formatted_nom_usage}({nom}, {formatted_sigle})".lower()
+            return f"{prenom} {formatted_nom_usage}({nom}, {formatted_sigle})".lower(
+
+            ).replace(" ()", "")
 
     else:
         if nom_raison_sociale is None and sigle is None:
@@ -64,18 +67,19 @@ def create_adresse_complete(complement_adresse, numero_voie, indice_repetition,
                 libelle_voie, distribution_speciale]
     adresse = ""
     for column in col_list:
-        if column != '':
-            adresse = adresse + " " + column if column is not None else ""
-    if cedex == "":
-        if commune == "":
+        if column:
+            adresse = adresse + " " + column
+    if cedex is None:
+        if commune is None:
             adresse = adresse
         else:
-            adresse = adresse + " " + commune + " " + libelle_commune
+            adresse = adresse + " " + get_string(commune) + " " + \
+                      get_string(libelle_commune)
     else:
-        adresse = adresse + " " + cedex + " " + libelle_cedex
+        adresse = adresse + " " + get_string(cedex) + " " + get_string(libelle_cedex)
     etranger_list = [libelle_commune_etranger, libelle_pays_etranger]
     for column in etranger_list:
-        if column != "":
+        if column:
             adresse = adresse + " " + column if column != "" else ""
     return adresse.strip()
 

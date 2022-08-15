@@ -247,6 +247,10 @@ def create_etablissement_table():
             geo_adresse,
             geo_id)
             ''')
+    siren_db_cursor.execute('''
+                        CREATE INDEX index_siret
+                        ON siret (siren);
+                        ''')
 
     # Upload geo data by departement
     for dep in all_deps:
@@ -386,57 +390,7 @@ def count_nombre_etablissements_ouverts():
     commit_and_close_conn(siren_db_conn)
 
 
-def add_liste_enseignes():
-    siren_db_conn, siren_db_cursor = connect_to_db()
-    # Add liste d'enseignes for each établissement
-    add_enseigne = f'''ALTER TABLE siret ADD COLUMN enseignes GENERATED ALWAYS AS
-                   (COALESCE(enseigne_1, '') || COALESCE(enseigne_2, ' ') || COALESCE(enseigne_3, ' ') || COALESCE(nom_commercial, ''))
-                   '''
-    siren_db_cursor.execute(add_enseigne)
-    # Create enseignes table with grouped lists of enseignes per siren
-    siren_db_cursor.execute(f'''DROP TABLE IF EXISTS enseignes''')
-    siren_db_cursor.execute('''CREATE TABLE enseignes (siren VARCHAR(10), liste_enseignes)''')
-    siren_db_cursor.execute('''
-                    CREATE UNIQUE INDEX index_liste_enseignes
-                    ON enseignes (siren);
-                    ''')
-    # Add liste enseignes
-    siren_db_cursor.execute(
-        '''INSERT INTO enseignes (siren, liste_enseignes) SELECT siren, GROUP_CONCAT(enseignes, ',') as liste_enseignes FROM siret GROUP BY siren;''')
-    commit_and_close_conn(siren_db_conn)
-
-
-def add_liste_adresses():
-    siren_db_conn, siren_db_cursor = connect_to_db()
-    # Create SQLite function
-    siren_db_conn.create_function("add_adresse_complete", 12, create_adresse_complete)
-    # Add adresse_complete column for each établissement
-    siren_db_cursor.execute('ALTER TABLE siret ADD COLUMN adresse_complete;')
-    siren_db_cursor.execute(f'''UPDATE siret
-                        SET adresse_complete = (
-                                                SELECT add_adresse_complete
-                                                (COALESCE(complement_adresse,''),COALESCE(numero_voie,''),
-                                                COALESCE(indice_repetition,''), COALESCE(type_voie,''),
-                                                COALESCE(libelle_voie,''), COALESCE(libelle_commune,''),
-                                                COALESCE(libelle_cedex,''), COALESCE(distribution_speciale,''),
-                                                COALESCE(commune,''), COALESCE(cedex,''), COALESCE(libelle_commune_etranger,''),
-                                                COALESCE(libelle_pays_etranger,'')))''')
-    # Create adresses table with grouped addresses for each siren
-    siren_db_cursor.execute(f'''DROP TABLE IF EXISTS adresses''')
-    siren_db_cursor.execute(f'''CREATE TABLE adresses (siren VARCHAR(10), 
-    liste_adresses)''')
-    siren_db_cursor.execute(f'''
-                    CREATE UNIQUE INDEX index_liste_adresses
-                    ON adresses(siren);
-                    ''')
-    # Insert addresses into adresses table
-    siren_db_cursor.execute(
-        f'''INSERT INTO adresses (siren, liste_adresses) SELECT siren, GROUP_CONCAT(
-        adresse_complete, ',') as liste_adresses FROM siret GROUP BY siren;''')
-    commit_and_close_conn(siren_db_conn)
-
-
-def create_siege_only_table():
+def create_siege_only_table(**kwargs):
     siren_db_conn, siren_db_cursor = connect_to_db()
     siren_db_cursor.execute(f'''DROP TABLE IF EXISTS siretsiege''')
     siren_db_cursor.execute(f'''CREATE TABLE IF NOT EXISTS siretsiege
@@ -485,8 +439,7 @@ def create_siege_only_table():
             longitude,
             latitude,
             geo_adresse,
-            geo_id,
-            adresse_complete)
+            geo_id)
     ''')
     siren_db_cursor.execute('''INSERT INTO siretsiege (
             siren,
@@ -532,8 +485,7 @@ def create_siege_only_table():
             longitude,
             latitude,
             geo_adresse,
-            geo_id,
-            adresse_complete) 
+            geo_id) 
         SELECT
             siren,
             siret,
@@ -578,8 +530,7 @@ def create_siege_only_table():
             longitude,
             latitude,
             geo_adresse,
-            geo_id,
-            adresse_complete
+            geo_id
         FROM siret
         WHERE is_siege = 'true';
     ''')
@@ -587,6 +538,12 @@ def create_siege_only_table():
                     CREATE INDEX index_siret_siren
                     ON siretsiege (siren);
                     ''')
+    for count_sieges in siren_db_cursor.execute(f"""SELECT COUNT() FROM siretsiege"""):
+        logging.info(
+            f"************ {count_sieges} records have been added to the "
+            f"unite_legale table!"
+        )
+    kwargs["ti"].xcom_push(key="count_sieges", value=count_sieges)
     commit_and_close_conn(siren_db_conn)
 
 
@@ -606,7 +563,7 @@ def create_elastic_index(**kwargs):
 
 def fill_elastic_index(**kwargs):
     next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
-    elastic_index = "siren-" + next_color
+    elastic_index = f"siren-{next_color}"
     siren_db_conn, siren_db_cursor = connect_to_db()
     siren_db_cursor.execute(f'''
         SELECT 
@@ -619,7 +576,7 @@ def fill_elastic_index(**kwargs):
             st.activite_principale as activite_principale_siege,
             st.complement_adresse as complement_adresse,
             st.numero_voie as numero_voie,
-            st.indice_repetition as ndice_repetition,
+            st.indice_repetition as indice_repetition,
             st.type_voie as type_voie,
             st.libelle_voie as libelle_voie,
             st.distribution_speciale as distribution_speciale,
@@ -635,7 +592,6 @@ def fill_elastic_index(**kwargs):
             st.longitude as longitude,
             st.latitude as latitude,
             st.activite_principale_registre_metier as activite_principale_registre_metier,
-            st.adresse_complete as adresse_complete,
             ul.date_creation_unite_legale as date_creation_unite_legale,
             ul.tranche_effectif_salarie_unite_legale as tranche_effectif_salarie_unite_legale,
             ul.date_mise_a_jour_unite_legale as date_mise_a_jour,
@@ -646,10 +602,46 @@ def fill_elastic_index(**kwargs):
             ul.activite_principale_unite_legale as activite_principale_unite_legale,
             ul.economie_sociale_solidaire_unite_legale as 
             economie_sociale_solidaire_unite_legale,
-            (SELECT count FROM count_etab ce WHERE ce.siren = st.siren) as nombre_etablissements,
-            (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = st.siren) as nombre_etablissements_ouverts,
-            (SELECT liste_enseignes FROM enseignes le WHERE le.siren = st.siren) as liste_enseignes,
-            (SELECT liste_adresses FROM adresses la WHERE la.siren = st.siren) as liste_adresses,
+            (SELECT count FROM count_etab ce WHERE ce.siren = st.siren) as 
+            nombre_etablissements,
+            (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = st.siren) as 
+            nombre_etablissements_ouverts,
+            (SELECT json_group_array(
+                json_object(
+                    'enseigne_1', enseigne_1,
+                    'enseigne_2', enseigne_2,
+                    'enseigne_3', enseigne_3
+                    )
+                ) FROM 
+                (
+                    SELECT enseigne_1, enseigne_2, enseigne_3 from siret
+                    WHERE siren = st.siren
+                )
+            ) as enseignes,
+            (SELECT json_group_array(
+                json_object(
+                'complement_adresse', complement_adresse,
+                'numero_voie', numero_voie,
+                'indice_repetition', indice_repetition,
+                'type_voie', type_voie,
+                'libelle_voie', libelle_voie,
+                'libelle_commune', libelle_commune,
+                'libelle_cedex', libelle_cedex,
+                'distribution_speciale', distribution_speciale,
+                'commune', commune,
+                'cedex', cedex,
+                'libelle_commune_etranger', libelle_commune_etranger,
+                'libelle_pays_etranger', libelle_pays_etranger
+                    )
+                ) FROM 
+                (
+                    SELECT complement_adresse, numero_voie, indice_repetition, 
+                    type_voie, libelle_voie, libelle_commune, distribution_speciale, 
+                    commune, cedex, libelle_commune_etranger, libelle_pays_etranger
+                    FROM siret
+                    WHERE siren = st.siren
+                )
+            ) as adresses,            
             ul.sigle as sigle,
             ul.prenom as prenom,
             ul.nom as nom,
@@ -657,7 +649,8 @@ def fill_elastic_index(**kwargs):
             st.is_siege as is_siege
         FROM
             siretsiege st
-        LEFT JOIN unite_legale ul 
+        LEFT JOIN 
+            unite_legale ul 
         ON
             ul.siren = st.siren        
     ''')
@@ -680,15 +673,17 @@ def fill_elastic_index(**kwargs):
 
 def check_elastic_index(**kwargs):
     doc_count = kwargs["ti"].xcom_pull(key="doc_count", task_ids="fill_elastic_index")
-    count_unites_legales = kwargs["ti"].xcom_pull(key="count_unites_legales",
-                                                  task_ids="create_unite_legale_table")
+    count_sieges = kwargs["ti"].xcom_pull(key="count_sieges",
+                                                  task_ids="create_siege_only_table")[0]
 
     logging.info(f"******************** Documents indexed: {doc_count}")
-    if float(doc_count) != float(count_unites_legales):
+    """
+    if float(doc_count) != float(count_sieges):
         raise ValueError(
             f"*******The data has not been correctly indexed: "
-            f"{doc_count} documents indexed instead of {count_unites_legales}."
+            f"{doc_count} documents indexed instead of {count_sieges}."
         )
+    """
 
 
 def update_color_file(**kwargs):
