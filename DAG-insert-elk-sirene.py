@@ -5,7 +5,7 @@ from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.utils import (
+from dag_datalake_sirene.task_functions import (
     get_colors,
     create_sqlite_database,
     create_unite_legale_table,
