@@ -13,7 +13,6 @@ from dag_datalake_sirene.elasticsearch.index_doc import index_by_chunk
 from elasticsearch_dsl import connections
 from minio import Minio
 
-
 TMP_FOLDER = "/tmp/"
 DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "insert-elk-sirene"
@@ -151,8 +150,10 @@ def create_unite_legale_table(**kwargs):
                 "denominationUniteLegale": "nom_raison_sociale",
                 "categorieJuridiqueUniteLegale": "nature_juridique_unite_legale",
                 "activitePrincipaleUniteLegale": "activite_principale_unite_legale",
-                "economieSocialeSolidaireUniteLegale": "economie_sociale_solidaire_unite_legale",
-                "identifiantAssociationUniteLegale": "identifiant_association_unite_legale",
+                "economieSocialeSolidaireUniteLegale":
+                    "economie_sociale_solidaire_unite_legale",
+                "identifiantAssociationUniteLegale":
+                    "identifiant_association_unite_legale",
             }
         )
         df_unite_legale.to_sql(
@@ -379,11 +380,9 @@ def count_nombre_etablissements():
         """
     )
     siren_db_cursor.execute(
-        """
-        INSERT INTO count_etab (siren, count) 
+        """ INSERT INTO count_etab (siren, count) 
         SELECT siren, count(*) as count 
-        FROM siret GROUP BY siren;
-        """
+        FROM siret GROUP BY siren; """
     )
     commit_and_close_conn(siren_db_conn)
 
@@ -395,18 +394,14 @@ def count_nombre_etablissements_ouverts():
         """CREATE TABLE count_etab_ouvert (siren VARCHAR(10), count INTEGER)"""
     )
     siren_db_cursor.execute(
-        """
-        CREATE UNIQUE INDEX index_count_ouvert_siren
-        ON count_etab_ouvert (siren);
-        """
+        """CREATE UNIQUE INDEX index_count_ouvert_siren
+        ON count_etab_ouvert (siren);"""
     )
     siren_db_cursor.execute(
-        """
-        INSERT INTO count_etab_ouvert (siren, count) 
+        """INSERT INTO count_etab_ouvert (siren, count) 
         SELECT siren, count(*) as count 
         FROM siret 
-        WHERE etat_administratif_etablissement = 'A' GROUP BY siren;
-        """
+        WHERE etat_administratif_etablissement = 'A' GROUP BY siren;"""
     )
     commit_and_close_conn(siren_db_conn)
 
@@ -560,10 +555,8 @@ def create_siege_only_table(**kwargs):
     """
     )
     siren_db_cursor.execute(
-        """
-        CREATE INDEX index_siret_siren
-        ON siretsiege (siren);
-        """
+        """CREATE INDEX index_siret_siren
+        ON siretsiege (siren);"""
     )
     for count_sieges in siren_db_cursor.execute("""SELECT COUNT() FROM siretsiege"""):
         logging.info(
@@ -680,7 +673,7 @@ def fill_elastic_index(**kwargs):
         LEFT JOIN 
             unite_legale ul 
         ON
-            ul.siren = st.siren        
+            ul.siren = st.siren;
     """
     )
     connections.create_connection(
