@@ -1,5 +1,6 @@
-from psutil import virtual_memory
 import time
+
+from psutil import virtual_memory
 
 
 def mem():

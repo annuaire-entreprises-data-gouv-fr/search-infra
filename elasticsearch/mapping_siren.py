@@ -1,3 +1,4 @@
+from dag_datalake_sirene.colors import NEXT_COLOR
 from elasticsearch_dsl import (
     Boolean,
     Date,
@@ -10,7 +11,6 @@ from elasticsearch_dsl import (
     token_filter,
     tokenizer,
 )
-from dag_datalake_sirene.colors import NEXT_COLOR
 
 # Define filters
 french_elision = token_filter(

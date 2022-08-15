@@ -1,19 +1,20 @@
 import json
 import logging
 import os
-import requests
 import shutil
 import sqlite3
-from urllib.request import urlopen
 import subprocess
+from urllib.request import urlopen
+
 import pandas as pd
-from minio import Minio
-from elasticsearch_dsl import connections
+import requests
 from airflow.models import Variable
 from dag_datalake_sirene.data_enrichment import create_adresse_complete
 from dag_datalake_sirene.elasticsearch.create_siren import ElasticCreateSiren
 from dag_datalake_sirene.elasticsearch.index_doc import index_by_chunk
 from dag_datalake_sirene.helpers.single_dispatch_funcs import dict_from_row
+from minio import Minio
+from elasticsearch_dsl import connections
 
 
 TMP_FOLDER = "/tmp/"

@@ -1,4 +1,5 @@
 import json
+
 from dag_datalake_sirene.helpers.single_dispatch_funcs import get_string
 
 labels_file_path = "dags/dag_datalake_sirene/labels/"
@@ -33,10 +34,8 @@ def create_nom_complet(
         if nom_usage is None:
             return f"{prenom} {nom} ({formatted_sigle})".lower().replace(" ()", "")
         else:
-            return f"{prenom} {formatted_nom_usage}({nom}, {formatted_sigle})".lower().replace(
-                " ()", ""
-            )
-
+            return f"{prenom} {formatted_nom_usage}" \
+                   f"({nom}, {formatted_sigle})".lower().replace(" ()", "")
     else:
         if nom_raison_sociale is None and sigle is None:
             return None

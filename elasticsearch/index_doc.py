@@ -1,8 +1,8 @@
 import logging
-import json
-from elasticsearch import helpers
+
 from dag_datalake_sirene.elasticsearch.mapping_siren import Siren
 from dag_datalake_sirene.elasticsearch.process_doc import process_doc
+from elasticsearch import helpers
 
 
 def doc_generator(data):

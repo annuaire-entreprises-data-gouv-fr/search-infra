@@ -1,11 +1,12 @@
 import json
+
 from dag_datalake_sirene.data_enrichment import (
-    create_nom_complet,
-    create_departement,
-    create_coordonnees,
-    create_section,
-    create_entrepreneur_individuel,
     create_adresse_complete,
+    create_coordonnees,
+    create_departement,
+    create_entrepreneur_individuel,
+    create_nom_complet,
+    create_section,
 )
 from dag_datalake_sirene.helpers.single_dispatch_funcs import get_string
 

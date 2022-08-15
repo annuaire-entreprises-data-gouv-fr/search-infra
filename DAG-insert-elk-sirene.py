@@ -6,16 +6,16 @@ from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from dag_datalake_sirene.task_functions import (
-    get_colors,
-    create_sqlite_database,
-    create_unite_legale_table,
-    create_etablissement_table,
+    check_elastic_index,
     count_nombre_etablissements,
     count_nombre_etablissements_ouverts,
-    create_siege_only_table,
     create_elastic_index,
+    create_etablissement_table,
+    create_siege_only_table,
+    create_sqlite_database,
+    create_unite_legale_table,
     fill_elastic_index,
-    check_elastic_index,
+    get_colors,
     update_color_file,
 )
 from operators.clean_folder import CleanFolderOperator
