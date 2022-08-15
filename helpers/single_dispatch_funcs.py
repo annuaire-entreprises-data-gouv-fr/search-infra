@@ -5,7 +5,7 @@ def unique_list(lst):
 
 
 def unique_string(a):
-    return ' '.join(unique_list(a.strip().split(','))).strip()
+    return " ".join(unique_list(a.strip().split(","))).strip()
 
 
 def get_string(string):

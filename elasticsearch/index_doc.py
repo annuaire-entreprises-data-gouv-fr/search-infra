@@ -19,17 +19,15 @@ def index_by_chunk(cursor, elastic_connection, elastic_bulk_size, elastic_index)
     while res:
         res = cursor.fetchmany(elastic_bulk_size)
         columns = tuple([x[0] for x in cursor.description])
-        res = tuple(
-            [{column: val for column, val in zip(columns, x)} for x in res]
-        )
+        res = tuple([{column: val for column, val in zip(columns, x)} for x in res])
         res2 = process_res(res)
         i = i + 1
         if i % 1000 == 0:
             logging.info("i={i}")
         try:
-            for success, details in helpers.parallel_bulk(elastic_connection,
-                                                          doc_generator(res2),
-                                                          chunk_size=elastic_bulk_size):
+            for success, details in helpers.parallel_bulk(
+                elastic_connection, doc_generator(res2), chunk_size=elastic_bulk_size
+            ):
                 if not success:
                     raise Exception(f"A file_access document failed: {details}")
         except Exception as e:

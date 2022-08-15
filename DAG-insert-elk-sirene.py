@@ -17,7 +17,7 @@ from dag_datalake_sirene.task_functions import (
     fill_elastic_index,
     check_elastic_index,
     update_color_file,
-    )
+)
 from operators.clean_folder import CleanFolderOperator
 
 DAG_FOLDER = "dag_datalake_sirene/"
@@ -56,55 +56,55 @@ with DAG(
     create_sqlite_database = PythonOperator(
         task_id="create_sqlite_database",
         provide_context=True,
-        python_callable=create_sqlite_database
+        python_callable=create_sqlite_database,
     )
 
     create_unite_legale_table = PythonOperator(
         task_id="create_unite_legale_table",
         provide_context=True,
-        python_callable=create_unite_legale_table
+        python_callable=create_unite_legale_table,
     )
 
     create_etablissement_table = PythonOperator(
         task_id="create_etablissement_table",
         provide_context=True,
-        python_callable=create_etablissement_table
+        python_callable=create_etablissement_table,
     )
 
     count_nombre_etablissements = PythonOperator(
         task_id="count_nombre_etablissements",
         provide_context=True,
-        python_callable=count_nombre_etablissements
+        python_callable=count_nombre_etablissements,
     )
 
     count_nombre_etablissements_ouverts = PythonOperator(
         task_id="count_nombre_etablissements_ouverts",
         provide_context=True,
-        python_callable=count_nombre_etablissements_ouverts
+        python_callable=count_nombre_etablissements_ouverts,
     )
 
     create_siege_only_table = PythonOperator(
         task_id="create_siege_only_table",
         provide_context=True,
-        python_callable=create_siege_only_table
+        python_callable=create_siege_only_table,
     )
 
     create_elastic_index = PythonOperator(
         task_id="create_elastic_index",
         provide_context=True,
-        python_callable=create_elastic_index
+        python_callable=create_elastic_index,
     )
 
     fill_elastic_index = PythonOperator(
         task_id="fill_elastic_index",
         provide_context=True,
-        python_callable=fill_elastic_index
+        python_callable=fill_elastic_index,
     )
 
     check_elastic_index = PythonOperator(
         task_id="check_elastic_index",
         provide_context=True,
-        python_callable=check_elastic_index
+        python_callable=check_elastic_index,
     )
 
     update_color_file = PythonOperator(
