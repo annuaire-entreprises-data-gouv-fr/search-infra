@@ -168,10 +168,9 @@ def create_unite_legale_table(**kwargs):
     del df_unite_legale
 
     for count_unites_legales in siren_db_cursor.execute(
-        """
-        SELECT COUNT() FROM 
+        """SELECT COUNT() FROM 
         unite_legale
-        """
+        """ # noqa
     ):
         logging.info(
             f"************ {count_unites_legales} records have been added to the "
@@ -667,7 +666,7 @@ def fill_elastic_index(**kwargs):
         LEFT JOIN 
             unite_legale ul 
         ON
-            ul.siren = st.siren;"""
+            ul.siren = st.siren;""" # noqa
     )
     connections.create_connection(
         hosts=[ELASTIC_URL],
