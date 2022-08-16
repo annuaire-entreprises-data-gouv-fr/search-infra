@@ -814,7 +814,8 @@ def fill_elastic_index(**kwargs):
         st.latitude as latitude,
         st.activite_principale_registre_metier as activite_principale_registre_metier,
         ul.date_creation_unite_legale as date_creation_unite_legale,
-        ul.tranche_effectif_salarie_unite_legale as tranche_effectif_salarie_unite_legale,
+        ul.tranche_effectif_salarie_unite_legale
+        as tranche_effectif_salarie_unite_legale,
         ul.date_mise_a_jour_unite_legale as date_mise_a_jour,
         ul.categorie_entreprise as categorie_entreprise,
         ul.etat_administratif_unite_legale as etat_administratif_unite_legale,
