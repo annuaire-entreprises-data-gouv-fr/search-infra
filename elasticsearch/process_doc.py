@@ -76,16 +76,17 @@ def process_doc(res):
             result["prenom"],
         )
 
-        doc['liste_dirigeants'] = []
+        doc["liste_dirigeants"] = []
 
-        doc['dirigeants_pp'] = json.loads(result['dirigeants_pp'])
-        for dirigeant_pp in doc['dirigeants_pp']:
-            doc['liste_dirigeants'].append(
-                dirigeant_pp["prenoms"] + " " + dirigeant_pp["noms"])
+        doc["dirigeants_pp"] = json.loads(result["dirigeants_pp"])
+        for dirigeant_pp in doc["dirigeants_pp"]:
+            doc["liste_dirigeants"].append(
+                dirigeant_pp["prenoms"] + " " + dirigeant_pp["noms"]
+            )
 
-        doc['dirigeants_pm'] = json.loads(result['dirigeants_pm'])
-        for dirigeant_pm in doc['dirigeants_pm']:
-            doc['liste_dirigeants'].append(dirigeant_pm["denomination"])
+        doc["dirigeants_pm"] = json.loads(result["dirigeants_pm"])
+        for dirigeant_pm in doc["dirigeants_pm"]:
+            doc["liste_dirigeants"].append(dirigeant_pm["denomination"])
 
         doc["is_entrepreneur_individuel"] = create_entrepreneur_individuel(
             result["nature_juridique_unite_legale"]

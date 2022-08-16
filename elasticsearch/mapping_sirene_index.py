@@ -91,11 +91,19 @@ class ElasticsearchSireneIndex(Document):
     date_mise_a_jour = Date()
     departement = Keyword()
     dirigeants_pp = Object(
-        properties={'siren': Text(), 'noms': Text(), 'prenoms': Text(),
-                    'date_naissance': Date(), 'ville_naissance': Text(),
-                    'pays_naissance': Text(), 'qualite': Text()})
+        properties={
+            "siren": Text(),
+            "noms": Text(),
+            "prenoms": Text(),
+            "date_naissance": Date(),
+            "ville_naissance": Text(),
+            "pays_naissance": Text(),
+            "qualite": Text(),
+        }
+    )
     dirigeants_pm = Object(
-        properties={'siren': Text(), 'denomination': Text(), 'qualite': Text()})
+        properties={"siren": Text(), "denomination": Text(), "qualite": Text()}
+    )
     distribution_speciale = Text()
     economie_sociale_solidaire_unite_legale = Keyword()
     enseigne = Text()
@@ -135,6 +143,8 @@ class ElasticsearchSireneIndex(Document):
 
     class Index:
         name = f"siren-{NEXT_COLOR}"
-        settings = {"number_of_shards": 1,
-                    "number_of_replicas": 0,
-                    'mapping': {'ignore_malformed': True}}
+        settings = {
+            "number_of_shards": 1,
+            "number_of_replicas": 0,
+            "mapping": {"ignore_malformed": True},
+        }
