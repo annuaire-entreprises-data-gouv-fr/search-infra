@@ -69,21 +69,58 @@ def commit_and_close_conn(db_conn):
 
 def preprocess_dirigeants_pp(query):
     cols = [column[0] for column in query.description]
-    rep_chunk= pd.DataFrame.from_records(data = query.fetchall(), columns = cols)
-    rep_chunk.sort_values(by=["siren", "rep_noms", "rep_prenoms", "rep_datenaissance", "rep_villenaissance", "rep_paysnaissance", "rep_qualite"],
-                    inplace =True, ascending=[True, False, False, False, False, False, False])
-    rep_chunk.drop_duplicates(subset=["siren", "rep_noms", "rep_prenoms", "rep_qualite"], keep="first", inplace=True)
-    rep_clean = rep_chunk.groupby(by=["siren", "rep_noms", "rep_prenoms", "rep_datenaissance", "rep_villenaissance", "rep_paysnaissance"])['rep_qualite'].apply(lambda x: ', '.join(x)).reset_index()
+    rep_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
+    rep_chunk.sort_values(
+        by=[
+            "siren",
+            "rep_noms",
+            "rep_prenoms",
+            "rep_datenaissance",
+            "rep_villenaissance",
+            "rep_paysnaissance",
+            "rep_qualite",
+        ],
+        inplace=True,
+        ascending=[True, False, False, False, False, False, False],
+    )
+    rep_chunk.drop_duplicates(
+        subset=["siren", "rep_noms", "rep_prenoms", "rep_qualite"],
+        keep="first",
+        inplace=True,
+    )
+    rep_clean = (
+        rep_chunk.groupby(
+            by=[
+                "siren",
+                "rep_noms",
+                "rep_prenoms",
+                "rep_datenaissance",
+                "rep_villenaissance",
+                "rep_paysnaissance",
+            ]
+        )["rep_qualite"]
+        .apply(lambda x: ", ".join(x))
+        .reset_index()
+    )
     return rep_clean
 
 
 def preprocess_dirigeant_pm(query):
     cols = [column[0] for column in query.description]
-    rep_chunk= pd.DataFrame.from_records(data = query.fetchall(), columns = cols)
-    rep_chunk.sort_values(by=["siren", "rep_denomination", "rep_qualite"],
-                    inplace =True, ascending=[True, False, False])
-    rep_chunk.drop_duplicates(subset=["siren", "rep_denomination", "rep_qualite"], keep="first", inplace=True)
-    rep_clean = rep_chunk.groupby(by=["siren", "rep_denomination"])['rep_qualite'].apply(lambda x: ', '.join(x)).reset_index()
+    rep_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
+    rep_chunk.sort_values(
+        by=["siren", "rep_denomination", "rep_qualite"],
+        inplace=True,
+        ascending=[True, False, False],
+    )
+    rep_chunk.drop_duplicates(
+        subset=["siren", "rep_denomination", "rep_qualite"], keep="first", inplace=True
+    )
+    rep_clean = (
+        rep_chunk.groupby(by=["siren", "rep_denomination"])["rep_qualite"]
+        .apply(lambda x: ", ".join(x))
+        .reset_index()
+    )
     return rep_clean
 
 
@@ -626,12 +663,13 @@ def create_dirig_pp_table():
     siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
 
     chunk_size = int(100000)
-    for row in dirig_db_cursor.execute('''SELECT count(DISTINCT siren) FROM rep_pp;'''):
+    for row in dirig_db_cursor.execute("""SELECT count(DISTINCT siren) FROM rep_pp;"""):
         nb_iter = int(int(row[0]) / chunk_size) + 1
 
     # Create table dirigeants_pp in siren database
     siren_db_cursor.execute("""DROP TABLE IF EXISTS dirigeant_pp""")
-    siren_db_cursor.execute("""
+    siren_db_cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS dirigeant_pp
         (
             siren,
@@ -642,14 +680,18 @@ def create_dirig_pp_table():
             rep_paysnaissance,
             rep_qualite
         )
-    """)
-    siren_db_cursor.execute("""
+    """
+    )
+    siren_db_cursor.execute(
+        """
                     CREATE INDEX siren_pp
                     ON dirigeant_pp (siren);
-                    """)
+                    """
+    )
 
     for i in range(nb_iter):
-        query = dirig_db_cursor.execute(f"""
+        query = dirig_db_cursor.execute(
+            f"""
         SELECT DISTINCT siren, rep_noms, rep_prenoms, rep_datenaissance,
         rep_villenaissance, rep_paysnaissance, rep_qualite
         FROM rep_pp
@@ -657,15 +699,16 @@ def create_dirig_pp_table():
             (
             SELECT DISTINCT siren
             FROM rep_pp
-            WHERE siren != '' 
+            WHERE siren != ''
             LIMIT {chunk_size}
             OFFSET {int(i * chunk_size)})
-        """)
+        """
+        )
         dir_pp_clean = preprocess_dirigeants_pp(query)
         dir_pp_clean.to_sql(
             "dirigeant_pp",
             siren_db_conn,
-            if_exists='append',
+            if_exists="append",
             index=False,
         )
         logging.info(f"Iter: {i}")
@@ -684,33 +727,41 @@ def create_dirig_pm_table():
 
     # Create table dirigeants_pm in siren database
     siren_db_cursor.execute("""DROP TABLE IF EXISTS dirigeant_pm""")
-    siren_db_cursor.execute("""
+    siren_db_cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS dirigeant_pm
         (
             siren,
             rep_denomination,
             rep_qualite
         )
-    """)
-    siren_db_cursor.execute("""
+    """
+    )
+    siren_db_cursor.execute(
+        """
                     CREATE INDEX siren_pm
                     ON dirigeant_pm (siren);
-                    """)
+                    """
+    )
 
     for i in range(nb_iter):
-        query = cur.execute(f"""
+        query = dirig_db_cursor.execute(
+            f"""
         SELECT DISTINCT siren, rep_denomination, rep_qualite
         FROM rep_pm
-        WHERE siren IN 
+        WHERE siren IN
         (
             SELECT DISTINCT siren
             FROM rep_pm
             WHERE siren != ''
             LIMIT {chunk_size}
             OFFSET {int(i * chunk_size)})
-        """)
+        """
+        )
         dir_pm_clean = preprocess_dirigeant_pm(query)
-        dir_pm_clean.to_sql("dirigeant_pm", siren_db_conn, if_exists='append', index=False)
+        dir_pm_clean.to_sql(
+            "dirigeant_pm", siren_db_conn, if_exists="append", index=False
+        )
         logging.info(f"Iter: {i}")
     del dir_pm_clean
     commit_and_close_conn(siren_db_conn)
@@ -821,7 +872,7 @@ def fill_elastic_index(**kwargs):
                     'pays_naissance', rep_paysnaissance,
                     'qualite', rep_qualite
                     )
-                ) FROM 
+                ) FROM
                 (
                     SELECT siren, rep_noms, rep_prenoms, rep_datenaissance,
                     rep_villenaissance, rep_paysnaissance, rep_qualite
