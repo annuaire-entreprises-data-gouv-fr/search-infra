@@ -177,7 +177,7 @@ def create_unite_legale_table(**kwargs):
             f"************ {count_unites_legales} records have been added to the "
             f"unite_legale table!"
         )
-    kwargs["ti"].xcom_push(key="count_unites_legales", value=count_unites_legales)
+    kwargs["ti"].xcom_push(key="count_unites_legales", value=count_unites_legales[0])
     commit_and_close_conn(siren_db_conn)
 
 
@@ -570,7 +570,7 @@ def create_siege_only_table(**kwargs):
             f"************ {count_sieges} records have been added to the "
             f"unite_legale table!"
         )
-    kwargs["ti"].xcom_push(key="count_sieges", value=count_sieges)
+    kwargs["ti"].xcom_push(key="count_sieges", value=count_sieges[0])
     commit_and_close_conn(siren_db_conn)
 
 
@@ -694,19 +694,18 @@ def fill_elastic_index(**kwargs):
 
 def check_elastic_index(**kwargs):
     doc_count = kwargs["ti"].xcom_pull(key="doc_count", task_ids="fill_elastic_index")
-    """
+
     count_sieges = kwargs["ti"].xcom_pull(
         key="count_sieges", task_ids="create_siege_only_table"
     )[0]
-    """
+
     logging.info(f"******************** Documents indexed: {doc_count}")
-    """
-    if float(doc_count) != float(count_sieges):
+
+    if float(count_sieges) - float(doc_count) > 3500:
         raise ValueError(
             f"*******The data has not been correctly indexed: "
             f"{doc_count} documents indexed instead of {count_sieges}."
         )
-    """
 
 
 def update_color_file(**kwargs):
