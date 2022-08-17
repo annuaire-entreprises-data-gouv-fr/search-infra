@@ -68,7 +68,6 @@ def process_doc(res):
         )
 
         doc["nom_complet"] = create_nom_complet(
-            result["nature_juridique_unite_legale"],
             result["nom"],
             result["nom_usage"],
             result["nom_raison_sociale"],

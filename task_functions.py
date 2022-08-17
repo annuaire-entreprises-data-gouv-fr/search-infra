@@ -697,7 +697,7 @@ def check_elastic_index(**kwargs):
 
     count_sieges = kwargs["ti"].xcom_pull(
         key="count_sieges", task_ids="create_siege_only_table"
-    )[0]
+    )
 
     logging.info(f"******************** Documents indexed: {doc_count}")
 

@@ -16,34 +16,26 @@ sections_NAF = load_file("sections_codes_naf.json")
 
 # Nom complet
 def create_nom_complet(
-    nature_juridique_unite_legale=None,
     nom=None,
     nom_usage=None,
     nom_raison_sociale=None,
     sigle=None,
     prenom=None,
 ):
-    is_auto_entrepreneur = nature_juridique_unite_legale == "1000"
-
-    if is_auto_entrepreneur:
-        formatted_nom_usage = " " + nom_usage if nom_usage else ""
-        formatted_sigle = sigle if sigle else ""
-
-        if prenom is None and nom is None:
-            return None
-        if nom_usage is None:
-            return f"{prenom} {nom} ({formatted_sigle})".lower().replace(" ()", "")
+    name = None
+    if prenom or nom or nom_usage:
+        if nom_usage:
+            formatted_name = f" {nom_usage} ({nom})" if nom else f" {nom_usage}"
         else:
-            return (
-                f"{prenom} {formatted_nom_usage}"
-                f"({nom}, {formatted_sigle})".lower().replace(" ()", "")
-            )
-    else:
-        if nom_raison_sociale is None and sigle is None:
-            return None
-        else:
-            formatted_sigle = f" ({sigle})" if sigle else ""
-            return f"{nom_raison_sociale}{formatted_sigle}".lower()
+            formatted_name = f" {nom}" if nom else ""
+
+        name = f"{prenom if prenom else ''}{formatted_name}"
+    if nom_raison_sociale:
+        name = nom_raison_sociale
+
+    if sigle:
+        name = f"{name} ({sigle})"
+    return name.lower().strip() if name else name
 
 
 # Entrepreneur individuel
