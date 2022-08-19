@@ -47,7 +47,7 @@ def is_entrepreneur_individuel(nature_juridique_unite_legale):
 
 
 # Section activité principale
-def format_section(activite_principale_unite_legale):
+def label_section_from_activite(activite_principale_unite_legale):
     if activite_principale_unite_legale is not None:
         code_naf = activite_principale_unite_legale[:2]
         section_activite_principale = (

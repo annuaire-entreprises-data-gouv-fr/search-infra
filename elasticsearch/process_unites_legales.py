@@ -4,9 +4,9 @@ from dag_datalake_sirene.data_enrichment import (
     format_adresse_complete,
     format_coordonnees,
     format_departement,
-    is_entrepreneur_individuel,
     format_nom_complet,
-    format_section,
+    is_entrepreneur_individuel,
+    label_section_from_activite,
 )
 from dag_datalake_sirene.helpers.utils import get_empty_string_if_none
 
@@ -81,7 +81,9 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         unite_legale_processed[
             "is_entrepreneur_individuel"
         ] = is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
-        unite_legale_processed["section_activite_principale"] = format_section(
+        unite_legale_processed[
+            "section_activite_principale"
+        ] = label_section_from_activite(
             unite_legale["activite_principale_unite_legale"]
         )
         unite_legale_processed["departement"] = format_departement(
