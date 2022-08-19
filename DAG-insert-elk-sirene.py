@@ -5,11 +5,16 @@ from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.utils import (
+from dag_datalake_sirene.task_functions import (
     check_elastic_index,
-    create_elastic_siren,
-    fill_siren,
-    format_sirene_notebook,
+    count_nombre_etablissements,
+    count_nombre_etablissements_ouverts,
+    create_elastic_index,
+    create_etablissement_table,
+    create_siege_only_table,
+    create_sqlite_database,
+    create_unite_legale_table,
+    fill_elastic_index,
     get_colors,
     update_color_file,
 )
@@ -48,25 +53,52 @@ with DAG(
         folder_path=f"{TMP_FOLDER}+{DAG_FOLDER}+{DAG_NAME}",
     )
 
-    format_sirene_notebook = PythonOperator(
-        task_id="format_sirene_notebook",
+    create_sqlite_database = PythonOperator(
+        task_id="create_sqlite_database",
         provide_context=True,
-        python_callable=format_sirene_notebook,
+        python_callable=create_sqlite_database,
     )
 
-    clean_tmp_folder = CleanFolderOperator(
-        task_id="clean_tmp_folder",
-        folder_path=f"{TMP_FOLDER}+{DAG_FOLDER}+{DAG_NAME}",
-    )
-
-    create_elastic_siren = PythonOperator(
-        task_id="create_elastic_siren",
+    create_unite_legale_table = PythonOperator(
+        task_id="create_unite_legale_table",
         provide_context=True,
-        python_callable=create_elastic_siren,
+        python_callable=create_unite_legale_table,
     )
 
-    fill_elastic_siren = PythonOperator(
-        task_id="fill_elastic_siren", provide_context=True, python_callable=fill_siren
+    create_etablissement_table = PythonOperator(
+        task_id="create_etablissement_table",
+        provide_context=True,
+        python_callable=create_etablissement_table,
+    )
+
+    count_nombre_etablissements = PythonOperator(
+        task_id="count_nombre_etablissements",
+        provide_context=True,
+        python_callable=count_nombre_etablissements,
+    )
+
+    count_nombre_etablissements_ouverts = PythonOperator(
+        task_id="count_nombre_etablissements_ouverts",
+        provide_context=True,
+        python_callable=count_nombre_etablissements_ouverts,
+    )
+
+    create_siege_only_table = PythonOperator(
+        task_id="create_siege_only_table",
+        provide_context=True,
+        python_callable=create_siege_only_table,
+    )
+
+    create_elastic_index = PythonOperator(
+        task_id="create_elastic_index",
+        provide_context=True,
+        python_callable=create_elastic_index,
+    )
+
+    fill_elastic_index = PythonOperator(
+        task_id="fill_elastic_index",
+        provide_context=True,
+        python_callable=fill_elastic_index,
     )
 
     check_elastic_index = PythonOperator(
@@ -103,11 +135,15 @@ with DAG(
     )
 
     clean_previous_folder.set_upstream(get_colors)
-    format_sirene_notebook.set_upstream(clean_previous_folder)
-    clean_tmp_folder.set_upstream(format_sirene_notebook)
-    create_elastic_siren.set_upstream(clean_tmp_folder)
-    fill_elastic_siren.set_upstream(create_elastic_siren)
-    check_elastic_index.set_upstream(fill_elastic_siren)
+    create_sqlite_database.set_upstream(clean_previous_folder)
+    create_unite_legale_table.set_upstream(create_sqlite_database)
+    create_etablissement_table.set_upstream(create_unite_legale_table)
+    count_nombre_etablissements.set_upstream(create_etablissement_table)
+    count_nombre_etablissements_ouverts.set_upstream(count_nombre_etablissements)
+    create_siege_only_table.set_upstream(count_nombre_etablissements_ouverts)
+    create_elastic_index.set_upstream(create_siege_only_table)
+    fill_elastic_index.set_upstream(create_elastic_index)
+    check_elastic_index.set_upstream(fill_elastic_index)
     update_color_file.set_upstream(check_elastic_index)
     execute_aio_container.set_upstream(update_color_file)
     send_email.set_upstream(execute_aio_container)
