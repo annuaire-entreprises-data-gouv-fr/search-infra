@@ -8,8 +8,10 @@ from urllib.request import urlopen
 import pandas as pd
 import requests
 from airflow.models import Variable
-from dag_datalake_sirene.elasticsearch.create_siren import ElasticCreateSiren
-from dag_datalake_sirene.elasticsearch.index_doc import index_by_chunk
+from dag_datalake_sirene.elasticsearch.create_sirene_index import ElasticCreateSiren
+from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
+    index_unites_legales_by_chunk,
+)
 from elasticsearch_dsl import connections
 from minio import Minio
 
@@ -682,7 +684,7 @@ def fill_elastic_index(**kwargs):
     )
     elastic_connection = connections.get_connection()
 
-    doc_count = index_by_chunk(
+    doc_count = index_unites_legales_by_chunk(
         cursor=siren_db_cursor,
         elastic_connection=elastic_connection,
         elastic_bulk_size=ELASTIC_BULK_SIZE,

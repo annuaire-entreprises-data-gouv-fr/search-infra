@@ -1,6 +1,6 @@
 import json
 
-from dag_datalake_sirene.helpers.single_dispatch_funcs import get_string
+from dag_datalake_sirene.helpers.utils import get_empty_string_if_none
 
 labels_file_path = "dags/dag_datalake_sirene/labels/"
 
@@ -15,7 +15,7 @@ sections_NAF = load_file("sections_codes_naf.json")
 
 
 # Nom complet
-def create_nom_complet(
+def format_nom_complet(
     nom=None,
     nom_usage=None,
     nom_raison_sociale=None,
@@ -39,7 +39,7 @@ def create_nom_complet(
 
 
 # Entrepreneur individuel
-def create_entrepreneur_individuel(nature_juridique_unite_legale):
+def is_entrepreneur_individuel(nature_juridique_unite_legale):
     if nature_juridique_unite_legale in ["1", "10", "1000"]:
         return "true"
     else:
@@ -47,7 +47,7 @@ def create_entrepreneur_individuel(nature_juridique_unite_legale):
 
 
 # Section activité principale
-def create_section(activite_principale_unite_legale):
+def format_section(activite_principale_unite_legale):
     if activite_principale_unite_legale is not None:
         code_naf = activite_principale_unite_legale[:2]
         section_activite_principale = (
@@ -59,7 +59,7 @@ def create_section(activite_principale_unite_legale):
 
 
 # Adresse complète
-def create_adresse_complete(
+def format_adresse_complete(
     complement_adresse,
     numero_voie,
     indice_repetition,
@@ -90,10 +90,20 @@ def create_adresse_complete(
             adresse = adresse
         else:
             adresse = (
-                adresse + " " + get_string(commune) + " " + get_string(libelle_commune)
+                adresse
+                + " "
+                + get_empty_string_if_none(commune)
+                + " "
+                + get_empty_string_if_none(libelle_commune)
             )
     else:
-        adresse = adresse + " " + get_string(cedex) + " " + get_string(libelle_cedex)
+        adresse = (
+            adresse
+            + " "
+            + get_empty_string_if_none(cedex)
+            + " "
+            + get_empty_string_if_none(libelle_cedex)
+        )
     etranger_list = [libelle_commune_etranger, libelle_pays_etranger]
     for column in etranger_list:
         if column:
@@ -102,7 +112,7 @@ def create_adresse_complete(
 
 
 # Département
-def create_departement(commune):
+def format_departement(commune):
     departement = (
         str(commune)[:3]
         if str(commune)[:2] == "97"
@@ -112,7 +122,7 @@ def create_departement(commune):
 
 
 # Coordonnées
-def create_coordonnees(longitude, latitude):
+def format_coordonnees(longitude, latitude):
     coordonnees = (
         None if (longitude is None) or (latitude is None) else f"{latitude},{longitude}"
     )

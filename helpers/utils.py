@@ -8,7 +8,7 @@ def unique_string(a):
     return " ".join(unique_list(a.strip().split(","))).strip()
 
 
-def get_string(string):
+def get_empty_string_if_none(string):
     if string is None:
         return ""
     return string

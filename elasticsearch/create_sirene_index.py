@@ -1,7 +1,9 @@
 import logging
 from typing import Optional
 
-from dag_datalake_sirene.elasticsearch.mapping_siren import Siren
+from dag_datalake_sirene.elasticsearch.mapping_sirene_index import (
+    ElasticsearchSireneIndex,
+)
 from elasticsearch_dsl import Index, connections
 
 
@@ -71,4 +73,5 @@ class ElasticCreateSiren:
             Index(self.elastic_index).delete()
             logging.info(f"Index {self.elastic_index} deleted!")
         logging.info(f"Creating {self.elastic_index} index!")
-        Siren.init()
+        # Create the mapping in elasticsearch
+        ElasticsearchSireneIndex.init()
