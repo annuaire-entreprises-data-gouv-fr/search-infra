@@ -98,11 +98,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         unite_legale_processed["concat_nom_adr_siren"] = (
-            get_string(unite_legale_processed["nom_complet"])
+            get_empty_string_if_none(unite_legale_processed["nom_complet"])
             + " "
-            + get_string(unite_legale_processed["adresse_etablissement"])
+            + get_empty_string_if_none(unite_legale_processed["adresse_etablissement"])
             + " "
-            + get_string(unite_legale["siren"])
+            + get_empty_string_if_none(unite_legale["siren"])
         ).strip()
         list_unites_legales_processed.append(unite_legale_processed)
     return list_unites_legales_processed

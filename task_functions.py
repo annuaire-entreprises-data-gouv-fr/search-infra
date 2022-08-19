@@ -8,7 +8,9 @@ from urllib.request import urlopen
 import pandas as pd
 import requests
 from airflow.models import Variable
-from dag_datalake_sirene.elasticsearch.create_sirene_index import ElasticCreateSiren
+from dag_datalake_sirene.elasticsearch.create_sirene_index import (
+    ElasticCreateSiren
+)
 from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
     index_unites_legales_by_chunk,
 )
