@@ -78,20 +78,42 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["sigle"],
             unite_legale["prenom"],
         )
+
         # Replace missing values with 0
         unite_legale_processed["nombre_etablissements_ouverts"] = (
             0
             if unite_legale_processed["nombre_etablissements_ouverts"] is None
             else unite_legale_processed["nombre_etablissements_ouverts"]
         )
+
+        unite_legale_processed['liste_dirigeants'] = []
+
+        unite_legale_processed['dirigeants_pp'] = json.loads(
+            unite_legale['dirigeants_pp'])
+        for dirigeant_pp in unite_legale_processed['dirigeants_pp']:
+            unite_legale_processed['liste_dirigeants'].append(
+                dirigeant_pp["prenoms"] + " " + dirigeant_pp["noms"])
+
+        unite_legale_processed['dirigeants_pm'] = \
+            json.loads(unite_legale['dirigeants_pm'])
+        for dirigeant_pm in unite_legale_processed['dirigeants_pm']:
+            unite_legale_processed[
+                'liste_dirigeants'].append(dirigeant_pm["denomination"])
+
         unite_legale_processed[
             "is_entrepreneur_individuel"
         ] = is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
+
+        if unite_legale_processed["is_entrepreneur_individuel"] == "true":
+            unite_legale_processed[
+                'liste_dirigeants'].append(unite_legale_processed["nom_complet"])
+
         unite_legale_processed[
             "section_activite_principale"
         ] = label_section_from_activite(
             unite_legale["activite_principale_unite_legale"]
         )
+
         unite_legale_processed["departement"] = format_departement(
             unite_legale["commune"]
         )
@@ -99,16 +121,17 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["longitude"], unite_legale["latitude"]
         )
         unite_legale_processed["concat_enseigne_adresse"] = (
-            unite_legale_processed["liste_enseignes"]
-            + unite_legale_processed["liste_adresses"]
+                unite_legale_processed["liste_enseignes"]
+                + unite_legale_processed["liste_adresses"]
         )
 
         unite_legale_processed["concat_nom_adr_siren"] = (
-            get_empty_string_if_none(unite_legale_processed["nom_complet"])
-            + " "
-            + get_empty_string_if_none(unite_legale_processed["adresse_etablissement"])
-            + " "
-            + get_empty_string_if_none(unite_legale["siren"])
+                get_empty_string_if_none(unite_legale_processed["nom_complet"])
+                + " "
+                + get_empty_string_if_none(
+            unite_legale_processed["adresse_etablissement"])
+                + " "
+                + get_empty_string_if_none(unite_legale["siren"])
         ).strip()
         list_unites_legales_processed.append(unite_legale_processed)
     return list_unites_legales_processed
