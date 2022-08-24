@@ -78,6 +78,12 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["sigle"],
             unite_legale["prenom"],
         )
+        # Replace missing values with 0
+        unite_legale_processed["nombre_etablissements_ouverts"] = (
+            0
+            if unite_legale_processed["nombre_etablissements_ouverts"] is None
+            else unite_legale_processed["nombre_etablissements_ouverts"]
+        )
         unite_legale_processed[
             "is_entrepreneur_individuel"
         ] = is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
