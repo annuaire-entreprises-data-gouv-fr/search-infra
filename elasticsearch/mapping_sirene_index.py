@@ -108,7 +108,7 @@ class ElasticsearchSireneIndex(Document):
     date_debut_activite_siege = Date()
     date_mise_a_jour = Date()
     departement = Keyword()
-    dirigeants_pp = Nested(ElasticsearchDirigeantIndex)
+    dirigeants_pp = Nested(ElasticsearchDirigeantPPIndex)
     dirigeants_pm = Nested(ElasticsearchDirigeantPMIndex)
     distribution_speciale = Text()
     economie_sociale_solidaire_unite_legale = Keyword()
