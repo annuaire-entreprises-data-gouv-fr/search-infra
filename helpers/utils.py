@@ -1,3 +1,6 @@
+from unicodedata import normalize
+
+
 def unique_list(lst):
     ulist = []
     [ulist.append(x) for x in lst if x not in ulist]
@@ -16,3 +19,12 @@ def get_empty_string_if_none(string):
 
 def dict_from_row(row):
     return dict(zip(row.keys(), row))
+
+
+def normalize_string(string):
+    norm_string = (
+        normalize("NFD", string.lower().strip())
+        .encode("ascii", errors="ignore")
+        .decode()
+    )
+    return norm_string
