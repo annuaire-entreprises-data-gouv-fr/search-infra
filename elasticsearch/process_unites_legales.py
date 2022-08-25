@@ -8,7 +8,10 @@ from dag_datalake_sirene.data_enrichment import (
     is_entrepreneur_individuel,
     label_section_from_activite,
 )
-from dag_datalake_sirene.helpers.utils import get_empty_string_if_none
+from dag_datalake_sirene.helpers.utils import (
+    get_empty_string_if_none,
+    normalize_string,
+)
 
 
 def process_unites_legales(chunk_unites_legales_sqlite):
@@ -79,7 +82,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["prenom"],
         )
 
-<<<<<<< HEAD
         # Replace missing values with 0
         unite_legale_processed["nombre_etablissements_ouverts"] = (
             0
@@ -94,21 +96,27 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         for dirigeant_pp in unite_legale_processed['dirigeants_pp']:
             unite_legale_processed['liste_dirigeants'].append(
                 dirigeant_pp["prenoms"] + " " + dirigeant_pp["noms"])
-=======
+
+        # Dirigeants
         unite_legale_processed["liste_dirigeants"] = []
         unite_legale_processed["dirigeants_pp"] = json.loads(
             unite_legale["dirigeants_pp"]
         )
+
         for dirigeant_pp in unite_legale_processed["dirigeants_pp"]:
+            dirigeant_pp["noms"] = normalize_string(dirigeant_pp["noms"])
+            dirigeant_pp["prenoms"] = normalize_string(dirigeant_pp["prenoms"])
             unite_legale_processed["liste_dirigeants"].append(
                 dirigeant_pp["prenoms"] + " " + dirigeant_pp["noms"]
             )
->>>>>>> style: fix linting errors
 
         unite_legale_processed["dirigeants_pm"] = json.loads(
             unite_legale["dirigeants_pm"]
         )
         for dirigeant_pm in unite_legale_processed["dirigeants_pm"]:
+            dirigeant_pm["denomination"] = normalize_string(
+                dirigeant_pm["denomination"]
+            )
             unite_legale_processed["liste_dirigeants"].append(
                 dirigeant_pm["denomination"]
             )
