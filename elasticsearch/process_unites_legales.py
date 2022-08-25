@@ -89,13 +89,15 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             else unite_legale_processed["nombre_etablissements_ouverts"]
         )
 
-        unite_legale_processed['liste_dirigeants'] = []
+        unite_legale_processed["liste_dirigeants"] = []
 
-        unite_legale_processed['dirigeants_pp'] = json.loads(
-            unite_legale['dirigeants_pp'])
-        for dirigeant_pp in unite_legale_processed['dirigeants_pp']:
-            unite_legale_processed['liste_dirigeants'].append(
-                dirigeant_pp["prenoms"] + " " + dirigeant_pp["noms"])
+        unite_legale_processed["dirigeants_pp"] = json.loads(
+            unite_legale["dirigeants_pp"]
+        )
+        for dirigeant_pp in unite_legale_processed["dirigeants_pp"]:
+            unite_legale_processed["liste_dirigeants"].append(
+                dirigeant_pp["prenoms"] + " " + dirigeant_pp["noms"]
+            )
 
         # Dirigeants
         unite_legale_processed["liste_dirigeants"] = []
