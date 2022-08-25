@@ -4,8 +4,10 @@ from elasticsearch_dsl import (
     Date,
     Document,
     GeoPoint,
+    InnerDoc,
     Integer,
     Keyword,
+    Nested,
     Object,
     Text,
     analyzer,
@@ -57,6 +59,22 @@ annuaire_analyzer = analyzer(
 )
 
 
+class ElasticsearchDirigeantPPIndex(InnerDoc):
+    siren = Text()
+    noms = Text()
+    prenoms = Text()
+    date_naissance = Date()
+    ville_naissance = Text()
+    pays_naissance = Text()
+    qualite = Text()
+
+
+class ElasticsearchDirigeantPMIndex(InnerDoc):
+    siren = Text()
+    denomination = Text()
+    qualite = Text()
+
+
 class ElasticsearchSireneIndex(Document):
     """
 
@@ -90,20 +108,8 @@ class ElasticsearchSireneIndex(Document):
     date_debut_activite_siege = Date()
     date_mise_a_jour = Date()
     departement = Keyword()
-    dirigeants_pp = Object(
-        properties={
-            "siren": Text(),
-            "noms": Text(),
-            "prenoms": Text(),
-            "date_naissance": Date(),
-            "ville_naissance": Text(),
-            "pays_naissance": Text(),
-            "qualite": Text(),
-        }
-    )
-    dirigeants_pm = Object(
-        properties={"siren": Text(), "denomination": Text(), "qualite": Text()}
-    )
+    dirigeants_pp = Nested(ElasticsearchDirigeantIndex)
+    dirigeants_pm = Nested(ElasticsearchDirigeantPMIndex)
     distribution_speciale = Text()
     economie_sociale_solidaire_unite_legale = Keyword()
     enseigne = Text()
