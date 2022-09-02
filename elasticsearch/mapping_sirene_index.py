@@ -60,9 +60,9 @@ annuaire_analyzer = analyzer(
 
 
 class ElasticsearchDirigeantPPIndex(InnerDoc):
-    siren = Text()
-    noms = Text()
-    prenoms = Text()
+    siren = Keyword()
+    noms = Text(fields={"keyword": Keyword()})
+    prenoms = Text(fields={"keyword": Keyword()})
     date_naissance = Date()
     ville_naissance = Text()
     pays_naissance = Text()
@@ -70,8 +70,8 @@ class ElasticsearchDirigeantPPIndex(InnerDoc):
 
 
 class ElasticsearchDirigeantPMIndex(InnerDoc):
-    siren = Text()
-    denomination = Text()
+    siren = Keyword()
+    denomination = Text(fields={"keyword": Keyword()})
     qualite = Text()
 
 
@@ -79,7 +79,7 @@ class ElasticsearchSireneIndex(Document):
     """
 
     Model-like class for persisting documents in elasticsearch.
-    It's a wrapper around document to create specific mappings and to add settings in
+    It's a wrapper around Document to create specific mappings and to add settings in
     elasticsearch.
 
     Class used to represent a company headquarters,

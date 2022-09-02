@@ -38,6 +38,18 @@ def format_nom_complet(
     return name.lower().strip() if name else name
 
 
+# Noms
+def format_nom(
+    nom=None,
+    nom_usage=None,
+):
+    if nom_usage:
+        formatted_name = f"{nom_usage} ({nom})" if nom else f"{nom_usage}"
+    else:
+        formatted_name = f"{nom}" if nom else None
+    return formatted_name.lower().strip() if formatted_name else formatted_name
+
+
 # Entrepreneur individuel
 def is_entrepreneur_individuel(nature_juridique_unite_legale):
     if nature_juridique_unite_legale in ["1", "10", "1000"]:

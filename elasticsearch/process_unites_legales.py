@@ -4,12 +4,14 @@ from dag_datalake_sirene.data_enrichment import (
     format_adresse_complete,
     format_coordonnees,
     format_departement,
+    format_nom,
     format_nom_complet,
     is_entrepreneur_individuel,
     label_section_from_activite,
 )
 from dag_datalake_sirene.helpers.utils import (
     get_empty_string_if_none,
+    normalize_date,
     normalize_string,
 )
 
@@ -89,16 +91,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             else unite_legale_processed["nombre_etablissements_ouverts"]
         )
 
-        unite_legale_processed["liste_dirigeants"] = []
-
-        unite_legale_processed["dirigeants_pp"] = json.loads(
-            unite_legale["dirigeants_pp"]
-        )
-        for dirigeant_pp in unite_legale_processed["dirigeants_pp"]:
-            unite_legale_processed["liste_dirigeants"].append(
-                dirigeant_pp["prenoms"] + " " + dirigeant_pp["noms"]
-            )
-
         # Dirigeants
         unite_legale_processed["liste_dirigeants"] = []
         unite_legale_processed["dirigeants_pp"] = json.loads(
@@ -111,6 +103,8 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["liste_dirigeants"].append(
                 dirigeant_pp["prenoms"] + " " + dirigeant_pp["noms"]
             )
+            dirigeant_pp["date_naissance"] = normalize_date(dirigeant_pp[
+                                                               "date_naissance"])
 
         unite_legale_processed["dirigeants_pm"] = json.loads(
             unite_legale["dirigeants_pm"]
@@ -131,6 +125,14 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["liste_dirigeants"].append(
                 unite_legale_processed["nom_complet"]
             )
+            unite_legale_processed["dirigeants_pp"] = []
+            unite_legale_processed["dirigeants_pp"].append({})
+            unite_legale_processed["dirigeants_pp"][0]["noms"] = normalize_string(
+                format_nom(unite_legale_processed["nom"], unite_legale_processed[
+                    "nom_usage"]))
+            unite_legale_processed["dirigeants_pp"][0]["prenoms"] = normalize_string(
+                unite_legale_processed["prenom"])
+
 
         unite_legale_processed[
             "section_activite_principale"
