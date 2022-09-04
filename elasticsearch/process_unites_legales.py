@@ -103,8 +103,9 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["liste_dirigeants"].append(
                 dirigeant_pp["prenoms"] + " " + dirigeant_pp["noms"]
             )
-            dirigeant_pp["date_naissance"] = normalize_date(dirigeant_pp[
-                                                               "date_naissance"])
+            dirigeant_pp["date_naissance"] = normalize_date(
+                dirigeant_pp["date_naissance"]
+            )
             dirigeant_pp.pop("siren", None)
 
         unite_legale_processed["dirigeants_pm"] = json.loads(
@@ -129,11 +130,13 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["dirigeants_pp"] = []
             unite_legale_processed["dirigeants_pp"].append({})
             unite_legale_processed["dirigeants_pp"][0]["noms"] = normalize_string(
-                format_nom(unite_legale_processed["nom"], unite_legale_processed[
-                    "nom_usage"]))
+                format_nom(
+                    unite_legale_processed["nom"], unite_legale_processed["nom_usage"]
+                )
+            )
             unite_legale_processed["dirigeants_pp"][0]["prenoms"] = normalize_string(
-                unite_legale_processed["prenom"])
-
+                unite_legale_processed["prenom"]
+            )
 
         unite_legale_processed[
             "section_activite_principale"

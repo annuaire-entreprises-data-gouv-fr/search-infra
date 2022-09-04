@@ -29,8 +29,8 @@ def normalize_string(string):
         return None
     norm_string = (
         normalize("NFD", string.lower().strip())
-            .encode("ascii", errors="ignore")
-            .decode()
+        .encode("ascii", errors="ignore")
+        .decode()
     )
     return norm_string
 
@@ -39,7 +39,7 @@ def normalize_date(date_string):
     date_patterns = ["%d-%m-%Y", "%Y-%m-%d", "%Y%m%d", "%d/%m/%Y"]
     for pattern in date_patterns:
         try:
-            return datetime.strptime(date_string, pattern).strftime('%Y-%m-%d')
+            return datetime.strptime(date_string, pattern).strftime("%Y-%m-%d")
         except:
             pass
     logging.info(f"Date is not in expected format: {date_string}")
