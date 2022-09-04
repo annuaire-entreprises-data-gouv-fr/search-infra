@@ -8,7 +8,6 @@ from elasticsearch_dsl import (
     Integer,
     Keyword,
     Nested,
-    Object,
     Text,
     analyzer,
     token_filter,

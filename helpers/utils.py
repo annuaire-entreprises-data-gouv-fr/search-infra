@@ -1,7 +1,6 @@
-from unicodedata import normalize
 import logging
 from datetime import datetime
-import dateutil.parser as parser
+from unicodedata import normalize
 
 
 def unique_list(lst):
@@ -40,6 +39,6 @@ def normalize_date(date_string):
     for pattern in date_patterns:
         try:
             return datetime.strptime(date_string, pattern).strftime("%Y-%m-%d")
-        except:
+        except ValueError:
             pass
     logging.info(f"Date is not in expected format: {date_string}")
