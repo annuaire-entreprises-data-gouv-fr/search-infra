@@ -105,6 +105,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             )
             dirigeant_pp["date_naissance"] = normalize_date(dirigeant_pp[
                                                                "date_naissance"])
+            dirigeant_pp.pop("siren", None)
 
         unite_legale_processed["dirigeants_pm"] = json.loads(
             unite_legale["dirigeants_pm"]

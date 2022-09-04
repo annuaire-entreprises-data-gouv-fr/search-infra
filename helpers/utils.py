@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 import dateutil.parser as parser
 
+
 def unique_list(lst):
     ulist = []
     [ulist.append(x) for x in lst if x not in ulist]
@@ -28,30 +29,17 @@ def normalize_string(string):
         return None
     norm_string = (
         normalize("NFD", string.lower().strip())
-        .encode("ascii", errors="ignore")
-        .decode()
+            .encode("ascii", errors="ignore")
+            .decode()
     )
     return norm_string
 
-"""
-def normalize_date(date):
-    if date is None:
-        return None
-    try:
-        norm_date = datetime.strptime(date, "%d/%m/%Y").strftime('%Y-%m-%d')
-    except ValueError:
-        logging.info("The string is not a date with format %d/%m/%Y: " + date)
-        norm_date = date
-    return norm_date
-"""
-def normalize_date(date):
-    if date is None:
-        return None
-    try:
-        date_parsed = parser.parse(date)
-        norm_date = datetime.strptime(date, "%d/%m/%Y").strftime('%Y-%m-%d')
-    except ValueError:
-        logging.info("The string is not a date with format %d/%m/%Y: " + date)
-        norm_date = date
-    return norm_date
 
+def normalize_date(date_string):
+    date_patterns = ["%d-%m-%Y", "%Y-%m-%d", "%Y%m%d", "%d/%m/%Y"]
+    for pattern in date_patterns:
+        try:
+            return datetime.strptime(date_string, pattern).strftime('%Y-%m-%d')
+        except:
+            pass
+    logging.info(f"Date is not in expected format: {date_string}")

@@ -60,7 +60,7 @@ annuaire_analyzer = analyzer(
 
 
 class ElasticsearchDirigeantPPIndex(InnerDoc):
-    siren = Keyword()
+    # siren = Keyword()
     noms = Text(fields={"keyword": Keyword()})
     prenoms = Text(fields={"keyword": Keyword()})
     date_naissance = Date()
