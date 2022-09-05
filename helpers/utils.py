@@ -1,5 +1,5 @@
 from unicodedata import normalize
-
+import pandas as pd
 
 def unique_list(lst):
     ulist = []
@@ -28,3 +28,15 @@ def normalize_string(string):
         .decode()
     )
     return norm_string
+
+def process_elus_files(url, colname):
+    df = pd.read_csv(url, dtype=str, sep="\t")
+    df = df[[colname, 'Nom de l\'élu', 'Prénom de l\'élu', 'Code sexe', 'Date de naissance']]
+    df = df.rename(columns={
+        colname: 'code_colter',
+        'Nom de l\'élu': 'nom_elu',
+        'Prénom de l\'élu': 'prenom_elu',
+        'Code sexe': 'sexe_elu',
+        'Date de naissance': 'date_naissance_elu'
+    })
+    return df

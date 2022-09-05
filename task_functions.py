@@ -14,6 +14,11 @@ from dag_datalake_sirene.elasticsearch.create_sirene_index import (
 from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
     index_unites_legales_by_chunk,
 )
+
+from dag_datalake_sirene.helpers.utils import (
+    process_elus_files
+)
+
 from elasticsearch_dsl import connections
 from minio import Minio
 
@@ -892,7 +897,33 @@ def fill_elastic_index(**kwargs):
                     FROM dirigeant_pm
                     WHERE siren = st.siren
                 )
-            ) as dirigeants_pm
+            ) as dirigeants_pm,
+        (SELECT code_colter
+            FROM colter
+            WHERE siren = st.siren
+            ) as code_colter,
+        (SELECT niveau_colter
+            FROM colter
+            WHERE siren = st.siren
+            ) as niveau_colter,
+        (SELECT code_insee
+            FROM colter
+            WHERE siren = st.siren
+            ) as code_insee,
+        (SELECT json_group_array(
+            json_object(
+                'nom', nom_elu,
+                'prenom', prenom_elu,
+                'date_naissance', date_naissance_elu,
+                'sexe', sexe_elu
+                )
+            ) FROM
+            (
+                SELECT nom_elu, prenom_elu, date_naissance_elu, sexe_elu
+                FROM colter_elus
+                WHERE siren = st.siren
+            )
+        ) as colter_elus
         FROM
             siretsiege st
         LEFT JOIN
@@ -931,6 +962,164 @@ def check_elastic_index(**kwargs):
             f"*******The data has not been correctly indexed: "
             f"{doc_count} documents indexed instead of {count_sieges}."
         )
+
+def preprocess_colter(**kwargs):
+    # Process Régions
+    df = pd.read_csv('https://www.data.gouv.fr/fr/datasets/r/619ee62e-8f9e-4c62-b166-abc6f2b86201', dtype=str, sep=";")
+    df = df[df['exer'] == df.exer.max()][['reg_code', 'siren']]
+    df = df.drop_duplicates(keep='first')
+    df = df.rename(columns={'reg_code': 'code_insee'})
+    df['code_colter'] = df['code_insee']
+    df['niveau_colter'] = 'region'
+    
+    # Cas particulier Corse
+    df.loc[df['code_insee'] == '94', 'niveau_colter'] = 'particulier'
+    dfcolter = df
+
+    # Process Départements
+    df = pd.read_csv('https://www.data.gouv.fr/fr/datasets/r/2f4f901d-e3ce-4760-b122-56a311340fc4', dtype=str, sep=';')
+    df = df[df['exer'] == df['exer'].max()]
+    df = df[['dep_code', 'siren']]
+    df = df.drop_duplicates(keep="first")
+    df = df.rename(columns={'dep_code': 'code_insee'})
+    df['code_colter'] = df['code_insee'] + 'D'
+    df['niveau_colter'] = 'departement'
+
+    # Cas Métropole de Lyon
+    df.loc[df['code_insee'] == '691', 'code_colter'] = '69M'
+    df.loc[df['code_insee'] == '691', 'niveau_colter'] = 'particulier'
+    df.loc[df['code_insee'] == '691', 'code_insee'] = None
+
+    # Cas Conseil départemental du Rhone
+    df.loc[df['code_insee'] == '69', 'niveau_colter'] = 'particulier'
+    df.loc[df['code_insee'] == '69', 'code_insee'] = None
+
+    # Cas Collectivité Européenne d'Alsace
+    df.loc[df['code_insee'] == '67A', 'code_colter'] = '6AE'
+    df.loc[df['code_insee'] == '67A', 'niveau_colter'] = 'particulier'
+    df.loc[df['code_insee'] == '67A', 'code_insee'] = None
+
+    # Remove Paris
+    df = df[df['code_insee'] != '75']
+    
+    dfcolter = pd.concat([dfcolter, df])
+
+    # Process EPCI
+    df = pd.read_excel('https://www.collectivites-locales.gouv.fr/files/2022/epcisanscom2022.xlsx',dtype=str, engine='openpyxl')
+    df['code_insee'] = None
+    df['siren'] = df['siren_epci']
+    df['code_colter'] = df['siren']
+    df['niveau_colter'] = 'epci'
+    df = df[['code_insee', 'siren', 'code_colter', 'niveau_colter']]
+    dfcolter = pd.concat([dfcolter, df])
+
+    # Process Communes
+    URL = "https://www.data.gouv.fr/fr/datasets/r/42b16d68-958e-4518-8551-93e095fe8fda"
+    response = requests.get(URL)
+    open("/tmp/siren-communes.zip", "wb").write(response.content)
+
+    import zipfile
+
+    with zipfile.ZipFile('/tmp/siren-communes.zip', 'r') as zip_ref:
+        zip_ref.extractall('/tmp/siren-communes')
+
+    df = pd.read_excel('/tmp/siren-communes/Banatic_SirenInsee2022.xlsx',dtype=str, engine='openpyxl')
+    df['code_insee'] = df['insee']
+    df['code_colter'] = df['insee']
+    df['niveau_colter'] = 'commune'
+    df = df[['code_insee', 'siren', 'code_colter', 'niveau_colter']]
+    df.loc[df['code_insee'] == '75056', 'code_colter'] = '75C'
+    df.loc[df['code_insee'] == '75056', 'niveau_colter'] = 'particulier'
+
+    dfcolter = pd.concat([dfcolter, df])
+
+    if os.path.exists(DATA_DIR + 'colter.csv'):
+        os.remove(DATA_DIR + 'colter.csv')
+
+    dfcolter.to_csv(DATA_DIR + 'colter.csv', index=False)
+
+    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
+
+    # Create table colter in siren database
+    siren_db_cursor.execute("""DROP TABLE IF EXISTS colter""")
+    siren_db_cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS colter
+        (
+            siren,
+            code_insee,
+            code_colter,
+            niveau_colter
+        )
+    """
+    )
+    siren_db_cursor.execute(
+        """
+                    CREATE INDEX siren_colter
+                    ON colter (siren);
+                    """
+    )
+
+    dfcolter.to_sql(
+        "colter", siren_db_conn, if_exists="append", index=False
+    )
+
+
+
+def preprocess_elus_colter(**kwargs):
+    colter = pd.read_csv(DATA_DIR + 'colter.csv',dtype=str)
+    # Conseillers régionaux
+    elus = process_elus_files('https://www.data.gouv.fr/fr/datasets/r/430e13f9-834b-4411-a1a8-da0b4b6e715c', 'Code de la région')
+    # Conseillers départementaux
+    df = process_elus_files('https://www.data.gouv.fr/fr/datasets/r/601ef073-d986-4582-8e1a-ed14dc857fba', 'Code du département')
+    df['code_colter'] = df['code_colter'] + 'D'
+    df.loc[df['code_colter'] == '6AED', 'code_colter'] = '6AE'
+    elus = pd.concat([elus, df])
+    # membres des assemblées des collectivités à statut particulier
+    df = process_elus_files('https://www.data.gouv.fr/fr/datasets/r/a595be27-cfab-4810-b9d4-22e193bffe35', 'Code de la collectivité à statut particulier')
+    df.loc[df['code_colter'] == '972', 'code_colter'] = '02'
+    df.loc[df['code_colter'] == '973', 'code_colter'] = '03'
+    elus = pd.concat([elus, df])
+    # Conseillers communautaires
+    df = process_elus_files('https://www.data.gouv.fr/fr/datasets/r/41d95d7d-b172-4636-ac44-32656367cdc7', 'N° SIREN')
+    elus = pd.concat([elus, df])
+    # Conseillers municipaux
+    df = process_elus_files('https://www.data.gouv.fr/fr/datasets/r/d5f400de-ae3f-4966-8cb6-a85c70c6c24a', 'Code de la commune')
+    df.loc[df['code_colter'] == '75056', 'code_colter'] = '75C'
+    elus = pd.concat([elus, df])
+    colter_elus = elus.merge(colter, on='code_colter', how='left')
+    colter_elus = colter_elus[colter_elus['siren'].notna()]
+    colter_elus['date_naissance_elu'] = colter_elus['date_naissance_elu'].apply(lambda x: x.split('/')[2]+'-'+x.split('/')[1]+'-'+x.split('/')[0])
+
+    colter_elus = colter_elus[['siren', 'nom_elu', 'prenom_elu', 'date_naissance_elu', 'sexe_elu']]
+
+    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
+
+    # Create table colter in siren database
+
+    siren_db_cursor.execute("""DROP TABLE IF EXISTS colter_elus""")
+    siren_db_cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS colter_elus
+        (
+            siren,
+            nom_elu,
+            prenom_elu,
+            date_naissance_elu,
+            sexe_elu
+        )
+    """
+    )
+    siren_db_cursor.execute(
+        """
+                    CREATE INDEX siren_colter_elus
+                    ON colter_elus (siren);
+                    """
+    )
+
+    colter_elus.to_sql(
+        "colter_elus", siren_db_conn, if_exists="append", index=False
+    )
 
 
 def update_color_file(**kwargs):

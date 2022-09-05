@@ -123,6 +123,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
                 dirigeant_pm["denomination"]
             )
 
+        # Elus
+        unite_legale_processed["colter_elus"] = json.loads(
+            unite_legale["colter_elus"]
+        )
+
         unite_legale_processed[
             "is_entrepreneur_individuel"
         ] = is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
