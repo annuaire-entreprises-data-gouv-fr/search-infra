@@ -866,7 +866,7 @@ def fill_elastic_index(**kwargs):
             (SELECT json_group_array(
                 json_object(
                     'siren', siren,
-                    'noms', rep_noms,
+                    'nom', rep_noms,
                     'prenoms', rep_prenoms,
                     'date_naissance', rep_datenaissance,
                     'ville_naissance', rep_villenaissance,

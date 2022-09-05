@@ -98,10 +98,10 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         for dirigeant_pp in unite_legale_processed["dirigeants_pp"]:
-            dirigeant_pp["noms"] = normalize_string(dirigeant_pp["noms"])
+            dirigeant_pp["nom"] = normalize_string(dirigeant_pp["nom"])
             dirigeant_pp["prenoms"] = normalize_string(dirigeant_pp["prenoms"])
             unite_legale_processed["liste_dirigeants"].append(
-                dirigeant_pp["prenoms"] + " " + dirigeant_pp["noms"]
+                dirigeant_pp["prenoms"] + " " + dirigeant_pp["nom"]
             )
             dirigeant_pp["date_naissance"] = normalize_date(
                 dirigeant_pp["date_naissance"]
@@ -129,7 +129,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             )
             unite_legale_processed["dirigeants_pp"] = []
             unite_legale_processed["dirigeants_pp"].append({})
-            unite_legale_processed["dirigeants_pp"][0]["noms"] = normalize_string(
+            unite_legale_processed["dirigeants_pp"][0]["nom"] = normalize_string(
                 format_nom(
                     unite_legale_processed["nom"], unite_legale_processed["nom_usage"]
                 )

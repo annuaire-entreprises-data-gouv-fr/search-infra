@@ -59,7 +59,7 @@ annuaire_analyzer = analyzer(
 
 
 class ElasticsearchDirigeantPPIndex(InnerDoc):
-    noms = Text(fields={"keyword": Keyword()})
+    nom = Text(fields={"keyword": Keyword()})
     prenoms = Text(fields={"keyword": Keyword()})
     date_naissance = Date()
     ville_naissance = Text()
