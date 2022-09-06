@@ -73,18 +73,20 @@ def preprocess_dirigeants_pp(query):
     rep_chunk.sort_values(
         by=[
             "siren",
-            "rep_noms",
-            "rep_prenoms",
-            "rep_datenaissance",
-            "rep_villenaissance",
-            "rep_paysnaissance",
-            "rep_qualite",
+            "nom_patronymique",
+            "nom_usage",
+            "prenoms",
+            "datenaissance",
+            "villenaissance",
+            "paysnaissance",
+            "qualite",
         ],
         inplace=True,
-        ascending=[True, False, False, False, False, False, False],
+        ascending=[True, False, False, False, False, False, False, False],
     )
     rep_chunk.drop_duplicates(
-        subset=["siren", "rep_noms", "rep_prenoms", "rep_qualite"],
+        subset=["siren", "nom_patronymique", "nom_usage", "prenoms",
+                "datenaissance", "villenaissance", "paysnaissance", "qualite"],
         keep="first",
         inplace=True,
     )
@@ -92,13 +94,14 @@ def preprocess_dirigeants_pp(query):
         rep_chunk.groupby(
             by=[
                 "siren",
-                "rep_noms",
-                "rep_prenoms",
-                "rep_datenaissance",
-                "rep_villenaissance",
-                "rep_paysnaissance",
+                "nom_patronymique",
+                "nom_usage",
+                "prenoms",
+                "datenaissance",
+                "villenaissance",
+                "paysnaissance",
             ]
-        )["rep_qualite"]
+        )["qualite"]
         .apply(lambda x: ", ".join(x))
         .reset_index()
     )
@@ -109,15 +112,16 @@ def preprocess_dirigeant_pm(query):
     cols = [column[0] for column in query.description]
     rep_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
     rep_chunk.sort_values(
-        by=["siren", "rep_denomination", "rep_qualite"],
+        by=["siren", "siren_pm", "denomination", "sigle", "qualite"],
         inplace=True,
-        ascending=[True, False, False],
+        ascending=[True, False, False, False, False],
     )
     rep_chunk.drop_duplicates(
-        subset=["siren", "rep_denomination", "rep_qualite"], keep="first", inplace=True
+        subset=["siren", "siren_pm", "denomination", "sigle", "qualite"],
+        keep="first", inplace=True
     )
     rep_clean = (
-        rep_chunk.groupby(by=["siren", "rep_denomination"])["rep_qualite"]
+        rep_chunk.groupby(by=["siren", "siren_pm", "denomination", "sigle"])["qualite"]
         .apply(lambda x: ", ".join(x))
         .reset_index()
     )
@@ -673,12 +677,13 @@ def create_dirig_pp_table():
         CREATE TABLE IF NOT EXISTS dirigeant_pp
         (
             siren,
-            rep_noms,
-            rep_prenoms,
-            rep_datenaissance,
-            rep_villenaissance,
-            rep_paysnaissance,
-            rep_qualite
+            nom_patronymique,
+            nom_usage,
+            prenoms,
+            datenaissance,
+            villenaissance,
+            paysnaissance,
+            qualite
         )
     """
     )
@@ -692,8 +697,8 @@ def create_dirig_pp_table():
     for i in range(nb_iter):
         query = dirig_db_cursor.execute(
             f"""
-        SELECT DISTINCT siren, rep_noms, rep_prenoms, rep_datenaissance,
-        rep_villenaissance, rep_paysnaissance, rep_qualite
+        SELECT DISTINCT siren, nom_patronymique, nom_usage, prenoms,
+        datenaissance, villenaissance, paysnaissance, qualite
         FROM rep_pp
         WHERE siren IN
             (
@@ -732,8 +737,10 @@ def create_dirig_pm_table():
         CREATE TABLE IF NOT EXISTS dirigeant_pm
         (
             siren,
-            rep_denomination,
-            rep_qualite
+            siren_pm,
+            denomination,
+            sigle,
+            qualite
         )
     """
     )
@@ -747,7 +754,7 @@ def create_dirig_pm_table():
     for i in range(nb_iter):
         query = dirig_db_cursor.execute(
             f"""
-        SELECT DISTINCT siren, rep_denomination, rep_qualite
+        SELECT DISTINCT siren, siren_pm, denomination, sigle, qualite
         FROM rep_pm
         WHERE siren IN
         (
@@ -866,17 +873,18 @@ def fill_elastic_index(**kwargs):
             (SELECT json_group_array(
                 json_object(
                     'siren', siren,
-                    'nom', rep_noms,
-                    'prenoms', rep_prenoms,
-                    'date_naissance', rep_datenaissance,
-                    'ville_naissance', rep_villenaissance,
-                    'pays_naissance', rep_paysnaissance,
-                    'qualite', rep_qualite
+                    'nom_patronymique', nom_patronymique,
+                    'nom_usage', nom_usage,
+                    'prenoms', prenoms,
+                    'date_naissance', datenaissance,
+                    'ville_naissance', villenaissance,
+                    'pays_naissance', paysnaissance,
+                    'qualite', qualite
                     )
                 ) FROM
                 (
-                    SELECT siren, rep_noms, rep_prenoms, rep_datenaissance,
-                    rep_villenaissance, rep_paysnaissance, rep_qualite
+                    SELECT siren, nom_patronymique, nom_usage, prenoms, 
+                    datenaissance, villenaissance, paysnaissance, qualite
                     FROM dirigeant_pp
                     WHERE siren = st.siren
                 )
@@ -884,12 +892,14 @@ def fill_elastic_index(**kwargs):
         (SELECT json_group_array(
                 json_object(
                     'siren', siren,
-                    'denomination', rep_denomination,
-                    'qualite', rep_qualite
+                    'siren_pm', siren_pm,
+                    'denomination', denomination,
+                    'sigle', sigle,
+                    'qualite', qualite
                     )
                 ) FROM
                 (
-                    SELECT siren, rep_denomination, rep_qualite
+                    SELECT siren, siren_pm, denomination, sigle, qualite
                     FROM dirigeant_pm
                     WHERE siren = st.siren
                 )
