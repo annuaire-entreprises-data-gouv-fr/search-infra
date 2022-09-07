@@ -892,7 +892,7 @@ def fill_elastic_index(**kwargs):
                     )
                 ) FROM
                 (
-                    SELECT siren, nom_patronymique, nom_usage, prenoms, 
+                    SELECT siren, nom_patronymique, nom_usage, prenoms,
                     datenaissance, villenaissance, paysnaissance, qualite
                     FROM dirigeant_pp
                     WHERE siren = st.siren
