@@ -85,8 +85,16 @@ def preprocess_dirigeants_pp(query):
         ascending=[True, False, False, False, False, False, False, False],
     )
     rep_chunk.drop_duplicates(
-        subset=["siren", "nom_patronymique", "nom_usage", "prenoms",
-                "datenaissance", "villenaissance", "paysnaissance", "qualite"],
+        subset=[
+            "siren",
+            "nom_patronymique",
+            "nom_usage",
+            "prenoms",
+            "datenaissance",
+            "villenaissance",
+            "paysnaissance",
+            "qualite",
+        ],
         keep="first",
         inplace=True,
     )
@@ -118,7 +126,8 @@ def preprocess_dirigeant_pm(query):
     )
     rep_chunk.drop_duplicates(
         subset=["siren", "siren_pm", "denomination", "sigle", "qualite"],
-        keep="first", inplace=True
+        keep="first",
+        inplace=True,
     )
     rep_clean = (
         rep_chunk.groupby(by=["siren", "siren_pm", "denomination", "sigle"])["qualite"]

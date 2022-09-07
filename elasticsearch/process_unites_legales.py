@@ -99,9 +99,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
 
         for dirigeant_pp in unite_legale_processed["dirigeants_pp"]:
             dirigeant_pp["nom"] = normalize_string(
-                format_nom(
-                    dirigeant_pp["nom_patronymique"], dirigeant_pp["nom_usage"]
-                )
+                format_nom(dirigeant_pp["nom_patronymique"], dirigeant_pp["nom_usage"])
             )
             dirigeant_pp["prenoms"] = normalize_string(dirigeant_pp["prenoms"])
             if dirigeant_pp["prenoms"] and dirigeant_pp["nom"]:
@@ -114,7 +112,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             dirigeant_pp.pop("siren", None)
             dirigeant_pp.pop("nom_patronymique", None)
             dirigeant_pp.pop("nom_usage", None)
-            
+
         unite_legale_processed["dirigeants_pm"] = json.loads(
             unite_legale["dirigeants_pm"]
         )
