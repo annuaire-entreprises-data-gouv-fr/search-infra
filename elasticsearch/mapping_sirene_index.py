@@ -89,7 +89,6 @@ class ElasticsearchSireneIndex(Document):
     activite_principale_unite_legale = Keyword()
     activite_principale_registre_metier = Keyword()
     adresse_etablissement = Text()
-    adresse_etablissement_2 = Text()
     categorie_entreprise = Text()
     cedex = Keyword()
     code_pays_etranger = Text()
