@@ -10,6 +10,7 @@ from dag_datalake_sirene.data_enrichment import (
     label_section_from_activite,
 )
 from dag_datalake_sirene.helpers.utils import (
+    drop_duplicates,
     get_empty_string_if_none,
     normalize_date,
     normalize_string,
@@ -112,6 +113,9 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             dirigeant_pp.pop("siren", None)
             dirigeant_pp.pop("nom_patronymique", None)
             dirigeant_pp.pop("nom_usage", None)
+        unite_legale_processed["dirigeants_pp"] = drop_duplicates(
+            unite_legale_processed["dirigeants_pp"]
+        )
 
         unite_legale_processed["dirigeants_pm"] = json.loads(
             unite_legale["dirigeants_pm"]
@@ -124,6 +128,9 @@ def process_unites_legales(chunk_unites_legales_sqlite):
                 dirigeant_pm["denomination"]
             )
             dirigeant_pm["siren"] = dirigeant_pm.pop("siren_pm", None)
+        unite_legale_processed["dirigeants_pm"] = drop_duplicates(
+            unite_legale_processed["dirigeants_pm"]
+        )
 
         unite_legale_processed[
             "is_entrepreneur_individuel"

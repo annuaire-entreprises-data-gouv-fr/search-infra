@@ -42,3 +42,11 @@ def normalize_date(date_string):
         except ValueError:
             pass
     logging.info(f"Date is not in expected format: {date_string}")
+
+
+def drop_duplicates(list_dict):
+    # frozenset is used to assign a value to key in dictionary as a set. The repeated
+    # entries of dictionary are hence ignored
+    return list(
+        {frozenset(dictionary.items()): dictionary for dictionary in list_dict}.values()
+    )
