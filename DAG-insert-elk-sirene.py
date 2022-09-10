@@ -17,6 +17,8 @@ from dag_datalake_sirene.task_functions import (
     fill_elastic_index,
     get_colors,
     update_color_file,
+    create_sitemap,
+    update_sitemap
 )
 from operators.clean_folder import CleanFolderOperator
 
@@ -95,6 +97,18 @@ with DAG(
         python_callable=create_elastic_index,
     )
 
+    create_sitemap = PythonOperator(
+        task_id="create_sitemap",
+        provide_context=True,
+        python_callable=create_sitemap,
+    )
+
+    update_sitemap = PythonOperator(
+        task_id="update_sitemap",
+        provide_context=True,
+        python_callable=update_sitemap,
+    )
+
     fill_elastic_index = PythonOperator(
         task_id="fill_elastic_index",
         provide_context=True,
@@ -143,7 +157,10 @@ with DAG(
     create_siege_only_table.set_upstream(count_nombre_etablissements_ouverts)
     create_elastic_index.set_upstream(create_siege_only_table)
     fill_elastic_index.set_upstream(create_elastic_index)
+    create_sitemap.set_upstream(fill_elastic_index)
+    update_sitemap.set_upstream(create_sitemap)
     check_elastic_index.set_upstream(fill_elastic_index)
     update_color_file.set_upstream(check_elastic_index)
     execute_aio_container.set_upstream(update_color_file)
     send_email.set_upstream(execute_aio_container)
+    send_email.set_upstream(update_sitemap)
