@@ -758,8 +758,8 @@ def create_sitemap():
             unite_legale ul;"""  # noqa
     )
 
-    if os.path.exists(DATA_DIR + "sitemap-name.csv"):
-        os.remove(DATA_DIR + "sitemap-name.csv")
+    if os.path.exists(DATA_DIR + "sitemap-name-" + ENV + ".csv"):
+        os.remove(DATA_DIR + "sitemap-name-" + ENV + ".csv")
 
     chunk_unites_legales_sqlite = 1
     while chunk_unites_legales_sqlite:
@@ -790,13 +790,13 @@ def create_sitemap():
                 )
                 noms_url = noms_url + nom_url + "\n"
 
-        with open(DATA_DIR + "sitemap-name.csv", "a+") as f:
+        with open(DATA_DIR + "sitemap-name-" + ENV + ".csv", "a+") as f:
             f.write(noms_url)
 
 
 def update_sitemap():
 
-    minio_filepath = "ae/sitemap-name.csv"
+    minio_filepath = "ae/sitemap-name-" + ENV + ".csv"
     minio_url = MINIO_URL
     minio_bucket = MINIO_BUCKET
     minio_user = MINIO_USER
@@ -816,6 +816,6 @@ def update_sitemap():
         client.fput_object(
             bucket_name=minio_bucket,
             object_name=minio_filepath,
-            file_path=DATA_DIR + "sitemap-name.csv",
+            file_path=DATA_DIR + "sitemap-name-" + ENV + ".csv",
             content_type="text/csv",
         )
