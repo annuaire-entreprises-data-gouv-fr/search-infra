@@ -153,7 +153,9 @@ def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
     dirigeants_pp = json.loads(list_dirigeants_pp_sqlite)
     dirigeants_pp_processed = []
     for dirigeant_pp in dirigeants_pp:
-        dirigeant_pp["nom"] = format_nom(dirigeant_pp["nom_patronymique"], dirigeant_pp["nom_usage"])
+        dirigeant_pp["nom"] = format_nom(
+            dirigeant_pp["nom_patronymique"], dirigeant_pp["nom_usage"]
+        )
         dirigeant_pp["date_naissance"] = normalize_date(dirigeant_pp["date_naissance"])
         dirigeants_pp_processed.append(
             dict(
@@ -172,12 +174,16 @@ def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
             )
         elif dirigeant_pp["prenoms"] and not dirigeant_pp["nom"]:
             list_all_dirigeants.append(dirigeant_pp["prenoms"])
-            logging.info(f'Missing dirigeant nom for ****** {dirigeant_pp["siren"]} '
-                         f'****** prenoms = {dirigeant_pp["prenoms"]}')
+            logging.info(
+                f'Missing dirigeant nom for ****** {dirigeant_pp["siren"]} '
+                f'****** prenoms = {dirigeant_pp["prenoms"]}'
+            )
         elif dirigeant_pp["nom"] and not dirigeant_pp["prenoms"]:
             list_all_dirigeants.append(dirigeant_pp["nom"])
-            logging.info(f'Missing dirigeant prenoms for ****** '
-                         f'{dirigeant_pp["siren"]} ****** nom : {dirigeant_pp["nom"]}')
+            logging.info(
+                f"Missing dirigeant prenoms for ****** "
+                f'{dirigeant_pp["siren"]} ****** nom : {dirigeant_pp["nom"]}'
+            )
         else:
             logging.info(f'Missing dirigeants names for ****** {dirigeant_pp["siren"]}')
 
@@ -193,7 +199,9 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
         if dirigeant_pm["denomination"]:
             list_all_dirigeants.append(dirigeant_pm["denomination"])
         else:
-            logging.info(f'Missing denomination dirigeant for ***** {dirigeant_pm["siren"]}')
+            logging.info(
+                f'Missing denomination dirigeant for ***** {dirigeant_pm["siren"]}'
+            )
 
         dirigeants_pm_processed.append(
             dict(

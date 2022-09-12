@@ -120,10 +120,12 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["dirigeants_pp"] = []
             unite_legale_processed["dirigeants_pp"].append({})
             unite_legale_processed["dirigeants_pp"][0]["nom"] = format_nom(
-                    unite_legale_processed["nom"], unite_legale_processed["nom_usage"]
-                )
+                unite_legale_processed["nom"], unite_legale_processed["nom_usage"]
+            )
 
-            unite_legale_processed["dirigeants_pp"][0]["prenoms"] = unite_legale_processed["prenom"]
+            unite_legale_processed["dirigeants_pp"][0][
+                "prenoms"
+            ] = unite_legale_processed["prenom"]
 
         unite_legale_processed[
             "section_activite_principale"
