@@ -13,7 +13,6 @@ from dag_datalake_sirene.data_enrichment import (
 )
 from dag_datalake_sirene.helpers.utils import (
     get_empty_string_if_none,
-    normalize_string,
 )
 
 

@@ -1,12 +1,10 @@
 import json
 import logging
-import itertools
 
 from dag_datalake_sirene.helpers.utils import (
     drop_duplicates,
     get_empty_string_if_none,
     normalize_date,
-    normalize_string,
 )
 
 labels_file_path = "dags/dag_datalake_sirene/labels/"
