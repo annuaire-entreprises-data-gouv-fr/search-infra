@@ -783,11 +783,12 @@ def create_sitemap():
                 and ul["nature_juridique_unite_legale"] != "1000"
             ):
                 array_url = [ul["nom_raison_sociale"], ul["sigle"], ul["siren"]]
-                nom_url = re.sub(
-                    "[^0-9a-zA-Z]+", "-", "-".join(filter(None, array_url))
-                ).lower()
-                +"\n"
-                noms_url = noms_url + nom_url
+                nom_url = str(
+                    re.sub(
+                        "[^0-9a-zA-Z]+", "-", "-".join(filter(None, array_url))
+                    ).lower()
+                )
+                noms_url = noms_url + nom_url + "\n"
 
         with open(DATA_DIR + "sitemap-name.csv", "a+") as f:
             f.write(noms_url)
