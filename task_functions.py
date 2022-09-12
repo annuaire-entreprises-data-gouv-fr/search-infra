@@ -699,7 +699,9 @@ def fill_elastic_index(**kwargs):
 
 def check_elastic_index(**kwargs):
     doc_count = kwargs["ti"].xcom_pull(key="doc_count", task_ids="fill_elastic_index")
-    count_sieges = kwargs["ti"].xcom_pull(key="count_sieges", task_ids="create_siege_only_table")
+    count_sieges = kwargs["ti"].xcom_pull(
+        key="count_sieges", task_ids="create_siege_only_table"
+    )
 
     logging.info(f"******************** Documents indexed: {doc_count}")
 
@@ -784,7 +786,7 @@ def create_sitemap():
                 nom_url = re.sub(
                     "[^0-9a-zA-Z]+", "-", "-".join(filter(None, array_url))
                 ).lower()
-                + '\n'
+                +"\n"
                 noms_url = noms_url + nom_url
 
         with open(DATA_DIR + "sitemap-name.csv", "a+") as f:
