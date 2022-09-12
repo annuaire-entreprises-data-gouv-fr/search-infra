@@ -12,12 +12,12 @@ from dag_datalake_sirene.task_functions import (
     create_elastic_index,
     create_etablissement_table,
     create_siege_only_table,
+    create_sitemap,
     create_sqlite_database,
     create_unite_legale_table,
     fill_elastic_index,
     get_colors,
     update_color_file,
-    create_sitemap,
     update_sitemap,
 )
 from operators.clean_folder import CleanFolderOperator
