@@ -4,15 +4,15 @@ from dag_datalake_sirene.data_enrichment import (
     format_adresse_complete,
     format_coordonnees,
     format_departement,
+    format_dirigeants_pm,
+    format_dirigeants_pp,
     format_nom,
     format_nom_complet,
     is_entrepreneur_individuel,
     label_section_from_activite,
 )
 from dag_datalake_sirene.helpers.utils import (
-    drop_duplicates,
     get_empty_string_if_none,
-    normalize_date,
     normalize_string,
 )
 
@@ -93,43 +93,20 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         # Dirigeants
+
         unite_legale_processed["liste_dirigeants"] = []
-        unite_legale_processed["dirigeants_pp"] = json.loads(
-            unite_legale["dirigeants_pp"]
+        (
+            unite_legale_processed["dirigeants_pp"],
+            unite_legale_processed["liste_dirigeants"],
+        ) = format_dirigeants_pp(
+            unite_legale["dirigeants_pp"], unite_legale_processed["liste_dirigeants"]
         )
 
-        for dirigeant_pp in unite_legale_processed["dirigeants_pp"]:
-            dirigeant_pp["nom"] = normalize_string(
-                format_nom(dirigeant_pp["nom_patronymique"], dirigeant_pp["nom_usage"])
-            )
-            dirigeant_pp["prenoms"] = normalize_string(dirigeant_pp["prenoms"])
-            if dirigeant_pp["prenoms"] and dirigeant_pp["nom"]:
-                unite_legale_processed["liste_dirigeants"].append(
-                    dirigeant_pp["prenoms"] + " " + dirigeant_pp["nom"]
-                )
-            dirigeant_pp["date_naissance"] = normalize_date(
-                dirigeant_pp["date_naissance"]
-            )
-            dirigeant_pp.pop("siren", None)
-            dirigeant_pp.pop("nom_patronymique", None)
-            dirigeant_pp.pop("nom_usage", None)
-        unite_legale_processed["dirigeants_pp"] = drop_duplicates(
-            unite_legale_processed["dirigeants_pp"]
-        )
-
-        unite_legale_processed["dirigeants_pm"] = json.loads(
-            unite_legale["dirigeants_pm"]
-        )
-        for dirigeant_pm in unite_legale_processed["dirigeants_pm"]:
-            dirigeant_pm["denomination"] = normalize_string(
-                dirigeant_pm["denomination"]
-            )
-            unite_legale_processed["liste_dirigeants"].append(
-                dirigeant_pm["denomination"]
-            )
-            dirigeant_pm["siren"] = dirigeant_pm.pop("siren_pm", None)
-        unite_legale_processed["dirigeants_pm"] = drop_duplicates(
-            unite_legale_processed["dirigeants_pm"]
+        (
+            unite_legale_processed["dirigeants_pm"],
+            unite_legale_processed["liste_dirigeants"],
+        ) = format_dirigeants_pm(
+            unite_legale["dirigeants_pm"], unite_legale_processed["liste_dirigeants"]
         )
 
         unite_legale_processed[
@@ -142,14 +119,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             )
             unite_legale_processed["dirigeants_pp"] = []
             unite_legale_processed["dirigeants_pp"].append({})
-            unite_legale_processed["dirigeants_pp"][0]["nom"] = normalize_string(
-                format_nom(
+            unite_legale_processed["dirigeants_pp"][0]["nom"] = format_nom(
                     unite_legale_processed["nom"], unite_legale_processed["nom_usage"]
                 )
-            )
-            unite_legale_processed["dirigeants_pp"][0]["prenoms"] = normalize_string(
-                unite_legale_processed["prenom"]
-            )
+
+            unite_legale_processed["dirigeants_pp"][0]["prenoms"] = unite_legale_processed["prenom"]
 
         unite_legale_processed[
             "section_activite_principale"
