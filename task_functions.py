@@ -1,10 +1,10 @@
 import json
 import logging
 import os
+import re
 import shutil
 import sqlite3
 from urllib.request import urlopen
-import re
 
 import pandas as pd
 import requests
@@ -698,7 +698,10 @@ def fill_elastic_index(**kwargs):
 
 
 def check_elastic_index(**kwargs):
-    doc_count = kwargs["ti"].xcom_pull(key="doc_count", task_ids="fill_elastic_index")
+    doc_count = kwargs["ti"].xcom_pull(
+        key="doc_count",
+        task_ids="fill_elastic_index"
+    )
 
     count_sieges = kwargs["ti"].xcom_pull(
         key="count_sieges", task_ids="create_siege_only_table"
@@ -714,8 +717,14 @@ def check_elastic_index(**kwargs):
 
 
 def update_color_file(**kwargs):
-    next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
-    current_color = kwargs["ti"].xcom_pull(key="current_color", task_ids="get_colors")
+    next_color = kwargs["ti"].xcom_pull(
+        key="next_color",
+        task_ids="get_colors"
+    )
+    current_color = kwargs["ti"].xcom_pull(
+        key="current_color",
+        task_ids="get_colors"
+    )
     colors = {"CURRENT_COLOR": next_color, "NEXT_COLOR": current_color}
     logging.info(f"******************** Next color configuration: {colors}")
 
@@ -745,6 +754,7 @@ def update_color_file(**kwargs):
             content_type="application/json",
         )
 
+
 def create_sitemap():
     siren_db_conn, siren_db_cursor = connect_to_db()
     siren_db_cursor.execute(
@@ -758,12 +768,15 @@ def create_sitemap():
             unite_legale ul;"""  # noqa
     )
 
-    if os.path.exists(DATA_DIR + 'sitemap-name.csv'): os.remove(DATA_DIR + 'sitemap-name.csv')
+    if os.path.exists(DATA_DIR + 'sitemap-name.csv'):
+        os.remove(DATA_DIR + 'sitemap-name.csv')
 
     chunk_unites_legales_sqlite = 1
     while chunk_unites_legales_sqlite:
         chunk_unites_legales_sqlite = siren_db_cursor.fetchmany(1500)
-        unite_legale_columns = tuple([x[0] for x in siren_db_cursor.description])
+        unite_legale_columns = tuple(
+            [x[0] for x in siren_db_cursor.description]
+        )
         liste_unites_legales_sqlite = []
         # Group all fetched unites_legales from sqlite in one list
         for unite_legale in chunk_unites_legales_sqlite:
@@ -775,22 +788,27 @@ def create_sitemap():
                     )
                 }
             )
-        #print(liste_unites_legales_sqlite)
         noms_url = ''
         for ul in liste_unites_legales_sqlite:
-            if ul['etat_administratif_unite_legale'] == 'A' and ul['nature_juridique_unite_legale'] != '1000':
-                array_url = [ul['nom_raison_sociale'], ul['sigle'], ul['siren']]
-                nom_url = re.sub('[^0-9a-zA-Z]+', '-', '-'.join(filter(None,array_url))).lower() + '\n'
+            if ul['etat_administratif_unite_legale'] == 'A' \
+                    and ul['nature_juridique_unite_legale'] != '1000':
+                array_url = [
+                    ul['nom_raison_sociale'],
+                    ul['sigle'],
+                    ul['siren']
+                ]
+                nom_url = re.sub('[^0-9a-zA-Z]+', '-', '-'.join(
+                    filter(None, array_url)
+                )).lower() + '\n'
                 noms_url = noms_url + nom_url
 
-        with open(DATA_DIR + 'sitemap-name.csv','a+') as f:
+        with open(DATA_DIR + 'sitemap-name.csv', 'a+') as f:
             f.write(noms_url)
-
 
 
 def update_sitemap():
 
-    minio_filepath = f"ae/sitemap-name.csv"
+    minio_filepath = "ae/sitemap-name.csv"
     minio_url = MINIO_URL
     minio_bucket = MINIO_BUCKET
     minio_user = MINIO_USER

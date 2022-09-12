@@ -18,7 +18,7 @@ from dag_datalake_sirene.task_functions import (
     get_colors,
     update_color_file,
     create_sitemap,
-    update_sitemap
+    update_sitemap,
 )
 from operators.clean_folder import CleanFolderOperator
 
