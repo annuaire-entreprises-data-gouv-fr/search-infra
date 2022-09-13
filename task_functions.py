@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 import shutil
 import sqlite3
 from urllib.request import urlopen
@@ -698,7 +699,6 @@ def fill_elastic_index(**kwargs):
 
 def check_elastic_index(**kwargs):
     doc_count = kwargs["ti"].xcom_pull(key="doc_count", task_ids="fill_elastic_index")
-
     count_sieges = kwargs["ti"].xcom_pull(
         key="count_sieges", task_ids="create_siege_only_table"
     )
@@ -742,4 +742,80 @@ def update_color_file(**kwargs):
             object_name=minio_filepath,
             file_path="colors.json",
             content_type="application/json",
+        )
+
+
+def create_sitemap():
+    siren_db_conn, siren_db_cursor = connect_to_db()
+    siren_db_cursor.execute(
+        """SELECT
+        ul.siren,
+        ul.nom_raison_sociale as nom_raison_sociale,
+        ul.sigle as sigle,
+        ul.etat_administratif_unite_legale as etat_administratif_unite_legale,
+        ul.nature_juridique_unite_legale as nature_juridique_unite_legale
+        FROM
+            unite_legale ul;"""  # noqa
+    )
+
+    if os.path.exists(DATA_DIR + "sitemap-name-" + ENV + ".csv"):
+        os.remove(DATA_DIR + "sitemap-name-" + ENV + ".csv")
+
+    chunk_unites_legales_sqlite = 1
+    while chunk_unites_legales_sqlite:
+        chunk_unites_legales_sqlite = siren_db_cursor.fetchmany(1500)
+        unite_legale_columns = tuple([x[0] for x in siren_db_cursor.description])
+        liste_unites_legales_sqlite = []
+        # Group all fetched unites_legales from sqlite in one list
+        for unite_legale in chunk_unites_legales_sqlite:
+            liste_unites_legales_sqlite.append(
+                {
+                    unite_legale_columns: value
+                    for unite_legale_columns, value in zip(
+                        unite_legale_columns, unite_legale
+                    )
+                }
+            )
+        noms_url = ""
+        for ul in liste_unites_legales_sqlite:
+            if (
+                ul["etat_administratif_unite_legale"] == "A"
+                and ul["nature_juridique_unite_legale"] != "1000"
+            ):
+                array_url = [ul["nom_raison_sociale"], ul["sigle"], ul["siren"]]
+                nom_url = str(
+                    re.sub(
+                        "[^0-9a-zA-Z]+", "-", "-".join(filter(None, array_url))
+                    ).lower()
+                )
+                noms_url = noms_url + nom_url + "\n"
+
+        with open(DATA_DIR + "sitemap-name-" + ENV + ".csv", "a+") as f:
+            f.write(noms_url)
+
+
+def update_sitemap():
+
+    minio_filepath = "ae/sitemap-name-" + ENV + ".csv"
+    minio_url = MINIO_URL
+    minio_bucket = MINIO_BUCKET
+    minio_user = MINIO_USER
+    minio_password = MINIO_PASSWORD
+
+    # Start client
+    client = Minio(
+        minio_url,
+        access_key=minio_user,
+        secret_key=minio_password,
+        secure=True,
+    )
+
+    # Check if bucket exists
+    found = client.bucket_exists(minio_bucket)
+    if found:
+        client.fput_object(
+            bucket_name=minio_bucket,
+            object_name=minio_filepath,
+            file_path=DATA_DIR + "sitemap-name-" + ENV + ".csv",
+            content_type="text/csv",
         )
