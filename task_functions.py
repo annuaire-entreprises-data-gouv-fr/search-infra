@@ -986,7 +986,7 @@ def update_color_file(**kwargs):
 
 
 def create_sitemap():
-    siren_db_conn, siren_db_cursor = connect_to_db()
+    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
     siren_db_cursor.execute(
         """SELECT
         ul.siren,
