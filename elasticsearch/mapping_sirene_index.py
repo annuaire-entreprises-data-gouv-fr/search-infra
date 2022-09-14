@@ -4,8 +4,10 @@ from elasticsearch_dsl import (
     Date,
     Document,
     GeoPoint,
+    InnerDoc,
     Integer,
     Keyword,
+    Nested,
     Text,
     analyzer,
     token_filter,
@@ -56,11 +58,27 @@ annuaire_analyzer = analyzer(
 )
 
 
+class ElasticsearchDirigeantPPIndex(InnerDoc):
+    nom = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
+    prenoms = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
+    date_naissance = Date()
+    ville_naissance = Text()
+    pays_naissance = Text()
+    qualite = Text(analyzer=annuaire_analyzer)
+
+
+class ElasticsearchDirigeantPMIndex(InnerDoc):
+    siren = Keyword()
+    denomination = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
+    sigle = Text(analyzer=annuaire_analyzer)
+    qualite = Text(analyzer=annuaire_analyzer)
+
+
 class ElasticsearchSireneIndex(Document):
     """
 
     Model-like class for persisting documents in elasticsearch.
-    It's a wrapper around document to create specific mappings and to add settings in
+    It's a wrapper around Document to create specific mappings and to add settings in
     elasticsearch.
 
     Class used to represent a company headquarters,
@@ -71,7 +89,7 @@ class ElasticsearchSireneIndex(Document):
     activite_principale_siege = Keyword()  # Add index_prefixes option
     activite_principale_unite_legale = Keyword()
     activite_principale_registre_metier = Keyword()
-    adresse_etablissement = Text()
+    adresse_etablissement = Text(analyzer=annuaire_analyzer)
     categorie_entreprise = Text()
     cedex = Keyword()
     code_pays_etranger = Text()
@@ -88,9 +106,11 @@ class ElasticsearchSireneIndex(Document):
     date_debut_activite_siege = Date()
     date_mise_a_jour = Date()
     departement = Keyword()
+    dirigeants_pp = Nested(ElasticsearchDirigeantPPIndex)
+    dirigeants_pm = Nested(ElasticsearchDirigeantPMIndex)
     distribution_speciale = Text()
     economie_sociale_solidaire_unite_legale = Keyword()
-    enseigne = Text()
+    enseigne = Text(analyzer=annuaire_analyzer)
     etat_administratif_unite_legale = Keyword()
     etat_administratif_siege = Keyword()
     geo_adresse = Text(analyzer=annuaire_analyzer)
@@ -106,16 +126,17 @@ class ElasticsearchSireneIndex(Document):
     libelle_pays_etranger = Text()
     libelle_voie = Text()
     liste_adresses = Text(analyzer=annuaire_analyzer)
+    liste_dirigeants = Text(analyzer=annuaire_analyzer)
     liste_enseignes = Text(analyzer=annuaire_analyzer)
     longitude = Text()
     nature_juridique_unite_legale = Integer()
-    nom = Text()
+    nom = Text(analyzer=annuaire_analyzer)
     nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     nom_raison_sociale = Text()
     nombre_etablissements = Integer()  # NaN can't be stored in an integer array
     nombre_etablissements_ouverts = Integer()
     numero_voie = Text()
-    prenom = Keyword()
+    prenom = Text(analyzer=annuaire_analyzer)
     section_activite_principale = Keyword()
     sigle = Keyword()
     siren = Keyword(required=True)
@@ -126,4 +147,8 @@ class ElasticsearchSireneIndex(Document):
 
     class Index:
         name = f"siren-{NEXT_COLOR}"
-        settings = {"number_of_shards": 1, "number_of_replicas": 0}
+        settings = {
+            "number_of_shards": 1,
+            "number_of_replicas": 0,
+            "mapping": {"ignore_malformed": True},
+        }

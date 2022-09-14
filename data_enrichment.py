@@ -1,6 +1,11 @@
 import json
+import logging
 
-from dag_datalake_sirene.helpers.utils import get_empty_string_if_none
+from dag_datalake_sirene.helpers.utils import (
+    drop_duplicates,
+    get_empty_string_if_none,
+    normalize_date,
+)
 
 labels_file_path = "dags/dag_datalake_sirene/labels/"
 
@@ -36,6 +41,18 @@ def format_nom_complet(
     if sigle:
         name = f"{name} ({sigle})"
     return name.lower().strip() if name else name
+
+
+# Noms
+def format_nom(
+    nom=None,
+    nom_usage=None,
+):
+    if nom_usage:
+        formatted_name = f"{nom_usage} ({nom})" if nom else f"{nom_usage}"
+    else:
+        formatted_name = f"{nom}" if nom else None
+    return formatted_name.lower().strip() if formatted_name else formatted_name
 
 
 # Entrepreneur individuel
@@ -127,3 +144,71 @@ def format_coordonnees(longitude, latitude):
         None if (longitude is None) or (latitude is None) else f"{latitude},{longitude}"
     )
     return coordonnees
+
+
+# Dirigeants PP
+def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
+    dirigeants_pp = json.loads(list_dirigeants_pp_sqlite)
+    dirigeants_pp_processed = []
+    for dirigeant_pp in dirigeants_pp:
+        dirigeant_pp["nom"] = format_nom(
+            dirigeant_pp["nom_patronymique"], dirigeant_pp["nom_usage"]
+        )
+        dirigeant_pp["date_naissance"] = normalize_date(dirigeant_pp["date_naissance"])
+        dirigeants_pp_processed.append(
+            dict(
+                nom=dirigeant_pp["nom"],
+                prenoms=dirigeant_pp["prenoms"],
+                date_naissance=dirigeant_pp["date_naissance"],
+                ville_naissance=dirigeant_pp["ville_naissance"],
+                pays_naissance=dirigeant_pp["pays_naissance"],
+                qualite=dirigeant_pp["qualite"],
+            )
+        )
+        # Liste dirigeants
+        if dirigeant_pp["prenoms"] and dirigeant_pp["nom"]:
+            list_all_dirigeants.append(
+                dirigeant_pp["prenoms"] + " " + dirigeant_pp["nom"]
+            )
+        elif dirigeant_pp["prenoms"] and not dirigeant_pp["nom"]:
+            list_all_dirigeants.append(dirigeant_pp["prenoms"])
+            logging.info(
+                f'Missing dirigeant nom for ****** {dirigeant_pp["siren"]} '
+                f'****** prenoms = {dirigeant_pp["prenoms"]}'
+            )
+        elif dirigeant_pp["nom"] and not dirigeant_pp["prenoms"]:
+            list_all_dirigeants.append(dirigeant_pp["nom"])
+            logging.info(
+                f"Missing dirigeant prenoms for ****** "
+                f'{dirigeant_pp["siren"]} ****** nom : {dirigeant_pp["nom"]}'
+            )
+        else:
+            logging.info(f'Missing dirigeants names for ****** {dirigeant_pp["siren"]}')
+
+    dirigeants_pp_processed = drop_duplicates(dirigeants_pp_processed)
+    return dirigeants_pp_processed, list(set(list_all_dirigeants))
+
+
+# Dirigeants PM
+def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
+    dirigeants_pm = json.loads(list_dirigeants_pm_sqlite)
+    dirigeants_pm_processed = []
+    for dirigeant_pm in dirigeants_pm:
+        if dirigeant_pm["denomination"]:
+            list_all_dirigeants.append(dirigeant_pm["denomination"])
+        else:
+            logging.info(
+                f'Missing denomination dirigeant for ***** {dirigeant_pm["siren"]}'
+            )
+
+        dirigeants_pm_processed.append(
+            dict(
+                siren=dirigeant_pm["siren_pm"],
+                denomination=dirigeant_pm["denomination"],
+                sigle=dirigeant_pm["sigle"],
+                qualite=dirigeant_pm["qualite"],
+            )
+        )
+    dirigeants_pm_processed = drop_duplicates(dirigeants_pm_processed)
+
+    return dirigeants_pm_processed, list(set(list_all_dirigeants))
