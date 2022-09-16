@@ -1,7 +1,5 @@
 from dag_datalake_sirene.helpers.utils import (
-    drop_exact_duplicates,
     get_empty_string_if_none,
-    normalize_date,
     normalize_string,
 )
 

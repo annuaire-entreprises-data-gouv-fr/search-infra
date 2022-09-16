@@ -1,17 +1,16 @@
 import json
 import logging
 
-from dag_datalake_sirene.helpers.utils import (
-    drop_exact_duplicates,
-    get_empty_string_if_none,
-    normalize_date,
-    normalize_string,
-)
-
 from dag_datalake_sirene.helpers.clean_dirigeants import (
     drop_dirigeant_duplicates,
     unique_qualites,
 )
+from dag_datalake_sirene.helpers.utils import (
+    drop_exact_duplicates,
+    get_empty_string_if_none,
+    normalize_date,
+)
+
 
 labels_file_path = "dags/dag_datalake_sirene/labels/"
 
@@ -197,7 +196,7 @@ def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
 
     if dirigeants_pp_processed:
         # Drop exact duplicates
-        dirigeants_pp_processed = drop_dexact_uplicates(dirigeants_pp_processed)
+        dirigeants_pp_processed = drop_exact_uplicates(dirigeants_pp_processed)
         # Merge partial duplicates
         dirigeants_pp_processed = drop_dirigeant_duplicates(
             dirigeants_pp_processed, dirigeant_type="pp"
