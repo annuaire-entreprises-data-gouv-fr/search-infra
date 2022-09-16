@@ -2,9 +2,15 @@ import json
 import logging
 
 from dag_datalake_sirene.helpers.utils import (
-    drop_duplicates,
+    drop_exact_duplicates,
     get_empty_string_if_none,
     normalize_date,
+    normalize_string,
+)
+
+from dag_datalake_sirene.helpers.clean_dirigeants import (
+    drop_dirigeant_duplicates,
+    unique_qualites,
 )
 
 labels_file_path = "dags/dag_datalake_sirene/labels/"
@@ -155,6 +161,10 @@ def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
             dirigeant_pp["nom_patronymique"], dirigeant_pp["nom_usage"]
         )
         dirigeant_pp["date_naissance"] = normalize_date(dirigeant_pp["date_naissance"])
+
+        # Drop qualite`s exact and partial duplicates
+        dirigeant_pp["qualite"] = unique_qualites(dirigeant_pp["qualite"])
+
         dirigeants_pp_processed.append(
             dict(
                 nom=dirigeant_pp["nom"],
@@ -185,7 +195,14 @@ def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
         else:
             logging.info(f'Missing dirigeants names for ****** {dirigeant_pp["siren"]}')
 
-    dirigeants_pp_processed = drop_duplicates(dirigeants_pp_processed)
+    if dirigeants_pp_processed:
+        # Drop exact duplicates
+        dirigeants_pp_processed = drop_dexact_uplicates(dirigeants_pp_processed)
+        # Merge partial duplicates
+        dirigeants_pp_processed = drop_dirigeant_duplicates(
+            dirigeants_pp_processed, dirigeant_type="pp"
+        )
+
     return dirigeants_pp_processed, list(set(list_all_dirigeants))
 
 
@@ -200,7 +217,7 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
             logging.info(
                 f'Missing denomination dirigeant for ***** {dirigeant_pm["siren"]}'
             )
-
+        dirigeant_pm["qualite"] = unique_qualites(dirigeant_pm["qualite"])
         dirigeants_pm_processed.append(
             dict(
                 siren=dirigeant_pm["siren_pm"],
@@ -209,6 +226,13 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
                 qualite=dirigeant_pm["qualite"],
             )
         )
-    dirigeants_pm_processed = drop_duplicates(dirigeants_pm_processed)
+
+    if dirigeants_pm_processed:
+        # Drop exact duplicates
+        dirigeants_pm_processed = drop_exact_duplicates(dirigeants_pm_processed)
+        # Merge partial duplicates
+        dirigeants_pm_processed = drop_dirigeant_duplicates(
+            dirigeants_pm_processed, dirigeant_type="pm"
+        )
 
     return dirigeants_pm_processed, list(set(list_all_dirigeants))
