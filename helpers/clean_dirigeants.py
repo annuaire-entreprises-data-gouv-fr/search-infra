@@ -12,172 +12,89 @@ def unique_qualites(qualite_string):
         return None
     # Split `qualite` string into multiple strings
     list_qualites = [s.strip() for s in qualite_string.split(",")]
-    # Reverse list to keep the latest additions to the string first
-    list_qualites.reverse()
 
-    # Can't start with empty list
-    list_qualites_unique = [list_qualites[0]]
+    # Create dictionary with normalized qulity string as key and all corresponding
+    # qualities as values (list of non-normalized qualities)
+
+    qualites = {}
 
     for qualite in list_qualites:
-        list_qualites_unique_normalized = [
-            normalize_string(unique_qualite) for unique_qualite in list_qualites_unique
-        ]
-        if normalize_string(qualite) not in list_qualites_unique_normalized:
-            list_qualites_unique.append(qualite)
-    return ", ".join(list_qualites_unique)
+        if normalize_string(qualite) in qualites:
+            qualites[normalize_string(qualite)].append(qualite)
+        else:
+            qualites[normalize_string(qualite)] = [qualite]
+
+    return ", ".join([qualites[qualite][-1] for qualite in qualites])
 
 
-def drop_dirigeant_duplicates(list_dict_dirigeants, dirigeant_type):
-    """
-    Drop duplicates from `dirigeants' list of dictionaries.
-    """
+def drop_duplicates_dirigeants_pp(list_dict_dirigeants):
+    dirigeants_by_nom_prenom = {}
+    for dirigeant in list_dict_dirigeants:
+        normalized_name = (
+            f"{normalize_string(dirigeant['nom'])}_"
+            f"{normalize_string(dirigeant['prenoms'])}"
+        )
+        if normalized_name in dirigeants_by_nom_prenom:
+            dirigeants_by_nom_prenom[normalized_name].append(dirigeant)
+        else:
+            dirigeants_by_nom_prenom[normalized_name] = [dirigeant]
 
-    # Reverse list to have latest inserted values in the beginning of the list
-    list_dict_dirigeants.reverse()
-    # List of unique dirigeants, to avoid cold start we insert the first `dirigeant`
-    # from initial list
-    list_dict_unique_dirigeants = [list_dict_dirigeants[0]]
-
-    # Loop over all `dirigeants` dictionaries in initial list
-    for dict_dirigeant in list_dict_dirigeants:
-        i = 0
-        add_dirigeant = 0
-        if dirigeant_type == "pp":
-            add_dirigeant, list_dict_unique_dirigeants = drop_dirigeant_pp_duplicates(
-                i, list_dict_unique_dirigeants, dict_dirigeant, add_dirigeant
+    list_dirigeants_unique = []
+    for key_dirigeant, same_dirigeants in dirigeants_by_nom_prenom.items():
+        first_dirigeant = same_dirigeants[0]
+        if len(same_dirigeants) == 1:
+            list_dirigeants_unique.append(first_dirigeant)
+        else:
+            unique_dirigeant = {
+                "nom": first_dirigeant["nom"],
+                "prenoms": first_dirigeant["prenoms"],
+                "qualite": unique_qualites(
+                    ", ".join(
+                        [dirigeant.get("qualite", "") for dirigeant in same_dirigeants]
+                    )
+                ),
+            }
+            dates = list(
+                {
+                    dirigeant["date_naissance"]
+                    for dirigeant in same_dirigeants
+                    if dirigeant["date_naissance"]
+                }
             )
-        elif dirigeant_type == "pm":
-            add_dirigeant, list_dict_unique_dirigeants = drop_dirigeant_pm_duplicates(
-                i, list_dict_unique_dirigeants, dict_dirigeant, add_dirigeant
-            )
-        if add_dirigeant == 1:
-            list_dict_unique_dirigeants.append(dict_dirigeant)
-    return list_dict_unique_dirigeants
-
-
-def drop_dirigeant_pm_duplicates(
-    i, list_dict_unique_dirigeants, dict_dirigeant, add_dirigeant
-):
-    """
-    For two `dirigeants` dictionaries to be matching, they have to share the same
-    `siren` field.
-    If that's the case, the `denomination` field is selected from the latest
-    `dirigeant` dict.
-    Both `qualite` fields are joined, and then only unique values (strings) are
-    kept (after normalization).
-    """
-
-    def get_value(dictionary, key, default=""):
-        return dictionary.get(key, default)
-
-    # Before inserting a `dirigeant` dict in unique list, it has to be compared
-    # to all other dictionaries in the list. Hence, the while loop.
-    while i < len(list_dict_unique_dirigeants):
-
-        dict_unique_dirigeant = list_dict_unique_dirigeants[i]
-
-        if get_value(dict_dirigeant, "siren") != get_value(
-            dict_unique_dirigeant, "siren"
-        ):
-            add_dirigeant = 1
-            i += 1
-            continue
-
-        elif get_value(dict_dirigeant, "siren") == get_value(
-            dict_unique_dirigeant, "siren"
-        ):
-            add_dirigeant = 0
-            i += 1
-
-            if (
-                not dict_unique_dirigeant["denomination"]
-                and dict_dirigeant["denomination"]
-            ):
-                dict_unique_dirigeant["denomination"] = dict_dirigeant["denomination"]
-
-            if normalize_string(
-                get_value(dict_dirigeant, "qualite")
-            ) != normalize_string(get_value(dict_unique_dirigeant, "qualite")):
-                dict_unique_dirigeant["qualite"] = ", ".join(
-                    [
-                        get_empty_string_if_none(dict_unique_dirigeant["qualite"]),
-                        get_empty_string_if_none(dict_dirigeant["qualite"]),
-                    ]
+            if len(dates) > 1:
+                raise Exception(
+                    "At least two dirigeant with same name, firstname but different date"
                 )
-            dict_unique_dirigeant["qualite"] = unique_qualites(
-                dict_unique_dirigeant["qualite"]
-            )
-    return add_dirigeant, list_dict_unique_dirigeants
+
+            unique_dirigeant["date_naissance"] = dates[0] if len(dates) > 0 else None
+            list_dirigeants_unique.append(unique_dirigeant)
+    return list_dirigeants_unique
 
 
-def drop_dirigeant_pp_duplicates(
-    i, list_dict_unique_dirigeants, dict_dirigeant, add_dirigeant
-):
+def drop_duplicates_dirigeants_pm(list_dict_dirigeants):
+    dirigeants_by_siren = {}
+    for dirigeant in list_dict_dirigeants:
+        siren = f'{dirigeant["siren"]}'
+        if siren in dirigeants_by_siren:
+            dirigeants_by_siren[siren].append(dirigeant)
+        else:
+            dirigeants_by_siren[siren] = [dirigeant]
 
-    """
-    For two `dirigeants` dictionaries to be matching, they have to share both the
-    same `nom`  and `prenoms` values.
-    If that's the case, the `date_naissance` field is selected from the latest
-    `dirigeant` dict.
-    Both `qualite` fields are merged, and then only unique values (strings) are kept (
-    after normalization).
-    """
-
-    def get_value(dictionary, key, default=""):
-        return dictionary.get(key, default)
-
-    # Before inserting a `dirigeant` dict in unique list, it has to be compared
-    # to all other dictionaries in the list. Hence, the while loop.
-    while i < len(list_dict_unique_dirigeants):
-
-        dict_unique_dirigeant = list_dict_unique_dirigeants[i]
-
-        # Two `dirigeants are considered different if they have different surnames
-        # or different first names (normalized),
-        # in which case we add them to the list of unique `dirigeants`
-        if (
-            normalize_string(get_value(dict_dirigeant, "nom"))
-            != normalize_string(get_value(dict_unique_dirigeant, "nom"))
-        ) or (
-            normalize_string(get_value(dict_dirigeant, "prenoms"))
-            != normalize_string(get_value(dict_unique_dirigeant, "prenoms"))
-        ):
-            add_dirigeant = 1
-            i += 1
-            continue
-
-        # Two `dirigeants are considered equal if they have the same surnames
-        # and the same first names (normalized),
-        # in which case we keep the last `date_naissance` and join the
-        # `qualite` field; keeping only unique strings.
-        elif (
-            normalize_string(get_value(dict_dirigeant, "nom"))
-            == normalize_string(get_value(dict_unique_dirigeant, "nom"))
-        ) & (
-            normalize_string(get_value(dict_dirigeant, "prenoms"))
-            == normalize_string(get_value(dict_unique_dirigeant, "prenoms"))
-        ):
-            add_dirigeant = 0
-            i += 1
-
-            if (
-                not dict_unique_dirigeant["date_naissance"]
-                and dict_dirigeant["date_naissance"]
-            ):
-                dict_unique_dirigeant["date_naissance"] = dict_dirigeant[
-                    "date_naissance"
-                ]
-
-            if normalize_string(
-                get_value(dict_dirigeant, "qualite")
-            ) != normalize_string(get_value(dict_unique_dirigeant, "qualite")):
-                dict_unique_dirigeant["qualite"] = ", ".join(
-                    [
-                        get_empty_string_if_none(dict_unique_dirigeant["qualite"]),
-                        get_empty_string_if_none(dict_dirigeant["qualite"]),
-                    ]
-                )
-            dict_unique_dirigeant["qualite"] = unique_qualites(
-                dict_unique_dirigeant["qualite"]
-            )
-    return add_dirigeant, list_dict_unique_dirigeants
+    list_dirigeants_unique = []
+    for key_dirigeant, same_dirigeants in dirigeants_by_siren.items():
+        first_dirigeant = same_dirigeants[0]
+        if len(same_dirigeants) == 1:
+            list_dirigeants_unique.append(first_dirigeant)
+        else:
+            unique_dirigeant = {
+                "siren": first_dirigeant["siren"],
+                "denomination": first_dirigeant["denomination"],
+                "sigle": first_dirigeant["sigle"],
+                "qualite": unique_qualites(
+                    ", ".join(
+                        [dirigeant.get("qualite", "") for dirigeant in same_dirigeants]
+                    )
+                ),
+            }
+            list_dirigeants_unique.append(unique_dirigeant)
+    return list_dirigeants_unique

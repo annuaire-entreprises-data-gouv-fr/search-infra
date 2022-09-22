@@ -2,7 +2,8 @@ import json
 import logging
 
 from dag_datalake_sirene.helpers.clean_dirigeants import (
-    drop_dirigeant_duplicates,
+    drop_duplicates_dirigeants_pm,
+    drop_duplicates_dirigeants_pp,
     unique_qualites,
 )
 from dag_datalake_sirene.helpers.utils import (
@@ -197,9 +198,7 @@ def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
         # Drop exact duplicates
         dirigeants_pp_processed = drop_exact_duplicates(dirigeants_pp_processed)
         # Merge partial duplicates
-        dirigeants_pp_processed = drop_dirigeant_duplicates(
-            dirigeants_pp_processed, dirigeant_type="pp"
-        )
+        dirigeants_pp_processed = drop_duplicates_dirigeants_pp(dirigeants_pp_processed)
 
     return dirigeants_pp_processed, list(set(list_all_dirigeants))
 
@@ -229,8 +228,6 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
         # Drop exact duplicates
         dirigeants_pm_processed = drop_exact_duplicates(dirigeants_pm_processed)
         # Merge partial duplicates
-        dirigeants_pm_processed = drop_dirigeant_duplicates(
-            dirigeants_pm_processed, dirigeant_type="pm"
-        )
+        dirigeants_pm_processed = drop_duplicates_dirigeants_pm(dirigeants_pm_processed)
 
     return dirigeants_pm_processed, list(set(list_all_dirigeants))
