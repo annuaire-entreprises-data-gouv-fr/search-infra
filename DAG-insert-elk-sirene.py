@@ -8,12 +8,23 @@ from airflow.utils.dates import days_ago
 from operators.clean_folder import CleanFolderOperator
 
 from dag_datalake_sirene.task_functions import (
-    check_elastic_index, count_nombre_etablissements,
-    count_nombre_etablissements_ouverts, create_dirig_pm_table,
-    create_dirig_pp_table, create_elastic_index, create_etablissement_table,
-    create_siege_only_table, create_sitemap, create_sqlite_database,
-    create_unite_legale_table, fill_elastic_index, get_colors,
-    get_dirig_database, update_color_file, update_sitemap)
+    check_elastic_index,
+    count_nombre_etablissements,
+    count_nombre_etablissements_ouverts,
+    create_dirig_pm_table,
+    create_dirig_pp_table,
+    create_elastic_index,
+    create_etablissement_table,
+    create_siege_only_table,
+    create_sitemap,
+    create_sqlite_database,
+    create_unite_legale_table,
+    fill_elastic_index,
+    get_colors,
+    get_dirig_database,
+    update_color_file,
+    update_sitemap,
+)
 
 DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "insert-elk-sirene"

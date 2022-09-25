@@ -1,7 +1,9 @@
 import pytest
 
-from helpers.clean_dirigeants import (drop_duplicates_dirigeants_pm,
-                                      drop_duplicates_dirigeants_pp)
+from helpers.clean_dirigeants import (
+    drop_duplicates_dirigeants_pm,
+    drop_duplicates_dirigeants_pp,
+)
 
 
 @pytest.mark.parametrize(
@@ -114,7 +116,7 @@ from helpers.clean_dirigeants import (drop_duplicates_dirigeants_pm,
         ),
     ],
 )
-def test_drop_dirigeant_duplicates(
+def test_drop_dirigeant_pp_duplicates(
     list_dict_dirigeants,
     expected,
 ):
@@ -201,7 +203,7 @@ def test_drop_dirigeant_duplicates(
         ),
     ],
 )
-def test_drop_dirigeant_duplicates(
+def test_drop_dirigeant_pm_duplicates(
     list_dict_dirigeants,
     expected,
 ):

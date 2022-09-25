@@ -1,7 +1,9 @@
 import logging
 
-from dag_datalake_sirene.helpers.utils import (get_empty_string_if_none,
-                                               normalize_string)
+from dag_datalake_sirene.helpers.utils import (
+    get_empty_string_if_none,
+    normalize_string,
+)
 
 
 def unique_qualites(qualite_string):

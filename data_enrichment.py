@@ -2,11 +2,15 @@ import json
 import logging
 
 from dag_datalake_sirene.helpers.clean_dirigeants import (
-    drop_duplicates_dirigeants_pm, drop_duplicates_dirigeants_pp,
-    unique_qualites)
-from dag_datalake_sirene.helpers.utils import (drop_exact_duplicates,
-                                               get_empty_string_if_none,
-                                               normalize_date)
+    drop_duplicates_dirigeants_pm,
+    drop_duplicates_dirigeants_pp,
+    unique_qualites,
+)
+from dag_datalake_sirene.helpers.utils import (
+    drop_exact_duplicates,
+    get_empty_string_if_none,
+    normalize_date,
+)
 
 labels_file_path = "dags/dag_datalake_sirene/labels/"
 
