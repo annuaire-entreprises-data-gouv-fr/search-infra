@@ -41,7 +41,7 @@ def normalize_date(date_string):
             return datetime.strptime(date_string, pattern).strftime("%Y-%m-%d")
         except ValueError:
             pass
-    logging.info(f"Date is not in expected format: {date_string}")
+    # logging.info(f"Date is not in expected format: {date_string}")
 
 
 def drop_exact_duplicates(list_dict):
