@@ -1,16 +1,14 @@
 import json
 
-from dag_datalake_sirene.data_enrichment import (
-    format_adresse_complete,
-    format_coordonnees,
-    format_departement,
-    format_dirigeants_pm,
-    format_dirigeants_pp,
-    format_nom,
-    format_nom_complet,
-    is_entrepreneur_individuel,
-    label_section_from_activite,
-)
+from dag_datalake_sirene.data_enrichment import (format_adresse_complete,
+                                                 format_coordonnees,
+                                                 format_departement,
+                                                 format_dirigeants_pm,
+                                                 format_dirigeants_pp,
+                                                 format_nom,
+                                                 format_nom_complet,
+                                                 is_entrepreneur_individuel,
+                                                 label_section_from_activite)
 from dag_datalake_sirene.helpers.utils import get_empty_string_if_none
 
 

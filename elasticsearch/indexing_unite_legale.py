@@ -1,11 +1,9 @@
 import logging
 
-from dag_datalake_sirene.elasticsearch.mapping_sirene_index import (
-    ElasticsearchSireneIndex,
-)
-from dag_datalake_sirene.elasticsearch.process_unites_legales import (
-    process_unites_legales,
-)
+from dag_datalake_sirene.elasticsearch.mapping_sirene_index import \
+    ElasticsearchSireneIndex
+from dag_datalake_sirene.elasticsearch.process_unites_legales import \
+    process_unites_legales
 from elasticsearch import helpers
 
 
