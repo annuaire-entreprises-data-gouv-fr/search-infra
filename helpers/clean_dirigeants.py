@@ -36,7 +36,7 @@ def drop_duplicates_dirigeants_pp(list_dict_dirigeants):
     after normalization).
 
     We use a dictionary to detect partial duplicates;
-    Each key contains a normalized "nom+prénoms" string and the corresponding
+    Each key contains a normalized "nom+prenoms" string and the corresponding
     values are all the "dirigeants" dictionaries with the same "nom" and "prenoms"
     un-nomalized.
 
@@ -44,7 +44,7 @@ def drop_duplicates_dirigeants_pp(list_dict_dirigeants):
     list, and we compare it to the existing keys in the `dirigeants_by_nom_prenom"
     dictionary.
     If it exists we add it to the list of values for the key in question. Otherwise, we
-    create another key with the normalized "nom+prénoms" string using the
+    create another key with the normalized "nom+prenoms" string using the
     dictionary's values.
 
     We then merge the values to create one "dirigeant" per key, by using the data
