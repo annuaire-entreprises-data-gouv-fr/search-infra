@@ -5,8 +5,6 @@ from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from operators.clean_folder import CleanFolderOperator
-
 from dag_datalake_sirene.task_functions import (
     check_elastic_index,
     count_nombre_etablissements,
@@ -25,6 +23,7 @@ from dag_datalake_sirene.task_functions import (
     update_color_file,
     update_sitemap,
 )
+from operators.clean_folder import CleanFolderOperator
 
 DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "insert-elk-sirene"
