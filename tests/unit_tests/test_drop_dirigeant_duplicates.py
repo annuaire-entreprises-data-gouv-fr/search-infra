@@ -138,8 +138,8 @@ def test_drop_dirigeant_pp_duplicates(
             [
                 {
                     "siren": "046350088",
-                    "denomination":
-                        "AEQUITAS AUDIT - SOCIETE DE COMMISSARIAT AUX COMPTES",
+                    "denomination": "AEQUITAS AUDIT - "
+                    "SOCIETE DE COMMISSARIAT AUX COMPTES",
                     "sigle": None,
                     "qualite": "Commissaire aux comptes titulaire",
                 },
@@ -177,8 +177,8 @@ def test_drop_dirigeant_pp_duplicates(
             [
                 {
                     "siren": "046350088",
-                    "denomination":
-                        "AEQUITAS AUDIT - SOCIETE DE COMMISSARIAT AUX COMPTES",
+                    "denomination": "AEQUITAS AUDIT - "
+                    "SOCIETE DE COMMISSARIAT AUX COMPTES",
                     "sigle": None,
                     "qualite": "Commissaire aux comptes titulaire",
                 },
