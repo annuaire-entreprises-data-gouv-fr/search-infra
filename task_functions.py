@@ -12,6 +12,9 @@ from airflow.models import Variable
 from dag_datalake_sirene.elasticsearch.create_sirene_index import (
     ElasticCreateSiren,
 )
+from dag_datalake_sirene.elasticsearch.indexing_etablissement import (
+    index_etablissements_by_chunk,
+)
 from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
     index_unites_legales_by_chunk,
 )
@@ -272,6 +275,7 @@ def create_etablissement_table():
         *["971", "972", "973", "974", "976", "98"],
         *[""],
     ]
+
     # Remove Paris zip code
     all_deps.remove("75")
 
@@ -798,7 +802,7 @@ def create_elastic_index(**kwargs):
     create_index.execute()
 
 
-def fill_elastic_index(**kwargs):
+def fill_elastic_index_siren(**kwargs):
     next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
     elastic_index = f"siren-{next_color}"
     siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
@@ -933,12 +937,84 @@ def fill_elastic_index(**kwargs):
         elastic_bulk_size=ELASTIC_BULK_SIZE,
         elastic_index=elastic_index,
     )
-    kwargs["ti"].xcom_push(key="doc_count", value=doc_count)
+    kwargs["ti"].xcom_push(key="doc_count_siren", value=doc_count)
+    commit_and_close_conn(siren_db_conn)
+
+
+def fill_elastic_index_siret(**kwargs):
+    next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
+    elastic_index = f"siren-{next_color}"
+    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
+    siren_db_cursor.execute(
+        """SELECT
+            siren,
+            siret,
+            date_creation,
+            tranche_effectif_salarie,
+            activite_principale_registre_metier,
+            is_siege,
+            numero_voie,
+            type_voie,
+            libelle_voie,
+            code_postal,
+            libelle_cedex,
+            libelle_commune,
+            commune,
+            complement_adresse,
+            complement_adresse_2,
+            numero_voie_2,
+            indice_repetition_2,
+            type_voie_2,
+            libelle_voie_2,
+            commune_2,
+            libelle_commune_2,
+            cedex_2,
+            libelle_cedex_2,
+            cedex,
+            date_debut_activite,
+            distribution_speciale,
+            distribution_speciale_2,
+            etat_administratif_etablissement,
+            enseigne_1,
+            enseigne_2,
+            enseigne_3,
+            activite_principale,
+            indice_repetition,
+            nom_commercial,
+            libelle_commune_etranger,
+            code_pays_etranger,
+            libelle_pays_etranger,
+            libelle_commune_etranger_2,
+            code_pays_etranger_2,
+            libelle_pays_etranger_2,
+            longitude,
+            latitude,
+            geo_adresse,
+            geo_id
+        FROM siret
+        """
+    )
+    connections.create_connection(
+        hosts=[ELASTIC_URL],
+        http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        retry_on_timeout=True,
+    )
+    elastic_connection = connections.get_connection()
+
+    doc_count = index_etablissements_by_chunk(
+        cursor=siren_db_cursor,
+        elastic_connection=elastic_connection,
+        elastic_bulk_size=ELASTIC_BULK_SIZE,
+        elastic_index=elastic_index,
+    )
+    kwargs["ti"].xcom_push(key="doc_count_siret", value=doc_count)
     commit_and_close_conn(siren_db_conn)
 
 
 def check_elastic_index(**kwargs):
-    doc_count = kwargs["ti"].xcom_pull(key="doc_count", task_ids="fill_elastic_index")
+    doc_count = kwargs["ti"].xcom_pull(
+        key="doc_count_siren", task_ids="fill_elastic_index"
+    )
     count_sieges = kwargs["ti"].xcom_pull(
         key="count_sieges", task_ids="create_siege_only_table"
     )
