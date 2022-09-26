@@ -20,7 +20,8 @@ from dag_datalake_sirene.task_functions import (
     create_sitemap,
     create_sqlite_database,
     create_unite_legale_table,
-    fill_elastic_index,
+    fill_elastic_index_siren,
+    fill_elastic_index_siret,
     get_colors,
     get_object_minio,
     put_object_minio,
@@ -139,10 +140,16 @@ with DAG(
         python_callable=update_sitemap,
     )
 
-    fill_elastic_index = PythonOperator(
-        task_id="fill_elastic_index",
+    fill_elastic_index_siren = PythonOperator(
+        task_id="fill_elastic_index_siren",
         provide_context=True,
-        python_callable=fill_elastic_index,
+        python_callable=fill_elastic_index_siren,
+    )
+
+    fill_elastic_index_siret = PythonOperator(
+        task_id="fill_elastic_index_siret",
+        provide_context=True,
+        python_callable=fill_elastic_index_siret,
     )
 
     check_elastic_index = PythonOperator(
@@ -405,8 +412,9 @@ with DAG(
     create_dirig_pp_table.set_upstream(get_dirigeants_database)
     create_dirig_pm_table.set_upstream(create_dirig_pp_table)
     create_elastic_index.set_upstream(create_dirig_pm_table)
-    fill_elastic_index.set_upstream(create_elastic_index)
-    create_sitemap.set_upstream(fill_elastic_index)
+    fill_elastic_index_siren.set_upstream(create_elastic_index)
+    fill_elastic_index_siret.set_upstream(fill_elastic_index_siren)
+    create_sitemap.set_upstream(fill_elastic_index_siret)
     update_sitemap.set_upstream(create_sitemap)
     check_elastic_index.set_upstream(fill_elastic_index)
 

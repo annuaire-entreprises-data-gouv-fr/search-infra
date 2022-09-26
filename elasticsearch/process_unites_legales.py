@@ -148,5 +148,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             + " "
             + get_empty_string_if_none(unite_legale["siren"])
         ).strip()
+        unite_legale_processed["unite_etablissement"] = {"name": "unite_legale"}
         list_unites_legales_processed.append(unite_legale_processed)
     return list_unites_legales_processed
