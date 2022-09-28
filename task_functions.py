@@ -1016,7 +1016,7 @@ def fill_elastic_index_siret(**kwargs):
 
 def check_elastic_index(**kwargs):
     doc_count = kwargs["ti"].xcom_pull(
-        key="doc_count_siren", task_ids="fill_elastic_index"
+        key="doc_count_siren", task_ids="fill_elastic_index_siren"
     )
     count_sieges = kwargs["ti"].xcom_pull(
         key="count_sieges", task_ids="create_siege_only_table"

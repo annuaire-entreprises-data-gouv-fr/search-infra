@@ -51,7 +51,7 @@ with DAG(
     default_args=default_args,
     schedule_interval="0 23 10 * *",
     start_date=days_ago(10),
-    dagrun_timeout=timedelta(minutes=60 * 8),
+    dagrun_timeout=timedelta(minutes=60 * 20),
     tags=["siren"],
 ) as dag:
     get_colors = PythonOperator(
@@ -414,6 +414,7 @@ with DAG(
     create_elastic_index.set_upstream(create_dirig_pm_table)
     fill_elastic_index_siren.set_upstream(create_elastic_index)
     fill_elastic_index_siret.set_upstream(fill_elastic_index_siren)
+    check_elastic_index.set_upstream(fill_elastic_index_siret)
     create_sitemap.set_upstream(fill_elastic_index_siret)
     update_sitemap.set_upstream(create_sitemap)
     check_elastic_index.set_upstream(fill_elastic_index)
@@ -455,4 +456,3 @@ with DAG(
     execute_aio_container.set_upstream(update_color_file)
 
     send_email.set_upstream(execute_aio_container)
-    send_email.set_upstream(update_sitemap)
