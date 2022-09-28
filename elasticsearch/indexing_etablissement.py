@@ -66,7 +66,6 @@ def index_etablissements_by_chunk(
             ):
                 if not success:
                     raise Exception(f"A file_access document failed: {details}")
-            time.sleep(1)
         except Exception as e:
             logging.error(f"Failed to send to Elasticsearch: {e}")
         doc_count = elastic_connection.cat.count(
