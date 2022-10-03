@@ -1,7 +1,6 @@
-from datetime import datetime
-from this import d
-from unicodedata import normalize
 import logging
+from datetime import datetime
+from unicodedata import normalize
 
 
 def unique_list(lst):
