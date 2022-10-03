@@ -159,9 +159,13 @@ def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
         dirigeant_pp["nom"] = format_nom(
             dirigeant_pp["nom_patronymique"], dirigeant_pp["nom_usage"]
         )
-        if dirigeant_pp['date_naissance'] is not None and \
-            dirigeant_pp['date_naissance'] != '':
-                dirigeant_pp["date_naissance"] = normalize_date(dirigeant_pp["date_naissance"])
+        if (
+            dirigeant_pp['date_naissance'] is not None
+            and dirigeant_pp['date_naissance'] != ''
+        ):
+            dirigeant_pp["date_naissance"] = normalize_date(
+                dirigeant_pp["date_naissance"]
+            )
 
         # Drop qualite`s exact and partial duplicates
         dirigeant_pp["qualite"] = unique_qualites(dirigeant_pp["qualite"])
@@ -199,7 +203,7 @@ def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
     if dirigeants_pp_processed:
         # Case when two dirigeant have exactly the same fields/value
         dirigeants_pp_processed = drop_exact_duplicates(dirigeants_pp_processed)
-        # Case when two dirigeant have partially the same fields/value 
+        # Case when two dirigeant have partially the same fields/value
         # (eg. same name, and fistname, different date or qualities)
         dirigeants_pp_processed = drop_duplicates_dirigeants_pp(dirigeants_pp_processed)
 
@@ -230,7 +234,7 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
     if dirigeants_pm_processed:
         # Case when two dirigeant have exactly the same fields/value
         dirigeants_pm_processed = drop_exact_duplicates(dirigeants_pm_processed)
-        # Case when two dirigeant have partially the same fields/value 
+        # Case when two dirigeant have partially the same fields/value
         # (eg. same name, and fistname, different date or qualities)
         dirigeants_pm_processed = drop_duplicates_dirigeants_pm(dirigeants_pm_processed)
 
