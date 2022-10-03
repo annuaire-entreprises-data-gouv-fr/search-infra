@@ -993,13 +993,18 @@ def create_sitemap():
         ul.nom_raison_sociale as nom_raison_sociale,
         ul.sigle as sigle,
         ul.etat_administratif_unite_legale as etat_administratif_unite_legale,
-        ul.nature_juridique_unite_legale as nature_juridique_unite_legale
+        ul.nature_juridique_unite_legale as nature_juridique_unite_legale,
+        st.code_postal as code_postal,
+        ul.activite_principale_unite_legale as activite_principale_unite_legale
         FROM
-            unite_legale ul;"""  # noqa
+            unite_legale ul
+        JOIN
+            siretsiege st
+        ON st.siren = ul.siren;"""  # noqa
     )
 
-    if os.path.exists(DATA_DIR + "sitemap-name-" + ENV + ".csv"):
-        os.remove(DATA_DIR + "sitemap-name-" + ENV + ".csv")
+    if os.path.exists(DATA_DIR + "sitemap-" + ENV + ".csv"):
+        os.remove(DATA_DIR + "sitemap-" + ENV + ".csv")
 
     chunk_unites_legales_sqlite = 1
     while chunk_unites_legales_sqlite:
@@ -1022,21 +1027,26 @@ def create_sitemap():
                 ul["etat_administratif_unite_legale"] == "A"
                 and ul["nature_juridique_unite_legale"] != "1000"
             ):
+                if not ul["code_postal"]:
+                    ul["code_postal"] = ""
+                if not ul["activite_principale_unite_legale"]:
+                    ul["activite_principale_unite_legale"] = ""
                 array_url = [ul["nom_raison_sociale"], ul["sigle"], ul["siren"]]
                 nom_url = str(
                     re.sub(
                         "[^0-9a-zA-Z]+", "-", "-".join(filter(None, array_url))
                     ).lower()
                 )
-                noms_url = noms_url + nom_url + "\n"
+                noms_url = noms_url + ul["code_postal"] + "," + \
+                    ul["activite_principale_unite_legale"] + "," + nom_url + "\n"
 
-        with open(DATA_DIR + "sitemap-name-" + ENV + ".csv", "a+") as f:
+        with open(DATA_DIR + "sitemap-" + ENV + ".csv", "a+") as f:
             f.write(noms_url)
 
 
 def update_sitemap():
 
-    minio_filepath = "ae/sitemap-name-" + ENV + ".csv"
+    minio_filepath = "ae/sitemap-" + ENV + ".csv"
     minio_url = MINIO_URL
     minio_bucket = MINIO_BUCKET
     minio_user = MINIO_USER
@@ -1056,6 +1066,6 @@ def update_sitemap():
         client.fput_object(
             bucket_name=minio_bucket,
             object_name=minio_filepath,
-            file_path=DATA_DIR + "sitemap-name-" + ENV + ".csv",
+            file_path=DATA_DIR + "sitemap-" + ENV + ".csv",
             content_type="text/csv",
         )
