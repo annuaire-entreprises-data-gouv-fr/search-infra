@@ -1,7 +1,6 @@
 from datetime import datetime
 from unicodedata import normalize
 
-
 def unique_list(lst):
     ulist = []
     [ulist.append(x) for x in lst if x not in ulist]
@@ -40,8 +39,6 @@ def normalize_date(date_string):
             return datetime.strptime(date_string, pattern).strftime("%Y-%m-%d")
         except ValueError:
             pass
-    # logging.info(f"Date is not in expected format: {date_string}")
-
 
 def drop_exact_duplicates(list_dict):
     # frozenset is used to assign a value to key in dictionary as a set. The repeated

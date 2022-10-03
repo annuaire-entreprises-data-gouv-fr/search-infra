@@ -28,6 +28,7 @@ def unique_qualites(qualite_string):
 
 def drop_duplicates_dirigeants_pp(list_dict_dirigeants):
     """
+    We want to identify partial duplicates :
     For two `dirigeants` dictionaries to be matching, they have to share both the
     same `nom`  and `prenoms` values.
     If that's the case, the `date_naissance` field is selected from the latest
