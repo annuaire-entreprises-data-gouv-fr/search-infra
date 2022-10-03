@@ -1,8 +1,13 @@
 import json
 import logging
 
+from dag_datalake_sirene.helpers.clean_dirigeants import (
+    drop_duplicates_dirigeants_pm,
+    drop_duplicates_dirigeants_pp,
+    unique_qualites,
+)
 from dag_datalake_sirene.helpers.utils import (
-    drop_duplicates,
+    drop_exact_duplicates,
     get_empty_string_if_none,
     normalize_date,
 )
@@ -155,6 +160,10 @@ def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
             dirigeant_pp["nom_patronymique"], dirigeant_pp["nom_usage"]
         )
         dirigeant_pp["date_naissance"] = normalize_date(dirigeant_pp["date_naissance"])
+
+        # Drop qualite`s exact and partial duplicates
+        dirigeant_pp["qualite"] = unique_qualites(dirigeant_pp["qualite"])
+
         dirigeants_pp_processed.append(
             dict(
                 nom=dirigeant_pp["nom"],
@@ -185,7 +194,13 @@ def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
         else:
             logging.info(f'Missing dirigeants names for ****** {dirigeant_pp["siren"]}')
 
-    dirigeants_pp_processed = drop_duplicates(dirigeants_pp_processed)
+    if dirigeants_pp_processed:
+        # Case when two dirigeant have exactly the same fields/value
+        dirigeants_pp_processed = drop_exact_duplicates(dirigeants_pp_processed)
+        # Case when two dirigeant have partially the same fields/value
+        # (eg. same name, and fistname, different date or qualities)
+        dirigeants_pp_processed = drop_duplicates_dirigeants_pp(dirigeants_pp_processed)
+
     return dirigeants_pp_processed, list(set(list_all_dirigeants))
 
 
@@ -200,7 +215,7 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
             logging.info(
                 f'Missing denomination dirigeant for ***** {dirigeant_pm["siren"]}'
             )
-
+        dirigeant_pm["qualite"] = unique_qualites(dirigeant_pm["qualite"])
         dirigeants_pm_processed.append(
             dict(
                 siren=dirigeant_pm["siren_pm"],
@@ -209,6 +224,12 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
                 qualite=dirigeant_pm["qualite"],
             )
         )
-    dirigeants_pm_processed = drop_duplicates(dirigeants_pm_processed)
+
+    if dirigeants_pm_processed:
+        # Case when two dirigeant have exactly the same fields/value
+        dirigeants_pm_processed = drop_exact_duplicates(dirigeants_pm_processed)
+        # Case when two dirigeant have partially the same fields/value
+        # (eg. same name, and fistname, different date or qualities)
+        dirigeants_pm_processed = drop_duplicates_dirigeants_pm(dirigeants_pm_processed)
 
     return dirigeants_pm_processed, list(set(list_all_dirigeants))

@@ -35,16 +35,20 @@ def normalize_string(string):
 
 
 def normalize_date(date_string):
+    if date_string is None or date_string == "":
+        return
+
     date_patterns = ["%d-%m-%Y", "%Y-%m-%d", "%Y%m%d", "%d/%m/%Y"]
     for pattern in date_patterns:
         try:
             return datetime.strptime(date_string, pattern).strftime("%Y-%m-%d")
         except ValueError:
             pass
+
     logging.info(f"Date is not in expected format: {date_string}")
 
 
-def drop_duplicates(list_dict):
+def drop_exact_duplicates(list_dict):
     # frozenset is used to assign a value to key in dictionary as a set. The repeated
     # entries of dictionary are hence ignored
     return list(
