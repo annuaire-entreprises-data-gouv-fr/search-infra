@@ -159,13 +159,7 @@ def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
         dirigeant_pp["nom"] = format_nom(
             dirigeant_pp["nom_patronymique"], dirigeant_pp["nom_usage"]
         )
-        if (
-            dirigeant_pp["date_naissance"] is not None
-            and dirigeant_pp["date_naissance"] != ""
-        ):
-            dirigeant_pp["date_naissance"] = normalize_date(
-                dirigeant_pp["date_naissance"]
-            )
+        dirigeant_pp["date_naissance"] = normalize_date(dirigeant_pp["date_naissance"])
 
         # Drop qualite`s exact and partial duplicates
         dirigeant_pp["qualite"] = unique_qualites(dirigeant_pp["qualite"])
