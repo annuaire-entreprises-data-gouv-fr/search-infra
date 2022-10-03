@@ -9,9 +9,7 @@ from urllib.request import urlopen
 import pandas as pd
 import requests
 from airflow.models import Variable
-from dag_datalake_sirene.elasticsearch.create_sirene_index import (
-    ElasticCreateSiren,
-)
+from dag_datalake_sirene.elasticsearch.create_sirene_index import ElasticCreateSiren
 from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
     index_unites_legales_by_chunk,
 )
@@ -1037,8 +1035,15 @@ def create_sitemap():
                         "[^0-9a-zA-Z]+", "-", "-".join(filter(None, array_url))
                     ).lower()
                 )
-                noms_url = noms_url + ul["code_postal"] + "," + \
-                    ul["activite_principale_unite_legale"] + "," + nom_url + "\n"
+                noms_url = (
+                    noms_url
+                    + ul["code_postal"]
+                    + ","
+                    + ul["activite_principale_unite_legale"]
+                    + ","
+                    + nom_url
+                    + "\n"
+                )
 
         with open(DATA_DIR + "sitemap-" + ENV + ".csv", "a+") as f:
             f.write(noms_url)
