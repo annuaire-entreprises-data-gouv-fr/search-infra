@@ -1266,7 +1266,7 @@ def preprocess_elus_colter(**kwargs):
             "prenom_elu",
             "date_naissance_elu",
             "sexe_elu",
-            "fonction_elu"
+            "fonction_elu",
         ]
     ]
     siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
