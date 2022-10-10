@@ -19,7 +19,7 @@ from dag_datalake_sirene.task_functions import (
     create_unite_legale_table,
     fill_elastic_index,
     get_colors,
-    get_dirig_database,    
+    get_dirig_database,
     preprocess_colter,
     preprocess_elus_colter,
     update_color_file,
@@ -114,13 +114,13 @@ with DAG(
         python_callable=create_dirig_pm_table,
     )
 
-    preprocess_colter= PythonOperator(
+    preprocess_colter = PythonOperator(
         task_id="preprocess_colter",
         provide_context=True,
         python_callable=preprocess_colter,
     )
 
-    preprocess_elus_colter= PythonOperator(
+    preprocess_elus_colter = PythonOperator(
         task_id="preprocess_elus_colter",
         provide_context=True,
         python_callable=preprocess_elus_colter,

@@ -5,9 +5,9 @@ import re
 import shutil
 import sqlite3
 from urllib.request import urlopen
-
 import pandas as pd
 import requests
+import zipfile
 from airflow.models import Variable
 from dag_datalake_sirene.elasticsearch.create_sirene_index import ElasticCreateSiren
 from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
@@ -1106,52 +1106,64 @@ def update_sitemap():
 
 def preprocess_colter(**kwargs):
     # Process Régions
-    df = pd.read_csv('https://www.data.gouv.fr/fr/datasets/r/619ee62e-8f9e-4c62-b166-abc6f2b86201', dtype=str, sep=";")
-    df = df[df['exer'] == df.exer.max()][['reg_code', 'siren']]
-    df = df.drop_duplicates(keep='first')
-    df = df.rename(columns={'reg_code': 'code_insee'})
-    df['code_colter'] = df['code_insee']
-    df['niveau_colter'] = 'region'
+    df = pd.read_csv(
+        "https://www.data.gouv.fr/fr/datasets/r/619ee62e-8f9e-4c62-b166-abc6f2b86201",
+        dtype=str,
+        sep=";"
+    )
+    df = df[df["exer"] == df.exer.max()][["reg_code", "siren"]]
+    df = df.drop_duplicates(keep="first")
+    df = df.rename(columns={"reg_code": "code_insee"})
+    df["code_colter"] = df["code_insee"]
+    df["niveau_colter"] = "region"
 
     # Cas particulier Corse
-    df.loc[df['code_insee'] == '94', 'niveau_colter'] = 'particulier'
+    df.loc[df["code_insee"] == "94", "niveau_colter"] = "particulier"
     dfcolter = df
 
     # Process Départements
-    df = pd.read_csv('https://www.data.gouv.fr/fr/datasets/r/2f4f901d-e3ce-4760-b122-56a311340fc4', dtype=str, sep=';')
-    df = df[df['exer'] == df['exer'].max()]
-    df = df[['dep_code', 'siren']]
+    df = pd.read_csv(
+        "https://www.data.gouv.fr/fr/datasets/r/2f4f901d-e3ce-4760-b122-56a311340fc4",
+        dtype=str,
+        sep=";"
+    )
+    df = df[df["exer"] == df["exer"].max()]
+    df = df[["dep_code", "siren"]]
     df = df.drop_duplicates(keep="first")
-    df = df.rename(columns={'dep_code': 'code_insee'})
-    df['code_colter'] = df['code_insee'] + 'D'
-    df['niveau_colter'] = 'departement'
+    df = df.rename(columns={"dep_code": "code_insee"})
+    df["code_colter"] = df["code_insee"] + "D"
+    df["niveau_colter"] = "departement"
 
     # Cas Métropole de Lyon
-    df.loc[df['code_insee'] == '691', 'code_colter'] = '69M'
-    df.loc[df['code_insee'] == '691', 'niveau_colter'] = 'particulier'
-    df.loc[df['code_insee'] == '691', 'code_insee'] = None
+    df.loc[df["code_insee"] == "691", "code_colter"] = "69M"
+    df.loc[df["code_insee"] == "691", "niveau_colter"] = "particulier"
+    df.loc[df["code_insee"] == "691", "code_insee"] = None
 
     # Cas Conseil départemental du Rhone
-    df.loc[df['code_insee'] == '69', 'niveau_colter'] = 'particulier'
-    df.loc[df['code_insee'] == '69', 'code_insee'] = None
+    df.loc[df["code_insee"] == "69", "niveau_colter"] = "particulier"
+    df.loc[df["code_insee"] == "69", "code_insee"] = None
 
-    # Cas Collectivité Européenne d'Alsace
-    df.loc[df['code_insee'] == '67A', 'code_colter'] = '6AE'
-    df.loc[df['code_insee'] == '67A', 'niveau_colter'] = 'particulier'
-    df.loc[df['code_insee'] == '67A', 'code_insee'] = None
+    # Cas Collectivité Européenne d"Alsace
+    df.loc[df["code_insee"] == "67A", "code_colter"] = "6AE"
+    df.loc[df["code_insee"] == "67A", "niveau_colter"] = "particulier"
+    df.loc[df["code_insee"] == "67A", "code_insee"] = None
 
     # Remove Paris
-    df = df[df['code_insee'] != '75']
+    df = df[df["code_insee"] != "75"]
 
     dfcolter = pd.concat([dfcolter, df])
 
     # Process EPCI
-    df = pd.read_excel('https://www.collectivites-locales.gouv.fr/files/2022/epcisanscom2022.xlsx',dtype=str, engine='openpyxl')
-    df['code_insee'] = None
-    df['siren'] = df['siren_epci']
-    df['code_colter'] = df['siren']
-    df['niveau_colter'] = 'epci'
-    df = df[['code_insee', 'siren', 'code_colter', 'niveau_colter']]
+    df = pd.read_excel(
+        "https://www.collectivites-locales.gouv.fr/files/2022/epcisanscom2022.xlsx",
+        dtype=str,
+        engine="openpyxl"
+    )
+    df["code_insee"] = None
+    df["siren"] = df["siren_epci"]
+    df["code_colter"] = df["siren"]
+    df["niveau_colter"] = "epci"
+    df = df[["code_insee", "siren", "code_colter", "niveau_colter"]]
     dfcolter = pd.concat([dfcolter, df])
 
     # Process Communes
@@ -1159,25 +1171,27 @@ def preprocess_colter(**kwargs):
     response = requests.get(URL)
     open("/tmp/siren-communes.zip", "wb").write(response.content)
 
-    import zipfile
+    with zipfile.ZipFile("/tmp/siren-communes.zip", "r") as zip_ref:
+        zip_ref.extractall("/tmp/siren-communes")
 
-    with zipfile.ZipFile('/tmp/siren-communes.zip', 'r') as zip_ref:
-        zip_ref.extractall('/tmp/siren-communes')
-
-    df = pd.read_excel('/tmp/siren-communes/Banatic_SirenInsee2022.xlsx',dtype=str, engine='openpyxl')
-    df['code_insee'] = df['insee']
-    df['code_colter'] = df['insee']
-    df['niveau_colter'] = 'commune'
-    df = df[['code_insee', 'siren', 'code_colter', 'niveau_colter']]
-    df.loc[df['code_insee'] == '75056', 'code_colter'] = '75C'
-    df.loc[df['code_insee'] == '75056', 'niveau_colter'] = 'particulier'
+    df = pd.read_excel(
+        "/tmp/siren-communes/Banatic_SirenInsee2022.xlsx",
+        dtype=str,
+        engine="openpyxl"
+    )
+    df["code_insee"] = df["insee"]
+    df["code_colter"] = df["insee"]
+    df["niveau_colter"] = "commune"
+    df = df[["code_insee", "siren", "code_colter", "niveau_colter"]]
+    df.loc[df["code_insee"] == "75056", "code_colter"] = "75C"
+    df.loc[df["code_insee"] == "75056", "niveau_colter"] = "particulier"
 
     dfcolter = pd.concat([dfcolter, df])
 
-    if os.path.exists(DATA_DIR + 'colter.csv'):
-        os.remove(DATA_DIR + 'colter.csv')
+    if os.path.exists(DATA_DIR + "colter.csv"):
+        os.remove(DATA_DIR + "colter.csv")
 
-    dfcolter.to_csv(DATA_DIR + 'colter.csv', index=False)
+    dfcolter.to_csv(DATA_DIR + "colter.csv", index=False)
 
     siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
 
@@ -1192,19 +1206,17 @@ def preprocess_colter(**kwargs):
             code_colter,
             niveau_colter
         )
-    """
+        """
     )
+
     siren_db_cursor.execute(
         """
-                    CREATE INDEX siren_colter
-                    ON colter (siren);
-                    """
+        CREATE INDEX siren_colter
+        ON colter (siren);
+        """
     )
 
-    dfcolter.to_sql(
-        "colter", siren_db_conn, if_exists="append", index=False
-    )
-
+    dfcolter.to_sql("colter", siren_db_conn, if_exists="append", index=False)
 
 
 def preprocess_elus_colter(**kwargs):
@@ -1272,9 +1284,4 @@ def preprocess_elus_colter(**kwargs):
         """
     )
 
-    colter_elus.to_sql(
-        "colter_elus",
-        siren_db_conn,
-        if_exists="append",
-        index=False
-    )
+    colter_elus.to_sql("colter_elus", siren_db_conn, if_exists="append", index=False)

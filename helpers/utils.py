@@ -51,22 +51,26 @@ def normalize_date(date_string):
 
 def process_elus_files(url, colname):
     df = pd.read_csv(url, dtype=str, sep="\t")
-    df = df[[
-        colname,
-        "Nom de l'élu",
-        "Prénom de l'élu",
-        "Code sexe",
-        "Date de naissance",
-        "Libellé de la fonction"
-    ]]
-    df = df.rename(columns={
-        colname: "code_colter",
-        "Nom de l'élu": "nom_elu",
-        "Prénom de l'élu": "prenom_elu",
-        "Code sexe": "sexe_elu",
-        "Date de naissance": "date_naissance_elu",
-        "Libellé de la fonction" : "fonction_elu"
-    })
+    df = df[
+        [
+            colname,
+            "Nom de l'élu",
+            "Prénom de l'élu",
+            "Code sexe",
+            "Date de naissance",
+            "Libellé de la fonction",
+        ]
+    ]
+    df = df.rename(
+        columns={
+            colname: "code_colter",
+            "Nom de l'élu": "nom_elu",
+            "Prénom de l'élu": "prenom_elu",
+            "Code sexe": "sexe_elu",
+            "Date de naissance": "date_naissance_elu",
+            "Libellé de la fonction" : "fonction_elu",
+        }
+    )
     return df
 
 
