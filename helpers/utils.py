@@ -64,7 +64,7 @@ def process_elus_files(url, colname):
     ]
     df = df.rename(
         columns={
-            colname: "code_colter",
+            colname: "colter_code",
             "Nom de l'élu": "nom_elu",
             "Prénom de l'élu": "prenom_elu",
             "Code sexe": "sexe_elu",

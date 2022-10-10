@@ -913,18 +913,18 @@ def fill_elastic_index(**kwargs):
                     WHERE siren = st.siren
                 )
             ) as dirigeants_pm,
-        (SELECT code_colter
+        (SELECT colter_code
             FROM colter
             WHERE siren = st.siren
-        ) as code_colter,
-        (SELECT niveau_colter
+        ) as colter_code,
+        (SELECT colter_niveau
             FROM colter
             WHERE siren = st.siren
-        ) as niveau_colter,
-        (SELECT code_insee
+        ) as colter_niveau,
+        (SELECT colter_code_insee
             FROM colter
             WHERE siren = st.siren
-        ) as code_insee,
+        ) as colter_code_insee,
         (SELECT json_group_array(
             json_object(
                 'nom', nom_elu,
@@ -1114,12 +1114,12 @@ def preprocess_colter(**kwargs):
     )
     df = df[df["exer"] == df.exer.max()][["reg_code", "siren"]]
     df = df.drop_duplicates(keep="first")
-    df = df.rename(columns={"reg_code": "code_insee"})
-    df["code_colter"] = df["code_insee"]
-    df["niveau_colter"] = "region"
+    df = df.rename(columns={"reg_code": "colter_code_insee"})
+    df["colter_code"] = df["colter_code_insee"]
+    df["colter_niveau"] = "region"
 
     # Cas particulier Corse
-    df.loc[df["code_insee"] == "94", "niveau_colter"] = "particulier"
+    df.loc[df["colter_code_insee"] == "94", "colter_niveau"] = "particulier"
     dfcolter = df
 
     # Process Départements
@@ -1131,26 +1131,26 @@ def preprocess_colter(**kwargs):
     df = df[df["exer"] == df["exer"].max()]
     df = df[["dep_code", "siren"]]
     df = df.drop_duplicates(keep="first")
-    df = df.rename(columns={"dep_code": "code_insee"})
-    df["code_colter"] = df["code_insee"] + "D"
-    df["niveau_colter"] = "departement"
+    df = df.rename(columns={"dep_code": "colter_code_insee"})
+    df["colter_code"] = df["colter_code_insee"] + "D"
+    df["colter_niveau"] = "departement"
 
     # Cas Métropole de Lyon
-    df.loc[df["code_insee"] == "691", "code_colter"] = "69M"
-    df.loc[df["code_insee"] == "691", "niveau_colter"] = "particulier"
-    df.loc[df["code_insee"] == "691", "code_insee"] = None
+    df.loc[df["colter_code_insee"] == "691", "colter_code"] = "69M"
+    df.loc[df["colter_code_insee"] == "691", "colter_niveau"] = "particulier"
+    df.loc[df["colter_code_insee"] == "691", "colter_code_insee"] = None
 
     # Cas Conseil départemental du Rhone
-    df.loc[df["code_insee"] == "69", "niveau_colter"] = "particulier"
-    df.loc[df["code_insee"] == "69", "code_insee"] = None
+    df.loc[df["colter_code_insee"] == "69", "colter_niveau"] = "particulier"
+    df.loc[df["colter_code_insee"] == "69", "colter_code_insee"] = None
 
     # Cas Collectivité Européenne d"Alsace
-    df.loc[df["code_insee"] == "67A", "code_colter"] = "6AE"
-    df.loc[df["code_insee"] == "67A", "niveau_colter"] = "particulier"
-    df.loc[df["code_insee"] == "67A", "code_insee"] = None
+    df.loc[df["colter_code_insee"] == "67A", "colter_code"] = "6AE"
+    df.loc[df["colter_code_insee"] == "67A", "colter_niveau"] = "particulier"
+    df.loc[df["colter_code_insee"] == "67A", "colter_code_insee"] = None
 
     # Remove Paris
-    df = df[df["code_insee"] != "75"]
+    df = df[df["colter_code_insee"] != "75"]
 
     dfcolter = pd.concat([dfcolter, df])
 
@@ -1160,11 +1160,11 @@ def preprocess_colter(**kwargs):
         dtype=str,
         engine="openpyxl",
     )
-    df["code_insee"] = None
+    df["colter_code_insee"] = None
     df["siren"] = df["siren_epci"]
-    df["code_colter"] = df["siren"]
-    df["niveau_colter"] = "epci"
-    df = df[["code_insee", "siren", "code_colter", "niveau_colter"]]
+    df["colter_code"] = df["siren"]
+    df["colter_niveau"] = "epci"
+    df = df[["colter_code_insee", "siren", "colter_code", "colter_niveau"]]
     dfcolter = pd.concat([dfcolter, df])
 
     # Process Communes
@@ -1178,12 +1178,12 @@ def preprocess_colter(**kwargs):
     df = pd.read_excel(
         "/tmp/siren-communes/Banatic_SirenInsee2022.xlsx", dtype=str, engine="openpyxl"
     )
-    df["code_insee"] = df["insee"]
-    df["code_colter"] = df["insee"]
-    df["niveau_colter"] = "commune"
-    df = df[["code_insee", "siren", "code_colter", "niveau_colter"]]
-    df.loc[df["code_insee"] == "75056", "code_colter"] = "75C"
-    df.loc[df["code_insee"] == "75056", "niveau_colter"] = "particulier"
+    df["colter_code_insee"] = df["insee"]
+    df["colter_code"] = df["insee"]
+    df["colter_niveau"] = "commune"
+    df = df[["colter_code_insee", "siren", "colter_code", "colter_niveau"]]
+    df.loc[df["colter_code_insee"] == "75056", "colter_code"] = "75C"
+    df.loc[df["colter_code_insee"] == "75056", "colter_niveau"] = "particulier"
 
     dfcolter = pd.concat([dfcolter, df])
 
@@ -1201,9 +1201,9 @@ def preprocess_colter(**kwargs):
         CREATE TABLE IF NOT EXISTS colter
         (
             siren,
-            code_insee,
-            code_colter,
-            niveau_colter
+            colter_code_insee,
+            colter_code,
+            colter_niveau
         )
         """
     )
@@ -1230,16 +1230,16 @@ def preprocess_elus_colter(**kwargs):
         "https://www.data.gouv.fr/fr/datasets/r/601ef073-d986-4582-8e1a-ed14dc857fba",
         "Code du département",
     )
-    df["code_colter"] = df["code_colter"] + "D"
-    df.loc[df["code_colter"] == "6AED", "code_colter"] = "6AE"
+    df["colter_code"] = df["colter_code"] + "D"
+    df.loc[df["colter_code"] == "6AED", "colter_code"] = "6AE"
     elus = pd.concat([elus, df])
     # membres des assemblées des collectivités à statut particulier
     df = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/a595be27-cfab-4810-b9d4-22e193bffe35",
         "Code de la collectivité à statut particulier",
     )
-    df.loc[df["code_colter"] == "972", "code_colter"] = "02"
-    df.loc[df["code_colter"] == "973", "code_colter"] = "03"
+    df.loc[df["colter_code"] == "972", "colter_code"] = "02"
+    df.loc[df["colter_code"] == "973", "colter_code"] = "03"
     elus = pd.concat([elus, df])
     # Conseillers communautaires
     df = process_elus_files(
@@ -1252,9 +1252,9 @@ def preprocess_elus_colter(**kwargs):
         "https://www.data.gouv.fr/fr/datasets/r/d5f400de-ae3f-4966-8cb6-a85c70c6c24a",
         "Code de la commune",
     )
-    df.loc[df["code_colter"] == "75056", "code_colter"] = "75C"
+    df.loc[df["colter_code"] == "75056", "colter_code"] = "75C"
     elus = pd.concat([elus, df])
-    colter_elus = elus.merge(colter, on="code_colter", how="left")
+    colter_elus = elus.merge(colter, on="colter_code", how="left")
     colter_elus = colter_elus[colter_elus["siren"].notna()]
     colter_elus["date_naissance_elu"] = colter_elus["date_naissance_elu"].apply(
         lambda x: x.split("/")[2] + "-" + x.split("/")[1] + "-" + x.split("/")[0]
