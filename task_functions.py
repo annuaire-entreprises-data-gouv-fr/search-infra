@@ -4,10 +4,11 @@ import os
 import re
 import shutil
 import sqlite3
+import zipfile
 from urllib.request import urlopen
+
 import pandas as pd
 import requests
-import zipfile
 from airflow.models import Variable
 from dag_datalake_sirene.elasticsearch.create_sirene_index import ElasticCreateSiren
 from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
@@ -1109,7 +1110,7 @@ def preprocess_colter(**kwargs):
     df = pd.read_csv(
         "https://www.data.gouv.fr/fr/datasets/r/619ee62e-8f9e-4c62-b166-abc6f2b86201",
         dtype=str,
-        sep=";"
+        sep=";",
     )
     df = df[df["exer"] == df.exer.max()][["reg_code", "siren"]]
     df = df.drop_duplicates(keep="first")
@@ -1125,7 +1126,7 @@ def preprocess_colter(**kwargs):
     df = pd.read_csv(
         "https://www.data.gouv.fr/fr/datasets/r/2f4f901d-e3ce-4760-b122-56a311340fc4",
         dtype=str,
-        sep=";"
+        sep=";",
     )
     df = df[df["exer"] == df["exer"].max()]
     df = df[["dep_code", "siren"]]
@@ -1157,7 +1158,7 @@ def preprocess_colter(**kwargs):
     df = pd.read_excel(
         "https://www.collectivites-locales.gouv.fr/files/2022/epcisanscom2022.xlsx",
         dtype=str,
-        engine="openpyxl"
+        engine="openpyxl",
     )
     df["code_insee"] = None
     df["siren"] = df["siren_epci"]
@@ -1175,9 +1176,7 @@ def preprocess_colter(**kwargs):
         zip_ref.extractall("/tmp/siren-communes")
 
     df = pd.read_excel(
-        "/tmp/siren-communes/Banatic_SirenInsee2022.xlsx",
-        dtype=str,
-        engine="openpyxl"
+        "/tmp/siren-communes/Banatic_SirenInsee2022.xlsx", dtype=str, engine="openpyxl"
     )
     df["code_insee"] = df["insee"]
     df["code_colter"] = df["insee"]
@@ -1220,16 +1219,16 @@ def preprocess_colter(**kwargs):
 
 
 def preprocess_elus_colter(**kwargs):
-    colter = pd.read_csv(DATA_DIR + "colter.csv",dtype=str)
+    colter = pd.read_csv(DATA_DIR + "colter.csv", dtype=str)
     # Conseillers régionaux
     elus = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/430e13f9-834b-4411-a1a8-da0b4b6e715c",
-        "Code de la région"
+        "Code de la région",
     )
     # Conseillers départementaux
     df = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/601ef073-d986-4582-8e1a-ed14dc857fba",
-        "Code du département"
+        "Code du département",
     )
     df["code_colter"] = df["code_colter"] + "D"
     df.loc[df["code_colter"] == "6AED", "code_colter"] = "6AE"
@@ -1237,7 +1236,7 @@ def preprocess_elus_colter(**kwargs):
     # membres des assemblées des collectivités à statut particulier
     df = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/a595be27-cfab-4810-b9d4-22e193bffe35",
-        "Code de la collectivité à statut particulier"
+        "Code de la collectivité à statut particulier",
     )
     df.loc[df["code_colter"] == "972", "code_colter"] = "02"
     df.loc[df["code_colter"] == "973", "code_colter"] = "03"
@@ -1245,13 +1244,13 @@ def preprocess_elus_colter(**kwargs):
     # Conseillers communautaires
     df = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/41d95d7d-b172-4636-ac44-32656367cdc7",
-        "N° SIREN"
+        "N° SIREN",
     )
     elus = pd.concat([elus, df])
     # Conseillers municipaux
     df = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/d5f400de-ae3f-4966-8cb6-a85c70c6c24a",
-        "Code de la commune"
+        "Code de la commune",
     )
     df.loc[df["code_colter"] == "75056", "code_colter"] = "75C"
     elus = pd.concat([elus, df])
@@ -1260,7 +1259,16 @@ def preprocess_elus_colter(**kwargs):
     colter_elus["date_naissance_elu"] = colter_elus["date_naissance_elu"].apply(
         lambda x: x.split("/")[2] + "-" + x.split("/")[1] + "-" + x.split("/")[0]
     )
-    colter_elus = colter_elus[["siren", "nom_elu", "prenom_elu", "date_naissance_elu", "sexe_elu", "fonction_elu"]]
+    colter_elus = colter_elus[
+        [
+            "siren",
+            "nom_elu",
+            "prenom_elu",
+            "date_naissance_elu",
+            "sexe_elu",
+            "fonction_elu"
+        ]
+    ]
     siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
 
     # Create table colter in siren database

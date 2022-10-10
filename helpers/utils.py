@@ -1,7 +1,8 @@
 import logging
 from datetime import datetime
-import pandas as pd
 from unicodedata import normalize
+
+import pandas as pd
 
 
 def unique_list(lst):
@@ -68,7 +69,7 @@ def process_elus_files(url, colname):
             "Prénom de l'élu": "prenom_elu",
             "Code sexe": "sexe_elu",
             "Date de naissance": "date_naissance_elu",
-            "Libellé de la fonction" : "fonction_elu",
+            "Libellé de la fonction": "fonction_elu",
         }
     )
     return df
