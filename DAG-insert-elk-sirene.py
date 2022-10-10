@@ -19,7 +19,9 @@ from dag_datalake_sirene.task_functions import (
     create_unite_legale_table,
     fill_elastic_index,
     get_colors,
-    get_dirig_database,
+    get_dirig_database,    
+    preprocess_colter,
+    preprocess_elus_colter,
     update_color_file,
     update_sitemap,
 )
@@ -112,6 +114,18 @@ with DAG(
         python_callable=create_dirig_pm_table,
     )
 
+    preprocess_colter= PythonOperator(
+        task_id="preprocess_colter",
+        provide_context=True,
+        python_callable=preprocess_colter,
+    )
+
+    preprocess_elus_colter= PythonOperator(
+        task_id="preprocess_elus_colter",
+        provide_context=True,
+        python_callable=preprocess_elus_colter,
+    )
+
     create_elastic_index = PythonOperator(
         task_id="create_elastic_index",
         provide_context=True,
@@ -179,7 +193,9 @@ with DAG(
     get_dirigeants_database.set_upstream(create_siege_only_table)
     create_dirig_pp_table.set_upstream(get_dirigeants_database)
     create_dirig_pm_table.set_upstream(create_dirig_pp_table)
-    create_elastic_index.set_upstream(create_dirig_pm_table)
+    preprocess_colter.set_upstream(create_dirig_pm_table)
+    preprocess_elus_colter.set_upstream(preprocess_colter)
+    create_elastic_index.set_upstream(preprocess_elus_colter)
     fill_elastic_index.set_upstream(create_elastic_index)
     create_sitemap.set_upstream(fill_elastic_index)
     update_sitemap.set_upstream(create_sitemap)

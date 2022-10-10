@@ -90,7 +90,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         # Dirigeants
-
         unite_legale_processed["liste_dirigeants"] = []
         (
             unite_legale_processed["dirigeants_pp"],
@@ -104,6 +103,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["liste_dirigeants"],
         ) = format_dirigeants_pm(
             unite_legale["dirigeants_pm"], unite_legale_processed["liste_dirigeants"]
+        )
+        
+        # Elus collectivités Territoriales
+        unite_legale_processed["colter_elus"] = json.loads(
+            unite_legale["colter_elus"]
         )
 
         unite_legale_processed[
