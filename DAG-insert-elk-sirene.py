@@ -5,9 +5,7 @@ from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.external_data.task_functions import (
-    update_es,
-)
+from dag_datalake_sirene.external_data.task_functions import update_es
 from dag_datalake_sirene.task_functions import (
     check_elastic_index,
     count_nombre_etablissements,
@@ -106,7 +104,7 @@ with DAG(
             "inpi.db",
             "inpi/",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/inpi.db",
-        )
+        ),
     )
 
     create_dirig_pp_table = PythonOperator(

@@ -1,16 +1,17 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
+
+from airflow.models import DAG, Variable
+from airflow.operators.python import PythonOperator, ShortCircuitOperator
+from airflow.utils.dates import days_ago
 from dag_datalake_sirene.external_data.task_functions import (
     compare_versions_file,
     preprocess_finess_data,
     publish_mattermost,
     update_es,
 )
-from dag_datalake_sirene.task_functions import get_object_minio
-from airflow.models import DAG, Variable
-from airflow.operators.python import PythonOperator, ShortCircuitOperator
-from airflow.utils.dates import days_ago
 from dag_datalake_sirene.task_functions import (
     get_colors,
+    get_object_minio,
     put_object_minio,
 )
 from operators.clean_folder import CleanFolderOperator
@@ -54,9 +55,7 @@ with DAG(
     preprocess_finess_data = PythonOperator(
         task_id="preprocess_finess_data",
         python_callable=preprocess_finess_data,
-        op_args=(
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
-        )
+        op_args=(TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",),
     )
 
     get_latest_finess_data = PythonOperator(
@@ -70,7 +69,7 @@ with DAG(
     )
 
     compare_versions_file = ShortCircuitOperator(
-        task_id="compare_versions_file", 
+        task_id="compare_versions_file",
         python_callable=compare_versions_file,
         op_args=(
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/finess-latest.csv",
@@ -110,10 +109,10 @@ with DAG(
     )
 
     publish_mattermost = PythonOperator(
-        task_id = 'publish_mattermost',
+        task_id="publish_mattermost",
         python_callable=publish_mattermost,
         op_args=(
-            "Infos Annfinessre : Données des FINESS (Santé) mises à jour sur l'API !",
+            "Infos Annuaire : Données des FINESS (Santé) mises à jour sur l'API !",
         ),
     )
 
