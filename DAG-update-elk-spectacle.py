@@ -16,7 +16,6 @@ from dag_datalake_sirene.task_functions import (
 )
 from operators.clean_folder import CleanFolderOperator
 
-
 DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "update-elk-entrepreneur-spectacle"
 TMP_FOLDER = "/tmp/"
@@ -112,7 +111,8 @@ with DAG(
         task_id="publish_mattermost",
         python_callable=publish_mattermost,
         op_args=(
-            "Infos Annuaire : Données des entrepreneurs du spectacle vivant mises à jour sur l'API !",
+            "Infos Annuaire : Données des entrepreneurs du spectacle vivant"
+            " mises à jour sur l'API !",
         ),
     )
 

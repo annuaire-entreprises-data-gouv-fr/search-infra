@@ -158,11 +158,14 @@ def compare_versions_file(
     original_file: str,
     new_file: str,
 ) -> None:
-    return not filecmp.cmp(original_file, new_file)
+    same = False
+    same = filecmp.cmp(original_file, new_file)
+    return not same
 
 
 def generate_updates_convcollective(df, current_color):
     from ast import literal_eval
+
     df["liste_idcc"] = df["liste_idcc"].apply(literal_eval)
     for index, row in df.iterrows():
         yield {
@@ -171,8 +174,8 @@ def generate_updates_convcollective(df, current_color):
             "_type": "_doc",
             "_id": row["siren"],
             "doc": {
-                "liste_idcc": row["liste_idcc"]
-            }
+                "liste_idcc": row["liste_idcc"],
+            },
         }
 
 
@@ -187,8 +190,8 @@ def generate_updates_finess(df, current_color):
             "_type": "_doc",
             "_id": row["siren"],
             "doc": {
-                "liste_finess": row["liste_finess"]
-            }
+                "liste_finess": row["liste_finess"],
+            },
         }
 
 
@@ -200,8 +203,8 @@ def generate_updates_rge(df, current_color):
             "_type": "_doc",
             "_id": row["siren"],
             "doc": {
-                "is_rge": True
-            }
+                "is_rge": True,
+            },
         }
 
 
@@ -213,8 +216,8 @@ def generate_updates_spectacle(df, current_color):
             "_type": "_doc",
             "_id": row["siren"],
             "doc": {
-                "is_entrepreneur_spectacle": True
-            }
+                "is_entrepreneur_spectacle": True,
+            },
         }
 
 
@@ -229,8 +232,8 @@ def generate_updates_uai(df, current_color):
             "_type": "_doc",
             "_id": row["siren"],
             "doc": {
-                "liste_uai": row["liste_uai"]
-            }
+                "liste_uai": row["liste_uai"],
+            },
         }
 
 
@@ -278,7 +281,7 @@ def update_es(
     print(str(len(list_errors)) + " siren non trouvé.")
     print(str(len(list_success)) + " documents indexés")
     print("Extrait", list_success[:10])
-    
+
     with open("/".join(new_file.split("/")[:-1]) + "/" + error_file, "w") as fp:
         fp.write("\n".join(list_errors))
 
@@ -290,6 +293,6 @@ def publish_mattermost(
     if ENV == "dev-geoff":
         r = requests.post(
             "https://mattermost.incubateur.net/hooks/geww4je6minn9p9m6qq6xiwu3a",
-            json = data,
+            json=data,
         )
         print(r.json())

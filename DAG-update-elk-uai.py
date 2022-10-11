@@ -16,7 +16,6 @@ from dag_datalake_sirene.task_functions import (
 )
 from operators.clean_folder import CleanFolderOperator
 
-
 DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "update-elk-uai"
 TMP_FOLDER = "/tmp/"
@@ -84,7 +83,7 @@ with DAG(
             "uai",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/uai-new.csv",
             "uai-errors.txt",
-            "current"
+            "current",
         ),
     )
 

@@ -16,7 +16,6 @@ from dag_datalake_sirene.task_functions import (
 )
 from operators.clean_folder import CleanFolderOperator
 
-
 DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "update-elk-finess"
 TMP_FOLDER = "/tmp/"
