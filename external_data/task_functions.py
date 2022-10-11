@@ -76,7 +76,9 @@ def preprocess_finess_data(
 def preprocess_rge_data(
     data_dir,
 ) -> None:
-    arr = []
+    from typing import List
+
+    arr: List[str] = []
     r = requests.get(
         "https://data.ademe.fr/data-fair/api/v1/datasets/liste-des-entreprises-rge-2/"
         "lines?size=10000&select=siret%2Ccode_qualification"
@@ -158,9 +160,8 @@ def compare_versions_file(
     original_file: str,
     new_file: str,
 ) -> None:
-    same = False
-    same = filecmp.cmp(original_file, new_file)
-    return not same
+    should_continue = not filecmp.cmp(original_file, new_file)
+    return should_continue
 
 
 def generate_updates_convcollective(df, current_color):
@@ -181,6 +182,7 @@ def generate_updates_convcollective(df, current_color):
 
 def generate_updates_finess(df, current_color):
     from ast import literal_eval
+
     df["liste_finess"] = df["liste_finess"].apply(literal_eval)
 
     for index, row in df.iterrows():
