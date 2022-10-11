@@ -13,7 +13,7 @@ def elasticsearch_doc_generator(data):
     # Serialize the instance into a dictionary so that it can be saved in elasticsearch.
     for index, document in enumerate(data):
         yield ElasticsearchSireneIndex(
-            meta={"id": document["siret_siege"]}, **document
+            meta={"id": document["siren"]}, **document
         ).to_dict(include_meta=True)
 
 
