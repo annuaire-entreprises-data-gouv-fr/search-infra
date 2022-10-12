@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from airflow.models import DAG, Variable
-from airflow.operators.python import PythonOperator, ShortCircuitOperator
+from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from dag_datalake_sirene.external_data.task_functions import (
     preprocess_nondiff_data,
@@ -10,7 +10,6 @@ from dag_datalake_sirene.external_data.task_functions import (
 )
 from dag_datalake_sirene.task_functions import (
     get_colors,
-    get_object_minio,
     put_object_minio,
 )
 from operators.clean_folder import CleanFolderOperator

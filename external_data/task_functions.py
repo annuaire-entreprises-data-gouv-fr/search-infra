@@ -4,6 +4,7 @@ import zipfile
 
 import pandas as pd
 import requests
+from typing import List
 from airflow.models import Variable
 from elasticsearch import helpers
 from elasticsearch_dsl import connections
@@ -13,6 +14,7 @@ ELASTIC_URL = Variable.get("ELASTIC_URL")
 ELASTIC_USER = Variable.get("ELASTIC_USER")
 ENV = Variable.get("ENV")
 SECRET_BEARER_INSEE = Variable.get("SECRET_BEARER_INSEE")
+
 
 def preprocess_colter_data(
     data_dir,
@@ -257,7 +259,7 @@ def preprocess_nondiff_data(
 ) -> None:
     os.makedirs(os.path.dirname(data_dir), exist_ok=True)
     cursor = "*"
-    data = []
+    data: List[str] = []
     endpoint = (
         "https://api.insee.fr/entreprises/sirene/V3/siret"
         "?q=statutDiffusionUniteLegale%3AN"
@@ -265,26 +267,25 @@ def preprocess_nondiff_data(
         "&champs=siren&nombre=1000&curseur="
     )
     headers = {"Authorization": "Bearer " + SECRET_BEARER_INSEE}
-    while cursor is not None:
+    toContinue = True
+    while toContinue:
         res = requests.get(endpoint + cursor, headers=headers).json()
         if (
-                "curseurSuivant" in res["header"]
-                and "curseur" in res["header"]
-                and res["header"]["curseur"] != res["header"]["curseurSuivant"]
+            "curseurSuivant" in res["header"]
+            and "curseur" in res["header"]
+            and res["header"]["curseur"] != res["header"]["curseurSuivant"]
         ):
             cursor = res["header"]["curseurSuivant"]
         else:
-            cursor = None
+            toContinue = False
         data = data + res["etablissements"]
     df = pd.DataFrame(data)
-    df.to_csv(data_dir + 'nondiff-new.csv', index=False)
+    df.to_csv(data_dir + "nondiff-new.csv", index=False)
 
 
 def preprocess_rge_data(
     data_dir,
 ) -> None:
-    from typing import List
-
     arr: List[str] = []
     r = requests.get(
         "https://data.ademe.fr/data-fair/api/v1/datasets/liste-des-entreprises-rge-2/"
