@@ -26,7 +26,7 @@ PATH_AIO = Variable.get("PATH_AIO")
 default_args = {
     "depends_on_past": False,
     "email": EMAIL_LIST,
-    "email_on_failure": False,
+    "email_on_failure": True,
     "email_on_retry": False,
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
@@ -35,9 +35,9 @@ default_args = {
 with DAG(
     dag_id=DAG_NAME,
     default_args=default_args,
-    schedule_interval="0 23 10 * *",
-    start_date=days_ago(10),
-    dagrun_timeout=timedelta(minutes=60 * 8),
+    schedule_interval="0 22 5,10,15,20,25 * *",
+    start_date=days_ago(1),
+    dagrun_timeout=timedelta(minutes=60),
     tags=["convcollective"],
 ) as dag:
     get_colors = PythonOperator(
