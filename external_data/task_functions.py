@@ -2,13 +2,11 @@ import filecmp
 import os
 import zipfile
 
-import numpy as np
 import pandas as pd
 import requests
 from airflow.models import Variable
-from elasticsearch_dsl import connections
-
 from elasticsearch import helpers
+from elasticsearch_dsl import connections
 
 ELASTIC_PASSWORD = Variable.get("ELASTIC_PASSWORD")
 ELASTIC_URL = Variable.get("ELASTIC_URL")
@@ -18,7 +16,7 @@ ENV = Variable.get("ENV")
 
 def preprocess_colter_data(
     data_dir,
-    **kwargs
+    **kwargs,
 ) -> None:
     os.makedirs(os.path.dirname(data_dir), exist_ok=True)
     # Process Régions
@@ -197,7 +195,7 @@ def process_elus_files(url, colname):
 
 def preprocess_elu_data(
     data_dir,
-    **kwargs
+    **kwargs,
 ) -> None:
     os.makedirs(os.path.dirname(data_dir), exist_ok=True)
 
@@ -400,7 +398,7 @@ def generate_updates_elu(df, current_color):
             "_type": "_doc",
             "_id": siren,
             "doc": {
-                "colter_elus": arr
+                "colter_elus": arr,
             }
         }
 

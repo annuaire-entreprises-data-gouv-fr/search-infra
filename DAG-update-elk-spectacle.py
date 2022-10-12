@@ -62,7 +62,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "spectacle-latest.csv",
-            "ae/external_data/spectacle/",
+            "ae/external_data/" + ENV + "/spectacle/",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/spectacle-latest.csv",
         ),
     )
@@ -92,7 +92,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "spectacle-errors.txt",
-            "ae/external_data/spectacle/spectacle-errors.txt",
+            "ae/external_data/" + ENV + "/spectacle/spectacle-errors.txt",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )
@@ -102,7 +102,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "spectacle-new.csv",
-            "ae/external_data/spectacle/spectacle-latest.csv",
+            "ae/external_data/" + ENV + "/spectacle/spectacle-latest.csv",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )

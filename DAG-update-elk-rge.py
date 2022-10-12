@@ -62,7 +62,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "rge-latest.csv",
-            "ae/external_data/rge/",
+            "ae/external_data/" + ENV + "/rge/",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/rge-latest.csv",
         ),
     )
@@ -92,7 +92,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "rge-errors.txt",
-            "ae/external_data/rge/rge-errors.txt",
+            "ae/external_data/" + ENV + "/rge/rge-errors.txt",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )
@@ -102,7 +102,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "rge-new.csv",
-            "ae/external_data/rge/rge-latest.csv",
+            "ae/external_data/" + ENV + "/rge/rge-latest.csv",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )

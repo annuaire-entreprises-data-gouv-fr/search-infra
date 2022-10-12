@@ -160,7 +160,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "colter-latest.csv",
-            "ae/external_data/colter/",
+            "ae/external_data/" + ENV + "/colter/",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/colter-latest.csv",
         ),
     )
@@ -181,7 +181,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "colter-errors.txt",
-            "ae/external_data/colter/colter-errors.txt",
+            "ae/external_data/" + ENV + "/colter/colter-errors.txt",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )
@@ -191,7 +191,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "elu-latest.csv",
-            "ae/external_data/colter/",
+            "ae/external_data/" + ENV + "/colter/",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/elu-latest.csv",
         ),
     )
@@ -212,7 +212,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "elu-errors.txt",
-            "ae/external_data/colter/elu-errors.txt",
+            "ae/external_data/" + ENV + "/colter/elu-errors.txt",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )
@@ -222,7 +222,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "rge-latest.csv",
-            "ae/external_data/rge/",
+            "ae/external_data/" + ENV + "/rge/",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/rge-latest.csv",
         ),
     )
@@ -243,7 +243,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "rge-errors.txt",
-            "ae/external_data/rge/rge-errors.txt",
+            "ae/external_data/" + ENV + "/rge/rge-errors.txt",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )
@@ -253,7 +253,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "convcollective-latest.csv",
-            "ae/external_data/convcollective/",
+            "ae/external_data/" + ENV + "/convcollective/",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/convcollective-latest.csv",
         ),
     )
@@ -274,7 +274,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "convcollective-errors.txt",
-            "ae/external_data/convcollective/convcollective-errors.txt",
+            "ae/external_data/" + ENV + "/convcollective/convcollective-errors.txt",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )
@@ -284,7 +284,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "finess-latest.csv",
-            "ae/external_data/finess/",
+            "ae/external_data/" + ENV + "/finess/",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/finess-latest.csv",
         ),
     )
@@ -305,7 +305,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "finess-errors.txt",
-            "ae/external_data/finess/finess-errors.txt",
+            "ae/external_data/" + ENV + "/finess/finess-errors.txt",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )
@@ -315,7 +315,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "spectacle-latest.csv",
-            "ae/external_data/spectacle/",
+            "ae/external_data/" + ENV + "/spectacle/",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/spectacle-latest.csv",
         ),
     )
@@ -336,7 +336,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "spectacle-errors.txt",
-            "ae/external_data/spectacle/spectacle-errors.txt",
+            "ae/external_data/" + ENV + "/spectacle/spectacle-errors.txt",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )
@@ -345,7 +345,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "uai-latest.csv",
-            "ae/external_data/uai/",
+            "ae/external_data/" + ENV + "/uai/",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/uai-latest.csv",
         ),
     )
@@ -366,7 +366,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "uai-errors.txt",
-            "ae/external_data/uai/uai-errors.txt",
+            "ae/external_data/" + ENV + "/uai/uai-errors.txt",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )

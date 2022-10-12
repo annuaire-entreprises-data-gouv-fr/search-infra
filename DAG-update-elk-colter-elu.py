@@ -63,7 +63,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "colter-latest.csv",
-            "ae/external_data/colter/",
+            "ae/external_data/" + ENV + "/colter/",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/colter-latest.csv",
         ),
     )
@@ -93,7 +93,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "colter-errors.txt",
-            "ae/external_data/colter/colter-errors.txt",
+            "ae/external_data/" + ENV + "/colter/colter-errors.txt",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )
@@ -103,7 +103,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "colter-new.csv",
-            "ae/external_data/colter/colter-latest.csv",
+            "ae/external_data/" + ENV + "/colter/colter-latest.csv",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )
@@ -119,7 +119,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "elu-latest.csv",
-            "ae/external_data/colter/",
+            "ae/external_data/" + ENV + "/colter/",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/elu-latest.csv",
         ),
     )
@@ -149,7 +149,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "elu-errors.txt",
-            "ae/external_data/colter/elu-errors.txt",
+            "ae/external_data/" + ENV + "/colter/elu-errors.txt",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )
@@ -159,7 +159,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "elu-new.csv",
-            "ae/external_data/colter/elu-latest.csv",
+            "ae/external_data/" + ENV + "/colter/elu-latest.csv",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )

@@ -62,7 +62,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "convcollective-latest.csv",
-            "ae/external_data/convcollective/",
+            "ae/external_data/" + ENV + "/convcollective/",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/convcollective-latest.csv",
         ),
     )
@@ -92,7 +92,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "convcollective-errors.txt",
-            "ae/external_data/convcollective/convcollective-errors.txt",
+            "ae/external_data/" + ENV + "/convcollective/convcollective-errors.txt",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )
@@ -102,7 +102,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "convcollective-new.csv",
-            "ae/external_data/convcollective/convcollective-latest.csv",
+            "ae/external_data/" + ENV + "/convcollective/convcollective-latest.csv",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )

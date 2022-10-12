@@ -101,7 +101,7 @@ class ElasticsearchSireneIndex(Document):
     categorie_entreprise = Text()
     cedex = Keyword()
     code_pays_etranger = Text()
-    code_postal = Keyword()    
+    code_postal = Keyword()
     colter_code = Keyword()
     colter_code_insee = Keyword()
     colter_elus = Nested(ElasticsearchEluIndex)

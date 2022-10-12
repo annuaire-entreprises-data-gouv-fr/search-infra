@@ -62,7 +62,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "uai-latest.csv",
-            "ae/external_data/uai/",
+            "ae/external_data/" + ENV + "/uai/",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/uai-latest.csv",
         ),
     )
@@ -92,7 +92,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "uai-errors.txt",
-            "ae/external_data/uai/uai-errors.txt",
+            "ae/external_data/" + ENV + "/uai/uai-errors.txt",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )
@@ -102,7 +102,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "uai-new.csv",
-            "ae/external_data/uai/uai-latest.csv",
+            "ae/external_data/" + ENV + "/uai/uai-latest.csv",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )
