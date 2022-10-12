@@ -155,6 +155,68 @@ with DAG(
         python_callable=update_color_file,
     )
 
+    get_latest_colter_data = PythonOperator(
+        task_id="get_latest_colter_data",
+        python_callable=get_object_minio,
+        op_args=(
+            "colter-latest.csv",
+            "ae/external_data/colter/",
+            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/colter-latest.csv",
+        ),
+    )
+
+    update_es_colter = PythonOperator(
+        task_id="update_es_colter",
+        python_callable=update_es,
+        op_args=(
+            "colter",
+            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/colter-latest.csv",
+            "colter-errors.txt",
+            "next",
+        ),
+    )
+
+    put_file_error_to_minio_colter = PythonOperator(
+        task_id="put_file_error_to_minio_colter",
+        python_callable=put_object_minio,
+        op_args=(
+            "colter-errors.txt",
+            "ae/external_data/colter/colter-errors.txt",
+            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+        ),
+    )
+
+    get_latest_elu_data = PythonOperator(
+        task_id="get_latest_elu_data",
+        python_callable=get_object_minio,
+        op_args=(
+            "elu-latest.csv",
+            "ae/external_data/colter/",
+            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/elu-latest.csv",
+        ),
+    )
+
+    update_es_elu = PythonOperator(
+        task_id="update_es_elu",
+        python_callable=update_es,
+        op_args=(
+            "elu",
+            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/elu-latest.csv",
+            "elu-errors.txt",
+            "next",
+        ),
+    )
+
+    put_file_error_to_minio_elu = PythonOperator(
+        task_id="put_file_error_to_minio_elu",
+        python_callable=put_object_minio,
+        op_args=(
+            "elu-errors.txt",
+            "ae/external_data/colter/elu-errors.txt",
+            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+        ),
+    )
+
     get_latest_rge_data = PythonOperator(
         task_id="get_latest_rge_data",
         python_callable=get_object_minio,
@@ -346,21 +408,35 @@ with DAG(
     update_sitemap.set_upstream(create_sitemap)
     check_elastic_index.set_upstream(fill_elastic_index)
     update_color_file.set_upstream(check_elastic_index)
+
+    get_latest_colter_data.set_upstream(update_color_file)
+    update_es_colter.set_upstream(get_latest_colter_data)
+    put_file_error_to_minio_colter.set_upstream(update_es_colter)
+    get_latest_elu_data.set_upstream(put_file_error_to_minio_colter)
+    update_es_elu.set_upstream(get_latest_elu_data)
+    put_file_error_to_minio_elu.set_upstream(update_es_elu)
+
     get_latest_rge_data.set_upstream(update_color_file)
     update_es_rge.set_upstream(get_latest_rge_data)
     put_file_error_to_minio_rge.set_upstream(update_es_rge)
+
     get_latest_convcollective_data.set_upstream(update_color_file)
     update_es_convcollective.set_upstream(get_latest_convcollective_data)
     put_file_error_to_minio_convcollective.set_upstream(update_es_convcollective)
+
     get_latest_finess_data.set_upstream(update_color_file)
     update_es_finess.set_upstream(get_latest_finess_data)
     put_file_error_to_minio_finess.set_upstream(update_es_finess)
+
     get_latest_spectacle_data.set_upstream(update_color_file)
     update_es_spectacle.set_upstream(get_latest_spectacle_data)
     put_file_error_to_minio_spectacle.set_upstream(update_es_spectacle)
+
     get_latest_uai_data.set_upstream(update_color_file)
     update_es_uai.set_upstream(get_latest_uai_data)
     put_file_error_to_minio_uai.set_upstream(update_es_uai)
+
+    execute_aio_container.set_upstream(put_file_error_to_minio_elu)
     execute_aio_container.set_upstream(put_file_error_to_minio_rge)
     execute_aio_container.set_upstream(put_file_error_to_minio_convcollective)
     execute_aio_container.set_upstream(put_file_error_to_minio_finess)
