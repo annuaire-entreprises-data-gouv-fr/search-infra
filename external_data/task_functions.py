@@ -1,10 +1,10 @@
 import filecmp
 import os
 import zipfile
+from typing import List
 
 import pandas as pd
 import requests
-from typing import List
 from airflow.models import Variable
 from elasticsearch import helpers
 from elasticsearch_dsl import connections

@@ -8,10 +8,7 @@ from dag_datalake_sirene.external_data.task_functions import (
     publish_mattermost,
     update_es,
 )
-from dag_datalake_sirene.task_functions import (
-    get_colors,
-    put_object_minio,
-)
+from dag_datalake_sirene.task_functions import get_colors, put_object_minio
 from operators.clean_folder import CleanFolderOperator
 
 DAG_FOLDER = "dag_datalake_sirene/"
