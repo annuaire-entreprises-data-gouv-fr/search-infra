@@ -252,6 +252,34 @@ def preprocess_elu_data(
     colter_elus.to_csv(data_dir + "elu-new.csv", index=False)
 
 
+def preprocess_nondiff_data(
+    data_dir,
+) -> None:
+    os.makedirs(os.path.dirname(data_dir), exist_ok=True)
+    cursor = "*"
+    data = []
+    endpoint = (
+        "https://api.insee.fr/entreprises/sirene/V3/siret"
+        "?q=statutDiffusionUniteLegale%3AN"
+        "%20AND%20dateDernierTraitementEtablissement:2022-10"
+        "&champs=siren&nombre=1000&curseur="
+    )
+    headers = {"Authorization": "Bearer 61879e74-e92e-38ae-8ab5-b66a526b7713"}
+    while cursor is not None:
+        res = requests.get(endpoint + cursor, headers=headers).json()
+        if (
+                "curseurSuivant" in res["header"]
+                and "curseur" in res["header"]
+                and res["header"]["curseur"] != res["header"]["curseurSuivant"]
+        ):
+            cursor = res["header"]["curseurSuivant"]
+        else:
+            cursor = None
+        data = data + res["etablissements"]
+    df = pd.DataFrame(data)
+    df.to_csv(data_dir + 'nondiff-new.csv', index=False)
+
+
 def preprocess_rge_data(
     data_dir,
 ) -> None:
@@ -420,6 +448,19 @@ def generate_updates_finess(df, current_color):
         }
 
 
+def generate_updates_nondiff(df, current_color):
+    for index, row in df.iterrows():
+        yield {
+            "_op_type": "update",
+            "_index": "siren-" + current_color,
+            "_type": "_doc",
+            "_id": row["siren"],
+            "doc": {
+                "is_nondiffusible": True,
+            },
+        }
+
+
 def generate_updates_rge(df, current_color):
     for index, row in df.iterrows():
         yield {
@@ -499,6 +540,8 @@ def update_es(
         generations = generate_updates_colter(df, color)
     if type_file == "elu":
         generations = generate_updates_elu(df, color)
+    if type_file == "nondiff":
+        generations = generate_updates_nondiff(df, color)
 
     for success, details in helpers.parallel_bulk(
         elastic_connection, generations, chunk_size=1500, raise_on_error=False
