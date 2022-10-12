@@ -12,7 +12,7 @@ ELASTIC_PASSWORD = Variable.get("ELASTIC_PASSWORD")
 ELASTIC_URL = Variable.get("ELASTIC_URL")
 ELASTIC_USER = Variable.get("ELASTIC_USER")
 ENV = Variable.get("ENV")
-
+SECRET_BEARER_INSEE = Variable.get("SECRET_BEARER_INSEE")
 
 def preprocess_colter_data(
     data_dir,
@@ -264,7 +264,7 @@ def preprocess_nondiff_data(
         "%20AND%20dateDernierTraitementEtablissement:2022-10"
         "&champs=siren&nombre=1000&curseur="
     )
-    headers = {"Authorization": "Bearer 61879e74-e92e-38ae-8ab5-b66a526b7713"}
+    headers = {"Authorization": "Bearer " + SECRET_BEARER_INSEE}
     while cursor is not None:
         res = requests.get(endpoint + cursor, headers=headers).json()
         if (
