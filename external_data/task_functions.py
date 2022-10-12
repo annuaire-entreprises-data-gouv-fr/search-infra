@@ -385,7 +385,7 @@ def generate_updates_elu(df, current_color):
     for siren in df["siren"].unique():
         inter = df[df["siren"] == siren]
         arr = []
-        del inter['siren']
+        del inter["siren"]
         for index, row in inter.iterrows():
             for col in row.to_dict():
                 if row[col] != row[col]:
@@ -399,7 +399,7 @@ def generate_updates_elu(df, current_color):
             "_id": siren,
             "doc": {
                 "colter_elus": arr,
-            }
+            },
         }
 
 
