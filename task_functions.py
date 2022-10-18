@@ -226,10 +226,8 @@ def create_unite_legale_table(**kwargs):
                 "denominationUniteLegale": "nom_raison_sociale",
                 "categorieJuridiqueUniteLegale": "nature_juridique_unite_legale",
                 "activitePrincipaleUniteLegale": "activite_principale_unite_legale",
-                "economieSocialeSolidaireUniteLegale":
-                    "economie_sociale_solidaire_unite_legale",
-                "identifiantAssociationUniteLegale":
-                    "identifiant_association_unite_legale",
+                "economieSocialeSolidaireUniteLegale": "economie_sociale_solidaire_unite_legale",
+                "identifiantAssociationUniteLegale": "identifiant_association_unite_legale",
             }
         )
         df_unite_legale.to_sql(
