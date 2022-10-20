@@ -226,10 +226,10 @@ def create_unite_legale_table(**kwargs):
                 "denominationUniteLegale": "nom_raison_sociale",
                 "categorieJuridiqueUniteLegale": "nature_juridique_unite_legale",
                 "activitePrincipaleUniteLegale": "activite_principale_unite_legale",
-                "economieSocialeSolidaireUniteLegale": "economie_sociale_solidaire_"
-                "unite_legale",
-                "identifiantAssociationUniteLegale": "identifiant_association_"
-                "unite_legale",
+                "economieSocialeSolidaireUniteLegale": "economie_sociale_solidaire"
+                "_unite_legale",
+                "identifiantAssociationUniteLegale": "identifiant_association"
+                "_unite_legale",
             }
         )
         df_unite_legale.to_sql(
@@ -838,6 +838,7 @@ def fill_elastic_index(**kwargs):
         ul.activite_principale_unite_legale as activite_principale_unite_legale,
         ul.economie_sociale_solidaire_unite_legale as
         economie_sociale_solidaire_unite_legale,
+        ul.identifiant_association_unite_legale as identifiant_association_unite_legale,
         (SELECT count FROM count_etab ce WHERE ce.siren = st.siren) as
         nombre_etablissements,
         (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = st.siren) as
