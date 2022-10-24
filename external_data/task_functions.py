@@ -5,6 +5,7 @@ import zipfile
 import pandas as pd
 import requests
 from airflow.models import Variable
+from ast import literal_eval
 from elasticsearch import helpers
 from elasticsearch_dsl import connections
 
@@ -257,6 +258,7 @@ def preprocess_rge_data(
 ) -> None:
     from typing import List
 
+    os.makedirs(os.path.dirname(data_dir), exist_ok=True)
     arr: List[str] = []
     r = requests.get(
         "https://data.ademe.fr/data-fair/api/v1/datasets/liste-des-entreprises-rge-2/"
@@ -276,12 +278,10 @@ def preprocess_rge_data(
     res = (
         df.groupby(["siren"])["code_qualification"]
         .apply(list)
-        .reset_index(name="liste_code_qualification_rge")
+        .reset_index(name="liste_rge")
     )
-    res["is_rge"] = True
-    res = res[["siren", "is_rge"]]
+    res = res[["siren", "liste_rge"]]
 
-    os.makedirs(os.path.dirname(data_dir), exist_ok=True)
     res.to_csv(data_dir + "rge-new.csv", index=False)
 
 
@@ -362,9 +362,8 @@ def generate_updates_colter(df, current_color):
 
 
 def generate_updates_convcollective(df, current_color):
-    from ast import literal_eval
-
     df["liste_idcc"] = df["liste_idcc"].apply(literal_eval)
+    
     for index, row in df.iterrows():
         yield {
             "_op_type": "update",
@@ -372,7 +371,7 @@ def generate_updates_convcollective(df, current_color):
             "_type": "_doc",
             "_id": row["siren"],
             "doc": {
-                "liste_idcc": row["liste_idcc"],
+                "liste_idcc": list(set(row["liste_idcc"])),
             },
         }
 
@@ -404,7 +403,6 @@ def generate_updates_elu(df, current_color):
 
 
 def generate_updates_finess(df, current_color):
-    from ast import literal_eval
 
     df["liste_finess"] = df["liste_finess"].apply(literal_eval)
 
@@ -415,12 +413,12 @@ def generate_updates_finess(df, current_color):
             "_type": "_doc",
             "_id": row["siren"],
             "doc": {
-                "liste_finess": row["liste_finess"],
+                "liste_finess": list(set(row["liste_finess"])),
             },
         }
 
 
-def generate_updates_rge(df, current_color):
+def generate_updates_nondiff(df, current_color):
     for index, row in df.iterrows():
         yield {
             "_op_type": "update",
@@ -428,7 +426,22 @@ def generate_updates_rge(df, current_color):
             "_type": "_doc",
             "_id": row["siren"],
             "doc": {
-                "is_rge": True,
+                "is_nondiffusible": True,
+            },
+        }
+
+
+def generate_updates_rge(df, current_color):
+    df["liste_rge"] = df["liste_rge"].apply(literal_eval)
+
+    for index, row in df.iterrows():
+        yield {
+            "_op_type": "update",
+            "_index": "siren-" + current_color,
+            "_type": "_doc",
+            "_id": row["siren"],
+            "doc": {
+                "liste_rge": list(set(row["liste_rge"])),
             },
         }
 
@@ -447,8 +460,6 @@ def generate_updates_spectacle(df, current_color):
 
 
 def generate_updates_uai(df, current_color):
-    from ast import literal_eval
-
     df["liste_uai"] = df["liste_uai"].apply(literal_eval)
 
     for index, row in df.iterrows():
@@ -458,7 +469,7 @@ def generate_updates_uai(df, current_color):
             "_type": "_doc",
             "_id": row["siren"],
             "doc": {
-                "liste_uai": row["liste_uai"],
+                "liste_uai": list(set(row["liste_uai"])),
             },
         }
 
