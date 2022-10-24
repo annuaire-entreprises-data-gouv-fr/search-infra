@@ -142,7 +142,7 @@ class ElasticsearchSireneIndex(Document):
     liste_idcc = Text()
     liste_dirigeants = Text(analyzer=annuaire_analyzer)
     liste_enseignes = Text(analyzer=annuaire_analyzer)
-    liste_finess = Text()    
+    liste_finess = Text()
     liste_rge = Text()
     liste_uai = Text()
     longitude = Text()

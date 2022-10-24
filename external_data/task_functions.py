@@ -1,11 +1,11 @@
 import filecmp
 import os
 import zipfile
+from ast import literal_eval
 
 import pandas as pd
 import requests
 from airflow.models import Variable
-from ast import literal_eval
 from elasticsearch import helpers
 from elasticsearch_dsl import connections
 
@@ -363,7 +363,6 @@ def generate_updates_colter(df, current_color):
 
 def generate_updates_convcollective(df, current_color):
     df["liste_idcc"] = df["liste_idcc"].apply(literal_eval)
-    
     for index, row in df.iterrows():
         yield {
             "_op_type": "update",
@@ -403,9 +402,7 @@ def generate_updates_elu(df, current_color):
 
 
 def generate_updates_finess(df, current_color):
-
     df["liste_finess"] = df["liste_finess"].apply(literal_eval)
-
     for index, row in df.iterrows():
         yield {
             "_op_type": "update",
@@ -433,7 +430,6 @@ def generate_updates_nondiff(df, current_color):
 
 def generate_updates_rge(df, current_color):
     df["liste_rge"] = df["liste_rge"].apply(literal_eval)
-
     for index, row in df.iterrows():
         yield {
             "_op_type": "update",
@@ -461,7 +457,6 @@ def generate_updates_spectacle(df, current_color):
 
 def generate_updates_uai(df, current_color):
     df["liste_uai"] = df["liste_uai"].apply(literal_eval)
-
     for index, row in df.iterrows():
         yield {
             "_op_type": "update",
