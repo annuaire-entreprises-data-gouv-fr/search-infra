@@ -3,6 +3,7 @@ import json
 from dag_datalake_sirene.data_enrichment import (
     format_adresse_complete,
     format_coordonnees,
+    format_etablissements,
     format_departement,
     format_dirigeants_pm,
     format_dirigeants_pp,
@@ -124,6 +125,10 @@ def process_unites_legales(chunk_unites_legales_sqlite):
                 "prenoms"
             ] = unite_legale_processed["prenom"]
 
+        # Etablissements
+        unite_legale_processed["etablissements"] = format_etablissements(
+            unite_legale["etablissements"], unite_legale_processed["nom_complet"])
+
         unite_legale_processed[
             "section_activite_principale"
         ] = label_section_from_activite(
@@ -148,6 +153,5 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             + " "
             + get_empty_string_if_none(unite_legale["siren"])
         ).strip()
-        unite_legale_processed["unite_etablissement"] = {"name": "unite_legale"}
         list_unites_legales_processed.append(unite_legale_processed)
     return list_unites_legales_processed
