@@ -54,7 +54,7 @@ with DAG(
     preprocess_spectacle_data = PythonOperator(
         task_id="preprocess_spectacle_data",
         python_callable=preprocess_spectacle_data,
-        op_args=(TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",),
+        op_args=(f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",),
     )
 
     get_latest_spectacle_data = PythonOperator(
@@ -62,8 +62,8 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "spectacle-latest.csv",
-            "ae/external_data/" + ENV + "/spectacle/",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/spectacle-latest.csv",
+            f"ae/external_data/{ENV}/spectacle/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/spectacle-latest.csv",
         ),
     )
 
@@ -71,8 +71,8 @@ with DAG(
         task_id="compare_versions_file",
         python_callable=compare_versions_file,
         op_args=(
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/spectacle-latest.csv",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/spectacle-new.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/spectacle-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/spectacle-new.csv",
         ),
     )
 
@@ -81,7 +81,7 @@ with DAG(
         python_callable=update_es,
         op_args=(
             "spectacle",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/spectacle-new.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/spectacle-new.csv",
             "spectacle-errors.txt",
             "current",
         ),
@@ -92,8 +92,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "spectacle-errors.txt",
-            "ae/external_data/" + ENV + "/spectacle/spectacle-errors.txt",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/spectacle/spectacle-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 
@@ -102,8 +102,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "spectacle-new.csv",
-            "ae/external_data/" + ENV + "/spectacle/spectacle-latest.csv",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/spectacle/spectacle-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 

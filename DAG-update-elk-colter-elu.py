@@ -55,7 +55,7 @@ with DAG(
     preprocess_colter_data = PythonOperator(
         task_id="preprocess_colter_data",
         python_callable=preprocess_colter_data,
-        op_args=(TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",),
+        op_args=(f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",),
     )
 
     get_latest_colter_data = PythonOperator(
@@ -63,8 +63,8 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "colter-latest.csv",
-            "ae/external_data/" + ENV + "/colter/",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/colter-latest.csv",
+            f"ae/external_data/{ENV}/colter/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/colter-latest.csv",
         ),
     )
 
@@ -72,8 +72,8 @@ with DAG(
         task_id="compare_versions_file_colter",
         python_callable=compare_versions_file,
         op_args=(
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/colter-latest.csv",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/colter-new.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/colter-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/colter-new.csv",
         ),
     )
 
@@ -82,7 +82,7 @@ with DAG(
         python_callable=update_es,
         op_args=(
             "colter",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/colter-new.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/colter-new.csv",
             "colter-errors.txt",
             "current",
         ),
@@ -93,8 +93,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "colter-errors.txt",
-            "ae/external_data/" + ENV + "/colter/colter-errors.txt",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/colter/colter-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 
@@ -111,7 +111,7 @@ with DAG(
     preprocess_elu_data = PythonOperator(
         task_id="preprocess_elu_data",
         python_callable=preprocess_elu_data,
-        op_args=(TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",),
+        op_args=(f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",),
     )
 
     get_latest_elu_data = PythonOperator(
@@ -119,8 +119,8 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "elu-latest.csv",
-            "ae/external_data/" + ENV + "/colter/",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/elu-latest.csv",
+            f"ae/external_data/{ENV}/colter/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-latest.csv",
         ),
     )
 
@@ -128,8 +128,8 @@ with DAG(
         task_id="compare_versions_file_elu",
         python_callable=compare_versions_file,
         op_args=(
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/elu-latest.csv",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/elu-new.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-new.csv",
         ),
     )
 
@@ -138,7 +138,7 @@ with DAG(
         python_callable=update_es,
         op_args=(
             "elu",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/elu-new.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-new.csv",
             "elu-errors.txt",
             "current",
         ),
@@ -149,8 +149,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "elu-errors.txt",
-            "ae/external_data/" + ENV + "/colter/elu-errors.txt",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            "ae/external_data/{ENV}/colter/elu-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 
@@ -159,8 +159,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "elu-new.csv",
-            "ae/external_data/" + ENV + "/colter/elu-latest.csv",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/colter/elu-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 

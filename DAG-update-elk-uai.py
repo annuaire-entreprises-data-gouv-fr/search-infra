@@ -54,7 +54,7 @@ with DAG(
     preprocess_uai_data = PythonOperator(
         task_id="preprocess_uai_data",
         python_callable=preprocess_uai_data,
-        op_args=(TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",),
+        op_args=(f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",),
     )
 
     get_latest_uai_data = PythonOperator(
@@ -62,8 +62,8 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "uai-latest.csv",
-            "ae/external_data/" + ENV + "/uai/",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/uai-latest.csv",
+            f"ae/external_data/{ENV}/uai/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/uai-latest.csv",
         ),
     )
 
@@ -71,8 +71,8 @@ with DAG(
         task_id="compare_versions_file",
         python_callable=compare_versions_file,
         op_args=(
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/uai-latest.csv",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/uai-new.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/uai-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/uai-new.csv",
         ),
     )
 
@@ -81,7 +81,7 @@ with DAG(
         python_callable=update_es,
         op_args=(
             "uai",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/uai-new.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/uai-new.csv",
             "uai-errors.txt",
             "current",
         ),
@@ -92,8 +92,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "uai-errors.txt",
-            "ae/external_data/" + ENV + "/uai/uai-errors.txt",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/uai/uai-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 
@@ -102,8 +102,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "uai-new.csv",
-            "ae/external_data/" + ENV + "/uai/uai-latest.csv",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/uai/uai-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 

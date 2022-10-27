@@ -54,7 +54,7 @@ with DAG(
     preprocess_convcollective_data = PythonOperator(
         task_id="preprocess_convcollective_data",
         python_callable=preprocess_convcollective_data,
-        op_args=(TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",),
+        op_args=( f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",),
     )
 
     get_latest_convcollective_data = PythonOperator(
@@ -62,8 +62,8 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "convcollective-latest.csv",
-            "ae/external_data/" + ENV + "/convcollective/",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/convcollective-latest.csv",
+            "ae/external_data/{ENV}/convcollective/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-latest.csv",
         ),
     )
 
@@ -71,8 +71,8 @@ with DAG(
         task_id="compare_versions_file",
         python_callable=compare_versions_file,
         op_args=(
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/convcollective-latest.csv",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/convcollective-new.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-new.csv",
         ),
     )
 
@@ -81,7 +81,7 @@ with DAG(
         python_callable=update_es,
         op_args=(
             "convcollective",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/convcollective-new.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-new.csv",
             "convcollective-errors.txt",
             "current",
         ),
@@ -92,8 +92,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "convcollective-errors.txt",
-            "ae/external_data/" + ENV + "/convcollective/convcollective-errors.txt",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/convcollective/convcollective-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 
@@ -102,8 +102,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "convcollective-new.csv",
-            "ae/external_data/" + ENV + "/convcollective/convcollective-latest.csv",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/convcollective/convcollective-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 

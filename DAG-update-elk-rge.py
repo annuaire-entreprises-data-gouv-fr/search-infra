@@ -54,7 +54,7 @@ with DAG(
     preprocess_rge_data = PythonOperator(
         task_id="preprocess_rge_data",
         python_callable=preprocess_rge_data,
-        op_args=(TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",),
+        op_args=(f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",),
     )
 
     get_latest_rge_data = PythonOperator(
@@ -62,8 +62,8 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "rge-latest.csv",
-            "ae/external_data/" + ENV + "/rge/",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/rge-latest.csv",
+            f"ae/external_data/{ENV}/rge/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-latest.csv",
         ),
     )
 
@@ -71,8 +71,8 @@ with DAG(
         task_id="compare_versions_file",
         python_callable=compare_versions_file,
         op_args=(
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/rge-latest.csv",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/rge-new.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-new.csv",
         ),
     )
 
@@ -81,7 +81,7 @@ with DAG(
         python_callable=update_es,
         op_args=(
             "rge",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/rge-new.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-new.csv",
             "rge-errors.txt",
             "current",
         ),
@@ -92,8 +92,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "rge-errors.txt",
-            "ae/external_data/" + ENV + "/rge/rge-errors.txt",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/rge/rge-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 
@@ -103,7 +103,7 @@ with DAG(
         op_args=(
             "rge-new.csv",
             "ae/external_data/" + ENV + "/rge/rge-latest.csv",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+           f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 

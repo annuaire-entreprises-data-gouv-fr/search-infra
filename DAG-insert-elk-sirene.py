@@ -103,7 +103,7 @@ with DAG(
         op_args=(
             "inpi.db",
             "inpi/",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/inpi.db",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/inpi.db",
         ),
     )
 
@@ -160,8 +160,8 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "colter-latest.csv",
-            "ae/external_data/" + ENV + "/colter/",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/colter-latest.csv",
+            f"ae/external_data/{ENV}/colter/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME} /data/colter-latest.csv",
         ),
     )
 
@@ -170,7 +170,7 @@ with DAG(
         python_callable=update_es,
         op_args=(
             "colter",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/colter-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/colter-latest.csv",
             "colter-errors.txt",
             "next",
         ),
@@ -181,8 +181,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "colter-errors.txt",
-            "ae/external_data/" + ENV + "/colter/colter-errors.txt",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/colter/colter-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 
@@ -191,8 +191,8 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "elu-latest.csv",
-            "ae/external_data/" + ENV + "/colter/",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/elu-latest.csv",
+            f"ae/external_data/{ENV}/colter/",
+            {TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-latest.csv",
         ),
     )
 
@@ -201,7 +201,7 @@ with DAG(
         python_callable=update_es,
         op_args=(
             "elu",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/elu-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-latest.csv",
             "elu-errors.txt",
             "next",
         ),
@@ -212,8 +212,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "elu-errors.txt",
-            "ae/external_data/" + ENV + "/colter/elu-errors.txt",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/colter/elu-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 
@@ -222,8 +222,8 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "rge-latest.csv",
-            "ae/external_data/" + ENV + "/rge/",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/rge-latest.csv",
+            f"ae/external_data/{ENV}/rge/",
+           f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-latest.csv",
         ),
     )
 
@@ -232,7 +232,7 @@ with DAG(
         python_callable=update_es,
         op_args=(
             "rge",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/rge-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-latest.csv",
             "rge-errors.txt",
             "next",
         ),
@@ -243,8 +243,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "rge-errors.txt",
-            "ae/external_data/" + ENV + "/rge/rge-errors.txt",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/rge/rge-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER }{DAG_NAME}/data/",
         ),
     )
 
@@ -253,8 +253,8 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "convcollective-latest.csv",
-            "ae/external_data/" + ENV + "/convcollective/",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/convcollective-latest.csv",
+            f"ae/external_data/{ENV}/convcollective/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-latest.csv",
         ),
     )
 
@@ -263,7 +263,7 @@ with DAG(
         python_callable=update_es,
         op_args=(
             "convcollective",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/convcollective-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-latest.csv",
             "convcollective-errors.txt",
             "next",
         ),
@@ -274,8 +274,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "convcollective-errors.txt",
-            "ae/external_data/" + ENV + "/convcollective/convcollective-errors.txt",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/convcollective/convcollective-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 
@@ -284,8 +284,8 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "finess-latest.csv",
-            "ae/external_data/" + ENV + "/finess/",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/finess-latest.csv",
+           f"ae/external_data/{ENV}/finess/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME} /data/finess-latest.csv",
         ),
     )
 
@@ -294,7 +294,7 @@ with DAG(
         python_callable=update_es,
         op_args=(
             "finess",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/finess-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/finess-latest.csv",
             "finess-errors.txt",
             "next",
         ),
@@ -305,8 +305,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "finess-errors.txt",
-            "ae/external_data/" + ENV + "/finess/finess-errors.txt",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+           f"ae/external_data/{ENV}/finess/finess-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 
@@ -315,8 +315,8 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "spectacle-latest.csv",
-            "ae/external_data/" + ENV + "/spectacle/",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/spectacle-latest.csv",
+            f"ae/external_data/{ENV}/spectacle/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/spectacle-latest.csv",
         ),
     )
 
@@ -325,7 +325,7 @@ with DAG(
         python_callable=update_es,
         op_args=(
             "spectacle",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/spectacle-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/spectacle-latest.csv",
             "spectacle-errors.txt",
             "next",
         ),
@@ -336,8 +336,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "spectacle-errors.txt",
-            "ae/external_data/" + ENV + "/spectacle/spectacle-errors.txt",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/spectacle/spectacle-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
     get_latest_uai_data = PythonOperator(
@@ -345,8 +345,8 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "uai-latest.csv",
-            "ae/external_data/" + ENV + "/uai/",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/uai-latest.csv",
+            f"ae/external_data/{ENV}/uai/",
+           f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/uai-latest.csv",
         ),
     )
 
@@ -355,7 +355,7 @@ with DAG(
         python_callable=update_es,
         op_args=(
             "uai",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/uai-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/uai-latest.csv",
             "uai-errors.txt",
             "next",
         ),
@@ -366,8 +366,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "uai-errors.txt",
-            "ae/external_data/" + ENV + "/uai/uai-errors.txt",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+           f"ae/external_data/{ENV}/uai/uai-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 

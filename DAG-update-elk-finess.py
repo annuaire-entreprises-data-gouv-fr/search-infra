@@ -54,7 +54,7 @@ with DAG(
     preprocess_finess_data = PythonOperator(
         task_id="preprocess_finess_data",
         python_callable=preprocess_finess_data,
-        op_args=(TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",),
+        op_args=(f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",),
     )
 
     get_latest_finess_data = PythonOperator(
@@ -62,8 +62,8 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "finess-latest.csv",
-            "ae/external_data/" + ENV + "/finess/",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/finess-latest.csv",
+            f"ae/external_data/{ENV}/finess/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/finess-latest.csv",
         ),
     )
 
@@ -71,8 +71,8 @@ with DAG(
         task_id="compare_versions_file",
         python_callable=compare_versions_file,
         op_args=(
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/finess-latest.csv",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/finess-new.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/finess-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/finess-new.csv",
         ),
     )
 
@@ -81,7 +81,7 @@ with DAG(
         python_callable=update_es,
         op_args=(
             "finess",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/finess-new.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/finess-new.csv",
             "finess-errors.txt",
             "current",
         ),
@@ -92,8 +92,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "finess-errors.txt",
-            "ae/external_data/" + ENV + "/finess/finess-errors.txt",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/finess/finess-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 
@@ -102,8 +102,8 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "finess-new.csv",
-            "ae/external_data/" + ENV + "/finess/finess-latest.csv",
-            TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
+            f"ae/external_data/{ENV}/finess/finess-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 
