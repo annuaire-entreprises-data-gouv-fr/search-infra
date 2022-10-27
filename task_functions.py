@@ -13,6 +13,9 @@ from dag_datalake_sirene.elasticsearch.create_sirene_index import ElasticCreateS
 from dag_datalake_sirene.elasticsearch.indexing_etablissement import (
     index_etablissements_by_chunk,
 )
+from dag_datalake_sirene.elasticsearch.create_sirene_index import (
+    ElasticCreateSiren,
+)
 from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
     index_unites_legales_by_chunk,
 )
@@ -919,7 +922,74 @@ def fill_elastic_index_siren(**kwargs):
                     FROM dirigeant_pm
                     WHERE siren = st.siren
                 )
-            ) as dirigeants_pm
+            ) as dirigeants_pm,
+        (SELECT json_group_array(
+                json_object(
+                    'siren', siren,
+                    'siret', siret,
+                    'date_creation',date_creation,
+                    'tranche_effectif_salarie',tranche_effectif_salarie,
+                    'activite_principale_registre_metier',
+                    activite_principale_registre_metier,
+                    'is_siege',is_siege,
+                    'numero_voie',numero_voie,
+                    'type_voie',type_voie,
+                    'libelle_voie',libelle_voie,
+                    'code_postal',code_postal,
+                    'libelle_cedex',libelle_cedex,
+                    'libelle_commune',libelle_commune,
+                    'commune',commune,
+                    'complement_adresse',complement_adresse,
+                    'complement_adresse_2',complement_adresse_2,
+                    'numero_voie_2',numero_voie_2,
+                    'indice_repetition_2',indice_repetition_2,
+                    'type_voie_2',type_voie_2,
+                    'libelle_voie_2',libelle_voie_2,
+                    'commune_2',commune_2,
+                    'libelle_commune_2',libelle_commune_2,
+                    'cedex_2',cedex_2,
+                    'libelle_cedex_2',libelle_cedex_2,
+                    'cedex',cedex,
+                    'date_debut_activite',date_debut_activite,
+                    'distribution_speciale',distribution_speciale,
+                    'distribution_speciale_2',distribution_speciale_2,
+                    'etat_administratif_etablissement',etat_administratif_etablissement,
+                    'enseigne_1',enseigne_1,
+                    'enseigne_2',enseigne_2,
+                    'enseigne_3',enseigne_3,
+                    'activite_principale',activite_principale,
+                    'indice_repetition',indice_repetition,
+                    'nom_commercial',nom_commercial,
+                    'libelle_commune_etranger',libelle_commune_etranger,
+                    'code_pays_etranger',code_pays_etranger,
+                    'libelle_pays_etranger',libelle_pays_etranger,
+                    'libelle_commune_etranger_2',libelle_commune_etranger_2,
+                    'code_pays_etranger_2',code_pays_etranger_2,
+                    'libelle_pays_etranger_2',libelle_pays_etranger_2,
+                    'longitude',longitude,
+                    'latitude',latitude,
+                    'geo_adresse',geo_adresse,
+                    'geo_id',geo_id
+                    )
+                ) FROM
+                (
+                    SELECT siren, siret, date_creation, tranche_effectif_salarie, 
+                    activite_principale_registre_metier, is_siege, numero_voie, 
+                    type_voie, libelle_voie, code_postal, libelle_cedex, 
+                    libelle_commune, commune, complement_adresse, 
+                    complement_adresse_2, numero_voie_2, commune_2, 
+                    libelle_commune_2, cedex_2, libelle_cedex_2, libelle_cedex_2, 
+                    cedex, date_debut_activite, distribution_speciale, 
+                    distribution_speciale_2, etat_administratif_etablissement, 
+                    enseigne_1, enseigne_2, enseigne_3, activite_principale, 
+                    indice_repetition, nom_commercial, libelle_commune_etranger, 
+                    code_pays_etranger, libelle_pays_etranger, 
+                    libelle_commune_etranger_2, code_pays_etranger_2, 
+                    libelle_pays_etranger_2, longitude, latitude, geo_adresse, geo_id                   
+                    FROM siret
+                    WHERE siren = st.siren
+                )
+            ) as etablissements
         FROM
             siretsiege st
         LEFT JOIN
@@ -941,86 +1011,6 @@ def fill_elastic_index_siren(**kwargs):
         elastic_index=elastic_index,
     )
     kwargs["ti"].xcom_push(key="doc_count_siren", value=doc_count)
-    commit_and_close_conn(siren_db_conn)
-
-
-def fill_elastic_index_siret(**kwargs):
-    next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
-    elastic_index = f"siren-{next_color}"
-    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
-    siren_db_cursor.execute(
-        """SELECT
-            st.siren,
-            st.siret,
-            st.date_creation,
-            st.tranche_effectif_salarie,
-            st.activite_principale_registre_metier,
-            st.is_siege,
-            st.numero_voie,
-            st.type_voie,
-            st.libelle_voie,
-            st.code_postal,
-            st.libelle_cedex,
-            st.libelle_commune,
-            st.commune,
-            st.complement_adresse,
-            st.complement_adresse_2,
-            st.numero_voie_2,
-            st.indice_repetition_2,
-            st.type_voie_2,
-            st.libelle_voie_2,
-            st.commune_2,
-            st.libelle_commune_2,
-            st.cedex_2,
-            st.libelle_cedex_2,
-            st.cedex,
-            st.date_debut_activite,
-            st.distribution_speciale,
-            st.distribution_speciale_2,
-            st.etat_administratif_etablissement,
-            st.enseigne_1,
-            st.enseigne_2,
-            st.enseigne_3,
-            st.activite_principale,
-            st.indice_repetition,
-            st.nom_commercial,
-            st.libelle_commune_etranger,
-            st.code_pays_etranger,
-            st.libelle_pays_etranger,
-            st.libelle_commune_etranger_2,
-            st.code_pays_etranger_2,
-            st.libelle_pays_etranger_2,
-            st.longitude,
-            st.latitude,
-            st.geo_adresse,
-            st.geo_id,
-            ul.prenom as prenom,
-            ul.nom as nom,
-            ul.nom_usage as nom_usage,
-            ul.nom_raison_sociale as nom_raison_sociale,
-            ul.sigle as sigle
-        FROM
-            siret st
-        LEFT JOIN
-            unite_legale ul
-        ON
-            ul.siren = st.siren;
-        """
-    )
-    connections.create_connection(
-        hosts=[ELASTIC_URL],
-        http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
-        retry_on_timeout=True,
-    )
-    elastic_connection = connections.get_connection()
-
-    doc_count = index_etablissements_by_chunk(
-        cursor=siren_db_cursor,
-        elastic_connection=elastic_connection,
-        elastic_bulk_size=ELASTIC_BULK_SIZE,
-        elastic_index=elastic_index,
-    )
-    kwargs["ti"].xcom_push(key="doc_count_siret", value=doc_count)
     commit_and_close_conn(siren_db_conn)
 
 
