@@ -190,7 +190,7 @@ with DAG(
     fill_elastic_index_siren.set_upstream(create_elastic_index)
     fill_elastic_index_siret.set_upstream(fill_elastic_index_siren)
     check_elastic_index.set_upstream(fill_elastic_index_siret)
-    create_sitemap.set_upstream(fill_elastic_index_siret)
+    create_sitemap.set_upstream(check_elastic_index)
     update_sitemap.set_upstream(create_sitemap)
     update_color_file.set_upstream(update_sitemap)
     execute_aio_container.set_upstream(update_color_file)

@@ -126,9 +126,9 @@ class ElasticsearchSireneIndex(Document):
     libelle_commune_etranger = Text()
     libelle_pays_etranger = Text()
     libelle_voie = Text()
-    liste_adresses = Text(analyzer=annuaire_analyzer)
+    # liste_adresses = Text(analyzer=annuaire_analyzer)
     liste_dirigeants = Text(analyzer=annuaire_analyzer)
-    liste_enseignes = Text(analyzer=annuaire_analyzer)
+    # liste_enseignes = Text(analyzer=annuaire_analyzer)
     longitude = Text()
     nature_juridique_unite_legale = Integer()
     nom = Text(analyzer=annuaire_analyzer)
@@ -201,3 +201,8 @@ class ElasticsearchEtablissement(ElasticsearchSireneIndex):
     latitude = Text()
     geo_adresse = Text(analyzer=annuaire_analyzer)
     geo_id = Keyword()
+    nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
+    concat_nom_enseigne_adresse_siren_siret = Text(
+        analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
+    )
+    adresse = Text(analyzer=annuaire_analyzer)

@@ -947,51 +947,61 @@ def fill_elastic_index_siret(**kwargs):
     siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
     siren_db_cursor.execute(
         """SELECT
-            siren,
-            siret,
-            date_creation,
-            tranche_effectif_salarie,
-            activite_principale_registre_metier,
-            is_siege,
-            numero_voie,
-            type_voie,
-            libelle_voie,
-            code_postal,
-            libelle_cedex,
-            libelle_commune,
-            commune,
-            complement_adresse,
-            complement_adresse_2,
-            numero_voie_2,
-            indice_repetition_2,
-            type_voie_2,
-            libelle_voie_2,
-            commune_2,
-            libelle_commune_2,
-            cedex_2,
-            libelle_cedex_2,
-            cedex,
-            date_debut_activite,
-            distribution_speciale,
-            distribution_speciale_2,
-            etat_administratif_etablissement,
-            enseigne_1,
-            enseigne_2,
-            enseigne_3,
-            activite_principale,
-            indice_repetition,
-            nom_commercial,
-            libelle_commune_etranger,
-            code_pays_etranger,
-            libelle_pays_etranger,
-            libelle_commune_etranger_2,
-            code_pays_etranger_2,
-            libelle_pays_etranger_2,
-            longitude,
-            latitude,
-            geo_adresse,
-            geo_id
-        FROM siret
+            st.siren,
+            st.siret,
+            st.date_creation,
+            st.tranche_effectif_salarie,
+            st.activite_principale_registre_metier,
+            st.is_siege,
+            st.numero_voie,
+            st.type_voie,
+            st.libelle_voie,
+            st.code_postal,
+            st.libelle_cedex,
+            st.libelle_commune,
+            st.commune,
+            st.complement_adresse,
+            st.complement_adresse_2,
+            st.numero_voie_2,
+            st.indice_repetition_2,
+            st.type_voie_2,
+            st.libelle_voie_2,
+            st.commune_2,
+            st.libelle_commune_2,
+            st.cedex_2,
+            st.libelle_cedex_2,
+            st.cedex,
+            st.date_debut_activite,
+            st.distribution_speciale,
+            st.distribution_speciale_2,
+            st.etat_administratif_etablissement,
+            st.enseigne_1,
+            st.enseigne_2,
+            st.enseigne_3,
+            st.activite_principale,
+            st.indice_repetition,
+            st.nom_commercial,
+            st.libelle_commune_etranger,
+            st.code_pays_etranger,
+            st.libelle_pays_etranger,
+            st.libelle_commune_etranger_2,
+            st.code_pays_etranger_2,
+            st.libelle_pays_etranger_2,
+            st.longitude,
+            st.latitude,
+            st.geo_adresse,
+            st.geo_id,
+            ul.prenom as prenom,
+            ul.nom as nom,
+            ul.nom_usage as nom_usage,
+            ul.nom_raison_sociale as nom_raison_sociale,
+            ul.sigle as sigle
+        FROM
+            siret st
+        LEFT JOIN
+            unite_legale ul
+        ON
+            ul.siren = st.siren;
         """
     )
     connections.create_connection(
@@ -1021,7 +1031,7 @@ def check_elastic_index(**kwargs):
 
     logging.info(f"******************** Documents indexed: {doc_count}")
 
-    if float(count_sieges) - float(doc_count) > 7000:
+    if float(count_sieges) - float(doc_count) > 50000:
         raise ValueError(
             f"*******The data has not been correctly indexed: "
             f"{doc_count} documents indexed instead of {count_sieges}."
