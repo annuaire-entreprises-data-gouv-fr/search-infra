@@ -5,7 +5,9 @@ from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.data_aggregation.task_functions import update_es
+from dag_datalake_sirene.data_aggregation.update_elasticsearch import (
+    update_elasticsearch_with_new_data,
+)
 from dag_datalake_sirene.task_functions import (
     check_elastic_index,
     count_nombre_etablissements,
@@ -192,7 +194,7 @@ with DAG(
         op_args=(
             "elu-latest.csv",
             f"ae/data_aggregation/{ENV}/colter/",
-            {TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-latest.csv",
         ),
     )
 
@@ -223,7 +225,7 @@ with DAG(
         op_args=(
             "rge-latest.csv",
             f"ae/data_aggregation/{ENV}/rge/",
-           f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-latest.csv",
         ),
     )
 

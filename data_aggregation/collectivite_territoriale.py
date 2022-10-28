@@ -16,14 +16,18 @@ def preprocess_colter_data(
         dtype=str,
         sep=";",
     )
-    df_regions = df_regions[df_regions["exer"] == df_regions.exer.max()][["reg_code", "siren"]]
+    df_regions = df_regions[df_regions["exer"] == df_regions.exer.max()][
+        ["reg_code", "siren"]
+    ]
     df_regions = df_regions.drop_duplicates(keep="first")
     df_regions = df_regions.rename(columns={"reg_code": "colter_code_insee"})
     df_regions["colter_code"] = df_regions["colter_code_insee"]
     df_regions["colter_niveau"] = "region"
 
     # Cas particulier Corse
-    df_regions.loc[df_regions["colter_code_insee"] == "94", "colter_niveau"] = "particulier"
+    df_regions.loc[
+        df_regions["colter_code_insee"] == "94", "colter_niveau"
+    ] = "particulier"
     df_colter = df_regions
 
     # Process Départements
@@ -89,7 +93,9 @@ def preprocess_colter_data(
     df_communes["colter_niveau"] = "commune"
     df_communes = df_communes[["colter_code_insee", "siren", "colter_code", "colter_niveau"]]
     df_communes.loc[df_communes["colter_code_insee"] == "75056", "colter_code"] = "75C"
-    df_communes.loc[df_communes["colter_code_insee"] == "75056", "colter_niveau"] = "particulier"
+    df_communes.loc[
+        df_communes["colter_code_insee"] == "75056", "colter_niveau"
+    ] = "particulier"
 
     df_colter = pd.concat([df_colter, df_communes])
 

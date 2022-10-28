@@ -104,7 +104,7 @@ with DAG(
         op_args=(
             "rge-new.csv",
             "ae/data_aggregation/" + ENV + "/rge/rge-latest.csv",
-           f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 

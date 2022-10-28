@@ -26,7 +26,9 @@ def preprocess_convcollective_data(
     df_conv_coll["siren"] = df_conv_coll["siret"].str[0:9]
     df_conv_coll["idcc"] = df_conv_coll["idcc"].apply(lambda x: str(x).replace(" ", ""))
     liste_cc = (
-        df_conv_coll.groupby(by=["siren"])["idcc"].apply(list).reset_index(name="liste_idcc")
+        df_conv_coll.groupby(by=["siren"])["idcc"]
+        .apply(list)
+        .reset_index(name="liste_idcc")
     )
     liste_cc.to_csv(data_dir + "convcollective-new.csv", index=False)
 

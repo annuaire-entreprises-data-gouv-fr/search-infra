@@ -55,7 +55,7 @@ with DAG(
     preprocess_convcollective_data = PythonOperator(
         task_id="preprocess_convcollective_data",
         python_callable=preprocess_convcollective_data,
-        op_args=( f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",),
+        op_args=(f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",),
     )
 
     get_latest_convcollective_data = PythonOperator(

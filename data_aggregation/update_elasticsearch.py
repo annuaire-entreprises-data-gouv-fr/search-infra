@@ -20,7 +20,6 @@ from dag_datalake_sirene.data_aggregation.rge import generate_updates_rge
 from dag_datalake_sirene.data_aggregation.uai import generate_updates_uai
 
 
-
 ELASTIC_PASSWORD = Variable.get("ELASTIC_PASSWORD")
 ELASTIC_URL = Variable.get("ELASTIC_URL")
 ELASTIC_USER = Variable.get("ELASTIC_USER")
@@ -72,10 +71,9 @@ def update_elasticsearch_with_new_data(
         else:
             list_success.append(details["update"]["_id"])
 
-    logging.info(str(len(list_errors)) + " siren non trouvé.")
-    logging.info(str(len(list_success)) + " documents indexés")
-    logging.info("Extrait", list_success[:10])
+    logging.info("%s siren non trouvé.", str(len(list_errors)))
+    logging.info("%s documents indexés", str(len(list_success)))
+    logging.info("Extrait %s", ', '.join(list_success[:10]))
 
     with open("/".join(new_file.split("/")[:-1]) + "/" + error_file, "w") as fp:
         fp.write("\n".join(list_errors))
-

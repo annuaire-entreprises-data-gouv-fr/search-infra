@@ -28,7 +28,11 @@ def preprocess_finess_data(
     df_finess = df_finess.rename(columns={1: "finess", 18: "cat_etablissement", 22: "siren"})
     df_finess["siren"] = df_finess["siren"].str[:9]
     df_finess = df_finess[df_finess["siren"].notna()]
-    agg_finess = df_finess.groupby(["siren"])["finess"].apply(list).reset_index(name="liste_finess")
+    agg_finess = (
+        df_finess.groupby(["siren"])["finess"]
+        .apply(list)
+        .reset_index(name="liste_finess")
+    )
     agg_finess = agg_finess[["siren", "liste_finess"]]
     agg_finess.to_csv(data_dir + "finess-new.csv", index=False)
 
