@@ -21,65 +21,65 @@ def preprocess_colter_data(
 ) -> None:
     os.makedirs(os.path.dirname(data_dir), exist_ok=True)
     # Process Régions
-    df = pd.read_csv(
+    df_regions = pd.read_csv(
         "https://www.data.gouv.fr/fr/datasets/r/619ee62e-8f9e-4c62-b166-abc6f2b86201",
         dtype=str,
         sep=";",
     )
-    df = df[df["exer"] == df.exer.max()][["reg_code", "siren"]]
-    df = df.drop_duplicates(keep="first")
-    df = df.rename(columns={"reg_code": "colter_code_insee"})
-    df["colter_code"] = df["colter_code_insee"]
-    df["colter_niveau"] = "region"
+    df_regions = df_regions[df_regions["exer"] == df_regions.exer.max()][["reg_code", "siren"]]
+    df_regions = df_regions.drop_duplicates(keep="first")
+    df_regions = df_regions.rename(columns={"reg_code": "colter_code_insee"})
+    df_regions["colter_code"] = df_regions["colter_code_insee"]
+    df_regions["colter_niveau"] = "region"
 
     # Cas particulier Corse
-    df.loc[df["colter_code_insee"] == "94", "colter_niveau"] = "particulier"
-    dfcolter = df
+    df_regions.loc[df_regions["colter_code_insee"] == "94", "colter_niveau"] = "particulier"
+    df_colter = df_regions
 
     # Process Départements
-    df = pd.read_csv(
+    df_deps = pd.read_csv(
         "https://www.data.gouv.fr/fr/datasets/r/2f4f901d-e3ce-4760-b122-56a311340fc4",
         dtype=str,
         sep=";",
     )
-    df = df[df["exer"] == df["exer"].max()]
-    df = df[["dep_code", "siren"]]
-    df = df.drop_duplicates(keep="first")
-    df = df.rename(columns={"dep_code": "colter_code_insee"})
-    df["colter_code"] = df["colter_code_insee"] + "D"
-    df["colter_niveau"] = "departement"
+    df_deps = df_deps[df_deps["exer"] == df_deps["exer"].max()]
+    df_deps = df_deps[["dep_code", "siren"]]
+    df_deps = df_deps.drop_duplicates(keep="first")
+    df_deps = df_deps.rename(columns={"dep_code": "colter_code_insee"})
+    df_deps["colter_code"] = df_deps["colter_code_insee"] + "D"
+    df_deps["colter_niveau"] = "departement"
 
     # Cas Métropole de Lyon
-    df.loc[df["colter_code_insee"] == "691", "colter_code"] = "69M"
-    df.loc[df["colter_code_insee"] == "691", "colter_niveau"] = "particulier"
-    df.loc[df["colter_code_insee"] == "691", "colter_code_insee"] = None
+    df_deps.loc[df_deps["colter_code_insee"] == "691", "colter_code"] = "69M"
+    df_deps.loc[df_deps["colter_code_insee"] == "691", "colter_niveau"] = "particulier"
+    df_deps.loc[df_deps["colter_code_insee"] == "691", "colter_code_insee"] = None
 
     # Cas Conseil départemental du Rhone
-    df.loc[df["colter_code_insee"] == "69", "colter_niveau"] = "particulier"
-    df.loc[df["colter_code_insee"] == "69", "colter_code_insee"] = None
+    df_deps.loc[df_deps["colter_code_insee"] == "69", "colter_niveau"] = "particulier"
+    df_deps.loc[df_deps["colter_code_insee"] == "69", "colter_code_insee"] = None
 
     # Cas Collectivité Européenne d"Alsace
-    df.loc[df["colter_code_insee"] == "67A", "colter_code"] = "6AE"
-    df.loc[df["colter_code_insee"] == "67A", "colter_niveau"] = "particulier"
-    df.loc[df["colter_code_insee"] == "67A", "colter_code_insee"] = None
+    df_deps.loc[df_deps["colter_code_insee"] == "67A", "colter_code"] = "6AE"
+    df_deps.loc[df_deps["colter_code_insee"] == "67A", "colter_niveau"] = "particulier"
+    df_deps.loc[df_deps["colter_code_insee"] == "67A", "colter_code_insee"] = None
 
     # Remove Paris
-    df = df[df["colter_code_insee"] != "75"]
+    df_deps = df_deps[df_deps["colter_code_insee"] != "75"]
 
-    dfcolter = pd.concat([dfcolter, df])
+    df_colter = pd.concat([df_colter, df_deps])
 
     # Process EPCI
-    df = pd.read_excel(
+    df_epci = pd.read_excel(
         "https://www.collectivites-locales.gouv.fr/files/2022/epcisanscom2022.xlsx",
         dtype=str,
         engine="openpyxl",
     )
-    df["colter_code_insee"] = None
-    df["siren"] = df["siren_epci"]
-    df["colter_code"] = df["siren"]
-    df["colter_niveau"] = "epci"
-    df = df[["colter_code_insee", "siren", "colter_code", "colter_niveau"]]
-    dfcolter = pd.concat([dfcolter, df])
+    df_epci["colter_code_insee"] = None
+    df_epci["siren"] = df_epci["siren_epci"]
+    df_epci["colter_code"] = df_epci["siren"]
+    df_epci["colter_niveau"] = "epci"
+    df_epci = df_epci[["colter_code_insee", "siren", "colter_code", "colter_niveau"]]
+    df_colter = pd.concat([df_colter, df_epci])
 
     # Process Communes
     URL = "https://www.data.gouv.fr/fr/datasets/r/42b16d68-958e-4518-8551-93e095fe8fda"
@@ -89,24 +89,24 @@ def preprocess_colter_data(
     with zipfile.ZipFile(data_dir + "siren-communes.zip", "r") as zip_ref:
         zip_ref.extractall(data_dir + "siren-communes")
 
-    df = pd.read_excel(
+    df_communes = pd.read_excel(
         data_dir + "siren-communes/Banatic_SirenInsee2022.xlsx",
         dtype=str,
         engine="openpyxl",
     )
-    df["colter_code_insee"] = df["insee"]
-    df["colter_code"] = df["insee"]
-    df["colter_niveau"] = "commune"
-    df = df[["colter_code_insee", "siren", "colter_code", "colter_niveau"]]
-    df.loc[df["colter_code_insee"] == "75056", "colter_code"] = "75C"
-    df.loc[df["colter_code_insee"] == "75056", "colter_niveau"] = "particulier"
+    df_communes["colter_code_insee"] = df_communes["insee"]
+    df_communes["colter_code"] = df_communes["insee"]
+    df_communes["colter_niveau"] = "commune"
+    df_communes = df_communes[["colter_code_insee", "siren", "colter_code", "colter_niveau"]]
+    df_communes.loc[df_communes["colter_code_insee"] == "75056", "colter_code"] = "75C"
+    df_communes.loc[df_communes["colter_code_insee"] == "75056", "colter_niveau"] = "particulier"
 
-    dfcolter = pd.concat([dfcolter, df])
+    df_colter = pd.concat([df_colter, df_communes])
 
     if os.path.exists(data_dir + "colter-new.csv"):
         os.remove(data_dir + "colter-new.csv")
 
-    dfcolter.to_csv(data_dir + "colter-new.csv", index=False)
+    df_colter.to_csv(data_dir + "colter-new.csv", index=False)
 
 
 def preprocess_convcollective_data(
@@ -121,16 +121,16 @@ def preprocess_convcollective_data(
         for chunk in r.iter_content(1024):
             f.write(chunk)
 
-    cc_df = pd.read_csv(
+    df_conv_coll = pd.read_csv(
         data_dir + "convcollective-download.csv",
         dtype=str,
         names=["mois", "siret", "idcc", "date_maj"],
         header=0,
     )
-    cc_df["siren"] = cc_df["siret"].str[0:9]
-    cc_df["idcc"] = cc_df["idcc"].apply(lambda x: str(x).replace(" ", ""))
+    df_conv_coll["siren"] = df_conv_coll["siret"].str[0:9]
+    df_conv_coll["idcc"] = df_conv_coll["idcc"].apply(lambda x: str(x).replace(" ", ""))
     liste_cc = (
-        cc_df.groupby(by=["siren"])["idcc"].apply(list).reset_index(name="liste_idcc")
+        df_conv_coll.groupby(by=["siren"])["idcc"].apply(list).reset_index(name="liste_idcc")
     )
     liste_cc.to_csv(data_dir + "convcollective-new.csv", index=False)
 
@@ -146,7 +146,7 @@ def preprocess_finess_data(
         for chunk in r.iter_content(1024):
             f.write(chunk)
 
-    df = pd.read_csv(
+    df_finess = pd.read_csv(
         data_dir + "finess-download.csv",
         dtype=str,
         sep=";",
@@ -154,24 +154,18 @@ def preprocess_finess_data(
         skiprows=1,
         header=None,
     )
-    df = df[[1, 18, 22]]
-    df = df.rename(columns={1: "finess", 18: "cat_etablissement", 22: "siren"})
-    df["siren"] = df["siren"].str[:9]
-    df = df[df["siren"].notna()]
-    res = df.groupby(["siren"])["finess"].apply(list).reset_index(name="liste_finess")
-    res2 = (
-        df.groupby(["siren"])["cat_etablissement"]
-        .apply(list)
-        .reset_index(name="liste_cat_etablissement")
-    )
-    res = res.merge(res2, on="siren", how="left")
-    res = res[["siren", "liste_finess"]]
-    res.to_csv(data_dir + "finess-new.csv", index=False)
+    df_finess = df_finess[[1, 18, 22]]
+    df_finess = df_finess.rename(columns={1: "finess", 18: "cat_etablissement", 22: "siren"})
+    df_finess["siren"] = df_finess["siren"].str[:9]
+    df_finess = df_finess[df_finess["siren"].notna()]
+    agg_finess = df_finess.groupby(["siren"])["finess"].apply(list).reset_index(name="liste_finess")
+    agg_finess = agg_finess[["siren", "liste_finess"]]
+    agg_finess.to_csv(data_dir + "finess-new.csv", index=False)
 
 
 def process_elus_files(url, colname):
-    df = pd.read_csv(url, dtype=str, sep="\t")
-    df = df[
+    df_elus = pd.read_csv(url, dtype=str, sep="\t")
+    df_elus = df_elus[
         [
             colname,
             "Nom de l'élu",
@@ -181,7 +175,7 @@ def process_elus_files(url, colname):
             "Libellé de la fonction",
         ]
     ]
-    df = df.rename(
+    df_elus = df_elus.rename(
         columns={
             colname: "colter_code",
             "Nom de l'élu": "nom_elu",
@@ -191,7 +185,7 @@ def process_elus_files(url, colname):
             "Libellé de la fonction": "fonction_elu",
         }
     )
-    return df
+    return df_elus
 
 
 def preprocess_elu_data(
@@ -200,47 +194,47 @@ def preprocess_elu_data(
 ) -> None:
     os.makedirs(os.path.dirname(data_dir), exist_ok=True)
 
-    colter = pd.read_csv(data_dir + "colter-new.csv", dtype=str)
+    df_colter = pd.read_csv(data_dir + "colter-new.csv", dtype=str)
     # Conseillers régionaux
     elus = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/430e13f9-834b-4411-a1a8-da0b4b6e715c",
         "Code de la région",
     )
     # Conseillers départementaux
-    df = process_elus_files(
+    df_elus_deps = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/601ef073-d986-4582-8e1a-ed14dc857fba",
         "Code du département",
     )
-    df["colter_code"] = df["colter_code"] + "D"
-    df.loc[df["colter_code"] == "6AED", "colter_code"] = "6AE"
-    elus = pd.concat([elus, df])
+    df_elus_deps["colter_code"] = df_elus_deps["colter_code"] + "D"
+    df_elus_deps.loc[df_elus_deps["colter_code"] == "6AED", "colter_code"] = "6AE"
+    elus = pd.concat([elus, df_elus_deps])
     # membres des assemblées des collectivités à statut particulier
-    df = process_elus_files(
+    df_elus_part = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/a595be27-cfab-4810-b9d4-22e193bffe35",
         "Code de la collectivité à statut particulier",
     )
-    df.loc[df["colter_code"] == "972", "colter_code"] = "02"
-    df.loc[df["colter_code"] == "973", "colter_code"] = "03"
-    elus = pd.concat([elus, df])
+    df_elus_part.loc[df_elus_part["colter_code"] == "972", "colter_code"] = "02"
+    df_elus_part.loc[df_elus_part["colter_code"] == "973", "colter_code"] = "03"
+    elus = pd.concat([elus, df_elus_part])
     # Conseillers communautaires
-    df = process_elus_files(
+    df_elus_epci = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/41d95d7d-b172-4636-ac44-32656367cdc7",
         "N° SIREN",
     )
-    elus = pd.concat([elus, df])
+    elus = pd.concat([elus, df_elus_epci])
     # Conseillers municipaux
-    df = process_elus_files(
+    df_elus_epci = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/d5f400de-ae3f-4966-8cb6-a85c70c6c24a",
         "Code de la commune",
     )
-    df.loc[df["colter_code"] == "75056", "colter_code"] = "75C"
-    elus = pd.concat([elus, df])
-    colter_elus = elus.merge(colter, on="colter_code", how="left")
-    colter_elus = colter_elus[colter_elus["siren"].notna()]
-    colter_elus["date_naissance_elu"] = colter_elus["date_naissance_elu"].apply(
+    df_elus_epci.loc[df_elus_epci["colter_code"] == "75056", "colter_code"] = "75C"
+    elus = pd.concat([elus, df_elus_epci])
+    df_colter_elus = elus.merge(df_colter, on="colter_code", how="left")
+    df_colter_elus = df_colter_elus[df_colter_elus["siren"].notna()]
+    df_colter_elus["date_naissance_elu"] = df_colter_elus["date_naissance_elu"].apply(
         lambda x: x.split("/")[2] + "-" + x.split("/")[1] + "-" + x.split("/")[0]
     )
-    colter_elus = colter_elus[
+    df_colter_elus = df_colter_elus[
         [
             "siren",
             "nom_elu",
@@ -250,7 +244,7 @@ def preprocess_elu_data(
             "fonction_elu",
         ]
     ]
-    colter_elus.to_csv(data_dir + "elu-new.csv", index=False)
+    df_colter_elus.to_csv(data_dir + "elu-new.csv", index=False)
 
 
 def preprocess_rge_data(
@@ -259,30 +253,30 @@ def preprocess_rge_data(
     from typing import List
 
     os.makedirs(os.path.dirname(data_dir), exist_ok=True)
-    arr: List[str] = []
+    list_rge: List[str] = []
     r = requests.get(
         "https://data.ademe.fr/data-fair/api/v1/datasets/liste-des-entreprises-rge-2/"
         "lines?size=10000&select=siret%2Ccode_qualification"
     )
     data = r.json()
-    arr = arr + data["results"]
+    list_rge = list_rge + data["results"]
     cpt = 0
     print(data)
     while "next" in data:
         cpt = cpt + 1
         r = requests.get(data["next"])
         data = r.json()
-        arr = arr + data["results"]
-    df = pd.DataFrame(arr)
-    df["siren"] = df["siret"].str[:9]
-    res = (
-        df.groupby(["siren"])["code_qualification"]
+        list_rge = list_rge + data["results"]
+    df_rge = pd.DataFrame(list_rge)
+    df_rge["siren"] = df_rge["siret"].str[:9]
+    agg_rge = (
+        df_rge.groupby(["siren"])["code_qualification"]
         .apply(list)
         .reset_index(name="liste_rge")
     )
-    res = res[["siren", "liste_rge"]]
+    agg_rge = agg_rge[["siren", "liste_rge"]]
 
-    res.to_csv(data_dir + "rge-new.csv", index=False)
+    agg_rge.to_csv(data_dir + "rge-new.csv", index=False)
 
 
 def preprocess_spectacle_data(
@@ -297,13 +291,13 @@ def preprocess_spectacle_data(
         for chunk in r.iter_content(1024):
             f.write(chunk)
 
-    df = pd.read_csv(data_dir + "spectacle-download.csv", dtype=str, sep=";")
-    df = df[df["statut_du_recepisse"] == "Valide"]
-    df["is_entrepreneur_spectacle"] = True
-    df["siren"] = df["siren_personne_physique_siret_personne_morale"].str[:9]
-    df = df[["siren", "is_entrepreneur_spectacle"]]
-    df = df[df["siren"].notna()]
-    df.to_csv(data_dir + "spectacle-new.csv", index=False)
+    df_spectacle = pd.read_csv(data_dir + "spectacle-download.csv", dtype=str, sep=";")
+    df_spectacle = df_spectacle[df_spectacle["statut_du_recepisse"] == "Valide"]
+    df_spectacle["is_entrepreneur_spectacle"] = True
+    df_spectacle["siren"] = df_spectacle["siren_personne_physique_siret_personne_morale"].str[:9]
+    df_spectacle = df_spectacle[["siren", "is_entrepreneur_spectacle"]]
+    df_spectacle = df_spectacle[df_spectacle["siren"].notna()]
+    df_spectacle.to_csv(data_dir + "spectacle-new.csv", index=False)
 
 
 def preprocess_uai_data(
@@ -318,21 +312,15 @@ def preprocess_uai_data(
         for chunk in r.iter_content(1024):
             f.write(chunk)
 
-    df = pd.read_csv(data_dir + "uai-download.csv", dtype=str, sep=";")
-    df = df[["identifiant_de_l_etablissement", "siren_siret", "code_nature"]]
-    df = df.rename(
+    df_uai = pd.read_csv(data_dir + "uai-download.csv", dtype=str, sep=";")
+    df_uai = df_uai[["identifiant_de_l_etablissement", "siren_siret", "code_nature"]]
+    df_uai = df_uai.rename(
         columns={"identifiant_de_l_etablissement": "uai", "siren_siret": "siren"}
     )
-    df["siren"] = df["siren"].str[:9]
-    res = df.groupby(["siren"])["uai"].apply(list).reset_index(name="liste_uai")
-    res2 = (
-        df.groupby(["siren"])["code_nature"]
-        .apply(list)
-        .reset_index(name="liste_code_nature")
-    )
-    res = res.merge(res2, on="siren", how="left")
-    res = res[["siren", "liste_uai"]]
-    res.to_csv(data_dir + "uai-new.csv", index=False)
+    df_uai["siren"] = df_uai["siren"].str[:9]
+    agg_uai = df_uai.groupby(["siren"])["uai"].apply(list).reset_index(name="liste_uai")
+    agg_uai = agg_uai[["siren", "liste_uai"]]
+    agg_uai.to_csv(data_dir + "uai-new.csv", index=False)
 
 
 def compare_versions_file(
@@ -343,8 +331,8 @@ def compare_versions_file(
     return should_continue
 
 
-def generate_updates_colter(df, current_color):
-    for index, row in df.iterrows():
+def generate_updates_colter(df_colter, current_color):
+    for index, row in df_colter.iterrows():
         colter_code_insee = row["colter_code_insee"]
         if row["colter_code_insee"] != row["colter_code_insee"]:
             colter_code_insee = None
@@ -361,9 +349,9 @@ def generate_updates_colter(df, current_color):
         }
 
 
-def generate_updates_convcollective(df, current_color):
-    df["liste_idcc"] = df["liste_idcc"].apply(literal_eval)
-    for index, row in df.iterrows():
+def generate_updates_convcollective(df_conv_coll, current_color):
+    df_conv_coll["liste_idcc"] = df_conv_coll["liste_idcc"].apply(literal_eval)
+    for index, row in df_conv_coll.iterrows():
         yield {
             "_op_type": "update",
             "_index": "siren-" + current_color,
@@ -375,35 +363,34 @@ def generate_updates_convcollective(df, current_color):
         }
 
 
-def generate_updates_elu(df, current_color):
-    df = df
-    for col in df.columns:
-        df = df.rename(columns={col: col.replace("_elu", "")})
+def generate_updates_elu(df_elus, current_color):
+    for col in df_elus.columns:
+        df_elus = df_elus.rename(columns={col: col.replace("_elu", "")})
 
-    for siren in df["siren"].unique():
-        inter = df[df["siren"] == siren]
-        arr = []
-        del inter["siren"]
-        for index, row in inter.iterrows():
+    for siren in df_elus["siren"].unique():
+        df_elus_siren = df_elus[df_elus["siren"] == siren]
+        list_elus = []
+        del df_elus_siren["siren"]
+        for index, row in df_elus_siren.iterrows():
             for col in row.to_dict():
                 if row[col] != row[col]:
                     row[col] = None
 
-            arr.append(row.to_dict())
+            list_elus.append(row.to_dict())
         yield {
             "_op_type": "update",
             "_index": "siren-" + current_color,
             "_type": "_doc",
             "_id": siren,
             "doc": {
-                "colter_elus": arr,
+                "colter_elus": list_elus,
             },
         }
 
 
-def generate_updates_finess(df, current_color):
-    df["liste_finess"] = df["liste_finess"].apply(literal_eval)
-    for index, row in df.iterrows():
+def generate_updates_finess(df_finess, current_color):
+    df_finess["liste_finess"] = df_finess["liste_finess"].apply(literal_eval)
+    for index, row in df_finess.iterrows():
         yield {
             "_op_type": "update",
             "_index": "siren-" + current_color,
@@ -415,8 +402,8 @@ def generate_updates_finess(df, current_color):
         }
 
 
-def generate_updates_nondiff(df, current_color):
-    for index, row in df.iterrows():
+def generate_updates_nondiff(df_nondiff, current_color):
+    for index, row in df_nondiff.iterrows():
         yield {
             "_op_type": "update",
             "_index": "siren-" + current_color,
@@ -428,9 +415,9 @@ def generate_updates_nondiff(df, current_color):
         }
 
 
-def generate_updates_rge(df, current_color):
-    df["liste_rge"] = df["liste_rge"].apply(literal_eval)
-    for index, row in df.iterrows():
+def generate_updates_rge(df_rge, current_color):
+    df_rge["liste_rge"] = df_rge["liste_rge"].apply(literal_eval)
+    for index, row in df_rge.iterrows():
         yield {
             "_op_type": "update",
             "_index": "siren-" + current_color,
@@ -442,8 +429,8 @@ def generate_updates_rge(df, current_color):
         }
 
 
-def generate_updates_spectacle(df, current_color):
-    for index, row in df.iterrows():
+def generate_updates_spectacle(df_spectacle, current_color):
+    for index, row in df_spectacle.iterrows():
         yield {
             "_op_type": "update",
             "_index": "siren-" + current_color,
@@ -455,9 +442,9 @@ def generate_updates_spectacle(df, current_color):
         }
 
 
-def generate_updates_uai(df, current_color):
-    df["liste_uai"] = df["liste_uai"].apply(literal_eval)
-    for index, row in df.iterrows():
+def generate_updates_uai(df_uai, current_color):
+    df_uai["liste_uai"] = df_uai["liste_uai"].apply(literal_eval)
+    for index, row in df_uai.iterrows():
         yield {
             "_op_type": "update",
             "_index": "siren-" + current_color,
