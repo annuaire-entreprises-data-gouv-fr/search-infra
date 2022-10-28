@@ -91,7 +91,9 @@ def preprocess_colter_data(
     df_communes["colter_code_insee"] = df_communes["insee"]
     df_communes["colter_code"] = df_communes["insee"]
     df_communes["colter_niveau"] = "commune"
-    df_communes = df_communes[["colter_code_insee", "siren", "colter_code", "colter_niveau"]]
+    df_communes = df_communes[
+        ["colter_code_insee", "siren", "colter_code", "colter_niveau"]
+    ]
     df_communes.loc[df_communes["colter_code_insee"] == "75056", "colter_code"] = "75C"
     df_communes.loc[
         df_communes["colter_code_insee"] == "75056", "colter_niveau"

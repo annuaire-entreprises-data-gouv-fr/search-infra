@@ -3,9 +3,7 @@ from datetime import timedelta
 from airflow.models import DAG, Variable
 from airflow.operators.python import PythonOperator, ShortCircuitOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.data_aggregation.finess import (
-    preprocess_finess_data,
-)
+from dag_datalake_sirene.data_aggregation.finess import preprocess_finess_data
 from dag_datalake_sirene.data_aggregation.update_elasticsearch import (
     update_elasticsearch_with_new_data,
 )

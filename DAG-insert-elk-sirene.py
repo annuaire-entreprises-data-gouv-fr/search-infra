@@ -286,7 +286,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "finess-latest.csv",
-           f"ae/data_aggregation/{ENV}/finess/",
+            f"ae/data_aggregation/{ENV}/finess/",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME} /data/finess-latest.csv",
         ),
     )
@@ -307,7 +307,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "finess-errors.txt",
-           f"ae/data_aggregation/{ENV}/finess/finess-errors.txt",
+            f"ae/data_aggregation/{ENV}/finess/finess-errors.txt",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
@@ -348,7 +348,7 @@ with DAG(
         op_args=(
             "uai-latest.csv",
             f"ae/data_aggregation/{ENV}/uai/",
-           f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/uai-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/uai-latest.csv",
         ),
     )
 
@@ -368,7 +368,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "uai-errors.txt",
-           f"ae/data_aggregation/{ENV}/uai/uai-errors.txt",
+            f"ae/data_aggregation/{ENV}/uai/uai-errors.txt",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )

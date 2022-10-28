@@ -25,7 +25,9 @@ def preprocess_finess_data(
         header=None,
     )
     df_finess = df_finess[[1, 18, 22]]
-    df_finess = df_finess.rename(columns={1: "finess", 18: "cat_etablissement", 22: "siren"})
+    df_finess = df_finess.rename(
+        columns={1: "finess", 18: "cat_etablissement", 22: "siren"}
+    )
     df_finess["siren"] = df_finess["siren"].str[:9]
     df_finess = df_finess[df_finess["siren"].notna()]
     agg_finess = (
