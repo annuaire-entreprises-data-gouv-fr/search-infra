@@ -3,12 +3,13 @@ from datetime import timedelta
 from airflow.models import DAG, Variable
 from airflow.operators.python import PythonOperator, ShortCircuitOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.external_data.task_functions import (
-    compare_versions_file,
+from dag_datalake_sirene.data_aggregation.convention_collective import (
     preprocess_convcollective_data,
-    publish_mattermost,
-    update_es,
 )
+from dag_datalake_sirene.data_aggregation.update_elasticsearch import (
+    update_elasticsearch_with_new_data,
+)
+from dag_datalake_sirene.helpers.utils import compare_versions_file, publish_mattermost
 from dag_datalake_sirene.task_functions import (
     get_colors,
     get_object_minio,
@@ -62,7 +63,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "convcollective-latest.csv",
-            "ae/external_data/{ENV}/convcollective/",
+            "ae/data_aggregation/{ENV}/convcollective/",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-latest.csv",
         ),
     )
@@ -78,7 +79,7 @@ with DAG(
 
     update_es = PythonOperator(
         task_id="update_es",
-        python_callable=update_es,
+        python_callable=update_elasticsearch_with_new_data,
         op_args=(
             "convcollective",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-new.csv",
@@ -92,7 +93,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "convcollective-errors.txt",
-            f"ae/external_data/{ENV}/convcollective/convcollective-errors.txt",
+            f"ae/data_aggregation/{ENV}/convcollective/convcollective-errors.txt",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
@@ -102,7 +103,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "convcollective-new.csv",
-            f"ae/external_data/{ENV}/convcollective/convcollective-latest.csv",
+            f"ae/data_aggregation/{ENV}/convcollective/convcollective-latest.csv",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )

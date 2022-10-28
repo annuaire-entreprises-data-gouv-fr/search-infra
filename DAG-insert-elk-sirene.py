@@ -5,7 +5,7 @@ from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.external_data.task_functions import update_es
+from dag_datalake_sirene.data_aggregation.task_functions import update_es
 from dag_datalake_sirene.task_functions import (
     check_elastic_index,
     count_nombre_etablissements,
@@ -160,14 +160,14 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "colter-latest.csv",
-            f"ae/external_data/{ENV}/colter/",
+            f"ae/data_aggregation/{ENV}/colter/",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME} /data/colter-latest.csv",
         ),
     )
 
     update_es_colter = PythonOperator(
         task_id="update_es_colter",
-        python_callable=update_es,
+        python_callable=update_elasticsearch_with_new_data,
         op_args=(
             "colter",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/colter-latest.csv",
@@ -181,7 +181,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "colter-errors.txt",
-            f"ae/external_data/{ENV}/colter/colter-errors.txt",
+            f"ae/data_aggregation/{ENV}/colter/colter-errors.txt",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
@@ -191,14 +191,14 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "elu-latest.csv",
-            f"ae/external_data/{ENV}/colter/",
+            f"ae/data_aggregation/{ENV}/colter/",
             {TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-latest.csv",
         ),
     )
 
     update_es_elu = PythonOperator(
         task_id="update_es_elu",
-        python_callable=update_es,
+        python_callable=update_elasticsearch_with_new_data,
         op_args=(
             "elu",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-latest.csv",
@@ -212,7 +212,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "elu-errors.txt",
-            f"ae/external_data/{ENV}/colter/elu-errors.txt",
+            f"ae/data_aggregation/{ENV}/colter/elu-errors.txt",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
@@ -222,14 +222,14 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "rge-latest.csv",
-            f"ae/external_data/{ENV}/rge/",
+            f"ae/data_aggregation/{ENV}/rge/",
            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-latest.csv",
         ),
     )
 
     update_es_rge = PythonOperator(
         task_id="update_es_rge",
-        python_callable=update_es,
+        python_callable=update_elasticsearch_with_new_data,
         op_args=(
             "rge",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-latest.csv",
@@ -243,7 +243,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "rge-errors.txt",
-            f"ae/external_data/{ENV}/rge/rge-errors.txt",
+            f"ae/data_aggregation/{ENV}/rge/rge-errors.txt",
             f"{TMP_FOLDER}{DAG_FOLDER }{DAG_NAME}/data/",
         ),
     )
@@ -253,14 +253,14 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "convcollective-latest.csv",
-            f"ae/external_data/{ENV}/convcollective/",
+            f"ae/data_aggregation/{ENV}/convcollective/",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-latest.csv",
         ),
     )
 
     update_es_convcollective = PythonOperator(
         task_id="update_es_convcollective",
-        python_callable=update_es,
+        python_callable=update_elasticsearch_with_new_data,
         op_args=(
             "convcollective",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-latest.csv",
@@ -274,7 +274,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "convcollective-errors.txt",
-            f"ae/external_data/{ENV}/convcollective/convcollective-errors.txt",
+            f"ae/data_aggregation/{ENV}/convcollective/convcollective-errors.txt",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
@@ -284,14 +284,14 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "finess-latest.csv",
-           f"ae/external_data/{ENV}/finess/",
+           f"ae/data_aggregation/{ENV}/finess/",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME} /data/finess-latest.csv",
         ),
     )
 
     update_es_finess = PythonOperator(
         task_id="update_es_finess",
-        python_callable=update_es,
+        python_callable=update_elasticsearch_with_new_data,
         op_args=(
             "finess",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/finess-latest.csv",
@@ -305,7 +305,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "finess-errors.txt",
-           f"ae/external_data/{ENV}/finess/finess-errors.txt",
+           f"ae/data_aggregation/{ENV}/finess/finess-errors.txt",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
@@ -315,14 +315,14 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "spectacle-latest.csv",
-            f"ae/external_data/{ENV}/spectacle/",
+            f"ae/data_aggregation/{ENV}/spectacle/",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/spectacle-latest.csv",
         ),
     )
 
     update_es_spectacle = PythonOperator(
         task_id="update_es_spectacle",
-        python_callable=update_es,
+        python_callable=update_elasticsearch_with_new_data,
         op_args=(
             "spectacle",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/spectacle-latest.csv",
@@ -336,7 +336,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "spectacle-errors.txt",
-            f"ae/external_data/{ENV}/spectacle/spectacle-errors.txt",
+            f"ae/data_aggregation/{ENV}/spectacle/spectacle-errors.txt",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
@@ -345,14 +345,14 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "uai-latest.csv",
-            f"ae/external_data/{ENV}/uai/",
+            f"ae/data_aggregation/{ENV}/uai/",
            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/uai-latest.csv",
         ),
     )
 
     update_es_uai = PythonOperator(
         task_id="update_es_uai",
-        python_callable=update_es,
+        python_callable=update_elasticsearch_with_new_data,
         op_args=(
             "uai",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/uai-latest.csv",
@@ -366,7 +366,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "uai-errors.txt",
-           f"ae/external_data/{ENV}/uai/uai-errors.txt",
+           f"ae/data_aggregation/{ENV}/uai/uai-errors.txt",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )

@@ -3,13 +3,14 @@ from datetime import timedelta
 from airflow.models import DAG, Variable
 from airflow.operators.python import PythonOperator, ShortCircuitOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.external_data.task_functions import (
-    compare_versions_file,
+from dag_datalake_sirene.data_aggregation.collectivite_territoriale import (
     preprocess_colter_data,
     preprocess_elu_data,
-    publish_mattermost,
-    update_es,
 )
+from dag_datalake_sirene.data_aggregation.update_elasticsearch import (
+    update_elasticsearch_with_new_data,
+)
+from dag_datalake_sirene.helpers.utils import compare_versions_file, publish_mattermost
 from dag_datalake_sirene.task_functions import (
     get_colors,
     get_object_minio,
@@ -63,7 +64,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "colter-latest.csv",
-            f"ae/external_data/{ENV}/colter/",
+            f"ae/data_aggregation/{ENV}/colter/",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/colter-latest.csv",
         ),
     )
@@ -79,7 +80,7 @@ with DAG(
 
     update_es_colter = PythonOperator(
         task_id="update_es_colter",
-        python_callable=update_es,
+        python_callable=update_elasticsearch_with_new_data,
         op_args=(
             "colter",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/colter-new.csv",
@@ -93,7 +94,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "colter-errors.txt",
-            f"ae/external_data/{ENV}/colter/colter-errors.txt",
+            f"ae/data_aggregation/{ENV}/colter/colter-errors.txt",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
@@ -103,7 +104,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "colter-new.csv",
-            "ae/external_data/" + ENV + "/colter/colter-latest.csv",
+            "ae/data_aggregation/" + ENV + "/colter/colter-latest.csv",
             TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/",
         ),
     )
@@ -119,7 +120,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "elu-latest.csv",
-            f"ae/external_data/{ENV}/colter/",
+            f"ae/data_aggregation/{ENV}/colter/",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-latest.csv",
         ),
     )
@@ -135,7 +136,7 @@ with DAG(
 
     update_es_elu = PythonOperator(
         task_id="update_es_elu",
-        python_callable=update_es,
+        python_callable=update_elasticsearch_with_new_data,
         op_args=(
             "elu",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-new.csv",
@@ -149,7 +150,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "elu-errors.txt",
-            "ae/external_data/{ENV}/colter/elu-errors.txt",
+            "ae/data_aggregation/{ENV}/colter/elu-errors.txt",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
@@ -159,7 +160,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "elu-new.csv",
-            f"ae/external_data/{ENV}/colter/elu-latest.csv",
+            f"ae/data_aggregation/{ENV}/colter/elu-latest.csv",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )

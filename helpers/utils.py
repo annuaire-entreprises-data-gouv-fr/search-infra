@@ -1,6 +1,12 @@
+import filecmp
 import logging
 from datetime import datetime
 from unicodedata import normalize
+
+import requests
+from airflow.models import Variable
+
+ENV = Variable.get("ENV")
 
 
 def unique_list(lst):
@@ -54,3 +60,23 @@ def drop_exact_duplicates(list_dict):
     return list(
         {frozenset(dictionary.items()): dictionary for dictionary in list_dict}.values()
     )
+
+
+def publish_mattermost(
+    text,
+) -> None:
+    data = {"text": text}
+    if ENV == "dev-geoff":
+        r = requests.post(
+            "https://mattermost.incubateur.net/hooks/geww4je6minn9p9m6qq6xiwu3a",
+            json=data,
+        )
+        print(r.status_code)
+
+
+def compare_versions_file(
+    original_file: str,
+    new_file: str,
+):
+    should_continue = not filecmp.cmp(original_file, new_file)
+    return should_continue

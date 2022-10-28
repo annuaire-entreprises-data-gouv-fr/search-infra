@@ -3,12 +3,13 @@ from datetime import timedelta
 from airflow.models import DAG, Variable
 from airflow.operators.python import PythonOperator, ShortCircuitOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.external_data.task_functions import (
-    compare_versions_file,
-    preprocess_rge_data,
-    publish_mattermost,
-    update_es,
+from dag_datalake_sirene.data_aggregation.update_elasticsearch import (
+    update_elasticsearch_with_new_data,
 )
+from dag_datalake_sirene.data_aggregation.rge import (
+    preprocess_rge_data,
+)
+from dag_datalake_sirene.helpers.utils import compare_versions_file, publish_mattermost
 from dag_datalake_sirene.task_functions import (
     get_colors,
     get_object_minio,
@@ -62,7 +63,7 @@ with DAG(
         python_callable=get_object_minio,
         op_args=(
             "rge-latest.csv",
-            f"ae/external_data/{ENV}/rge/",
+            f"ae/data_aggregation/{ENV}/rge/",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-latest.csv",
         ),
     )
@@ -78,7 +79,7 @@ with DAG(
 
     update_es = PythonOperator(
         task_id="update_es",
-        python_callable=update_es,
+        python_callable=update_elasticsearch_with_new_data,
         op_args=(
             "rge",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-new.csv",
@@ -92,7 +93,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "rge-errors.txt",
-            f"ae/external_data/{ENV}/rge/rge-errors.txt",
+            f"ae/data_aggregation/{ENV}/rge/rge-errors.txt",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
@@ -102,7 +103,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "rge-new.csv",
-            "ae/external_data/" + ENV + "/rge/rge-latest.csv",
+            "ae/data_aggregation/" + ENV + "/rge/rge-latest.csv",
            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
