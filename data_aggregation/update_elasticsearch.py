@@ -15,7 +15,6 @@ from dag_datalake_sirene.data_aggregation.entrepreneur_spectacle import (
 from dag_datalake_sirene.data_aggregation.finess import generate_updates_finess
 from dag_datalake_sirene.data_aggregation.rge import generate_updates_rge
 from dag_datalake_sirene.data_aggregation.uai import generate_updates_uai
-
 from elasticsearch import helpers
 from elasticsearch_dsl import connections
 
@@ -47,7 +46,20 @@ def update_elasticsearch_with_new_data(
     list_errors = []
     list_success = []
 
-    generations = eval("generate_updates_{}(df, color)".format(type_file))
+    if type_file == "rge":
+        generations = generate_updates_rge(df, color)
+    if type_file == "spectacle":
+        generations = generate_updates_spectacle(df, color)
+    if type_file == "convcollective":
+        generations = generate_updates_convcollective(df, color)
+    if type_file == "uai":
+        generations = generate_updates_uai(df, color)
+    if type_file == "finess":
+        generations = generate_updates_finess(df, color)
+    if type_file == "colter":
+        generations = generate_updates_colter(df, color)
+    if type_file == "elu":
+        generations = generate_updates_elu(df, color)
 
     for success, details in helpers.parallel_bulk(
         elastic_connection, generations, chunk_size=1500, raise_on_error=False
