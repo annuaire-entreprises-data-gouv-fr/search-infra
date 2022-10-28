@@ -174,7 +174,7 @@ with DAG(
             "colter",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/colter-latest.csv",
             "colter-errors.txt",
-            "next",
+            "current",
         ),
     )
 
@@ -205,7 +205,7 @@ with DAG(
             "elu",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-latest.csv",
             "elu-errors.txt",
-            "next",
+            "current",
         ),
     )
 
@@ -236,7 +236,7 @@ with DAG(
             "rge",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-latest.csv",
             "rge-errors.txt",
-            "next",
+            "current",
         ),
     )
 
@@ -267,7 +267,7 @@ with DAG(
             "convcollective",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-latest.csv",
             "convcollective-errors.txt",
-            "next",
+            "current",
         ),
     )
 
@@ -298,7 +298,7 @@ with DAG(
             "finess",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/finess-latest.csv",
             "finess-errors.txt",
-            "next",
+            "current",
         ),
     )
 
@@ -329,7 +329,7 @@ with DAG(
             "spectacle",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/spectacle-latest.csv",
             "spectacle-errors.txt",
-            "next",
+            "current",
         ),
     )
 
@@ -359,7 +359,7 @@ with DAG(
             "uai",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/uai-latest.csv",
             "uai-errors.txt",
-            "next",
+            "current",
         ),
     )
 
@@ -409,40 +409,42 @@ with DAG(
     create_sitemap.set_upstream(fill_elastic_index)
     update_sitemap.set_upstream(create_sitemap)
     check_elastic_index.set_upstream(fill_elastic_index)
-    update_color_file.set_upstream(check_elastic_index)
 
-    get_latest_colter_data.set_upstream(update_color_file)
+    get_latest_colter_data.set_upstream(check_elastic_index)
     update_es_colter.set_upstream(get_latest_colter_data)
     put_file_error_to_minio_colter.set_upstream(update_es_colter)
     get_latest_elu_data.set_upstream(put_file_error_to_minio_colter)
     update_es_elu.set_upstream(get_latest_elu_data)
     put_file_error_to_minio_elu.set_upstream(update_es_elu)
 
-    get_latest_rge_data.set_upstream(update_color_file)
+    get_latest_rge_data.set_upstream(check_elastic_index)
     update_es_rge.set_upstream(get_latest_rge_data)
     put_file_error_to_minio_rge.set_upstream(update_es_rge)
 
-    get_latest_convcollective_data.set_upstream(update_color_file)
+    get_latest_convcollective_data.set_upstream(check_elastic_index)
     update_es_convcollective.set_upstream(get_latest_convcollective_data)
     put_file_error_to_minio_convcollective.set_upstream(update_es_convcollective)
 
-    get_latest_finess_data.set_upstream(update_color_file)
+    get_latest_finess_data.set_upstream(check_elastic_index)
     update_es_finess.set_upstream(get_latest_finess_data)
     put_file_error_to_minio_finess.set_upstream(update_es_finess)
 
-    get_latest_spectacle_data.set_upstream(update_color_file)
+    get_latest_spectacle_data.set_upstream(check_elastic_index)
     update_es_spectacle.set_upstream(get_latest_spectacle_data)
     put_file_error_to_minio_spectacle.set_upstream(update_es_spectacle)
 
-    get_latest_uai_data.set_upstream(update_color_file)
+    get_latest_uai_data.set_upstream(check_elastic_index)
     update_es_uai.set_upstream(get_latest_uai_data)
     put_file_error_to_minio_uai.set_upstream(update_es_uai)
 
-    execute_aio_container.set_upstream(put_file_error_to_minio_elu)
-    execute_aio_container.set_upstream(put_file_error_to_minio_rge)
-    execute_aio_container.set_upstream(put_file_error_to_minio_convcollective)
-    execute_aio_container.set_upstream(put_file_error_to_minio_finess)
-    execute_aio_container.set_upstream(put_file_error_to_minio_spectacle)
-    execute_aio_container.set_upstream(put_file_error_to_minio_uai)
+    update_color_file.set_upstream(put_file_error_to_minio_elu)
+    update_color_file.set_upstream(put_file_error_to_minio_rge)
+    update_color_file.set_upstream(put_file_error_to_minio_convcollective)
+    update_color_file.set_upstream(put_file_error_to_minio_finess)
+    update_color_file.set_upstream(put_file_error_to_minio_spectacle)
+    update_color_file.set_upstream(put_file_error_to_minio_uai)
+
+    execute_aio_container.set_upstream(update_color_file)
+
     send_email.set_upstream(execute_aio_container)
     send_email.set_upstream(update_sitemap)
