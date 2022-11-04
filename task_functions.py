@@ -1024,10 +1024,10 @@ def check_elastic_index(**kwargs):
 
     logging.info(f"******************** Documents indexed: {doc_count}")
 
-    if float(count_sieges) - float(doc_count) > 50000:
+    if float(doc_count) < 23000000:
         raise ValueError(
             f"*******The data has not been correctly indexed: "
-            f"{doc_count} documents indexed instead of {count_sieges}."
+            f"{doc_count} documents indexed!"
         )
 
 
