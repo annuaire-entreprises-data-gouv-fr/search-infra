@@ -1,3 +1,4 @@
+import logging
 import os
 from ast import literal_eval
 
@@ -19,7 +20,7 @@ def preprocess_rge_data(
     data = r.json()
     list_rge = list_rge + data["results"]
     cpt = 0
-    print(data)
+    logging.info(data)
     while "next" in data:
         cpt = cpt + 1
         r = requests.get(data["next"])
