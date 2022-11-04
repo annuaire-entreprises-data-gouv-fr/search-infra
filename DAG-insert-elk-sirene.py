@@ -5,6 +5,9 @@ from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
+from dag_datalake_sirene.data_aggregation.update_elasticsearch import (
+    update_elasticsearch_with_new_data,
+)
 from dag_datalake_sirene.task_functions import (
     check_elastic_index,
     count_nombre_etablissements,
@@ -19,7 +22,8 @@ from dag_datalake_sirene.task_functions import (
     create_unite_legale_table,
     fill_elastic_index,
     get_colors,
-    get_dirig_database,
+    get_object_minio,
+    put_object_minio,
     update_color_file,
     update_sitemap,
 )
@@ -97,7 +101,12 @@ with DAG(
     get_dirigeants_database = PythonOperator(
         task_id="get_dirig_database",
         provide_context=True,
-        python_callable=get_dirig_database,
+        python_callable=get_object_minio,
+        op_args=(
+            "inpi.db",
+            "inpi/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/inpi.db",
+        ),
     )
 
     create_dirig_pp_table = PythonOperator(
@@ -148,6 +157,222 @@ with DAG(
         python_callable=update_color_file,
     )
 
+    get_latest_colter_data = PythonOperator(
+        task_id="get_latest_colter_data",
+        python_callable=get_object_minio,
+        op_args=(
+            "colter-latest.csv",
+            f"ae/data_aggregation/{ENV}/colter/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME} /data/colter-latest.csv",
+        ),
+    )
+
+    update_es_colter = PythonOperator(
+        task_id="update_es_colter",
+        python_callable=update_elasticsearch_with_new_data,
+        op_args=(
+            "colter",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/colter-latest.csv",
+            "colter-errors.txt",
+            "current",
+        ),
+    )
+
+    put_file_error_to_minio_colter = PythonOperator(
+        task_id="put_file_error_to_minio_colter",
+        python_callable=put_object_minio,
+        op_args=(
+            "colter-errors.txt",
+            f"ae/data_aggregation/{ENV}/colter/colter-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
+        ),
+    )
+
+    get_latest_elu_data = PythonOperator(
+        task_id="get_latest_elu_data",
+        python_callable=get_object_minio,
+        op_args=(
+            "elu-latest.csv",
+            f"ae/data_aggregation/{ENV}/colter/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-latest.csv",
+        ),
+    )
+
+    update_es_elu = PythonOperator(
+        task_id="update_es_elu",
+        python_callable=update_elasticsearch_with_new_data,
+        op_args=(
+            "elu",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-latest.csv",
+            "elu-errors.txt",
+            "current",
+        ),
+    )
+
+    put_file_error_to_minio_elu = PythonOperator(
+        task_id="put_file_error_to_minio_elu",
+        python_callable=put_object_minio,
+        op_args=(
+            "elu-errors.txt",
+            f"ae/data_aggregation/{ENV}/colter/elu-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
+        ),
+    )
+
+    get_latest_rge_data = PythonOperator(
+        task_id="get_latest_rge_data",
+        python_callable=get_object_minio,
+        op_args=(
+            "rge-latest.csv",
+            f"ae/data_aggregation/{ENV}/rge/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-latest.csv",
+        ),
+    )
+
+    update_es_rge = PythonOperator(
+        task_id="update_es_rge",
+        python_callable=update_elasticsearch_with_new_data,
+        op_args=(
+            "rge",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-latest.csv",
+            "rge-errors.txt",
+            "current",
+        ),
+    )
+
+    put_file_error_to_minio_rge = PythonOperator(
+        task_id="put_file_error_to_minio_rge",
+        python_callable=put_object_minio,
+        op_args=(
+            "rge-errors.txt",
+            f"ae/data_aggregation/{ENV}/rge/rge-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER }{DAG_NAME}/data/",
+        ),
+    )
+
+    get_latest_convcollective_data = PythonOperator(
+        task_id="get_latest_convcollective_data",
+        python_callable=get_object_minio,
+        op_args=(
+            "convcollective-latest.csv",
+            f"ae/data_aggregation/{ENV}/convcollective/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-latest.csv",
+        ),
+    )
+
+    update_es_convcollective = PythonOperator(
+        task_id="update_es_convcollective",
+        python_callable=update_elasticsearch_with_new_data,
+        op_args=(
+            "convcollective",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-latest.csv",
+            "convcollective-errors.txt",
+            "current",
+        ),
+    )
+
+    put_file_error_to_minio_convcollective = PythonOperator(
+        task_id="put_file_error_to_minio_convcollective",
+        python_callable=put_object_minio,
+        op_args=(
+            "convcollective-errors.txt",
+            f"ae/data_aggregation/{ENV}/convcollective/convcollective-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
+        ),
+    )
+
+    get_latest_finess_data = PythonOperator(
+        task_id="get_latest_finess_data",
+        python_callable=get_object_minio,
+        op_args=(
+            "finess-latest.csv",
+            f"ae/data_aggregation/{ENV}/finess/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME} /data/finess-latest.csv",
+        ),
+    )
+
+    update_es_finess = PythonOperator(
+        task_id="update_es_finess",
+        python_callable=update_elasticsearch_with_new_data,
+        op_args=(
+            "finess",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/finess-latest.csv",
+            "finess-errors.txt",
+            "current",
+        ),
+    )
+
+    put_file_error_to_minio_finess = PythonOperator(
+        task_id="put_file_error_to_minio_finess",
+        python_callable=put_object_minio,
+        op_args=(
+            "finess-errors.txt",
+            f"ae/data_aggregation/{ENV}/finess/finess-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
+        ),
+    )
+
+    get_latest_spectacle_data = PythonOperator(
+        task_id="get_latest_spectacle_data",
+        python_callable=get_object_minio,
+        op_args=(
+            "spectacle-latest.csv",
+            f"ae/data_aggregation/{ENV}/spectacle/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/spectacle-latest.csv",
+        ),
+    )
+
+    update_es_spectacle = PythonOperator(
+        task_id="update_es_spectacle",
+        python_callable=update_elasticsearch_with_new_data,
+        op_args=(
+            "spectacle",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/spectacle-latest.csv",
+            "spectacle-errors.txt",
+            "current",
+        ),
+    )
+
+    put_file_error_to_minio_spectacle = PythonOperator(
+        task_id="put_file_error_to_minio_spectacle",
+        python_callable=put_object_minio,
+        op_args=(
+            "spectacle-errors.txt",
+            f"ae/data_aggregation/{ENV}/spectacle/spectacle-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
+        ),
+    )
+    get_latest_uai_data = PythonOperator(
+        task_id="get_latest_uai_data",
+        python_callable=get_object_minio,
+        op_args=(
+            "uai-latest.csv",
+            f"ae/data_aggregation/{ENV}/uai/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/uai-latest.csv",
+        ),
+    )
+
+    update_es_uai = PythonOperator(
+        task_id="update_es_uai",
+        python_callable=update_elasticsearch_with_new_data,
+        op_args=(
+            "uai",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/uai-latest.csv",
+            "uai-errors.txt",
+            "current",
+        ),
+    )
+
+    put_file_error_to_minio_uai = PythonOperator(
+        task_id="put_file_error_to_minio_uai",
+        python_callable=put_object_minio,
+        op_args=(
+            "uai-errors.txt",
+            f"ae/data_aggregation/{ENV}/uai/uai-errors.txt",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
+        ),
+    )
+
     execute_aio_container = SSHOperator(
         ssh_conn_id="SERVER",
         task_id="execute_aio_container",
@@ -184,7 +409,42 @@ with DAG(
     create_sitemap.set_upstream(fill_elastic_index)
     update_sitemap.set_upstream(create_sitemap)
     check_elastic_index.set_upstream(fill_elastic_index)
-    update_color_file.set_upstream(check_elastic_index)
+
+    get_latest_colter_data.set_upstream(check_elastic_index)
+    update_es_colter.set_upstream(get_latest_colter_data)
+    put_file_error_to_minio_colter.set_upstream(update_es_colter)
+    get_latest_elu_data.set_upstream(put_file_error_to_minio_colter)
+    update_es_elu.set_upstream(get_latest_elu_data)
+    put_file_error_to_minio_elu.set_upstream(update_es_elu)
+
+    get_latest_rge_data.set_upstream(check_elastic_index)
+    update_es_rge.set_upstream(get_latest_rge_data)
+    put_file_error_to_minio_rge.set_upstream(update_es_rge)
+
+    get_latest_convcollective_data.set_upstream(check_elastic_index)
+    update_es_convcollective.set_upstream(get_latest_convcollective_data)
+    put_file_error_to_minio_convcollective.set_upstream(update_es_convcollective)
+
+    get_latest_finess_data.set_upstream(check_elastic_index)
+    update_es_finess.set_upstream(get_latest_finess_data)
+    put_file_error_to_minio_finess.set_upstream(update_es_finess)
+
+    get_latest_spectacle_data.set_upstream(check_elastic_index)
+    update_es_spectacle.set_upstream(get_latest_spectacle_data)
+    put_file_error_to_minio_spectacle.set_upstream(update_es_spectacle)
+
+    get_latest_uai_data.set_upstream(check_elastic_index)
+    update_es_uai.set_upstream(get_latest_uai_data)
+    put_file_error_to_minio_uai.set_upstream(update_es_uai)
+
+    update_color_file.set_upstream(put_file_error_to_minio_elu)
+    update_color_file.set_upstream(put_file_error_to_minio_rge)
+    update_color_file.set_upstream(put_file_error_to_minio_convcollective)
+    update_color_file.set_upstream(put_file_error_to_minio_finess)
+    update_color_file.set_upstream(put_file_error_to_minio_spectacle)
+    update_color_file.set_upstream(put_file_error_to_minio_uai)
+
     execute_aio_container.set_upstream(update_color_file)
+
     send_email.set_upstream(execute_aio_container)
     send_email.set_upstream(update_sitemap)

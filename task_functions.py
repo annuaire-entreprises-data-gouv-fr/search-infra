@@ -24,7 +24,6 @@ SIRENE_DATABASE_LOCATION = DATA_DIR + "sirene.db"
 DIRIG_DATABASE_LOCATION = DATA_DIR + "inpi.db"
 AIRFLOW_DAG_HOME = "/opt/airflow/dags/"
 ELASTIC_BULK_SIZE = 1500
-PATH_MINIO_INPI_DATA = "inpi/"
 
 AIRFLOW_URL = Variable.get("AIRFLOW_URL")
 COLOR_URL = Variable.get("COLOR_URL")
@@ -650,7 +649,12 @@ def create_siege_only_table(**kwargs):
     commit_and_close_conn(siren_db_conn)
 
 
-def get_dirig_database():
+def get_object_minio(
+    filename: str,
+    minio_path: str,
+    local_path: str,
+) -> None:
+    print(filename, minio_path, local_path)
     minio_url = MINIO_URL
     minio_bucket = MINIO_BUCKET
     minio_user = MINIO_USER
@@ -664,8 +668,8 @@ def get_dirig_database():
     )
     client.fget_object(
         minio_bucket,
-        f"{PATH_MINIO_INPI_DATA}inpi.db",
-        DIRIG_DATABASE_LOCATION,
+        f"{minio_path}{filename}",
+        local_path,
     )
 
 
@@ -1074,4 +1078,33 @@ def update_sitemap():
             object_name=minio_filepath,
             file_path=DATA_DIR + "sitemap-" + ENV + ".csv",
             content_type="text/csv",
+        )
+
+
+def put_object_minio(
+    filename: str,
+    minio_path: str,
+    local_path: str,
+):
+
+    minio_url = MINIO_URL
+    minio_bucket = MINIO_BUCKET
+    minio_user = MINIO_USER
+    minio_password = MINIO_PASSWORD
+
+    # Start client
+    client = Minio(
+        minio_url,
+        access_key=minio_user,
+        secret_key=minio_password,
+        secure=True,
+    )
+
+    # Check if bucket exists
+    found = client.bucket_exists(minio_bucket)
+    if found:
+        client.fput_object(
+            bucket_name=minio_bucket,
+            object_name=minio_path,
+            file_path=local_path + filename,
         )

@@ -74,6 +74,14 @@ class ElasticsearchDirigeantPMIndex(InnerDoc):
     qualite = Text(analyzer=annuaire_analyzer)
 
 
+class ElasticsearchEluIndex(InnerDoc):
+    nom = Text()
+    prenom = Text()
+    date_naissance = Date()
+    sexe = Text()
+    fonction = Text()
+
+
 class ElasticsearchSireneIndex(Document):
     """
 
@@ -94,6 +102,10 @@ class ElasticsearchSireneIndex(Document):
     cedex = Keyword()
     code_pays_etranger = Text()
     code_postal = Keyword()
+    colter_code = Keyword()
+    colter_code_insee = Keyword()
+    colter_elus = Nested(ElasticsearchEluIndex)
+    colter_niveau = Keyword()
     commune = Keyword()
     complement_adresse = Text()
     concat_enseigne_adresse = Text(analyzer=annuaire_analyzer)
@@ -118,6 +130,7 @@ class ElasticsearchSireneIndex(Document):
     identifiant_association_unite_legale = Keyword()
     indice_repetition = Text()
     is_entrepreneur_individuel = Boolean()
+    is_entrepreneur_spectacle = Boolean()
     is_siege = Boolean()
     latitude = Text()
     libelle_cedex = Text()
@@ -126,8 +139,12 @@ class ElasticsearchSireneIndex(Document):
     libelle_pays_etranger = Text()
     libelle_voie = Text()
     liste_adresses = Text(analyzer=annuaire_analyzer)
+    liste_idcc = Text()
     liste_dirigeants = Text(analyzer=annuaire_analyzer)
     liste_enseignes = Text(analyzer=annuaire_analyzer)
+    liste_finess = Text()
+    liste_rge = Text()
+    liste_uai = Text()
     longitude = Text()
     nature_juridique_unite_legale = Integer()
     nom = Text(analyzer=annuaire_analyzer)
