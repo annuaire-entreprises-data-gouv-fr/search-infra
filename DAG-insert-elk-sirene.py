@@ -163,7 +163,7 @@ with DAG(
         op_args=(
             "colter-latest.csv",
             f"ae/data_aggregation/{ENV}/colter/",
-            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME} /data/colter-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/colter-latest.csv",
         ),
     )
 
