@@ -246,7 +246,7 @@ with DAG(
         op_args=(
             "rge-errors.txt",
             f"ae/data_aggregation/{ENV}/rge/rge-errors.txt",
-            f"{TMP_FOLDER}{DAG_FOLDER }{DAG_NAME}/data/",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
 
@@ -287,7 +287,7 @@ with DAG(
         op_args=(
             "finess-latest.csv",
             f"ae/data_aggregation/{ENV}/finess/",
-            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME} /data/finess-latest.csv",
+            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/finess-latest.csv",
         ),
     )
 
