@@ -34,7 +34,6 @@ def preprocess_rge_data(
         .reset_index(name="liste_rge")
     )
     agg_rge = agg_rge[["siren", "liste_rge"]]
-
     agg_rge.to_csv(data_dir + "rge-new.csv", index=False)
 
 

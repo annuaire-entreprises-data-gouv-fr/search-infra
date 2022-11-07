@@ -47,7 +47,7 @@ with DAG(
 
     clean_previous_folder = CleanFolderOperator(
         task_id="clean_previous_folder",
-        folder_path=f"{TMP_FOLDER}+{DAG_FOLDER}+{DAG_NAME}",
+        folder_path=f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}",
     )
 
     preprocess_rge_data = PythonOperator(
@@ -101,7 +101,7 @@ with DAG(
         python_callable=put_object_minio,
         op_args=(
             "rge-new.csv",
-            "ae/data_aggregation/" + ENV + "/rge/rge-latest.csv",
+            f"ae/data_aggregation/{ENV}/rge/rge-latest.csv",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
         ),
     )
