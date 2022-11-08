@@ -65,7 +65,7 @@ def drop_exact_duplicates(list_dict):
 def publish_mattermost(
     text,
 ) -> None:
-    data = {"text": text}
+    data = {"text": f"{text} ({ENV})"}
     if ENV == "PROD" or ENV == "STAGING":
         r = requests.post(
             "https://mattermost.incubateur.net/hooks/z4k8a159yjnx584idit1ubf74r",
