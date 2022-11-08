@@ -66,12 +66,12 @@ def publish_mattermost(
     text,
 ) -> None:
     data = {"text": text}
-    if ENV == "dev-geoff":
+    if ENV == "PROD" or ENV == "STAGING":
         r = requests.post(
-            "https://mattermost.incubateur.net/hooks/geww4je6minn9p9m6qq6xiwu3a",
+            "https://mattermost.incubateur.net/hooks/z4k8a159yjnx584idit1ubf74r",
             json=data,
         )
-        print(r.status_code)
+        logging.info(f"Status code: {r.status_code}")
 
 
 def compare_versions_file(
