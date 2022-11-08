@@ -66,7 +66,7 @@ def publish_mattermost(
     text,
 ) -> None:
     data = {"text": f"{text} ({ENV})"}
-    if ENV == "PROD" or ENV == "STAGING":
+    if ENV == "prod" or ENV == "staging":
         r = requests.post(
             "https://mattermost.incubateur.net/hooks/z4k8a159yjnx584idit1ubf74r",
             json=data,
