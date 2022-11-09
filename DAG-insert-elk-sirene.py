@@ -174,7 +174,7 @@ with DAG(
             "colter",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/colter-latest.csv",
             "colter-errors.txt",
-            "current",
+            "next",
         ),
     )
 
@@ -205,7 +205,7 @@ with DAG(
             "elu",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/elu-latest.csv",
             "elu-errors.txt",
-            "current",
+            "next",
         ),
     )
 
@@ -236,7 +236,7 @@ with DAG(
             "rge",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/rge-latest.csv",
             "rge-errors.txt",
-            "current",
+            "next",
         ),
     )
 
@@ -267,7 +267,7 @@ with DAG(
             "convcollective",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-latest.csv",
             "convcollective-errors.txt",
-            "current",
+            "next",
         ),
     )
 
@@ -298,7 +298,7 @@ with DAG(
             "finess",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/finess-latest.csv",
             "finess-errors.txt",
-            "current",
+            "next",
         ),
     )
 
@@ -329,7 +329,7 @@ with DAG(
             "spectacle",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/spectacle-latest.csv",
             "spectacle-errors.txt",
-            "current",
+            "next",
         ),
     )
 
@@ -359,7 +359,7 @@ with DAG(
             "uai",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/uai-latest.csv",
             "uai-errors.txt",
-            "current",
+            "next",
         ),
     )
 
