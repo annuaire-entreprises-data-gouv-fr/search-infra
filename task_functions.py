@@ -283,7 +283,7 @@ def create_etablissement_table():
             date_creation,
             tranche_effectif_salarie,
             activite_principale_registre_metier,
-            is_siege,
+            est_siege,
             numero_voie,
             type_voie,
             libelle_voie,
@@ -393,7 +393,7 @@ def create_etablissement_table():
                 "trancheEffectifsEtablissement": "tranche_effectif_salarie",
                 "activitePrincipaleRegistreMetiersEtablissement": "activite_principale"
                 "_registre_metier",
-                "etablissementSiege": "is_siege",
+                "etablissementSiege": "est_siege",
                 "numeroVoieEtablissement": "numero_voie",
                 "typeVoieEtablissement": "type_voie",
                 "libelleVoieEtablissement": "libelle_voie",
@@ -500,7 +500,7 @@ def create_siege_only_table(**kwargs):
             date_creation,
             tranche_effectif_salarie,
             activite_principale_registre_metier,
-            is_siege,
+            est_siege,
             numero_voie,
             type_voie,
             libelle_voie,
@@ -548,7 +548,7 @@ def create_siege_only_table(**kwargs):
             date_creation,
             tranche_effectif_salarie,
             activite_principale_registre_metier,
-            is_siege,
+            est_siege,
             numero_voie,
             type_voie,
             libelle_voie,
@@ -593,7 +593,7 @@ def create_siege_only_table(**kwargs):
             date_creation,
             tranche_effectif_salarie,
             activite_principale_registre_metier,
-            is_siege,
+            est_siege,
             numero_voie,
             type_voie,
             libelle_voie,
@@ -633,7 +633,7 @@ def create_siege_only_table(**kwargs):
             geo_adresse,
             geo_id
         FROM siret
-        WHERE is_siege = 'true';
+        WHERE est_siege = 'true';
     """
     )
     siren_db_cursor.execute(
@@ -881,7 +881,7 @@ def fill_elastic_index(**kwargs):
             ul.prenom as prenom,
             ul.nom as nom,
             ul.nom_usage as nom_usage,
-            st.is_siege as is_siege,
+            st.est_siege as est_siege,
             (SELECT json_group_array(
                 json_object(
                     'siren', siren,

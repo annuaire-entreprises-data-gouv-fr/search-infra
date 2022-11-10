@@ -63,9 +63,9 @@ def format_nom(
 # Entrepreneur individuel
 def is_entrepreneur_individuel(nature_juridique_unite_legale):
     if nature_juridique_unite_legale in ["1", "10", "1000"]:
-        return "true"
+        return True
     else:
-        return "false"
+        return False
 
 
 # Section activité principale

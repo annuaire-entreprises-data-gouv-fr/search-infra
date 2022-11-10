@@ -107,10 +107,10 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         unite_legale_processed[
-            "is_entrepreneur_individuel"
+            "est_entrepreneur_individuel"
         ] = is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
 
-        if unite_legale_processed["is_entrepreneur_individuel"] == "true":
+        if unite_legale_processed["est_entrepreneur_individuel"]:
             unite_legale_processed["liste_dirigeants"].append(
                 unite_legale_processed["nom_complet"]
             )

@@ -18,11 +18,11 @@ def preprocess_spectacle_data(
 
     df_spectacle = pd.read_csv(data_dir + "spectacle-download.csv", dtype=str, sep=";")
     df_spectacle = df_spectacle[df_spectacle["statut_du_recepisse"] == "Valide"]
-    df_spectacle["is_entrepreneur_spectacle"] = True
+    df_spectacle["est_entrepreneur_spectacle"] = True
     df_spectacle["siren"] = df_spectacle[
         "siren_personne_physique_siret_personne_morale"
     ].str[:9]
-    df_spectacle = df_spectacle[["siren", "is_entrepreneur_spectacle"]]
+    df_spectacle = df_spectacle[["siren", "est_entrepreneur_spectacle"]]
     df_spectacle = df_spectacle[df_spectacle["siren"].notna()]
     df_spectacle.to_csv(data_dir + "spectacle-new.csv", index=False)
 
@@ -35,6 +35,6 @@ def generate_updates_spectacle(df_spectacle, current_color):
             "_type": "_doc",
             "_id": row["siren"],
             "doc": {
-                "is_entrepreneur_spectacle": True,
+                "est_entrepreneur_spectacle": True,
             },
         }
