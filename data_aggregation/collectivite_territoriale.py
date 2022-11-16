@@ -223,6 +223,10 @@ def generate_updates_elu(df_elus, current_color):
                     row[col] = None
 
             list_elus.append(row.to_dict())
+        list_elus_names = []
+        for elu in list_elus:
+            name_elu = f"{elu['nom']} {elu['prenom']}"
+            list_elus_names.append(name_elu)
         yield {
             "_op_type": "update",
             "_index": "siren-" + current_color,
@@ -230,5 +234,6 @@ def generate_updates_elu(df_elus, current_color):
             "_id": siren,
             "doc": {
                 "colter_elus": list_elus,
+                "liste_elus": list_elus_names,
             },
         }
