@@ -62,7 +62,7 @@ def update_elasticsearch_with_new_data(
         generations = generate_updates_elu(df, color)
 
     for success, details in helpers.parallel_bulk(
-        elastic_connection, generations, chunk_size=1500, raise_on_error=False
+        elastic_connection, generations, chunk_size=500, raise_on_error=False
     ):
         if not success:
             list_errors.append(details["update"]["_id"])
