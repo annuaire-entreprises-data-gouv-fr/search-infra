@@ -127,7 +127,8 @@ def process_unites_legales(chunk_unites_legales_sqlite):
 
         # Etablissements
         unite_legale_processed["etablissements"] = format_etablissements(
-            unite_legale["etablissements"], unite_legale_processed["nom_complet"])
+            unite_legale["etablissements"], unite_legale_processed["nom_complet"]
+        )
 
         unite_legale_processed[
             "section_activite_principale"

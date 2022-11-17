@@ -74,6 +74,7 @@ class ElasticsearchDirigeantPMIndex(InnerDoc):
     sigle = Text(analyzer=annuaire_analyzer)
     qualite = Text(analyzer=annuaire_analyzer)
 
+
 class ElasticsearchEtablissementIndex(InnerDoc):
     siren = Keyword(required=True)
     siret = Keyword(required=True)

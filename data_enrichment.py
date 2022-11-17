@@ -256,23 +256,19 @@ def format_etablissements(list_etablissements_sqlite, nom_complet):
         )
         etablissement["nom_complet"] = nom_complet
         etablissement["concat_nom_enseigne_adresse_siren_siret"] = (
-                get_empty_string_if_none(etablissement["nom_complet"])
-                + " "
-                + get_empty_string_if_none(
-            etablissement["enseigne_1"])
-                + " "
-                + get_empty_string_if_none(
-            etablissement["enseigne_2"])
-                + " "
-                + get_empty_string_if_none(
-            etablissement["enseigne_3"])
-                + " "
-                + get_empty_string_if_none(
-            etablissement["adresse"])
-                + " "
-                + get_empty_string_if_none(etablissement["siren"])
-                + " "
-                + get_empty_string_if_none(etablissement["siret"])
+            get_empty_string_if_none(etablissement["nom_complet"])
+            + " "
+            + get_empty_string_if_none(etablissement["enseigne_1"])
+            + " "
+            + get_empty_string_if_none(etablissement["enseigne_2"])
+            + " "
+            + get_empty_string_if_none(etablissement["enseigne_3"])
+            + " "
+            + get_empty_string_if_none(etablissement["adresse"])
+            + " "
+            + get_empty_string_if_none(etablissement["siren"])
+            + " "
+            + get_empty_string_if_none(etablissement["siret"])
         ).strip()
         etablissements_processed.append(etablissement)
     return etablissements_processed
