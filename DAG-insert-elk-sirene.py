@@ -409,7 +409,6 @@ with DAG(
     check_elastic_index.set_upstream(fill_elastic_index_siren)
     create_sitemap.set_upstream(check_elastic_index)
     update_sitemap.set_upstream(create_sitemap)
-    check_elastic_index.set_upstream(fill_elastic_index)
 
     get_latest_colter_data.set_upstream(check_elastic_index)
     update_es_colter.set_upstream(get_latest_colter_data)

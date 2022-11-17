@@ -10,12 +10,6 @@ import pandas as pd
 import requests
 from airflow.models import Variable
 from dag_datalake_sirene.elasticsearch.create_sirene_index import ElasticCreateSiren
-from dag_datalake_sirene.elasticsearch.indexing_etablissement import (
-    index_etablissements_by_chunk,
-)
-from dag_datalake_sirene.elasticsearch.create_sirene_index import (
-    ElasticCreateSiren,
-)
 from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
     index_unites_legales_by_chunk,
 )
@@ -973,19 +967,19 @@ def fill_elastic_index_siren(**kwargs):
                     )
                 ) FROM
                 (
-                    SELECT siren, siret, date_creation, tranche_effectif_salarie, 
-                    activite_principale_registre_metier, is_siege, numero_voie, 
-                    type_voie, libelle_voie, code_postal, libelle_cedex, 
-                    libelle_commune, commune, complement_adresse, 
-                    complement_adresse_2, numero_voie_2, commune_2, 
-                    libelle_commune_2, cedex_2, libelle_cedex_2, libelle_cedex_2, 
-                    cedex, date_debut_activite, distribution_speciale, 
-                    distribution_speciale_2, etat_administratif_etablissement, 
-                    enseigne_1, enseigne_2, enseigne_3, activite_principale, 
-                    indice_repetition, nom_commercial, libelle_commune_etranger, 
-                    code_pays_etranger, libelle_pays_etranger, 
-                    libelle_commune_etranger_2, code_pays_etranger_2, 
-                    libelle_pays_etranger_2, longitude, latitude, geo_adresse, geo_id                   
+                    SELECT siren, siret, date_creation, tranche_effectif_salarie,
+                    activite_principale_registre_metier, is_siege, numero_voie,
+                    type_voie, libelle_voie, code_postal, libelle_cedex,
+                    libelle_commune, commune, complement_adresse,
+                    complement_adresse_2, numero_voie_2, commune_2,
+                    libelle_commune_2, cedex_2, libelle_cedex_2, libelle_cedex_2,
+                    cedex, date_debut_activite, distribution_speciale,
+                    distribution_speciale_2, etat_administratif_etablissement,
+                    enseigne_1, enseigne_2, enseigne_3, activite_principale,
+                    indice_repetition, nom_commercial, libelle_commune_etranger,
+                    code_pays_etranger, libelle_pays_etranger,
+                    libelle_commune_etranger_2, code_pays_etranger_2,
+                    libelle_pays_etranger_2, longitude, latitude, geo_adresse, geo_id               
                     FROM siret
                     WHERE siren = st.siren
                 )
@@ -1018,9 +1012,11 @@ def check_elastic_index(**kwargs):
     doc_count = kwargs["ti"].xcom_pull(
         key="doc_count_siren", task_ids="fill_elastic_index_siren"
     )
+    """
     count_sieges = kwargs["ti"].xcom_pull(
         key="count_sieges", task_ids="create_siege_only_table"
     )
+    """
 
     logging.info(f"******************** Documents indexed: {doc_count}")
 

@@ -6,7 +6,6 @@ from elasticsearch_dsl import (
     GeoPoint,
     InnerDoc,
     Integer,
-    Join,
     Keyword,
     Nested,
     Text,
