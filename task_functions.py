@@ -978,7 +978,7 @@ def fill_elastic_index_siren(**kwargs):
                     indice_repetition, nom_commercial, libelle_commune_etranger,
                     code_pays_etranger, libelle_pays_etranger,
                     libelle_commune_etranger_2, code_pays_etranger_2,
-                    libelle_pays_etranger_2, longitude, latitude, geo_adresse, geo_id               
+                    libelle_pays_etranger_2, longitude, latitude, geo_adresse, geo_id
                     FROM siret
                     WHERE siren = st.siren
                 )
