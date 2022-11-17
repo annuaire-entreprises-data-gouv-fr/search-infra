@@ -882,7 +882,6 @@ def fill_elastic_index_siren(**kwargs):
             ul.prenom as prenom,
             ul.nom as nom,
             ul.nom_usage as nom_usage,
-            st.est_siege as est_siege,
             (SELECT json_group_array(
                 json_object(
                     'siren', siren,
@@ -925,7 +924,7 @@ def fill_elastic_index_siren(**kwargs):
                     'tranche_effectif_salarie',tranche_effectif_salarie,
                     'activite_principale_registre_metier',
                     activite_principale_registre_metier,
-                    'is_siege',is_siege,
+                    'est_siege',is_siege,
                     'numero_voie',numero_voie,
                     'type_voie',type_voie,
                     'libelle_voie',libelle_voie,
