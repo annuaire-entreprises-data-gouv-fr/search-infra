@@ -924,7 +924,7 @@ def fill_elastic_index_siren(**kwargs):
                     'tranche_effectif_salarie',tranche_effectif_salarie,
                     'activite_principale_registre_metier',
                     activite_principale_registre_metier,
-                    'est_siege',is_siege,
+                    'est_siege',est_siege,
                     'numero_voie',numero_voie,
                     'type_voie',type_voie,
                     'libelle_voie',libelle_voie,
@@ -967,7 +967,7 @@ def fill_elastic_index_siren(**kwargs):
                 ) FROM
                 (
                     SELECT siren, siret, date_creation, tranche_effectif_salarie,
-                    activite_principale_registre_metier, is_siege, numero_voie,
+                    activite_principale_registre_metier, est_siege, numero_voie,
                     type_voie, libelle_voie, code_postal, libelle_cedex,
                     libelle_commune, commune, complement_adresse,
                     complement_adresse_2, numero_voie_2, commune_2,
