@@ -222,4 +222,5 @@ class ElasticsearchSireneIndex(Document):
             "number_of_shards": 4,
             "number_of_replicas": 0,
             "mapping": {"ignore_malformed": True},
+            "index.mapping.nested_objects.limit": 20000,
         }
