@@ -124,6 +124,7 @@ class ElasticsearchEtablissementIndex(InnerDoc):
         analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
     )
     adresse = Text(analyzer=annuaire_analyzer)
+    id_finess = Keyword()
 
 
 class ElasticsearchEluIndex(InnerDoc):
