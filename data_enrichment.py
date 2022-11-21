@@ -270,5 +270,12 @@ def format_etablissements(list_etablissements_sqlite, nom_complet):
             + " "
             + get_empty_string_if_none(etablissement["siret"])
         ).strip()
+        etablissement["coordonnees"] = format_coordonnees(
+            etablissement["longitude"], etablissement["latitude"]
+        )
+        etablissement["departement"] = format_departement(
+            etablissement["commune"]
+        )
+        
         etablissements_processed.append(etablissement)
     return etablissements_processed
