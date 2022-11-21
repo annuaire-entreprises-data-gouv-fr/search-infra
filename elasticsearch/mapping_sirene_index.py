@@ -93,6 +93,7 @@ class ElasticsearchEtablissementIndex(InnerDoc):
     complement_adresse_2 = Text()
     date_creation = Date()
     date_debut_activite = Date()
+    departement = Keyword()
     distribution_speciale = Text()
     distribution_speciale_2 = Text()
     enseigne_1 = Text(analyzer=annuaire_analyzer)
