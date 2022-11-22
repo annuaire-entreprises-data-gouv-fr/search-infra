@@ -41,7 +41,6 @@ def generate_updates_uai(df_uai, current_color):
                 "params": {
                     "siret": row["siret"],
                     "id_uai": row["uai"],
-
                 },
             },
         }

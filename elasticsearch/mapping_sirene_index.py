@@ -151,6 +151,7 @@ class ElasticsearchSireneIndex(Document):
     one siren number and the corresponding headquarters siret number
 
     """
+
     activite_principale_unite_legale = Keyword()
     categorie_entreprise = Text()
     colter_code = Keyword()

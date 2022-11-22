@@ -913,19 +913,19 @@ def fill_elastic_index_siren(**kwargs):
                     )
                 ) FROM
                 (
-                    SELECT activite_principale, activite_principale_registre_metier, 
-                    cedex, cedex_2, code_pays_etranger, code_pays_etranger_2, 
-                    code_postal, commune, commune_2, complement_adresse, 
-                    complement_adresse_2, date_creation, date_debut_activite, 
-                    distribution_speciale, distribution_speciale_2, enseigne_1, 
-                    enseigne_2, enseigne_3, est_siege, etat_administratif_etablissement, 
-                    geo_adresse, geo_id, indice_repetition, indice_repetition_2, 
-                    latitude, libelle_cedex, libelle_cedex_2, libelle_commune, 
-                    libelle_commune_2, libelle_commune_etranger, 
-                    libelle_commune_etranger_2, libelle_pays_etranger, 
+                    SELECT activite_principale, activite_principale_registre_metier,
+                    cedex, cedex_2, code_pays_etranger, code_pays_etranger_2,
+                    code_postal, commune, commune_2, complement_adresse,
+                    complement_adresse_2, date_creation, date_debut_activite,
+                    distribution_speciale, distribution_speciale_2, enseigne_1,
+                    enseigne_2, enseigne_3, est_siege, etat_administratif_etablissement,
+                    geo_adresse, geo_id, indice_repetition, indice_repetition_2,
+                    latitude, libelle_cedex, libelle_cedex_2, libelle_commune,
+                    libelle_commune_2, libelle_commune_etranger,
+                    libelle_commune_etranger_2, libelle_pays_etranger,
                     libelle_pays_etranger_2, libelle_voie, libelle_voie_2, longitude,
-                    nom_commercial, numero_voie, numero_voie_2, siren, siret, 
-                    tranche_effectif_salarie, type_voie, type_voie_2 
+                    nom_commercial, numero_voie, numero_voie_2, siren, siret,
+                    tranche_effectif_salarie, type_voie, type_voie_2
                     FROM siret
                     WHERE siren = st.siren
                 )

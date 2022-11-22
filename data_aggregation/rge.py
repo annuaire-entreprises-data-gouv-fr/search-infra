@@ -40,13 +40,12 @@ def generate_updates_rge(df_rge, current_color):
             "_id": row["siren"],
             "script": {
                 "source": "def targets = ctx._source.etablissements.findAll("
-                          "etablissement -> etablissement.siret == params.siret); "
-                          "for(etablissement in targets)"
-                          "{etablissement.id_rge = params.id_rge}",
+                "etablissement -> etablissement.siret == params.siret); "
+                "for(etablissement in targets)"
+                "{etablissement.id_rge = params.id_rge}",
                 "params": {
                     "siret": row["siret"],
                     "id_rge": row["code_qualification"],
-
                 },
             },
         }

@@ -49,7 +49,6 @@ def generate_updates_finess(df_finess, current_color):
                 "params": {
                     "siret": row["siret"],
                     "id_finess": row["finess"],
-
                 },
             },
         }

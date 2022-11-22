@@ -273,9 +273,6 @@ def format_etablissements(list_etablissements_sqlite, nom_complet):
         etablissement["coordonnees"] = format_coordonnees(
             etablissement["longitude"], etablissement["latitude"]
         )
-        etablissement["departement"] = format_departement(
-            etablissement["commune"]
-        )
-        
+        etablissement["departement"] = format_departement(etablissement["commune"])
         etablissements_processed.append(etablissement)
     return etablissements_processed
