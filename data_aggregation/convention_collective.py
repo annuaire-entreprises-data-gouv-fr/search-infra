@@ -25,23 +25,25 @@ def preprocess_convcollective_data(
     )
     df_conv_coll["siren"] = df_conv_coll["siret"].str[0:9]
     df_conv_coll["idcc"] = df_conv_coll["idcc"].apply(lambda x: str(x).replace(" ", ""))
-    liste_cc = (
-        df_conv_coll.groupby(by=["siren"])["idcc"]
-        .apply(list)
-        .reset_index(name="liste_idcc")
-    )
-    liste_cc.to_csv(data_dir + "convcollective-new.csv", index=False)
+    df_conv_coll = df_conv_coll[["idcc", "siren", "siret"]]
+    df_conv_coll.to_csv(data_dir + "convcollective-new.csv", index=False)
 
 
 def generate_updates_convcollective(df_conv_coll, current_color):
-    df_conv_coll["liste_idcc"] = df_conv_coll["liste_idcc"].apply(literal_eval)
     for index, row in df_conv_coll.iterrows():
         yield {
             "_op_type": "update",
             "_index": "siren-" + current_color,
             "_type": "_doc",
             "_id": row["siren"],
-            "doc": {
-                "liste_idcc": list(set(row["liste_idcc"])),
+            "script": {
+                "source": "def targets = ctx._source.etablissements.findAll("
+                "etablissement -> etablissement.siret == params.siret); "
+                "for(etablissement in targets)"
+                "{etablissement.id_cc = params.id_cc}",
+                "params": {
+                    "siret": row["siret"],
+                    "id_cc": row["idcc"],
+                },
             },
         }
