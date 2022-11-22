@@ -23,20 +23,26 @@ def preprocess_uai_data(
         columns={"identifiant_de_l_etablissement": "uai", "siren_siret": "siren"}
     )
     df_uai["siren"] = df_uai["siren"].str[:9]
-    agg_uai = df_uai.groupby(["siren"])["uai"].apply(list).reset_index(name="liste_uai")
-    agg_uai = agg_uai[["siren", "liste_uai"]]
-    agg_uai.to_csv(data_dir + "uai-new.csv", index=False)
+    df_uai = df_uai[["siren", "siret", "uai"]]
+    df_uai.to_csv(data_dir + "uai-new.csv", index=False)
 
 
 def generate_updates_uai(df_uai, current_color):
-    df_uai["liste_uai"] = df_uai["liste_uai"].apply(literal_eval)
     for index, row in df_uai.iterrows():
         yield {
             "_op_type": "update",
             "_index": "siren-" + current_color,
             "_type": "_doc",
             "_id": row["siren"],
-            "doc": {
-                "liste_uai": list(set(row["liste_uai"])),
+            "script": {
+                "source": "def targets = ctx._source.etablissements.findAll("
+                "etablissement -> etablissement.siret == params.siret); "
+                "for(etablissement in targets)"
+                "{etablissement.id_uai = params.id_uai}",
+                "params": {
+                    "siret": row["siret"],
+                    "id_uai": row["uai"],
+
+                },
             },
         }
