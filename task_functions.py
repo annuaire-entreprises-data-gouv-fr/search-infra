@@ -822,8 +822,8 @@ def fill_elastic_index_siren(**kwargs):
         ul.prenom as prenom,
         ul.sigle as sigle,
         ul.siren,
-        st.siret as siret_siege,   
-        ul.tranche_effectif_salarie_unite_legale as 
+        st.siret as siret_siege,
+        ul.tranche_effectif_salarie_unite_legale as
         tranche_effectif_salarie_unite_legale,
         (SELECT count FROM count_etab ce WHERE ce.siren = st.siren) as
         nombre_etablissements,
@@ -904,7 +904,7 @@ def fill_elastic_index_siren(**kwargs):
                     'longitude',longitude,
                     'nom_commercial',nom_commercial,
                     'numero_voie',numero_voie,
-                    'numero_voie_2',numero_voie_2,     
+                    'numero_voie_2',numero_voie_2,
                     'siren', siren,
                     'siret', siret,
                     'tranche_effectif_salarie',tranche_effectif_salarie,
