@@ -152,14 +152,13 @@ class ElasticsearchSireneIndex(Document):
 
     """
     activite_principale_unite_legale = Keyword()
-    activite_principale_registre_metier = Keyword()
     categorie_entreprise = Text()
     colter_code = Keyword()
     colter_code_insee = Keyword()
     colter_elus = Nested(ElasticsearchEluIndex)
     colter_niveau = Keyword()
     date_creation_unite_legale = Date()
-    date_mise_a_jour = Date()
+    date_mise_a_jour_unite_legale = Date()
     dirigeants_pp = Nested(ElasticsearchDirigeantPPIndex)
     dirigeants_pm = Nested(ElasticsearchDirigeantPMIndex)
     economie_sociale_solidaire_unite_legale = Keyword()
@@ -180,6 +179,7 @@ class ElasticsearchSireneIndex(Document):
     section_activite_principale = Keyword()
     sigle = Keyword()
     siren = Keyword(required=True)
+    siret_siege = Keyword()
     tranche_effectif_salarie_unite_legale = Keyword()
 
     class Index:
