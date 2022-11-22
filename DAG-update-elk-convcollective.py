@@ -38,7 +38,7 @@ with DAG(
     default_args=default_args,
     schedule_interval="0 22 4,5,10,15,20,25 * *",
     start_date=days_ago(6),
-    dagrun_timeout=timedelta(minutes=60),
+    dagrun_timeout=timedelta(minutes=240),
     tags=["convcollective"],
 ) as dag:
     get_colors = PythonOperator(
