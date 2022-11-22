@@ -28,24 +28,26 @@ def preprocess_rge_data(
         list_rge = list_rge + data["results"]
     df_rge = pd.DataFrame(list_rge)
     df_rge["siren"] = df_rge["siret"].str[:9]
-    agg_rge = (
-        df_rge.groupby(["siren"])["code_qualification"]
-        .apply(list)
-        .reset_index(name="liste_rge")
-    )
-    agg_rge = agg_rge[["siren", "liste_rge"]]
-    agg_rge.to_csv(data_dir + "rge-new.csv", index=False)
+    df_rge = df_rge[["siren", "siret", "code_qualification"]]
+    df_rge.to_csv(data_dir + "rge-new.csv", index=False)
 
 
 def generate_updates_rge(df_rge, current_color):
-    df_rge["liste_rge"] = df_rge["liste_rge"].apply(literal_eval)
     for index, row in df_rge.iterrows():
         yield {
             "_op_type": "update",
             "_index": "siren-" + current_color,
             "_type": "_doc",
             "_id": row["siren"],
-            "doc": {
-                "liste_rge": list(set(row["liste_rge"])),
+            "script": {
+                "source": "def targets = ctx._source.etablissements.findAll("
+                          "etablissement -> etablissement.siret == params.siret); "
+                          "for(etablissement in targets)"
+                          "{etablissement.id_rge = params.id_rge}",
+                "params": {
+                    "siret": row["siret"],
+                    "id_rge": row["code_qualification"],
+
+                },
             },
         }
