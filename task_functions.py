@@ -807,100 +807,47 @@ def fill_elastic_index_siren(**kwargs):
     siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
     siren_db_cursor.execute(
         """SELECT
-        ul.siren,
-        st.siret as siret_siege,
-        st.date_creation as date_creation_siege,
-        st.tranche_effectif_salarie as tranche_effectif_salarie_siege,
-        st.date_debut_activite as date_debut_activite_siege,
-        st.etat_administratif_etablissement as etat_administratif_siege,
-        st.activite_principale as activite_principale_siege,
-        st.complement_adresse as complement_adresse,
-        st.numero_voie as numero_voie,
-        st.indice_repetition as indice_repetition,
-        st.type_voie as type_voie,
-        st.libelle_voie as libelle_voie,
-        st.distribution_speciale as distribution_speciale,
-        st.cedex as cedex,
-        st.libelle_cedex as libelle_cedex,
-        st.commune as commune,
-        st.libelle_commune as libelle_commune,
-        st.code_pays_etranger as code_pays_etranger,
-        st.libelle_commune_etranger as libelle_commune_etranger,
-        st.libelle_pays_etranger as libelle_pays_etranger,
-        st.code_postal as code_postal,
-        st.geo_id as geo_id,
-        st.longitude as longitude,
-        st.latitude as latitude,
-        st.activite_principale_registre_metier as activite_principale_registre_metier,
-        ul.date_creation_unite_legale as date_creation_unite_legale,
-        ul.tranche_effectif_salarie_unite_legale
-        as tranche_effectif_salarie_unite_legale,
-        ul.date_mise_a_jour_unite_legale as date_mise_a_jour,
-        ul.categorie_entreprise as categorie_entreprise,
-        ul.etat_administratif_unite_legale as etat_administratif_unite_legale,
-        ul.nom_raison_sociale as nom_raison_sociale,
-        ul.nature_juridique_unite_legale as nature_juridique_unite_legale,
         ul.activite_principale_unite_legale as activite_principale_unite_legale,
+        ul.categorie_entreprise as categorie_entreprise,
+        ul.date_creation_unite_legale as date_creation_unite_legale,
+        ul.date_mise_a_jour_unite_legale as date_mise_a_jour_unite_legale,
         ul.economie_sociale_solidaire_unite_legale as
         economie_sociale_solidaire_unite_legale,
+        ul.etat_administratif_unite_legale as etat_administratif_unite_legale,
         ul.identifiant_association_unite_legale as identifiant_association_unite_legale,
+        ul.nature_juridique_unite_legale as nature_juridique_unite_legale,
+        ul.nom as nom,
+        ul.nom_raison_sociale as nom_raison_sociale,
+        ul.nom_usage as nom_usage,
+        ul.prenom as prenom,
+        ul.sigle as sigle,
+        ul.siren,
+        st.siret as siret_siege,   
+        ul.tranche_effectif_salarie_unite_legale as 
+        tranche_effectif_salarie_unite_legale,
         (SELECT count FROM count_etab ce WHERE ce.siren = st.siren) as
         nombre_etablissements,
         (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = st.siren) as
         nombre_etablissements_ouverts,
         (SELECT json_group_array(
             json_object(
-                'enseigne_1', enseigne_1,
-                'enseigne_2', enseigne_2,
-                'enseigne_3', enseigne_3)
-            ) FROM
-            (SELECT enseigne_1, enseigne_2, enseigne_3 from siret
-            WHERE siren = st.siren)
-        ) as enseignes,
-        (SELECT json_group_array(
-            json_object(
-            'complement_adresse', complement_adresse,
-            'numero_voie', numero_voie,
-            'indice_repetition', indice_repetition,
-            'type_voie', type_voie,
-            'libelle_voie', libelle_voie,
-            'libelle_commune', libelle_commune,
-            'libelle_cedex', libelle_cedex,
-            'distribution_speciale', distribution_speciale,
-            'commune', commune,
-            'cedex', cedex,
-            'libelle_commune_etranger', libelle_commune_etranger,
-            'libelle_pays_etranger', libelle_pays_etranger)
-            ) FROM
-            (SELECT complement_adresse, numero_voie, indice_repetition,
-            type_voie, libelle_voie, libelle_commune, distribution_speciale,
-            commune, cedex, libelle_commune_etranger, libelle_pays_etranger
-            FROM siret
-            WHERE siren = st.siren)
-            ) as adresses,
-            ul.sigle as sigle,
-            ul.prenom as prenom,
-            ul.nom as nom,
-            ul.nom_usage as nom_usage,
-            (SELECT json_group_array(
-                json_object(
-                    'siren', siren,
-                    'nom_patronymique', nom_patronymique,
-                    'nom_usage', nom_usage,
-                    'prenoms', prenoms,
-                    'date_naissance', datenaissance,
-                    'ville_naissance', villenaissance,
-                    'pays_naissance', paysnaissance,
-                    'qualite', qualite
-                    )
-                ) FROM
-                (
-                    SELECT siren, nom_patronymique, nom_usage, prenoms,
-                    datenaissance, villenaissance, paysnaissance, qualite
-                    FROM dirigeant_pp
-                    WHERE siren = st.siren
+                'siren', siren,
+                'nom_patronymique', nom_patronymique,
+                'nom_usage', nom_usage,
+                'prenoms', prenoms,
+                'date_naissance', datenaissance,
+                'ville_naissance', villenaissance,
+                'pays_naissance', paysnaissance,
+                'qualite', qualite
                 )
-            ) as dirigeants_pp,
+            ) FROM
+            (
+                SELECT siren, nom_patronymique, nom_usage, prenoms,
+                datenaissance, villenaissance, paysnaissance, qualite
+                FROM dirigeant_pp
+                WHERE siren = st.siren
+            )
+        ) as dirigeants_pp,
         (SELECT json_group_array(
                 json_object(
                     'siren', siren,
@@ -918,67 +865,67 @@ def fill_elastic_index_siren(**kwargs):
             ) as dirigeants_pm,
         (SELECT json_group_array(
                 json_object(
-                    'siren', siren,
-                    'siret', siret,
-                    'date_creation',date_creation,
-                    'tranche_effectif_salarie',tranche_effectif_salarie,
+                    'activite_principale',activite_principale,
                     'activite_principale_registre_metier',
                     activite_principale_registre_metier,
-                    'est_siege',est_siege,
-                    'numero_voie',numero_voie,
-                    'type_voie',type_voie,
-                    'libelle_voie',libelle_voie,
+                    'cedex',cedex,
+                    'cedex_2',cedex_2,
+                    'code_pays_etranger',code_pays_etranger,
+                    'code_pays_etranger_2',code_pays_etranger_2,
                     'code_postal',code_postal,
-                    'libelle_cedex',libelle_cedex,
-                    'libelle_commune',libelle_commune,
                     'commune',commune,
+                    'commune_2',commune_2,
                     'complement_adresse',complement_adresse,
                     'complement_adresse_2',complement_adresse_2,
-                    'numero_voie_2',numero_voie_2,
-                    'indice_repetition_2',indice_repetition_2,
-                    'type_voie_2',type_voie_2,
-                    'libelle_voie_2',libelle_voie_2,
-                    'commune_2',commune_2,
-                    'libelle_commune_2',libelle_commune_2,
-                    'cedex_2',cedex_2,
-                    'libelle_cedex_2',libelle_cedex_2,
-                    'cedex',cedex,
+                    'date_creation',date_creation,
                     'date_debut_activite',date_debut_activite,
                     'distribution_speciale',distribution_speciale,
                     'distribution_speciale_2',distribution_speciale_2,
-                    'etat_administratif_etablissement',etat_administratif_etablissement,
                     'enseigne_1',enseigne_1,
                     'enseigne_2',enseigne_2,
                     'enseigne_3',enseigne_3,
-                    'activite_principale',activite_principale,
-                    'indice_repetition',indice_repetition,
-                    'nom_commercial',nom_commercial,
-                    'libelle_commune_etranger',libelle_commune_etranger,
-                    'code_pays_etranger',code_pays_etranger,
-                    'libelle_pays_etranger',libelle_pays_etranger,
-                    'libelle_commune_etranger_2',libelle_commune_etranger_2,
-                    'code_pays_etranger_2',code_pays_etranger_2,
-                    'libelle_pays_etranger_2',libelle_pays_etranger_2,
-                    'longitude',longitude,
-                    'latitude',latitude,
+                    'est_siege',est_siege,
+                    'etat_administratif',etat_administratif_etablissement,
                     'geo_adresse',geo_adresse,
-                    'geo_id',geo_id
+                    'geo_id',geo_id,
+                    'indice_repetition',indice_repetition,
+                    'indice_repetition_2',indice_repetition_2,
+                    'latitude',latitude,
+                    'libelle_cedex',libelle_cedex,
+                    'libelle_cedex_2',libelle_cedex_2,
+                    'libelle_commune',libelle_commune,
+                    'libelle_commune_2',libelle_commune_2,
+                    'libelle_commune_etranger',libelle_commune_etranger,
+                    'libelle_commune_etranger_2',libelle_commune_etranger_2,
+                    'libelle_pays_etranger',libelle_pays_etranger,
+                    'libelle_pays_etranger_2',libelle_pays_etranger_2,
+                    'libelle_voie',libelle_voie,
+                    'libelle_voie_2',libelle_voie_2,
+                    'longitude',longitude,
+                    'nom_commercial',nom_commercial,
+                    'numero_voie',numero_voie,
+                    'numero_voie_2',numero_voie_2,     
+                    'siren', siren,
+                    'siret', siret,
+                    'tranche_effectif_salarie',tranche_effectif_salarie,
+                    'type_voie',type_voie,
+                    'type_voie_2',type_voie_2
                     )
                 ) FROM
                 (
-                    SELECT siren, siret, date_creation, tranche_effectif_salarie,
-                    activite_principale_registre_metier, est_siege, numero_voie,
-                    type_voie, libelle_voie, code_postal, libelle_cedex,
-                    libelle_commune, commune, complement_adresse,
-                    complement_adresse_2, numero_voie_2, commune_2,
-                    libelle_commune_2, cedex_2, libelle_cedex_2, libelle_cedex_2,
-                    cedex, date_debut_activite, distribution_speciale,
-                    distribution_speciale_2, etat_administratif_etablissement,
-                    enseigne_1, enseigne_2, enseigne_3, activite_principale,
-                    indice_repetition, nom_commercial, libelle_commune_etranger,
-                    code_pays_etranger, libelle_pays_etranger,
-                    libelle_commune_etranger_2, code_pays_etranger_2,
-                    libelle_pays_etranger_2, longitude, latitude, geo_adresse, geo_id
+                    SELECT activite_principale, activite_principale_registre_metier, 
+                    cedex, cedex_2, code_pays_etranger, code_pays_etranger_2, 
+                    code_postal, commune, commune_2, complement_adresse, 
+                    complement_adresse_2, date_creation, date_debut_activite, 
+                    distribution_speciale, distribution_speciale_2, enseigne_1, 
+                    enseigne_2, enseigne_3, est_siege, etat_administratif_etablissement, 
+                    geo_adresse, geo_id, indice_repetition, indice_repetition_2, 
+                    latitude, libelle_cedex, libelle_cedex_2, libelle_commune, 
+                    libelle_commune_2, libelle_commune_etranger, 
+                    libelle_commune_etranger_2, libelle_pays_etranger, 
+                    libelle_pays_etranger_2, libelle_voie, libelle_voie_2, longitude,
+                    nom_commercial, numero_voie, numero_voie_2, siren, siret, 
+                    tranche_effectif_salarie, type_voie, type_voie_2 
                     FROM siret
                     WHERE siren = st.siren
                 )
