@@ -19,9 +19,9 @@ def preprocess_uai_data(
     df_uai = pd.read_csv(data_dir + "uai-download.csv", dtype=str, sep=";")
     df_uai = df_uai[["identifiant_de_l_etablissement", "siren_siret", "code_nature"]]
     df_uai = df_uai.rename(
-        columns={"identifiant_de_l_etablissement": "uai", "siren_siret": "siren"}
+        columns={"identifiant_de_l_etablissement": "uai", "siren_siret": "siret"}
     )
-    df_uai["siren"] = df_uai["siren"].str[:9]
+    df_uai["siren"] = df_uai["siret"].str[:9]
     df_uai = df_uai[["siren", "siret", "uai"]]
     df_uai.to_csv(data_dir + "uai-new.csv", index=False)
 
