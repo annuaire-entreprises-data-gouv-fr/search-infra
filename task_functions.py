@@ -787,6 +787,64 @@ def create_dirig_pm_table():
     commit_and_close_conn(dirig_db_conn)
 
 
+def create_convention_collective_table(**kwargs):
+    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
+    siren_db_cursor.execute("""DROP TABLE IF EXISTS convention_collective""")
+    siren_db_cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS convention_collective
+        (
+            siret,
+            list_idcc,
+            siren
+        )
+    """
+    )
+    siren_db_cursor.execute(
+        """
+        CREATE UNIQUE INDEX index_convention_collective
+        ON convention_collective (siret);
+        """
+    )
+
+    cc_url = (
+        "https://www.data.gouv.fr/fr/datasets/r/bfc3a658-c054-4ecc-ba4b" "-22f3f5789dc7"
+    )
+    r = requests.get(cc_url, allow_redirects=True)
+    with open(DATA_DIR + "convcollective-download.csv", "wb") as f:
+        for chunk in r.iter_content(1024):
+            f.write(chunk)
+    df_conv_coll = pd.read_csv(
+        DATA_DIR + "convcollective-download.csv",
+        dtype=str,
+        names=["mois", "siret", "idcc", "date_maj"],
+        header=0,
+    )
+    df_conv_coll = df_conv_coll[df_conv_coll["siret"].notna()]
+    df_conv_coll["idcc"] = df_conv_coll["idcc"].apply(lambda x: str(x).replace(" ", ""))
+    df_liste_cc = (
+        df_conv_coll.groupby(by=["siret"])["idcc"]
+        .apply(list)
+        .reset_index(name="list_idcc")
+    )
+    df_liste_cc["siren"] = df_liste_cc["siret"].str[0:9]
+    df_liste_cc["list_idcc"] = df_liste_cc["list_idcc"].astype(str)
+    df_liste_cc.to_sql(
+        "convention_collective", siren_db_conn, if_exists="append", index=False
+    )
+
+    for row in siren_db_cursor.execute("""SELECT COUNT() FROM convention_collective"""):
+        logging.info(
+            f"************ {row}"
+            f"records have been added to the convention_collective table!"
+        )
+
+    del df_liste_cc
+    del df_conv_coll
+
+    commit_and_close_conn(siren_db_conn)
+
+
 def create_elastic_index(**kwargs):
     next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
     elastic_index = f"siren-{next_color}"
@@ -888,6 +946,7 @@ def fill_elastic_index_siren(**kwargs):
                     'etat_administratif',etat_administratif_etablissement,
                     'geo_adresse',geo_adresse,
                     'geo_id',geo_id,
+                    'id_cc', id_cc,
                     'indice_repetition',indice_repetition,
                     'indice_repetition_2',indice_repetition_2,
                     'latitude',latitude,
@@ -913,21 +972,58 @@ def fill_elastic_index_siren(**kwargs):
                     )
                 ) FROM
                 (
-                    SELECT activite_principale, activite_principale_registre_metier,
-                    cedex, cedex_2, code_pays_etranger, code_pays_etranger_2,
-                    code_postal, commune, commune_2, complement_adresse,
-                    complement_adresse_2, date_creation, date_debut_activite,
-                    distribution_speciale, distribution_speciale_2, enseigne_1,
-                    enseigne_2, enseigne_3, est_siege, etat_administratif_etablissement,
-                    geo_adresse, geo_id, indice_repetition, indice_repetition_2,
-                    latitude, libelle_cedex, libelle_cedex_2, libelle_commune,
-                    libelle_commune_2, libelle_commune_etranger,
-                    libelle_commune_etranger_2, libelle_pays_etranger,
-                    libelle_pays_etranger_2, libelle_voie, libelle_voie_2, longitude,
-                    nom_commercial, numero_voie, numero_voie_2, siren, siret,
-                    tranche_effectif_salarie, type_voie, type_voie_2
-                    FROM siret
-                    WHERE siren = st.siren
+                    SELECT 
+                    s.activite_principale as activite_principale,
+                    s.activite_principale_registre_metier as
+                    activite_principale_registre_metier,
+                    s.cedex as cedex,
+                    s.cedex_2 as cedex_2,
+                    s.code_pays_etranger as code_pays_etranger,
+                    s.code_pays_etranger_2 as code_pays_etranger_2,
+                    s.code_postal as code_postal,
+                    s.commune as commune,
+                    s.commune_2 as commune_2,
+                    s.complement_adresse as complement_adresse,
+                    s.complement_adresse_2 as complement_adresse_2,
+                    s.date_creation as date_creation,
+                    s.date_debut_activite as date_debut_activite,
+                    s.distribution_speciale as distribution_speciale,
+                    s.distribution_speciale_2 as distribution_speciale_2,
+                    s.enseigne_1 as enseigne_1,
+                    s.enseigne_2 as enseigne_2,
+                    s.enseigne_3 as enseigne_3, 
+                    s.est_siege as est_siege, 
+                    s.etat_administratif_etablissement as
+                    etat_administratif_etablissement,
+                    s.geo_adresse as geo_adresse, 
+                    s.geo_id as geo_id,
+                    cc.list_idcc as id_cc, 
+                    s.indice_repetition as indice_repetition, 
+                    s.indice_repetition_2 as indice_repetition_2,
+                    s.latitude as latitude,
+                    s.libelle_cedex as libelle_cedex,
+                    s.libelle_cedex_2 as libelle_cedex_2,
+                    s.libelle_commune as libelle_commune,
+                    s.libelle_commune_2 as libelle_commune_2,
+                    s.libelle_commune_etranger as libelle_commune_etranger,
+                    s.libelle_commune_etranger_2 as libelle_commune_etranger_2,
+                    s.libelle_pays_etranger as libelle_pays_etranger,
+                    s.libelle_pays_etranger_2 as libelle_pays_etranger_2,
+                    s.libelle_voie as libelle_voie,
+                    s.libelle_voie_2 as libelle_voie_2,
+                    s.longitude as longitude,
+                    s.nom_commercial as nom_commercial, 
+                    s.numero_voie as numero_voie,
+                    s.numero_voie_2 as numero_voie_2,
+                    s.siren as siren,
+                    s.siret as siret,
+                    s.tranche_effectif_salarie as tranche_effectif_salarie,
+                    s.type_voie as type_voie,
+                    s.type_voie_2 as type_voie_2
+                    FROM siret s
+                    LEFT JOIN convention_collective cc
+                    ON s.siret = cc.siret
+                    WHERE s.siren = ul.siren
                 )
             ) as etablissements
         FROM
