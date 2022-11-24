@@ -66,7 +66,7 @@ def update_elasticsearch_with_new_data(
         generations,
         chunk_size=500,
         raise_on_error=False,
-        request_timeout=30,
+        request_timeout=120,
     ):
         if not success:
             list_errors.append(details["update"]["_id"])
