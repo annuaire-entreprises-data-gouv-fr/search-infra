@@ -12,6 +12,7 @@ from dag_datalake_sirene.task_functions import (
     check_elastic_index,
     count_nombre_etablissements,
     count_nombre_etablissements_ouverts,
+    create_convention_collective_table,
     create_dirig_pm_table,
     create_dirig_pp_table,
     create_elastic_index,
@@ -119,6 +120,12 @@ with DAG(
         task_id="create_dirig_pm_table",
         provide_context=True,
         python_callable=create_dirig_pm_table,
+    )
+
+    create_convention_collective_table = PythonOperator(
+        task_id="create_convention_collective_table",
+        provide_context=True,
+        python_callable=create_convention_collective_table,
     )
 
     create_elastic_index = PythonOperator(
@@ -250,37 +257,6 @@ with DAG(
         ),
     )
 
-    get_latest_convcollective_data = PythonOperator(
-        task_id="get_latest_convcollective_data",
-        python_callable=get_object_minio,
-        op_args=(
-            "convcollective-latest.csv",
-            f"ae/data_aggregation/{ENV}/convcollective/",
-            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-latest.csv",
-        ),
-    )
-
-    update_es_convcollective = PythonOperator(
-        task_id="update_es_convcollective",
-        python_callable=update_elasticsearch_with_new_data,
-        op_args=(
-            "convcollective",
-            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/convcollective-latest.csv",
-            "convcollective-errors.txt",
-            "next",
-        ),
-    )
-
-    put_file_error_to_minio_convcollective = PythonOperator(
-        task_id="put_file_error_to_minio_convcollective",
-        python_callable=put_object_minio,
-        op_args=(
-            "convcollective-errors.txt",
-            f"ae/data_aggregation/{ENV}/convcollective/convcollective-errors.txt",
-            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",
-        ),
-    )
-
     get_latest_finess_data = PythonOperator(
         task_id="get_latest_finess_data",
         python_callable=get_object_minio,
@@ -404,7 +380,8 @@ with DAG(
     get_dirigeants_database.set_upstream(create_siege_only_table)
     create_dirig_pp_table.set_upstream(get_dirigeants_database)
     create_dirig_pm_table.set_upstream(create_dirig_pp_table)
-    create_elastic_index.set_upstream(create_dirig_pm_table)
+    create_convention_collective_table.set_upstream(create_dirig_pm_table)
+    create_elastic_index.set_upstream(create_convention_collective_table)
     fill_elastic_index_siren.set_upstream(create_elastic_index)
     check_elastic_index.set_upstream(fill_elastic_index_siren)
     create_sitemap.set_upstream(check_elastic_index)
@@ -421,10 +398,6 @@ with DAG(
     update_es_rge.set_upstream(get_latest_rge_data)
     put_file_error_to_minio_rge.set_upstream(update_es_rge)
 
-    get_latest_convcollective_data.set_upstream(check_elastic_index)
-    update_es_convcollective.set_upstream(get_latest_convcollective_data)
-    put_file_error_to_minio_convcollective.set_upstream(update_es_convcollective)
-
     get_latest_finess_data.set_upstream(check_elastic_index)
     update_es_finess.set_upstream(get_latest_finess_data)
     put_file_error_to_minio_finess.set_upstream(update_es_finess)
@@ -439,7 +412,6 @@ with DAG(
 
     update_color_file.set_upstream(put_file_error_to_minio_elu)
     update_color_file.set_upstream(put_file_error_to_minio_rge)
-    update_color_file.set_upstream(put_file_error_to_minio_convcollective)
     update_color_file.set_upstream(put_file_error_to_minio_finess)
     update_color_file.set_upstream(put_file_error_to_minio_spectacle)
     update_color_file.set_upstream(put_file_error_to_minio_uai)
