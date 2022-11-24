@@ -1,6 +1,6 @@
 import logging
 import os
-
+from ast import literal_eval
 import pandas as pd
 import requests
 
@@ -26,12 +26,18 @@ def preprocess_rge_data(
         data = r.json()
         list_rge = list_rge + data["results"]
     df_rge = pd.DataFrame(list_rge)
-    df_rge["siren"] = df_rge["siret"].str[:9]
-    df_rge = df_rge[["siren", "siret", "code_qualification"]]
-    df_rge.to_csv(data_dir + "rge-new.csv", index=False)
+    df_rge = df_rge[["siret", "code_qualification"]]
+    liste_rge = (
+        df_rge.groupby(by=["siret"])["code_qualification"]
+        .apply(list)
+        .reset_index(name="list_rge")
+    )
+    liste_rge["siren"] = liste_rge["siret"].str[0:9]
+    liste_rge.to_csv(data_dir + "rge-new.csv", index=False)
 
 
 def generate_updates_rge(df_rge, current_color):
+    df_rge["list_rge"] = df_rge["list_rge"].apply(literal_eval)
     for index, row in df_rge.iterrows():
         yield {
             "_op_type": "update",
@@ -45,7 +51,7 @@ def generate_updates_rge(df_rge, current_color):
                 "{etablissement.id_rge = params.id_rge}",
                 "params": {
                     "siret": row["siret"],
-                    "id_rge": row["code_qualification"],
+                    "id_rge": list(set(row["list_rge"])),
                 },
             },
         }
