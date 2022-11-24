@@ -2,7 +2,6 @@ import os
 
 import pandas as pd
 import requests
-import logging
 
 
 def preprocess_convcollective_data(

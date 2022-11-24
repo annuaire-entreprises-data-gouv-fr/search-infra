@@ -1012,7 +1012,7 @@ def fill_elastic_index_siren(**kwargs):
                     s.libelle_voie as libelle_voie,
                     s.libelle_voie_2 as libelle_voie_2,
                     s.longitude as longitude,
-                    s.nom_commercial as nom_commercial, 
+                    s.nom_commercial as nom_commercial,
                     s.numero_voie as numero_voie,
                     s.numero_voie_2 as numero_voie_2,
                     s.siren as siren,
