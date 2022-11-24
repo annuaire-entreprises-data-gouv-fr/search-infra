@@ -1,5 +1,6 @@
 import json
 import logging
+from ast import literal_eval
 
 from dag_datalake_sirene.helpers.clean_dirigeants import (
     drop_duplicates_dirigeants_pm,
@@ -274,5 +275,6 @@ def format_etablissements(list_etablissements_sqlite, nom_complet):
             etablissement["longitude"], etablissement["latitude"]
         )
         etablissement["departement"] = format_departement(etablissement["commune"])
+        etablissement["id_cc"] = literal_eval(str(etablissement["id_cc"]))
         etablissements_processed.append(etablissement)
     return etablissements_processed
