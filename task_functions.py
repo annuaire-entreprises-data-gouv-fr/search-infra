@@ -972,7 +972,7 @@ def fill_elastic_index_siren(**kwargs):
                     )
                 ) FROM
                 (
-                    SELECT 
+                    SELECT
                     s.activite_principale as activite_principale,
                     s.activite_principale_registre_metier as
                     activite_principale_registre_metier,
@@ -991,14 +991,14 @@ def fill_elastic_index_siren(**kwargs):
                     s.distribution_speciale_2 as distribution_speciale_2,
                     s.enseigne_1 as enseigne_1,
                     s.enseigne_2 as enseigne_2,
-                    s.enseigne_3 as enseigne_3, 
-                    s.est_siege as est_siege, 
+                    s.enseigne_3 as enseigne_3,
+                    s.est_siege as est_siege,
                     s.etat_administratif_etablissement as
                     etat_administratif_etablissement,
-                    s.geo_adresse as geo_adresse, 
+                    s.geo_adresse as geo_adresse,
                     s.geo_id as geo_id,
-                    cc.list_idcc as id_cc, 
-                    s.indice_repetition as indice_repetition, 
+                    cc.list_idcc as id_cc,
+                    s.indice_repetition as indice_repetition,
                     s.indice_repetition_2 as indice_repetition_2,
                     s.latitude as latitude,
                     s.libelle_cedex as libelle_cedex,
