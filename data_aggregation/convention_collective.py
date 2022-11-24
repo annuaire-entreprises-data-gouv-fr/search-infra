@@ -1,7 +1,8 @@
 import os
-
+from ast import literal_eval
 import pandas as pd
 import requests
+import logging
 
 
 def preprocess_convcollective_data(
@@ -22,18 +23,28 @@ def preprocess_convcollective_data(
         names=["mois", "siret", "idcc", "date_maj"],
         header=0,
     )
-    df_conv_coll["siren"] = df_conv_coll["siret"].str[0:9]
+    logging.info(f"shape before NAN:{df_conv_coll.shape}")
+    df_conv_coll = df_conv_coll[df_conv_coll["siret"].notna()]
+    logging.info(f"shape after NAN:{df_conv_coll.shape}")
+    # df_conv_coll["siren"] = df_conv_coll["siret"].str[0:9]
     df_conv_coll["idcc"] = df_conv_coll["idcc"].apply(lambda x: str(x).replace(" ", ""))
-    df_conv_coll = df_conv_coll[["idcc", "siren", "siret"]]
-    df_conv_coll.to_csv(data_dir + "convcollective-new.csv", index=False)
+    liste_cc = (
+        df_conv_coll.groupby(by=["siret"])["idcc"]
+        .apply(list)
+        .reset_index(name="list_idcc")
+    )
+    # liste_cc = liste_cc[["siret", "list_idcc"]]
+    liste_cc["siren"] = liste_cc["siret"].str[0:9]
+    # df_conv_coll = df_conv_coll[["idcc", "siren", "siret"]]
+    liste_cc.to_csv(data_dir + "convcollective-new.csv", index=False)
 
 
 def generate_updates_convcollective(df_conv_coll, current_color):
+    # df_conv_coll["list_idcc"] = df_conv_coll["list_idcc"].apply(literal_eval)
     for index, row in df_conv_coll.iterrows():
         yield {
             "_op_type": "update",
             "_index": "siren-" + current_color,
-            "_type": "_doc",
             "_id": row["siren"],
             "script": {
                 "source": "def targets = ctx._source.etablissements.findAll("
@@ -42,7 +53,7 @@ def generate_updates_convcollective(df_conv_coll, current_color):
                 "{etablissement.id_cc = params.id_cc}",
                 "params": {
                     "siret": row["siret"],
-                    "id_cc": row["idcc"],
+                    "id_cc": list(set(row["list_idcc"])),
                 },
             },
         }
