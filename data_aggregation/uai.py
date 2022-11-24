@@ -21,6 +21,7 @@ def preprocess_uai_data(
     df_uai = df_uai.rename(
         columns={"identifiant_de_l_etablissement": "uai", "siren_siret": "siret"}
     )
+    df_uai = df_uai[df_uai["siret"].notna()]
     df_uai["siren"] = df_uai["siret"].str[:9]
     df_uai = df_uai[["siren", "siret", "uai"]]
     df_uai.to_csv(data_dir + "uai-new.csv", index=False)
@@ -31,7 +32,6 @@ def generate_updates_uai(df_uai, current_color):
         yield {
             "_op_type": "update",
             "_index": "siren-" + current_color,
-            "_type": "_doc",
             "_id": row["siren"],
             "script": {
                 "source": "def targets = ctx._source.etablissements.findAll("
