@@ -57,6 +57,8 @@ annuaire_analyzer = analyzer(
     ],
 )
 
+ELASTIC_SHARDS = 4
+
 
 class ElasticsearchDirigeantPPIndex(InnerDoc):
     nom = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
@@ -186,7 +188,7 @@ class ElasticsearchSireneIndex(Document):
     class Index:
         name = f"siren-{NEXT_COLOR}"
         settings = {
-            "number_of_shards": 4,
+            "number_of_shards": ELASTIC_SHARDS,
             "number_of_replicas": 0,
             "mapping": {"ignore_malformed": True},
             "index.mapping.nested_objects.limit": 20000,
