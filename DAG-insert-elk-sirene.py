@@ -394,27 +394,24 @@ with DAG(
     update_es_elu.set_upstream(get_latest_elu_data)
     put_file_error_to_minio_elu.set_upstream(update_es_elu)
 
-    get_latest_rge_data.set_upstream(check_elastic_index)
+    get_latest_rge_data.set_upstream(put_file_error_to_minio_elu)
     update_es_rge.set_upstream(get_latest_rge_data)
     put_file_error_to_minio_rge.set_upstream(update_es_rge)
 
-    get_latest_finess_data.set_upstream(check_elastic_index)
+    get_latest_finess_data.set_upstream(put_file_error_to_minio_rge)
     update_es_finess.set_upstream(get_latest_finess_data)
     put_file_error_to_minio_finess.set_upstream(update_es_finess)
 
-    get_latest_spectacle_data.set_upstream(check_elastic_index)
+    get_latest_spectacle_data.set_upstream(put_file_error_to_minio_finess)
     update_es_spectacle.set_upstream(get_latest_spectacle_data)
     put_file_error_to_minio_spectacle.set_upstream(update_es_spectacle)
 
-    get_latest_uai_data.set_upstream(check_elastic_index)
+    get_latest_uai_data.set_upstream(put_file_error_to_minio_spectacle)
     update_es_uai.set_upstream(get_latest_uai_data)
     put_file_error_to_minio_uai.set_upstream(update_es_uai)
 
-    update_color_file.set_upstream(put_file_error_to_minio_elu)
-    update_color_file.set_upstream(put_file_error_to_minio_rge)
-    update_color_file.set_upstream(put_file_error_to_minio_finess)
-    update_color_file.set_upstream(put_file_error_to_minio_spectacle)
     update_color_file.set_upstream(put_file_error_to_minio_uai)
+    update_color_file.set_upstream(update_sitemap)
 
     execute_aio_container.set_upstream(update_color_file)
 
