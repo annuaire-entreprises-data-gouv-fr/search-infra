@@ -794,8 +794,7 @@ def create_convention_collective_table(**kwargs):
      CREATE TABLE IF NOT EXISTS convention_collective
      (
          siren,
-         list_idcc,
-         siren
+         liste_idcc
      )
     """
     )
@@ -825,10 +824,10 @@ def create_convention_collective_table(**kwargs):
     df_liste_cc = (
         df_conv_coll.groupby(by=["siren"])["idcc"]
             .apply(list)
-            .reset_index(name="list_idcc")
+            .reset_index(name="liste_idcc")
     )
     # df_liste_cc["siren"] = df_liste_cc["siret"].str[0:9]
-    df_liste_cc["list_idcc"] = df_liste_cc["list_idcc"].astype(str)
+    df_liste_cc["liste_idcc"] = df_liste_cc["liste_idcc"].astype(str)
     df_liste_cc.to_sql(
         "convention_collective", siren_db_conn, if_exists="append", index=False
     )
