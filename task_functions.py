@@ -107,8 +107,8 @@ def preprocess_dirigeants_pp(query):
                 "paysnaissance",
             ]
         )["qualite"]
-        .apply(lambda x: ", ".join(x))
-        .reset_index()
+            .apply(lambda x: ", ".join(x))
+            .reset_index()
     )
     return rep_clean
 
@@ -128,8 +128,8 @@ def preprocess_dirigeant_pm(query):
     )
     rep_clean = (
         rep_chunk.groupby(by=["siren", "siren_pm", "denomination", "sigle"])["qualite"]
-        .apply(lambda x: ", ".join(x))
-        .reset_index()
+            .apply(lambda x: ", ".join(x))
+            .reset_index()
     )
     return rep_clean
 
@@ -226,9 +226,9 @@ def create_unite_legale_table(**kwargs):
                 "categorieJuridiqueUniteLegale": "nature_juridique_unite_legale",
                 "activitePrincipaleUniteLegale": "activite_principale_unite_legale",
                 "economieSocialeSolidaireUniteLegale": "economie_sociale_solidaire"
-                "_unite_legale",
+                                                       "_unite_legale",
                 "identifiantAssociationUniteLegale": "identifiant_association"
-                "_unite_legale",
+                                                     "_unite_legale",
             }
         )
         df_unite_legale.to_sql(
@@ -243,7 +243,7 @@ def create_unite_legale_table(**kwargs):
     del df_unite_legale
 
     for count_unites_legales in siren_db_cursor.execute(
-        """
+            """
         SELECT COUNT()
         FROM unite_legale
         """
@@ -392,7 +392,7 @@ def create_etablissement_table():
                 "dateCreationEtablissement": "date_creation",
                 "trancheEffectifsEtablissement": "tranche_effectif_salarie",
                 "activitePrincipaleRegistreMetiersEtablissement": "activite_principale"
-                "_registre_metier",
+                                                                  "_registre_metier",
                 "etablissementSiege": "est_siege",
                 "numeroVoieEtablissement": "numero_voie",
                 "typeVoieEtablissement": "type_voie",
@@ -650,9 +650,9 @@ def create_siege_only_table(**kwargs):
 
 
 def get_object_minio(
-    filename: str,
-    minio_path: str,
-    local_path: str,
+        filename: str,
+        minio_path: str,
+        local_path: str,
 ) -> None:
     print(filename, minio_path, local_path)
     minio_url = MINIO_URL
@@ -786,6 +786,65 @@ def create_dirig_pm_table():
     commit_and_close_conn(dirig_db_conn)
 
 
+def create_convention_collective_table(**kwargs):
+    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
+    siren_db_cursor.execute("""DROP TABLE IF EXISTS convention_collective""")
+    siren_db_cursor.execute(
+        """
+     CREATE TABLE IF NOT EXISTS convention_collective
+     (
+         siren,
+         list_idcc,
+         siren
+     )
+    """
+    )
+    siren_db_cursor.execute(
+        """
+     CREATE UNIQUE INDEX index_convention_collective
+     ON convention_collective (siren);
+     """
+    )
+
+    cc_url = (
+        "https://www.data.gouv.fr/fr/datasets/r/bfc3a658-c054-4ecc-ba4b" "-22f3f5789dc7"
+    )
+    r = requests.get(cc_url, allow_redirects=True)
+    with open(DATA_DIR + "convcollective-download.csv", "wb") as f:
+        for chunk in r.iter_content(1024):
+            f.write(chunk)
+    df_conv_coll = pd.read_csv(
+        DATA_DIR + "convcollective-download.csv",
+        dtype=str,
+        names=["mois", "siret", "idcc", "date_maj"],
+        header=0,
+    )
+    df_conv_coll["siren"] = df_conv_coll["siret"].str[0:9]
+    df_conv_coll = df_conv_coll[df_conv_coll["siren"].notna()]
+    df_conv_coll["idcc"] = df_conv_coll["idcc"].apply(lambda x: str(x).replace(" ", ""))
+    df_liste_cc = (
+        df_conv_coll.groupby(by=["siren"])["idcc"]
+            .apply(list)
+            .reset_index(name="list_idcc")
+    )
+    # df_liste_cc["siren"] = df_liste_cc["siret"].str[0:9]
+    df_liste_cc["list_idcc"] = df_liste_cc["list_idcc"].astype(str)
+    df_liste_cc.to_sql(
+        "convention_collective", siren_db_conn, if_exists="append", index=False
+    )
+
+    for row in siren_db_cursor.execute("""SELECT COUNT() FROM convention_collective"""):
+        logging.info(
+            f"************ {row}"
+            f"records have been added to the convention_collective table!"
+        )
+
+    del df_liste_cc
+    del df_conv_coll
+
+    commit_and_close_conn(siren_db_conn)
+
+
 def create_elastic_index(**kwargs):
     next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
     elastic_index = f"siren-{next_color}"
@@ -915,7 +974,8 @@ def fill_elastic_index(**kwargs):
                     FROM dirigeant_pm
                     WHERE siren = st.siren
                 )
-            ) as dirigeants_pm
+            ) as dirigeants_pm,
+        (SELECT liste_idcc FROM convention_collective cc WHERE cc.siren = st.siren)
         FROM
             siretsiege st
         LEFT JOIN
@@ -1020,15 +1080,15 @@ def create_sitemap():
                 {
                     unite_legale_columns: value
                     for unite_legale_columns, value in zip(
-                        unite_legale_columns, unite_legale
-                    )
+                    unite_legale_columns, unite_legale
+                )
                 }
             )
         noms_url = ""
         for ul in liste_unites_legales_sqlite:
             if (
-                ul["etat_administratif_unite_legale"] == "A"
-                and ul["nature_juridique_unite_legale"] != "1000"
+                    ul["etat_administratif_unite_legale"] == "A"
+                    and ul["nature_juridique_unite_legale"] != "1000"
             ):
                 if not ul["code_postal"]:
                     ul["code_postal"] = ""
@@ -1041,13 +1101,13 @@ def create_sitemap():
                     ).lower()
                 )
                 noms_url = (
-                    noms_url
-                    + ul["code_postal"]
-                    + ","
-                    + ul["activite_principale_unite_legale"]
-                    + ","
-                    + nom_url
-                    + "\n"
+                        noms_url
+                        + ul["code_postal"]
+                        + ","
+                        + ul["activite_principale_unite_legale"]
+                        + ","
+                        + nom_url
+                        + "\n"
                 )
 
         with open(DATA_DIR + "sitemap-" + ENV + ".csv", "a+") as f:
@@ -1055,7 +1115,6 @@ def create_sitemap():
 
 
 def update_sitemap():
-
     minio_filepath = "ae/sitemap-" + ENV + ".csv"
     minio_url = MINIO_URL
     minio_bucket = MINIO_BUCKET
@@ -1082,11 +1141,10 @@ def update_sitemap():
 
 
 def put_object_minio(
-    filename: str,
-    minio_path: str,
-    local_path: str,
+        filename: str,
+        minio_path: str,
+        local_path: str,
 ):
-
     minio_url = MINIO_URL
     minio_bucket = MINIO_BUCKET
     minio_user = MINIO_USER
