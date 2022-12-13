@@ -786,7 +786,7 @@ def create_dirig_pm_table():
     commit_and_close_conn(dirig_db_conn)
 
 
-def create_convention_collective_table(**kwargs):
+def create_convention_collective_table():
     siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
     siren_db_cursor.execute("""DROP TABLE IF EXISTS convention_collective""")
     siren_db_cursor.execute(
@@ -840,6 +840,65 @@ def create_convention_collective_table(**kwargs):
 
     del df_liste_cc
     del df_conv_coll
+
+    commit_and_close_conn(siren_db_conn)
+    
+
+def create_rge_table():
+    siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
+    siren_db_cursor.execute("""DROP TABLE IF EXISTS rge""")
+    siren_db_cursor.execute(
+        """
+     CREATE TABLE IF NOT EXISTS rge
+     (
+         siren,
+         liste_rge
+     )
+    """
+    )
+    siren_db_cursor.execute(
+        """
+     CREATE UNIQUE INDEX index_rge
+     ON rge (siren);
+     """
+    )
+
+    rge_url = (
+        "https://data.ademe.fr/data-fair/api/v1/datasets/liste-des-entreprises-rge-2/"
+        "lines?size=10000&select=siret%2Ccode_qualification"
+    )
+    r = requests.get(rge_url, allow_redirects=True)
+    data = r.json()
+    from typing import List
+    list_rge: List[str] = []
+    list_rge = list_rge + data["results"]
+    cpt = 0
+    while "next" in data:
+        cpt = cpt + 1
+        r = requests.get(data["next"])
+        data = r.json()
+        list_rge = list_rge + data["results"]
+    df_rge = pd.DataFrame(list_rge)
+    df_rge["siren"] = df_rge["siret"].str[:9]
+    df_rge = df_rge[df_rge["siren"].notna()]
+    df_list_rge = (
+        df_rge.groupby(["siren"])["code_qualification"]
+            .apply(list)
+            .reset_index(name="liste_rge")
+    )
+    df_list_rge = df_list_rge[["siren", "liste_rge"]]
+    df_list_rge["liste_rge"] = df_list_rge["liste_rge"].astype(str)
+    df_list_rge.to_sql(
+        "rge", siren_db_conn, if_exists="append", index=False
+    )
+    for row in siren_db_cursor.execute("""SELECT COUNT() FROM rge"""):
+        logging.info(
+            f"************ {row}"
+            f"records have been added to the convention_collective table!"
+        )
+
+    del df_list_rge
+    del df_rge
 
     commit_and_close_conn(siren_db_conn)
 
