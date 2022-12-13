@@ -382,8 +382,8 @@ with DAG(
     create_dirig_pm_table.set_upstream(create_dirig_pp_table)
     create_convention_collective_table.set_upstream(create_dirig_pm_table)
     create_elastic_index.set_upstream(create_convention_collective_table)
-    fill_elastic_index_siren.set_upstream(create_elastic_index)
-    check_elastic_index.set_upstream(fill_elastic_index_siren)
+    fill_elastic_index.set_upstream(create_elastic_index)
+    check_elastic_index.set_upstream(fill_elastic_index)
     create_sitemap.set_upstream(check_elastic_index)
     update_sitemap.set_upstream(create_sitemap)
 
@@ -412,7 +412,6 @@ with DAG(
 
     update_color_file.set_upstream(put_file_error_to_minio_elu)
     update_color_file.set_upstream(put_file_error_to_minio_rge)
-    update_color_file.set_upstream(put_file_error_to_minio_convcollective)
     update_color_file.set_upstream(put_file_error_to_minio_finess)
     update_color_file.set_upstream(put_file_error_to_minio_spectacle)
     update_color_file.set_upstream(put_file_error_to_minio_uai)
