@@ -172,6 +172,7 @@ def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
                 ville_naissance=dirigeant_pp["ville_naissance"],
                 pays_naissance=dirigeant_pp["pays_naissance"],
                 qualite=dirigeant_pp["qualite"],
+                type_dirigeant="dirigeant_pp",
             )
         )
         # Liste dirigeants
@@ -222,6 +223,7 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
                 denomination=dirigeant_pm["denomination"],
                 sigle=dirigeant_pm["sigle"],
                 qualite=dirigeant_pm["qualite"],
+                type_dirigeant="dirigeant_pm",
             )
         )
 
