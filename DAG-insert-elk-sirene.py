@@ -23,6 +23,7 @@ from dag_datalake_sirene.task_functions import (
     create_rge_table,
     create_siege_only_table,
     create_sitemap,
+    create_spectacle_table,
     create_sqlite_database,
     create_uai_table,
     create_unite_legale_table,
@@ -244,10 +245,10 @@ with DAG(
     create_finess_table.set_upstream(create_rge_table)
     create_uai_table.set_upstream(create_finess_table)
     create_spectacle_table.set_upstream(create_uai_table)
-    create_elu_table.set_upstream(create_spectacle_table)
-    create_colter_table.set_upstream(create_elu_table)
+    create_colter_table.set_upstream(create_spectacle_table)
+    create_elu_table.set_upstream(create_colter_table)
 
-    create_elastic_index.set_upstream(create_colter_table)
+    create_elastic_index.set_upstream(create_elu_table)
     fill_elastic_index.set_upstream(create_elastic_index)
     check_elastic_index.set_upstream(fill_elastic_index)
 
