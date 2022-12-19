@@ -1,6 +1,7 @@
 import json
 
 from dag_datalake_sirene.data_enrichment import (
+    create_list_names_elus,
     format_adresse_complete,
     format_coordonnees,
     format_departement,
@@ -11,7 +12,10 @@ from dag_datalake_sirene.data_enrichment import (
     is_entrepreneur_individuel,
     label_section_from_activite,
 )
-from dag_datalake_sirene.helpers.utils import get_empty_string_if_none
+from dag_datalake_sirene.helpers.utils import (
+    get_empty_string_if_none,
+    str_to_list,
+)
 
 
 def process_unites_legales(chunk_unites_legales_sqlite):
@@ -19,7 +23,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
     for unite_legale in chunk_unites_legales_sqlite:
         unite_legale_processed = {}
         for field in unite_legale:
-            if field in ["enseignes", "adresses"]:
+            if field in ["enseignes", "adresses", "colter_elus"]:
                 unite_legale_processed[field] = json.loads(unite_legale[field])
             else:
                 unite_legale_processed[field] = unite_legale[field]
@@ -106,6 +110,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["dirigeants_pm"], unite_legale_processed["liste_dirigeants"]
         )
 
+        # Élus
+        unite_legale_processed["liste_elus"] = create_list_names_elus(
+            unite_legale_processed["colter_elus"]
+        )
+
         unite_legale_processed[
             "est_entrepreneur_individuel"
         ] = is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
@@ -140,6 +149,15 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["liste_enseignes"]
             + unite_legale_processed["liste_adresses"]
         )
+
+        unite_legale_processed["liste_idcc"] = str_to_list(
+            unite_legale_processed["liste_idcc"])
+        unite_legale_processed["liste_rge"] = str_to_list(
+            unite_legale_processed["liste_rge"])
+        unite_legale_processed["liste_uai"] = str_to_list(
+            unite_legale_processed["liste_uai"])
+        unite_legale_processed["liste_finess"] = str_to_list(
+            unite_legale_processed["liste_finess"])
 
         unite_legale_processed["concat_nom_adr_siren"] = (
             get_empty_string_if_none(unite_legale_processed["nom_complet"])
