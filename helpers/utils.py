@@ -1,5 +1,6 @@
 import filecmp
 import logging
+from ast import literal_eval
 from datetime import datetime
 from unicodedata import normalize
 
@@ -7,6 +8,13 @@ import requests
 from airflow.models import Variable
 
 ENV = Variable.get("ENV")
+
+
+def str_to_list(string):
+    if string is None:
+        return None
+    li = literal_eval(string)
+    return li
 
 
 def unique_list(lst):
