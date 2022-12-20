@@ -100,6 +100,7 @@ def drop_duplicates_dirigeants_pp(list_dict_dirigeants):
                 )
 
             unique_dirigeant["date_naissance"] = dates[-1] if len(dates) > 0 else None
+            unique_dirigeant["type_dirigeant"] = last_dirigeant["type_dirigeant"]
             list_dirigeants_unique.append(unique_dirigeant)
     return list_dirigeants_unique
 
@@ -158,6 +159,6 @@ def drop_duplicates_dirigeants_pm(list_dict_dirigeants):
             unique_dirigeant["qualite"] = unique_qualites(
                 ", ".join(list_qualites_filtered)
             )
-
+            unique_dirigeant["type_dirigeant"] = last_dirigeant["type_dirigeant"]
             list_dirigeants_unique.append(unique_dirigeant)
     return list_dirigeants_unique
