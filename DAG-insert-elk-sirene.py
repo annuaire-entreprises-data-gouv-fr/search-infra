@@ -5,9 +5,6 @@ from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.data_aggregation.update_elasticsearch import (
-    update_elasticsearch_with_new_data,
-)
 from dag_datalake_sirene.task_functions import (
     check_elastic_index,
     count_nombre_etablissements,

@@ -12,10 +12,7 @@ from dag_datalake_sirene.data_enrichment import (
     is_entrepreneur_individuel,
     label_section_from_activite,
 )
-from dag_datalake_sirene.helpers.utils import (
-    get_empty_string_if_none,
-    str_to_list,
-)
+from dag_datalake_sirene.helpers.utils import get_empty_string_if_none, str_to_list
 
 
 def process_unites_legales(chunk_unites_legales_sqlite):

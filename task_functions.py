@@ -4,8 +4,8 @@ import os
 import re
 import shutil
 import sqlite3
-from urllib.request import urlopen
 import zipfile
+from urllib.request import urlopen
 
 import pandas as pd
 import requests
@@ -1392,14 +1392,15 @@ def fill_elastic_index(**kwargs):
                     WHERE siren = st.siren
                 )
             ) as dirigeants_pm,
-        (SELECT liste_idcc FROM convention_collective cc WHERE siren = st.siren) 
+        (SELECT liste_idcc FROM convention_collective cc WHERE siren = st.siren)
         as liste_idcc,
         (SELECT liste_rge FROM rge WHERE siren = st.siren) as liste_rge,
         (SELECT liste_uai FROM uai WHERE siren = st.siren) as liste_uai,
         (SELECT liste_finess FROM finess WHERE siren = st.siren) as liste_finess,
-        (SELECT est_entrepreneur_spectacle FROM spectacle sp WHERE 
+        (SELECT est_entrepreneur_spectacle FROM spectacle sp WHERE
         siren = st.siren) as est_entrepreneur_spectacle,
-        (SELECT colter_code_insee FROM colter WHERE siren = st.siren) as colter_code_insee,
+        (SELECT colter_code_insee FROM colter WHERE siren = st.siren) 
+        as colter_code_insee,
         (SELECT colter_code FROM colter WHERE siren = st.siren) as colter_code,
         (SELECT colter_niveau FROM colter WHERE siren = st.siren) as colter_niveau,
         (SELECT json_group_array(
