@@ -111,8 +111,8 @@ def preprocess_dirigeants_pp(query):
                 "paysnaissance",
             ]
         )["qualite"]
-            .apply(lambda x: ", ".join(x))
-            .reset_index()
+        .apply(lambda x: ", ".join(x))
+        .reset_index()
     )
     return rep_clean
 
@@ -132,8 +132,8 @@ def preprocess_dirigeant_pm(query):
     )
     rep_clean = (
         rep_chunk.groupby(by=["siren", "siren_pm", "denomination", "sigle"])["qualite"]
-            .apply(lambda x: ", ".join(x))
-            .reset_index()
+        .apply(lambda x: ", ".join(x))
+        .reset_index()
     )
     return rep_clean
 
@@ -230,9 +230,9 @@ def create_unite_legale_table(**kwargs):
                 "categorieJuridiqueUniteLegale": "nature_juridique_unite_legale",
                 "activitePrincipaleUniteLegale": "activite_principale_unite_legale",
                 "economieSocialeSolidaireUniteLegale": "economie_sociale_solidaire"
-                                                       "_unite_legale",
+                "_unite_legale",
                 "identifiantAssociationUniteLegale": "identifiant_association"
-                                                     "_unite_legale",
+                "_unite_legale",
             }
         )
         df_unite_legale.to_sql(
@@ -247,7 +247,7 @@ def create_unite_legale_table(**kwargs):
     del df_unite_legale
 
     for count_unites_legales in siren_db_cursor.execute(
-            """
+        """
         SELECT COUNT()
         FROM unite_legale
         """
@@ -396,7 +396,7 @@ def create_etablissement_table():
                 "dateCreationEtablissement": "date_creation",
                 "trancheEffectifsEtablissement": "tranche_effectif_salarie",
                 "activitePrincipaleRegistreMetiersEtablissement": "activite_principale"
-                                                                  "_registre_metier",
+                "_registre_metier",
                 "etablissementSiege": "est_siege",
                 "numeroVoieEtablissement": "numero_voie",
                 "typeVoieEtablissement": "type_voie",
@@ -654,9 +654,9 @@ def create_siege_only_table(**kwargs):
 
 
 def get_object_minio(
-        filename: str,
-        minio_path: str,
-        local_path: str,
+    filename: str,
+    minio_path: str,
+    local_path: str,
 ) -> None:
     print(filename, minio_path, local_path)
     minio_url = MINIO_URL
@@ -827,8 +827,8 @@ def create_convention_collective_table():
     df_conv_coll["idcc"] = df_conv_coll["idcc"].apply(lambda x: str(x).replace(" ", ""))
     df_liste_cc = (
         df_conv_coll.groupby(by=["siren"])["idcc"]
-            .apply(list)
-            .reset_index(name="liste_idcc")
+        .apply(list)
+        .reset_index(name="liste_idcc")
     )
     # df_liste_cc["siren"] = df_liste_cc["siret"].str[0:9]
     df_liste_cc["liste_idcc"] = df_liste_cc["liste_idcc"].astype(str)
@@ -846,7 +846,7 @@ def create_convention_collective_table():
     del df_conv_coll
 
     commit_and_close_conn(siren_db_conn)
-    
+
 
 def create_rge_table():
     siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
@@ -874,6 +874,7 @@ def create_rge_table():
     r = requests.get(rge_url, allow_redirects=True)
     data = r.json()
     from typing import List
+
     list_rge: List[str] = []
     list_rge = list_rge + data["results"]
     cpt = 0
@@ -887,18 +888,14 @@ def create_rge_table():
     df_rge = df_rge[df_rge["siren"].notna()]
     df_list_rge = (
         df_rge.groupby(["siren"])["code_qualification"]
-            .apply(list)
-            .reset_index(name="liste_rge")
+        .apply(list)
+        .reset_index(name="liste_rge")
     )
     df_list_rge = df_list_rge[["siren", "liste_rge"]]
     df_list_rge["liste_rge"] = df_list_rge["liste_rge"].astype(str)
-    df_list_rge.to_sql(
-        "rge", siren_db_conn, if_exists="append", index=False
-    )
+    df_list_rge.to_sql("rge", siren_db_conn, if_exists="append", index=False)
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM rge"""):
-        logging.info(
-            f"************ {row} records have been added to the RGE table!"
-        )
+        logging.info(f"************ {row} records have been added to the RGE table!")
 
     del df_list_rge
     del df_rge
@@ -937,17 +934,14 @@ def create_uai_table():
         columns={"identifiant_de_l_etablissement": "uai", "siren_siret": "siren"}
     )
     df_uai["siren"] = df_uai["siren"].str[:9]
-    df_list_uai = df_uai.groupby(["siren"])["uai"].apply(list).reset_index(
-        name="liste_uai")
+    df_list_uai = (
+        df_uai.groupby(["siren"])["uai"].apply(list).reset_index(name="liste_uai")
+    )
     df_list_uai = df_list_uai[["siren", "liste_uai"]]
     df_list_uai["liste_uai"] = df_list_uai["liste_uai"].astype(str)
-    df_list_uai.to_sql(
-        "uai", siren_db_conn, if_exists="append", index=False
-    )
+    df_list_uai.to_sql("uai", siren_db_conn, if_exists="append", index=False)
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM uai"""):
-        logging.info(
-            f"************ {row} records have been added to the UAI table!"
-        )
+        logging.info(f"************ {row} records have been added to the UAI table!")
     del df_list_uai
     del df_uai
 
@@ -996,18 +990,14 @@ def create_finess_table():
     df_finess = df_finess[df_finess["siren"].notna()]
     df_list_finess = (
         df_finess.groupby(["siren"])["finess"]
-            .apply(list)
-            .reset_index(name="liste_finess")
+        .apply(list)
+        .reset_index(name="liste_finess")
     )
     df_list_finess = df_list_finess[["siren", "liste_finess"]]
     df_list_finess["liste_finess"] = df_list_finess["liste_finess"].astype(str)
-    df_list_finess.to_sql(
-        "finess", siren_db_conn, if_exists="append", index=False
-    )
+    df_list_finess.to_sql("finess", siren_db_conn, if_exists="append", index=False)
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM finess"""):
-        logging.info(
-            f"************ {row} records have been added to the FINESS table!"
-        )
+        logging.info(f"************ {row} records have been added to the FINESS table!")
 
     del df_list_finess
     del df_finess
@@ -1045,13 +1035,11 @@ def create_spectacle_table():
     df_spectacle = df_spectacle[df_spectacle["statut_du_recepisse"] == "Valide"]
     df_spectacle["est_entrepreneur_spectacle"] = True
     df_spectacle["siren"] = df_spectacle[
-                                "siren_personne_physique_siret_personne_morale"
-                            ].str[:9]
+        "siren_personne_physique_siret_personne_morale"
+    ].str[:9]
     df_spectacle = df_spectacle[["siren", "est_entrepreneur_spectacle"]]
     df_spectacle = df_spectacle[df_spectacle["siren"].notna()]
-    df_spectacle.to_sql(
-        "spectacle", siren_db_conn, if_exists="append", index=False
-    )
+    df_spectacle.to_sql("spectacle", siren_db_conn, if_exists="append", index=False)
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM spectacle"""):
         logging.info(
             f"************ {row} records have been added to the SPECTACLE table!"
@@ -1175,13 +1163,9 @@ def create_colter_table():
 
     df_colter.to_csv(DATA_DIR + "colter-new.csv", index=False)
 
-    df_colter.to_sql(
-        "colter", siren_db_conn, if_exists="append", index=False
-    )
+    df_colter.to_sql("colter", siren_db_conn, if_exists="append", index=False)
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM colter"""):
-        logging.info(
-            f"************ {row} records have been added to the COLTER table!"
-        )
+        logging.info(f"************ {row} records have been added to the COLTER table!")
 
     del df_colter
     del df_communes
@@ -1267,9 +1251,7 @@ def create_elu_table():
     for col in df_colter_elus.columns:
         df_colter_elus = df_colter_elus.rename(columns={col: col.replace("_elu", "")})
 
-    df_colter_elus.to_sql(
-        "elus", siren_db_conn, if_exists="append", index=False
-    )
+    df_colter_elus.to_sql("elus", siren_db_conn, if_exists="append", index=False)
 
     del df_colter_elus
     del elus
@@ -1541,15 +1523,15 @@ def create_sitemap():
                 {
                     unite_legale_columns: value
                     for unite_legale_columns, value in zip(
-                    unite_legale_columns, unite_legale
-                )
+                        unite_legale_columns, unite_legale
+                    )
                 }
             )
         noms_url = ""
         for ul in liste_unites_legales_sqlite:
             if (
-                    ul["etat_administratif_unite_legale"] == "A"
-                    and ul["nature_juridique_unite_legale"] != "1000"
+                ul["etat_administratif_unite_legale"] == "A"
+                and ul["nature_juridique_unite_legale"] != "1000"
             ):
                 if not ul["code_postal"]:
                     ul["code_postal"] = ""
@@ -1562,13 +1544,13 @@ def create_sitemap():
                     ).lower()
                 )
                 noms_url = (
-                        noms_url
-                        + ul["code_postal"]
-                        + ","
-                        + ul["activite_principale_unite_legale"]
-                        + ","
-                        + nom_url
-                        + "\n"
+                    noms_url
+                    + ul["code_postal"]
+                    + ","
+                    + ul["activite_principale_unite_legale"]
+                    + ","
+                    + nom_url
+                    + "\n"
                 )
 
         with open(DATA_DIR + "sitemap-" + ENV + ".csv", "a+") as f:
@@ -1602,9 +1584,9 @@ def update_sitemap():
 
 
 def put_object_minio(
-        filename: str,
-        minio_path: str,
-        local_path: str,
+    filename: str,
+    minio_path: str,
+    local_path: str,
 ):
     minio_url = MINIO_URL
     minio_bucket = MINIO_BUCKET

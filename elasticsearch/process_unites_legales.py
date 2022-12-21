@@ -151,13 +151,17 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         unite_legale_processed["liste_idcc"] = str_to_list(
-            unite_legale_processed["liste_idcc"])
+            unite_legale_processed["liste_idcc"]
+        )
         unite_legale_processed["liste_rge"] = str_to_list(
-            unite_legale_processed["liste_rge"])
+            unite_legale_processed["liste_rge"]
+        )
         unite_legale_processed["liste_uai"] = str_to_list(
-            unite_legale_processed["liste_uai"])
+            unite_legale_processed["liste_uai"]
+        )
         unite_legale_processed["liste_finess"] = str_to_list(
-            unite_legale_processed["liste_finess"])
+            unite_legale_processed["liste_finess"]
+        )
 
         unite_legale_processed["concat_nom_adr_siren"] = (
             get_empty_string_if_none(unite_legale_processed["nom_complet"])

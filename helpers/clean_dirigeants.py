@@ -161,4 +161,3 @@ def drop_duplicates_dirigeants_pm(list_dict_dirigeants):
 
             list_dirigeants_unique.append(unique_dirigeant)
     return list_dirigeants_unique
-
