@@ -233,3 +233,12 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
         dirigeants_pm_processed = drop_duplicates_dirigeants_pm(dirigeants_pm_processed)
 
     return dirigeants_pm_processed, list(set(list_all_dirigeants))
+
+
+# Élus
+def create_list_names_elus(list_elus):
+    list_elus_names = []
+    for elu in list_elus:
+        name_elu = f"{elu['nom']} {elu['prenom']}"
+        list_elus_names.append(name_elu)
+    return list(set(list_elus_names))
