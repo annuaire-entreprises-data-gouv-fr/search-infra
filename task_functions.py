@@ -14,6 +14,7 @@ from dag_datalake_sirene.data_aggregation.collectivite_territoriale import (
     process_elus_files,
 )
 from dag_datalake_sirene.data_aggregation.rge import preprocess_rge_data
+from dag_datalake_sirene.data_aggregation.uai import preprocess_uai_data
 from dag_datalake_sirene.elasticsearch.create_sirene_index import ElasticCreateSiren
 from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
     index_unites_legales_by_chunk,
@@ -895,29 +896,12 @@ def create_uai_table():
      """
     )
 
-    r = requests.get(
-        "https://www.data.gouv.fr/fr/datasets/r/b22f04bf-64a8-495d-b8bb-d84dbc4c7983"
-    )
-    with open(DATA_DIR + "uai-download.csv", "wb") as f:
-        for chunk in r.iter_content(1024):
-            f.write(chunk)
-    df_uai = pd.read_csv(DATA_DIR + "uai-download.csv", dtype=str, sep=";")
-    df_uai = df_uai[["identifiant_de_l_etablissement", "siren_siret", "code_nature"]]
-    df_uai = df_uai.rename(
-        columns={"identifiant_de_l_etablissement": "uai", "siren_siret": "siren"}
-    )
-    df_uai["siren"] = df_uai["siren"].str[:9]
-    df_list_uai = (
-        df_uai.groupby(["siren"])["uai"].apply(list).reset_index(name="liste_uai")
-    )
-    df_list_uai = df_list_uai[["siren", "liste_uai"]]
-    df_list_uai["liste_uai"] = df_list_uai["liste_uai"].astype(str)
+    df_list_uai = preprocess_uai_data(DATA_DIR)
     df_list_uai.to_sql("uai", siren_db_conn, if_exists="append", index=False)
+    del df_list_uai
+
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM uai"""):
         logging.info(f"************ {row} records have been added to the UAI table!")
-    del df_list_uai
-    del df_uai
-
     commit_and_close_conn(siren_db_conn)
 
 
