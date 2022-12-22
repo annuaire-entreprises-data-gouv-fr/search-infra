@@ -1,26 +1,22 @@
 import logging
 import os
 from ast import literal_eval
+from typing import List
 
 import pandas as pd
 import requests
 
 
-def preprocess_rge_data(
-    data_dir,
-) -> None:
-    from typing import List
-
-    os.makedirs(os.path.dirname(data_dir), exist_ok=True)
-    list_rge: List[str] = []
-    r = requests.get(
+def preprocess_rge_data():
+    rge_url = (
         "https://data.ademe.fr/data-fair/api/v1/datasets/liste-des-entreprises-rge-2/"
         "lines?size=10000&select=siret%2Ccode_qualification"
     )
+    r = requests.get(rge_url, allow_redirects=True)
     data = r.json()
+    list_rge: List[str] = []
     list_rge = list_rge + data["results"]
     cpt = 0
-    logging.info(data)
     while "next" in data:
         cpt = cpt + 1
         r = requests.get(data["next"])
@@ -28,13 +24,16 @@ def preprocess_rge_data(
         list_rge = list_rge + data["results"]
     df_rge = pd.DataFrame(list_rge)
     df_rge["siren"] = df_rge["siret"].str[:9]
-    agg_rge = (
+    df_rge = df_rge[df_rge["siren"].notna()]
+    df_list_rge = (
         df_rge.groupby(["siren"])["code_qualification"]
-        .apply(list)
-        .reset_index(name="liste_rge")
+            .apply(list)
+            .reset_index(name="liste_rge")
     )
-    agg_rge = agg_rge[["siren", "liste_rge"]]
-    agg_rge.to_csv(data_dir + "rge-new.csv", index=False)
+    df_list_rge = df_list_rge[["siren", "liste_rge"]]
+    df_list_rge["liste_rge"] = df_list_rge["liste_rge"].astype(str)
+    del df_rge
+    return df_list_rge
 
 
 def generate_updates_rge(df_rge, current_color):

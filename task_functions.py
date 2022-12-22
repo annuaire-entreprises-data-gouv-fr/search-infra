@@ -13,6 +13,7 @@ from airflow.models import Variable
 from dag_datalake_sirene.data_aggregation.collectivite_territoriale import (
     process_elus_files,
 )
+from dag_datalake_sirene.data_aggregation.rge import preprocess_rge_data
 from dag_datalake_sirene.elasticsearch.create_sirene_index import ElasticCreateSiren
 from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
     index_unites_legales_by_chunk,
@@ -866,40 +867,12 @@ def create_rge_table():
      ON rge (siren);
      """
     )
-
-    rge_url = (
-        "https://data.ademe.fr/data-fair/api/v1/datasets/liste-des-entreprises-rge-2/"
-        "lines?size=10000&select=siret%2Ccode_qualification"
-    )
-    r = requests.get(rge_url, allow_redirects=True)
-    data = r.json()
-    from typing import List
-
-    list_rge: List[str] = []
-    list_rge = list_rge + data["results"]
-    cpt = 0
-    while "next" in data:
-        cpt = cpt + 1
-        r = requests.get(data["next"])
-        data = r.json()
-        list_rge = list_rge + data["results"]
-    df_rge = pd.DataFrame(list_rge)
-    df_rge["siren"] = df_rge["siret"].str[:9]
-    df_rge = df_rge[df_rge["siren"].notna()]
-    df_list_rge = (
-        df_rge.groupby(["siren"])["code_qualification"]
-        .apply(list)
-        .reset_index(name="liste_rge")
-    )
-    df_list_rge = df_list_rge[["siren", "liste_rge"]]
-    df_list_rge["liste_rge"] = df_list_rge["liste_rge"].astype(str)
+    df_list_rge = preprocess_rge_data()
     df_list_rge.to_sql("rge", siren_db_conn, if_exists="append", index=False)
+    del df_list_rge
+
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM rge"""):
         logging.info(f"************ {row} records have been added to the RGE table!")
-
-    del df_list_rge
-    del df_rge
-
     commit_and_close_conn(siren_db_conn)
 
 
