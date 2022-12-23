@@ -15,6 +15,9 @@ from dag_datalake_sirene.data_aggregation.collectivite_territoriale import (
 )
 from dag_datalake_sirene.data_aggregation.finess import preprocess_finess_data
 from dag_datalake_sirene.data_aggregation.rge import preprocess_rge_data
+from dag_datalake_sirene.data_aggregation.entrepreneur_spectacle import (
+    preprocess_spectacle_data,
+)
 from dag_datalake_sirene.data_aggregation.uai import preprocess_uai_data
 from dag_datalake_sirene.elasticsearch.create_sirene_index import ElasticCreateSiren
 from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
@@ -953,28 +956,14 @@ def create_spectacle_table():
      """
     )
 
-    r = requests.get(
-        "https://www.data.gouv.fr/fr/datasets/r/fb6c3b2e-da8c-4e69-a719-6a96329e4cb2"
-    )
-    with open(DATA_DIR + "spectacle-download.csv", "wb") as f:
-        for chunk in r.iter_content(1024):
-            f.write(chunk)
-
-    df_spectacle = pd.read_csv(DATA_DIR + "spectacle-download.csv", dtype=str, sep=";")
-    df_spectacle = df_spectacle[df_spectacle["statut_du_recepisse"] == "Valide"]
-    df_spectacle["est_entrepreneur_spectacle"] = True
-    df_spectacle["siren"] = df_spectacle[
-        "siren_personne_physique_siret_personne_morale"
-    ].str[:9]
-    df_spectacle = df_spectacle[["siren", "est_entrepreneur_spectacle"]]
-    df_spectacle = df_spectacle[df_spectacle["siren"].notna()]
+    df_spectacle = preprocess_spectacle_data(DATA_DIR)
     df_spectacle.to_sql("spectacle", siren_db_conn, if_exists="append", index=False)
+    del df_spectacle
+
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM spectacle"""):
         logging.info(
             f"************ {row} records have been added to the SPECTACLE table!"
         )
-    del df_spectacle
-
     commit_and_close_conn(siren_db_conn)
 
 
