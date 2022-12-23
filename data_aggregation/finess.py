@@ -5,10 +5,7 @@ import pandas as pd
 import requests
 
 
-def preprocess_finess_data(
-    data_dir,
-) -> None:
-    os.makedirs(os.path.dirname(data_dir), exist_ok=True)
+def preprocess_finess_data(data_dir):
     r = requests.get(
         "https://www.data.gouv.fr/fr/datasets/r/2ce43ade-8d2c-4d1d-81da-ca06c82abc68"
     )
@@ -30,13 +27,16 @@ def preprocess_finess_data(
     )
     df_finess["siren"] = df_finess["siren"].str[:9]
     df_finess = df_finess[df_finess["siren"].notna()]
-    agg_finess = (
+    df_list_finess = (
         df_finess.groupby(["siren"])["finess"]
-        .apply(list)
-        .reset_index(name="liste_finess")
+            .apply(list)
+            .reset_index(name="liste_finess")
     )
-    agg_finess = agg_finess[["siren", "liste_finess"]]
-    agg_finess.to_csv(data_dir + "finess-new.csv", index=False)
+    df_list_finess = df_list_finess[["siren", "liste_finess"]]
+    df_list_finess["liste_finess"] = df_list_finess["liste_finess"].astype(str)
+    del df_finess
+
+    return df_list_finess
 
 
 def generate_updates_finess(df_finess, current_color):

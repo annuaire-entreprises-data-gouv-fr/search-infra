@@ -13,6 +13,7 @@ from airflow.models import Variable
 from dag_datalake_sirene.data_aggregation.collectivite_territoriale import (
     process_elus_files,
 )
+from dag_datalake_sirene.data_aggregation.finess import preprocess_finess_data
 from dag_datalake_sirene.data_aggregation.rge import preprocess_rge_data
 from dag_datalake_sirene.data_aggregation.uai import preprocess_uai_data
 from dag_datalake_sirene.elasticsearch.create_sirene_index import ElasticCreateSiren
@@ -924,41 +925,12 @@ def create_finess_table():
      """
     )
 
-    r = requests.get(
-        "https://www.data.gouv.fr/fr/datasets/r/2ce43ade-8d2c-4d1d-81da-ca06c82abc68"
-    )
-    with open(DATA_DIR + "finess-download.csv", "wb") as f:
-        for chunk in r.iter_content(1024):
-            f.write(chunk)
-
-    df_finess = pd.read_csv(
-        DATA_DIR + "finess-download.csv",
-        dtype=str,
-        sep=";",
-        encoding="Latin-1",
-        skiprows=1,
-        header=None,
-    )
-    df_finess = df_finess[[1, 18, 22]]
-    df_finess = df_finess.rename(
-        columns={1: "finess", 18: "cat_etablissement", 22: "siren"}
-    )
-    df_finess["siren"] = df_finess["siren"].str[:9]
-    df_finess = df_finess[df_finess["siren"].notna()]
-    df_list_finess = (
-        df_finess.groupby(["siren"])["finess"]
-        .apply(list)
-        .reset_index(name="liste_finess")
-    )
-    df_list_finess = df_list_finess[["siren", "liste_finess"]]
-    df_list_finess["liste_finess"] = df_list_finess["liste_finess"].astype(str)
+    df_list_finess = preprocess_finess_data(DATA_DIR)
     df_list_finess.to_sql("finess", siren_db_conn, if_exists="append", index=False)
+    del df_list_finess
+
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM finess"""):
         logging.info(f"************ {row} records have been added to the FINESS table!")
-
-    del df_list_finess
-    del df_finess
-
     commit_and_close_conn(siren_db_conn)
 
 
