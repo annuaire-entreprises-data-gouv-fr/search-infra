@@ -17,6 +17,13 @@ def str_to_list(string):
     return li
 
 
+def sqlite_str_to_bool(string):
+    if string is None:
+        return None
+    if string == 1:
+        return True
+
+
 def unique_list(lst):
     ulist = []
     [ulist.append(x) for x in lst if x not in ulist]
