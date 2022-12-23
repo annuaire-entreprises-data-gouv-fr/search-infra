@@ -151,8 +151,9 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             + unite_legale_processed["liste_adresses"]
         )
 
-        unite_legale_processed["est_entrepreneur_spectacle"] = \
-            sqlite_str_to_bool(unite_legale["est_entrepreneur_spectacle"])
+        unite_legale_processed["est_entrepreneur_spectacle"] = sqlite_str_to_bool(
+            unite_legale["est_entrepreneur_spectacle"]
+        )
 
         unite_legale_processed["liste_idcc"] = str_to_list(
             unite_legale_processed["liste_idcc"]
