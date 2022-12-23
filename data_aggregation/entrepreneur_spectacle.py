@@ -12,7 +12,7 @@ def preprocess_spectacle_data(data_dir):
         for chunk in r.iter_content(1024):
             f.write(chunk)
 
-    df_spectacle = pd.read_csv(DATA_DIR + "spectacle-download.csv", dtype=str, sep=";")
+    df_spectacle = pd.read_csv(data_dir + "spectacle-download.csv", dtype=str, sep=";")
     df_spectacle = df_spectacle[df_spectacle["statut_du_recepisse"] == "Valide"]
     df_spectacle["est_entrepreneur_spectacle"] = True
     df_spectacle["siren"] = df_spectacle[
