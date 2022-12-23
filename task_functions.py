@@ -14,6 +14,9 @@ from dag_datalake_sirene.data_aggregation.collectivite_territoriale import (
     preprocess_colter_data,
     preprocess_elus_data,
 )
+from dag_datalake_sirene.data_aggregation.convention_collective import (
+    preprocess_convcollective_data,
+)
 from dag_datalake_sirene.data_aggregation.finess import preprocess_finess_data
 from dag_datalake_sirene.data_aggregation.rge import preprocess_rge_data
 from dag_datalake_sirene.data_aggregation.entrepreneur_spectacle import (
@@ -816,42 +819,17 @@ def create_convention_collective_table():
      """
     )
 
-    cc_url = (
-        "https://www.data.gouv.fr/fr/datasets/r/bfc3a658-c054-4ecc-ba4b" "-22f3f5789dc7"
-    )
-    r = requests.get(cc_url, allow_redirects=True)
-    with open(DATA_DIR + "convcollective-download.csv", "wb") as f:
-        for chunk in r.iter_content(1024):
-            f.write(chunk)
-    df_conv_coll = pd.read_csv(
-        DATA_DIR + "convcollective-download.csv",
-        dtype=str,
-        names=["mois", "siret", "idcc", "date_maj"],
-        header=0,
-    )
-    df_conv_coll["siren"] = df_conv_coll["siret"].str[0:9]
-    df_conv_coll = df_conv_coll[df_conv_coll["siren"].notna()]
-    df_conv_coll["idcc"] = df_conv_coll["idcc"].apply(lambda x: str(x).replace(" ", ""))
-    df_liste_cc = (
-        df_conv_coll.groupby(by=["siren"])["idcc"]
-        .apply(list)
-        .reset_index(name="liste_idcc")
-    )
-    # df_liste_cc["siren"] = df_liste_cc["siret"].str[0:9]
-    df_liste_cc["liste_idcc"] = df_liste_cc["liste_idcc"].astype(str)
+    df_liste_cc = preprocess_convcollective_data(DATA_DIR)
     df_liste_cc.to_sql(
         "convention_collective", siren_db_conn, if_exists="append", index=False
     )
+    del df_liste_cc
 
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM convention_collective"""):
         logging.info(
             f"************ {row}"
             f"records have been added to the CONVENTION COLLECTIVE table!"
         )
-
-    del df_liste_cc
-    del df_conv_coll
-
     commit_and_close_conn(siren_db_conn)
 
 
