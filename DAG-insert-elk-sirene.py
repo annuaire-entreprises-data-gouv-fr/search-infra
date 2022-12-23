@@ -15,7 +15,7 @@ from dag_datalake_sirene.task_functions import (
     create_dirig_pp_table,
     create_elastic_index,
     create_elu_table,
-    create_etablissement_table,
+    create_etablissements_table,
     create_finess_table,
     create_rge_table,
     create_siege_only_table,
@@ -77,10 +77,10 @@ with DAG(
         python_callable=create_unite_legale_table,
     )
 
-    create_etablissement_table = PythonOperator(
-        task_id="create_etablissement_table",
+    create_etablissements_table = PythonOperator(
+        task_id="create_etablissements_table",
         provide_context=True,
-        python_callable=create_etablissement_table,
+        python_callable=create_etablissements_table,
     )
 
     count_nombre_etablissements = PythonOperator(
@@ -228,8 +228,8 @@ with DAG(
 
     create_unite_legale_table.set_upstream(create_sqlite_database)
 
-    create_etablissement_table.set_upstream(create_unite_legale_table)
-    count_nombre_etablissements.set_upstream(create_etablissement_table)
+    create_etablissements_table.set_upstream(create_unite_legale_table)
+    count_nombre_etablissements.set_upstream(create_etablissements_table)
     count_nombre_etablissements_ouverts.set_upstream(count_nombre_etablissements)
     create_siege_only_table.set_upstream(count_nombre_etablissements_ouverts)
 

@@ -17,6 +17,10 @@ from dag_datalake_sirene.data_aggregation.collectivite_territoriale import (
 from dag_datalake_sirene.data_aggregation.convention_collective import (
     preprocess_convcollective_data,
 )
+from dag_datalake_sirene.data_aggregation.departements import all_deps
+from dag_datalake_sirene.data_aggregation.etablissements import (
+    preprocess_etablissements_data,
+)
 from dag_datalake_sirene.data_aggregation.finess import preprocess_finess_data
 from dag_datalake_sirene.data_aggregation.rge import preprocess_rge_data
 from dag_datalake_sirene.data_aggregation.entrepreneur_spectacle import (
@@ -270,22 +274,8 @@ def create_unite_legale_table(**kwargs):
     commit_and_close_conn(siren_db_conn)
 
 
-def create_etablissement_table():
+def create_etablissements_table():
     siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
-    # Create list of departement zip codes
-    all_deps = [
-        *"-0".join(list(str(x) for x in range(0, 10))).split("-")[1:],
-        *list(str(x) for x in range(10, 20)),
-        *["2A", "2B"],
-        *list(str(x) for x in range(21, 96)),
-        *"-7510".join(list(str(x) for x in range(0, 10))).split("-")[1:],
-        *"-751".join(list(str(x) for x in range(9, 21))).split("-")[1:],
-        *["971", "972", "973", "974", "976", "98"],
-        *[""],
-    ]
-    # Remove Paris zip code
-    all_deps.remove("75")
-
     # Create database
     siren_db_cursor.execute("""DROP TABLE IF EXISTS siret""")
     siren_db_cursor.execute(
@@ -347,103 +337,7 @@ def create_etablissement_table():
 
     # Upload geo data by departement
     for dep in all_deps:
-        url = f"https://files.data.gouv.fr/geo-sirene/last/dep/geo_siret_{dep}.csv.gz"
-        print(url)
-        df_dep = pd.read_csv(
-            url,
-            compression="gzip",
-            dtype=str,
-            usecols=[
-                "siren",
-                "siret",
-                "dateCreationEtablissement",
-                "trancheEffectifsEtablissement",
-                "activitePrincipaleRegistreMetiersEtablissement",
-                "etablissementSiege",
-                "numeroVoieEtablissement",
-                "libelleVoieEtablissement",
-                "codePostalEtablissement",
-                "libelleCommuneEtablissement",
-                "libelleCedexEtablissement",
-                "typeVoieEtablissement",
-                "codeCommuneEtablissement",
-                "codeCedexEtablissement",
-                "complementAdresseEtablissement",
-                "distributionSpecialeEtablissement",
-                "complementAdresse2Etablissement",
-                "indiceRepetition2Etablissement",
-                "libelleCedex2Etablissement",
-                "codeCedex2Etablissement",
-                "numeroVoie2Etablissement",
-                "typeVoie2Etablissement",
-                "libelleVoie2Etablissement",
-                "codeCommune2Etablissement",
-                "libelleCommune2Etablissement",
-                "distributionSpeciale2Etablissement",
-                "dateDebut",
-                "etatAdministratifEtablissement",
-                "enseigne1Etablissement",
-                "enseigne1Etablissement",
-                "enseigne2Etablissement",
-                "enseigne3Etablissement",
-                "denominationUsuelleEtablissement",
-                "activitePrincipaleEtablissement",
-                "geo_adresse",
-                "geo_id",
-                "longitude",
-                "latitude",
-                "indiceRepetitionEtablissement",
-                "libelleCommuneEtrangerEtablissement",
-                "codePaysEtrangerEtablissement",
-                "libellePaysEtrangerEtablissement",
-                "libelleCommuneEtranger2Etablissement",
-                "codePaysEtranger2Etablissement",
-                "libellePaysEtranger2Etablissement",
-            ],
-        )
-        df_dep = df_dep.rename(
-            columns={
-                "dateCreationEtablissement": "date_creation",
-                "trancheEffectifsEtablissement": "tranche_effectif_salarie",
-                "activitePrincipaleRegistreMetiersEtablissement": "activite_principale"
-                "_registre_metier",
-                "etablissementSiege": "est_siege",
-                "numeroVoieEtablissement": "numero_voie",
-                "typeVoieEtablissement": "type_voie",
-                "libelleVoieEtablissement": "libelle_voie",
-                "codePostalEtablissement": "code_postal",
-                "libelleCedexEtablissement": "libelle_cedex",
-                "libelleCommuneEtablissement": "libelle_commune",
-                "codeCommuneEtablissement": "commune",
-                "complementAdresseEtablissement": "complement_adresse",
-                "complementAdresse2Etablissement": "complement_adresse_2",
-                "numeroVoie2Etablissement": "numero_voie_2",
-                "indiceRepetition2Etablissement": "indice_repetition_2",
-                "typeVoie2Etablissement": "type_voie_2",
-                "libelleVoie2Etablissement": "libelle_voie_2",
-                "codeCommune2Etablissement": "commune_2",
-                "libelleCommune2Etablissement": "libelle_commune_2",
-                "codeCedex2Etablissement": "cedex_2",
-                "libelleCedex2Etablissement": "libelle_cedex_2",
-                "codeCedexEtablissement": "cedex",
-                "dateDebut": "date_debut_activite",
-                "distributionSpecialeEtablissement": "distribution_speciale",
-                "distributionSpeciale2Etablissement": "distribution_speciale_2",
-                "etatAdministratifEtablissement": "etat_administratif_etablissement",
-                "enseigne1Etablissement": "enseigne_1",
-                "enseigne2Etablissement": "enseigne_2",
-                "enseigne3Etablissement": "enseigne_3",
-                "activitePrincipaleEtablissement": "activite_principale",
-                "indiceRepetitionEtablissement": "indice_repetition",
-                "denominationUsuelleEtablissement": "nom_commercial",
-                "libelleCommuneEtrangerEtablissement": "libelle_commune_etranger",
-                "codePaysEtrangerEtablissement": "code_pays_etranger",
-                "libellePaysEtrangerEtablissement": "libelle_pays_etranger",
-                "libelleCommuneEtranger2Etablissement": "libelle_commune_etranger_2",
-                "codePaysEtranger2Etablissement": "code_pays_etranger_2",
-                "libellePaysEtranger2Etablissement": "libelle_pays_etranger_2",
-            }
-        )
+        preprocess_etablissements_data(dep)
         df_dep.to_sql("siret", siren_db_conn, if_exists="append", index=False)
         siren_db_conn.commit()
         for row in siren_db_cursor.execute("""SELECT COUNT() FROM siret"""):
@@ -827,7 +721,7 @@ def create_convention_collective_table():
 
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM convention_collective"""):
         logging.info(
-            f"************ {row}"
+            f"************ {row} "
             f"records have been added to the CONVENTION COLLECTIVE table!"
         )
     commit_and_close_conn(siren_db_conn)
