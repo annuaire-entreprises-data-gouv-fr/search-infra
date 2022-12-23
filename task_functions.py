@@ -1397,7 +1397,7 @@ def fill_elastic_index(**kwargs):
         (SELECT liste_rge FROM rge WHERE siren = st.siren) as liste_rge,
         (SELECT liste_uai FROM uai WHERE siren = st.siren) as liste_uai,
         (SELECT liste_finess FROM finess WHERE siren = st.siren) as liste_finess,
-        (SELECT est_entrepreneur_spectacle FROM spectacle sp WHERE
+        (SELECT est_entrepreneur_spectacle FROM spectacle WHERE
         siren = st.siren) as est_entrepreneur_spectacle,
         (SELECT colter_code_insee FROM colter WHERE siren = st.siren)
         as colter_code_insee,

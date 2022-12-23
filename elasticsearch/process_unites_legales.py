@@ -12,7 +12,11 @@ from dag_datalake_sirene.data_enrichment import (
     is_entrepreneur_individuel,
     label_section_from_activite,
 )
-from dag_datalake_sirene.helpers.utils import get_empty_string_if_none, str_to_list
+from dag_datalake_sirene.helpers.utils import (
+    get_empty_string_if_none,
+    sqlite_str_to_bool,
+    str_to_list,
+)
 
 
 def process_unites_legales(chunk_unites_legales_sqlite):
@@ -145,6 +149,10 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         unite_legale_processed["concat_enseigne_adresse"] = (
             unite_legale_processed["liste_enseignes"]
             + unite_legale_processed["liste_adresses"]
+        )
+
+        unite_legale_processed["est_entrepreneur_spectacle"] = sqlite_str_to_bool(
+            unite_legale["est_entrepreneur_spectacle"]
         )
 
         unite_legale_processed["liste_idcc"] = str_to_list(
