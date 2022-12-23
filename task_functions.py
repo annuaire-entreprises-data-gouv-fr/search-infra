@@ -18,14 +18,15 @@ from dag_datalake_sirene.data_aggregation.convention_collective import (
     preprocess_convcollective_data,
 )
 from dag_datalake_sirene.data_aggregation.departements import all_deps
+from dag_datalake_sirene.data_aggregation.entrepreneur_spectacle import (
+    preprocess_spectacle_data,
+)
 from dag_datalake_sirene.data_aggregation.etablissements import (
     preprocess_etablissements_data,
 )
 from dag_datalake_sirene.data_aggregation.finess import preprocess_finess_data
+from dag_datalake_sirene.data_aggregation.dirigeants_pp import preprocess_dirigeants_pp
 from dag_datalake_sirene.data_aggregation.rge import preprocess_rge_data
-from dag_datalake_sirene.data_aggregation.entrepreneur_spectacle import (
-    preprocess_spectacle_data,
-)
 from dag_datalake_sirene.data_aggregation.uai import preprocess_uai_data
 from dag_datalake_sirene.elasticsearch.create_sirene_index import ElasticCreateSiren
 from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
@@ -82,53 +83,7 @@ def commit_and_close_conn(db_conn):
     db_conn.close()
 
 
-def preprocess_dirigeants_pp(query):
-    cols = [column[0] for column in query.description]
-    rep_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
-    rep_chunk.sort_values(
-        by=[
-            "siren",
-            "nom_patronymique",
-            "nom_usage",
-            "prenoms",
-            "datenaissance",
-            "villenaissance",
-            "paysnaissance",
-            "qualite",
-        ],
-        inplace=True,
-        ascending=[True, False, False, False, False, False, False, False],
-    )
-    rep_chunk.drop_duplicates(
-        subset=[
-            "siren",
-            "nom_patronymique",
-            "nom_usage",
-            "prenoms",
-            "datenaissance",
-            "villenaissance",
-            "paysnaissance",
-            "qualite",
-        ],
-        keep="first",
-        inplace=True,
-    )
-    rep_clean = (
-        rep_chunk.groupby(
-            by=[
-                "siren",
-                "nom_patronymique",
-                "nom_usage",
-                "prenoms",
-                "datenaissance",
-                "villenaissance",
-                "paysnaissance",
-            ]
-        )["qualite"]
-        .apply(lambda x: ", ".join(x))
-        .reset_index()
-    )
-    return rep_clean
+
 
 
 def preprocess_dirigeant_pm(query):
