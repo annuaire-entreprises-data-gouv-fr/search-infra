@@ -25,9 +25,13 @@ from dag_datalake_sirene.data_aggregation.etablissements import (
     preprocess_etablissements_data,
 )
 from dag_datalake_sirene.data_aggregation.finess import preprocess_finess_data
+from dag_datalake_sirene.data_aggregation.dirigeants_pm import preprocess_dirigeant_pm
 from dag_datalake_sirene.data_aggregation.dirigeants_pp import preprocess_dirigeants_pp
 from dag_datalake_sirene.data_aggregation.rge import preprocess_rge_data
 from dag_datalake_sirene.data_aggregation.uai import preprocess_uai_data
+from dag_datalake_sirene.data_aggregation.unite_legale import (
+    preprocess_unite_legale_data,
+)
 from dag_datalake_sirene.elasticsearch.create_sirene_index import ElasticCreateSiren
 from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
     index_unites_legales_by_chunk,
@@ -83,30 +87,6 @@ def commit_and_close_conn(db_conn):
     db_conn.close()
 
 
-
-
-
-def preprocess_dirigeant_pm(query):
-    cols = [column[0] for column in query.description]
-    rep_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
-    rep_chunk.sort_values(
-        by=["siren", "siren_pm", "denomination", "sigle", "qualite"],
-        inplace=True,
-        ascending=[True, False, False, False, False],
-    )
-    rep_chunk.drop_duplicates(
-        subset=["siren", "siren_pm", "denomination", "sigle", "qualite"],
-        keep="first",
-        inplace=True,
-    )
-    rep_clean = (
-        rep_chunk.groupby(by=["siren", "siren_pm", "denomination", "sigle"])["qualite"]
-        .apply(lambda x: ", ".join(x))
-        .reset_index()
-    )
-    return rep_clean
-
-
 def create_sqlite_database():
     if os.path.exists(DATA_DIR) and os.path.isdir(DATA_DIR):
         shutil.rmtree(DATA_DIR)
@@ -155,55 +135,8 @@ def create_unite_legale_table(**kwargs):
         ON unite_legale (siren);
         """
     )
-    url = "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip"
-    r = requests.get(url, allow_redirects=True)
-    open(DATA_DIR + "StockUniteLegale_utf8.zip", "wb").write(r.content)
-    shutil.unpack_archive(DATA_DIR + "StockUniteLegale_utf8.zip", DATA_DIR)
-    df_iterator = pd.read_csv(
-        DATA_DIR + "StockUniteLegale_utf8.csv", chunksize=100000, dtype=str
-    )
-    # Insert rows in database by chunk
-    for i, df_unite_legale in enumerate(df_iterator):
-        df_unite_legale = df_unite_legale[
-            [
-                "siren",
-                "dateCreationUniteLegale",
-                "sigleUniteLegale",
-                "prenom1UniteLegale",
-                "identifiantAssociationUniteLegale",
-                "trancheEffectifsUniteLegale",
-                "dateDernierTraitementUniteLegale",
-                "categorieEntreprise",
-                "etatAdministratifUniteLegale",
-                "nomUniteLegale",
-                "nomUsageUniteLegale",
-                "denominationUniteLegale",
-                "categorieJuridiqueUniteLegale",
-                "activitePrincipaleUniteLegale",
-                "economieSocialeSolidaireUniteLegale",
-            ]
-        ]
-        # Rename columns
-        df_unite_legale = df_unite_legale.rename(
-            columns={
-                "dateCreationUniteLegale": "date_creation_unite_legale",
-                "sigleUniteLegale": "sigle",
-                "prenom1UniteLegale": "prenom",
-                "trancheEffectifsUniteLegale": "tranche_effectif_salarie_unite_legale",
-                "dateDernierTraitementUniteLegale": "date_mise_a_jour_unite_legale",
-                "categorieEntreprise": "categorie_entreprise",
-                "etatAdministratifUniteLegale": "etat_administratif_unite_legale",
-                "nomUniteLegale": "nom",
-                "nomUsageUniteLegale": "nom_usage",
-                "denominationUniteLegale": "nom_raison_sociale",
-                "categorieJuridiqueUniteLegale": "nature_juridique_unite_legale",
-                "activitePrincipaleUniteLegale": "activite_principale_unite_legale",
-                "economieSocialeSolidaireUniteLegale": "economie_sociale_solidaire"
-                "_unite_legale",
-                "identifiantAssociationUniteLegale": "identifiant_association"
-                "_unite_legale",
-            }
-        )
+
+    for df_unite_legale in preprocess_unite_legale_data(DATA_DIR):
         df_unite_legale.to_sql(
             "unite_legale", siren_db_conn, if_exists="append", index=False
         )
@@ -292,12 +225,13 @@ def create_etablissements_table():
 
     # Upload geo data by departement
     for dep in all_deps:
-        preprocess_etablissements_data(dep)
+        df_dep = preprocess_etablissements_data(dep)
         df_dep.to_sql("siret", siren_db_conn, if_exists="append", index=False)
         siren_db_conn.commit()
         for row in siren_db_cursor.execute("""SELECT COUNT() FROM siret"""):
             logging.info(
-                f"************ {row} records have been added to the unite_legale table!"
+                f"************ {row} records have been added to the `établissements` "
+                f"table!"
             )
     del df_dep
     commit_and_close_conn(siren_db_conn)

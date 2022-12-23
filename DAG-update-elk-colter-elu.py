@@ -5,7 +5,7 @@ from airflow.operators.python import PythonOperator, ShortCircuitOperator
 from airflow.utils.dates import days_ago
 from dag_datalake_sirene.data_aggregation.collectivite_territoriale import (
     preprocess_colter_data,
-    preprocess_elu_data,
+    preprocess_elus_data,
 )
 from dag_datalake_sirene.data_aggregation.update_elasticsearch import (
     update_elasticsearch_with_new_data,
@@ -109,9 +109,9 @@ with DAG(
         ),
     )
 
-    preprocess_elu_data = PythonOperator(
-        task_id="preprocess_elu_data",
-        python_callable=preprocess_elu_data,
+    preprocess_elus_data = PythonOperator(
+        task_id="preprocess_elus_data",
+        python_callable=preprocess_elus_data,
         op_args=(f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/",),
     )
 
@@ -181,9 +181,9 @@ with DAG(
     put_colter_file_error_to_minio.set_upstream(update_es_colter)
     put_colter_file_latest_to_minio.set_upstream(update_es_colter)
 
-    preprocess_elu_data.set_upstream(put_colter_file_error_to_minio)
-    preprocess_elu_data.set_upstream(put_colter_file_latest_to_minio)
-    get_latest_elu_data.set_upstream(preprocess_elu_data)
+    preprocess_elus_data.set_upstream(put_colter_file_error_to_minio)
+    preprocess_elus_data.set_upstream(put_colter_file_latest_to_minio)
+    get_latest_elu_data.set_upstream(preprocess_elus_data)
     compare_versions_file_elu.set_upstream(get_latest_elu_data)
     update_es_elu.set_upstream(compare_versions_file_elu)
     put_elu_file_error_to_minio.set_upstream(update_es_elu)
