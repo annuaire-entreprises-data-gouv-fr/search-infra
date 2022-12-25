@@ -10,7 +10,7 @@ def preprocess_convcollective_data(data_dir):
         "https://www.data.gouv.fr/fr/datasets/r/bfc3a658-c054-4ecc-ba4b" "-22f3f5789dc7"
     )
     r = requests.get(cc_url, allow_redirects=True)
-    with open(data-dir + "convcollective-download.csv", "wb") as f:
+    with open(data_dir + "convcollective-download.csv", "wb") as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)
     df_conv_coll = pd.read_csv(

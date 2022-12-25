@@ -23,9 +23,6 @@ def preprocess_uai_data(data_dir):
     )
     df_list_uai = df_list_uai[["siren", "liste_uai"]]
     df_list_uai["liste_uai"] = df_list_uai["liste_uai"].astype(str)
-    df_list_uai.to_sql("uai", siren_db_conn, if_exists="append", index=False)
-    for row in siren_db_cursor.execute("""SELECT COUNT() FROM uai"""):
-        logging.info(f"************ {row} records have been added to the UAI table!")
     del df_uai
 
     return df_list_uai
