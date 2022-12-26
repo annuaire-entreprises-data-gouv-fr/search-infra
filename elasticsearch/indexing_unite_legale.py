@@ -9,7 +9,7 @@ from dag_datalake_sirene.elasticsearch.process_unites_legales import (
 from elasticsearch import helpers
 
 
-def elasticsearch_doc_generator(data):
+def elasticsearch_doc_siren_generator(data):
     # Serialize the instance into a dictionary so that it can be saved in elasticsearch.
     for index, document in enumerate(data):
         yield ElasticsearchSireneIndex(
@@ -46,7 +46,7 @@ def index_unites_legales_by_chunk(
         if logger % 1000 == 0:
             logging.info(f"logger={logger}")
         try:
-            chunk_doc_generator = elasticsearch_doc_generator(
+            chunk_doc_generator = elasticsearch_doc_siren_generator(
                 chunk_unites_legales_processed
             )
             # Bulk index documents into elasticsearch using the parallel version of the
