@@ -128,9 +128,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         # Siege
-        unite_legale_processed["siege"] = format_siege(
-            unite_legale["siege"]
-        )
+        unite_legale_processed["siege"] = format_siege(unite_legale["siege"])
 
         list_unites_legales_processed.append(unite_legale_processed)
     return list_unites_legales_processed

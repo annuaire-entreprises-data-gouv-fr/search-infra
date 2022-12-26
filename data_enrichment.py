@@ -307,7 +307,7 @@ def format_siege(siege):
         siege["cedex"],
         siege["libelle_commune_etranger"],
         siege["libelle_pays_etranger"],
-        )
+    )
     siege["concat_enseigne_adresse_siren_siret"] = (
         get_empty_string_if_none(siege["enseigne_1"])
         + " "
@@ -320,10 +320,8 @@ def format_siege(siege):
         + get_empty_string_if_none(siege["siren"])
         + " "
         + get_empty_string_if_none(siege["siret"])
-        ).strip()
-    siege["coordonnees"] = format_coordonnees(
-        siege["longitude"], siege["latitude"]
-    )
+    ).strip()
+    siege["coordonnees"] = format_coordonnees(siege["longitude"], siege["latitude"])
     siege["departement"] = format_departement(siege["commune"])
     siege["est_siege"] = str_to_bool(siege["est_siege"])
     siege["liste_idcc"] = str_to_list(siege["liste_idcc"])
