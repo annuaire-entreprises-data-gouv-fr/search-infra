@@ -10,13 +10,13 @@ from dag_datalake_sirene.data_enrichment import (
     format_etablissements,
     format_nom,
     format_nom_complet,
+    format_siege,
     is_entrepreneur_individuel,
     label_section_from_activite,
 )
 from dag_datalake_sirene.helpers.utils import (
     get_empty_string_if_none,
     sqlite_str_to_bool,
-    str_to_list,
 )
 
 
@@ -125,6 +125,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         # Etablissements
         unite_legale_processed["etablissements"] = format_etablissements(
             unite_legale["etablissements"]
+        )
+
+        # Siege
+        unite_legale_processed["siege"] = format_siege(
+            unite_legale["siege"]
         )
 
         list_unites_legales_processed.append(unite_legale_processed)
