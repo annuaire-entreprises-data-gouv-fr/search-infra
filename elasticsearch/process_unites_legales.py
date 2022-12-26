@@ -7,6 +7,7 @@ from dag_datalake_sirene.data_enrichment import (
     format_departement,
     format_dirigeants_pm,
     format_dirigeants_pp,
+    format_etablissements,
     format_nom,
     format_nom_complet,
     is_entrepreneur_individuel,
@@ -24,61 +25,12 @@ def process_unites_legales(chunk_unites_legales_sqlite):
     for unite_legale in chunk_unites_legales_sqlite:
         unite_legale_processed = {}
         for field in unite_legale:
-            if field in ["enseignes", "adresses", "colter_elus"]:
+            if field in ["colter_elus"]:
                 unite_legale_processed[field] = json.loads(unite_legale[field])
             else:
                 unite_legale_processed[field] = unite_legale[field]
 
-        # Enseignes
-        unite_legale_processed["liste_enseignes"] = []
-        for enseigne in unite_legale_processed["enseignes"]:
-            unite_legale_processed["liste_enseignes"].extend(
-                [enseigne["enseigne_1"], enseigne["enseigne_2"], enseigne["enseigne_3"]]
-            )
-        unite_legale_processed["liste_enseignes"] = list(
-            set(filter(None, unite_legale_processed["liste_enseignes"]))
-        )
-        del unite_legale_processed["enseignes"]
-
-        # Adresses
-        unite_legale_processed["liste_adresses"] = []
-        for adresse in unite_legale_processed["adresses"]:
-            unite_legale_processed["liste_adresses"].append(
-                format_adresse_complete(
-                    adresse["complement_adresse"],
-                    adresse["numero_voie"],
-                    adresse["indice_repetition"],
-                    adresse["type_voie"],
-                    adresse["libelle_voie"],
-                    adresse["libelle_commune"],
-                    adresse["libelle_cedex"],
-                    adresse["distribution_speciale"],
-                    adresse["commune"],
-                    adresse["cedex"],
-                    adresse["libelle_commune_etranger"],
-                    adresse["libelle_pays_etranger"],
-                )
-            )
-        unite_legale_processed["liste_adresses"] = list(
-            set(filter(None, unite_legale_processed["liste_adresses"]))
-        )
-        del unite_legale_processed["adresses"]
-
-        unite_legale_processed["adresse_etablissement"] = format_adresse_complete(
-            unite_legale_processed["complement_adresse"],
-            unite_legale_processed["numero_voie"],
-            unite_legale_processed["indice_repetition"],
-            unite_legale_processed["type_voie"],
-            unite_legale_processed["libelle_voie"],
-            unite_legale_processed["libelle_commune"],
-            unite_legale_processed["libelle_cedex"],
-            unite_legale_processed["distribution_speciale"],
-            unite_legale_processed["commune"],
-            unite_legale_processed["cedex"],
-            unite_legale_processed["libelle_commune_etranger"],
-            unite_legale_processed["libelle_pays_etranger"],
-        )
-
+        # Nom complet
         unite_legale_processed["nom_complet"] = format_nom_complet(
             unite_legale["nom"],
             unite_legale["nom_usage"],
@@ -94,8 +46,19 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             else unite_legale_processed["nombre_etablissements_ouverts"]
         )
 
-        # Dirigeants
+        # Activite principale
+        unite_legale_processed[
+            "section_activite_principale"
+        ] = label_section_from_activite(
+            unite_legale["activite_principale_unite_legale"]
+        )
 
+        # Entrepreneur individuel
+        unite_legale_processed[
+            "est_entrepreneur_individuel"
+        ] = is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
+
+        # Dirigeants
         unite_legale_processed["liste_dirigeants"] = []
         (
             unite_legale_processed["dirigeants_pp"],
@@ -110,6 +73,20 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         ) = format_dirigeants_pm(
             unite_legale["dirigeants_pm"], unite_legale_processed["liste_dirigeants"]
         )
+
+        if unite_legale_processed["est_entrepreneur_individuel"]:
+            unite_legale_processed["liste_dirigeants"].append(
+                unite_legale_processed["nom_complet"]
+            )
+            unite_legale_processed["dirigeants_pp"] = []
+            unite_legale_processed["dirigeants_pp"].append({})
+            unite_legale_processed["dirigeants_pp"][0]["nom"] = format_nom(
+                unite_legale_processed["nom"], unite_legale_processed["nom_usage"]
+            )
+
+            unite_legale_processed["dirigeants_pp"][0][
+                "prenoms"
+            ] = unite_legale_processed["prenom"]
 
         # Élus
         unite_legale_processed["liste_elus"] = create_list_names_elus(
@@ -140,40 +117,15 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["activite_principale_unite_legale"]
         )
 
-        unite_legale_processed["departement"] = format_departement(
-            unite_legale["commune"]
-        )
-        unite_legale_processed["coordonnees"] = format_coordonnees(
-            unite_legale["longitude"], unite_legale["latitude"]
-        )
-        unite_legale_processed["concat_enseigne_adresse"] = (
-            unite_legale_processed["liste_enseignes"]
-            + unite_legale_processed["liste_adresses"]
-        )
-
+        # Entrepreneur de spectacle vivant
         unite_legale_processed["est_entrepreneur_spectacle"] = sqlite_str_to_bool(
             unite_legale["est_entrepreneur_spectacle"]
         )
 
-        unite_legale_processed["liste_idcc"] = str_to_list(
-            unite_legale_processed["liste_idcc"]
-        )
-        unite_legale_processed["liste_rge"] = str_to_list(
-            unite_legale_processed["liste_rge"]
-        )
-        unite_legale_processed["liste_uai"] = str_to_list(
-            unite_legale_processed["liste_uai"]
-        )
-        unite_legale_processed["liste_finess"] = str_to_list(
-            unite_legale_processed["liste_finess"]
+        # Etablissements
+        unite_legale_processed["etablissements"] = format_etablissements(
+            unite_legale["etablissements"]
         )
 
-        unite_legale_processed["concat_nom_adr_siren"] = (
-            get_empty_string_if_none(unite_legale_processed["nom_complet"])
-            + " "
-            + get_empty_string_if_none(unite_legale_processed["adresse_etablissement"])
-            + " "
-            + get_empty_string_if_none(unite_legale["siren"])
-        ).strip()
         list_unites_legales_processed.append(unite_legale_processed)
     return list_unites_legales_processed
