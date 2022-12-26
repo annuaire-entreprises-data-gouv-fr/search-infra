@@ -1,6 +1,7 @@
-import requests
 import shutil
+
 import pandas as pd
+import requests
 
 
 def preprocess_unite_legale_data(data_dir):

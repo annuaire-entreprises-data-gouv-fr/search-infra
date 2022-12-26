@@ -10,36 +10,32 @@ from urllib.request import urlopen
 import pandas as pd
 import requests
 from airflow.models import Variable
-from dag_datalake_sirene.data_preprocessing.collectivite_territoriale import (
-    preprocess_colter_data,
-    preprocess_elus_data,
-)
-from dag_datalake_sirene.data_preprocessing.convention_collective import (
-    preprocess_convcollective_data,
-)
-from dag_datalake_sirene.labels.departements import all_deps
-from dag_datalake_sirene.data_preprocessing.entrepreneur_spectacle import (
-    preprocess_spectacle_data,
-)
-from dag_datalake_sirene.data_preprocessing.etablissements import (
-    preprocess_etablissements_data,
-)
-from dag_datalake_sirene.data_preprocessing.finess import preprocess_finess_data
-from dag_datalake_sirene.data_preprocessing.dirigeants_pm import preprocess_dirigeant_pm
-from dag_datalake_sirene.data_preprocessing.dirigeants_pp import (
-    preprocess_dirigeants_pp,
-)
-from dag_datalake_sirene.data_preprocessing.rge import preprocess_rge_data
-from dag_datalake_sirene.data_preprocessing.uai import preprocess_uai_data
-from dag_datalake_sirene.data_preprocessing.unite_legale import (
-    preprocess_unite_legale_data,
-)
-from dag_datalake_sirene.elasticsearch.create_sirene_index import ElasticCreateSiren
-from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
-    index_unites_legales_by_chunk,
-)
 from elasticsearch_dsl import connections
 from minio import Minio
+
+from dag_datalake_sirene.data_preprocessing.collectivite_territoriale import (
+    preprocess_colter_data, preprocess_elus_data)
+from dag_datalake_sirene.data_preprocessing.convention_collective import \
+    preprocess_convcollective_data
+from dag_datalake_sirene.data_preprocessing.dirigeants_pm import \
+    preprocess_dirigeant_pm
+from dag_datalake_sirene.data_preprocessing.dirigeants_pp import \
+    preprocess_dirigeants_pp
+from dag_datalake_sirene.data_preprocessing.entrepreneur_spectacle import \
+    preprocess_spectacle_data
+from dag_datalake_sirene.data_preprocessing.etablissements import \
+    preprocess_etablissements_data
+from dag_datalake_sirene.data_preprocessing.finess import \
+    preprocess_finess_data
+from dag_datalake_sirene.data_preprocessing.rge import preprocess_rge_data
+from dag_datalake_sirene.data_preprocessing.uai import preprocess_uai_data
+from dag_datalake_sirene.data_preprocessing.unite_legale import \
+    preprocess_unite_legale_data
+from dag_datalake_sirene.elasticsearch.create_sirene_index import \
+    ElasticCreateSiren
+from dag_datalake_sirene.elasticsearch.indexing_unite_legale import \
+    index_unites_legales_by_chunk
+from dag_datalake_sirene.labels.departements import all_deps
 
 TMP_FOLDER = "/tmp/"
 DAG_FOLDER = "dag_datalake_sirene/"

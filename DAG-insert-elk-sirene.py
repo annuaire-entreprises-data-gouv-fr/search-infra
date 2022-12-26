@@ -5,32 +5,18 @@ from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.task_functions import (
-    check_elastic_index,
-    count_nombre_etablissements,
-    count_nombre_etablissements_ouverts,
-    create_colter_table,
-    create_convention_collective_table,
-    create_dirig_pm_table,
-    create_dirig_pp_table,
-    create_elastic_index,
-    create_elu_table,
-    create_etablissements_table,
-    create_finess_table,
-    create_rge_table,
-    create_siege_only_table,
-    create_sitemap,
-    create_spectacle_table,
-    create_sqlite_database,
-    create_uai_table,
-    create_unite_legale_table,
-    fill_elastic_index,
-    get_colors,
-    get_object_minio,
-    update_color_file,
-    update_sitemap,
-)
 from operators.clean_folder import CleanFolderOperator
+
+from dag_datalake_sirene.task_functions import (
+    check_elastic_index, count_nombre_etablissements,
+    count_nombre_etablissements_ouverts, create_colter_table,
+    create_convention_collective_table, create_dirig_pm_table,
+    create_dirig_pp_table, create_elastic_index, create_elu_table,
+    create_etablissements_table, create_finess_table, create_rge_table,
+    create_siege_only_table, create_sitemap, create_spectacle_table,
+    create_sqlite_database, create_uai_table, create_unite_legale_table,
+    fill_elastic_index, get_colors, get_object_minio, update_color_file,
+    update_sitemap)
 
 DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "insert-elk-sirene"
