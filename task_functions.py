@@ -4,11 +4,8 @@ import os
 import re
 import shutil
 import sqlite3
-import zipfile
 from urllib.request import urlopen
 
-import pandas as pd
-import requests
 from airflow.models import Variable
 from dag_datalake_sirene.data_preprocessing.collectivite_territoriale import (
     preprocess_colter_data,

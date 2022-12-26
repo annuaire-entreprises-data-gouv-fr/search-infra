@@ -14,7 +14,6 @@ from elasticsearch_dsl import (
     tokenizer,
 )
 
-
 # Define filters
 french_elision = token_filter(
     "french_elision",

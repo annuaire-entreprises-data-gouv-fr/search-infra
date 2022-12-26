@@ -1,6 +1,7 @@
+import zipfile
+
 import pandas as pd
 import requests
-import zipfile
 
 
 def preprocess_colter_data(data_dir, **kwargs):
