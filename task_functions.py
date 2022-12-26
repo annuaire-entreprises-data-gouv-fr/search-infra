@@ -10,9 +10,6 @@ from urllib.request import urlopen
 import pandas as pd
 import requests
 from airflow.models import Variable
-from elasticsearch_dsl import connections
-from minio import Minio
-
 from dag_datalake_sirene.data_preprocessing.collectivite_territoriale import (
     preprocess_colter_data,
     preprocess_elus_data,
@@ -41,6 +38,8 @@ from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
     index_unites_legales_by_chunk,
 )
 from dag_datalake_sirene.labels.departements import all_deps
+from elasticsearch_dsl import connections
+from minio import Minio
 
 TMP_FOLDER = "/tmp/"
 DAG_FOLDER = "dag_datalake_sirene/"

@@ -1,11 +1,10 @@
 import logging
 from typing import Optional
 
-from elasticsearch_dsl import Index, connections
-
 from dag_datalake_sirene.elasticsearch.mapping_sirene_index import (
     ElasticsearchSireneIndex,
 )
+from elasticsearch_dsl import Index, connections
 
 
 class ElasticCreateSiren:
