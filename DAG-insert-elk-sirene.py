@@ -24,7 +24,7 @@ from dag_datalake_sirene.task_functions import (
     create_sqlite_database,
     create_uai_table,
     create_unite_legale_table,
-    fill_elastic_index,
+    fill_elastic_siren_index,
     get_colors,
     get_object_minio,
     update_color_file,
@@ -184,10 +184,10 @@ with DAG(
         python_callable=update_sitemap,
     )
 
-    fill_elastic_index = PythonOperator(
-        task_id="fill_elastic_index",
+    fill_elastic_siren_index = PythonOperator(
+        task_id="fill_elastic_siren_index",
         provide_context=True,
-        python_callable=fill_elastic_index,
+        python_callable=fill_elastic_siren_index,
     )
 
     check_elastic_index = PythonOperator(
@@ -246,8 +246,8 @@ with DAG(
     create_elu_table.set_upstream(create_colter_table)
 
     create_elastic_index.set_upstream(create_elu_table)
-    fill_elastic_index.set_upstream(create_elastic_index)
-    check_elastic_index.set_upstream(fill_elastic_index)
+    fill_elastic_siren_index.set_upstream(create_elastic_index)
+    check_elastic_index.set_upstream(fill_elastic_siren_index)
 
     create_sitemap.set_upstream(check_elastic_index)
     update_sitemap.set_upstream(create_sitemap)
