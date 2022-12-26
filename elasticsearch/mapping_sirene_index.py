@@ -1,6 +1,17 @@
-from elasticsearch_dsl import (Boolean, Date, Document, GeoPoint, InnerDoc,
-                               Integer, Keyword, Nested, Text, analyzer,
-                               token_filter, tokenizer)
+from elasticsearch_dsl import (
+    Boolean,
+    Date,
+    Document,
+    GeoPoint,
+    InnerDoc,
+    Integer,
+    Keyword,
+    Nested,
+    Text,
+    analyzer,
+    token_filter,
+    tokenizer,
+)
 
 from dag_datalake_sirene.colors import NEXT_COLOR
 
