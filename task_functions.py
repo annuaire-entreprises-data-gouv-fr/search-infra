@@ -649,7 +649,7 @@ def create_uai_table():
         """
      CREATE TABLE IF NOT EXISTS uai
      (
-         siren,
+         siret,
          liste_uai
      )
     """
@@ -657,7 +657,7 @@ def create_uai_table():
     siren_db_cursor.execute(
         """
      CREATE INDEX index_uai
-     ON uai (siren);
+     ON uai (siret);
      """
     )
 
