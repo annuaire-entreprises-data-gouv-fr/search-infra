@@ -677,7 +677,7 @@ def create_finess_table():
         """
      CREATE TABLE IF NOT EXISTS finess
      (
-         siren,
+         siret,
          liste_finess
      )
     """
@@ -685,7 +685,7 @@ def create_finess_table():
     siren_db_cursor.execute(
         """
      CREATE INDEX index_finess
-     ON finess (siren);
+     ON finess (siret);
      """
     )
 
