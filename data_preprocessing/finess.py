@@ -29,8 +29,8 @@ def preprocess_finess_data(data_dir):
     df_finess = df_finess[df_finess["siren"].notna()]
     df_list_finess = (
         df_finess.groupby(["siren"])["finess"]
-            .apply(list)
-            .reset_index(name="liste_finess")
+        .apply(list)
+        .reset_index(name="liste_finess")
     )
     df_list_finess = df_list_finess[["siren", "liste_finess"]]
     df_list_finess["liste_finess"] = df_list_finess["liste_finess"].astype(str)

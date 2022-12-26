@@ -16,8 +16,8 @@ def preprocess_spectacle_data(data_dir):
     df_spectacle = df_spectacle[df_spectacle["statut_du_recepisse"] == "Valide"]
     df_spectacle["est_entrepreneur_spectacle"] = True
     df_spectacle["siren"] = df_spectacle[
-                                "siren_personne_physique_siret_personne_morale"
-                            ].str[:9]
+        "siren_personne_physique_siret_personne_morale"
+    ].str[:9]
     df_spectacle = df_spectacle[["siren", "est_entrepreneur_spectacle"]]
     df_spectacle = df_spectacle[df_spectacle["siren"].notna()]
 

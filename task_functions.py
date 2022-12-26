@@ -789,9 +789,7 @@ def create_elu_table():
     del df_colter_elus
 
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM elus"""):
-        logging.info(
-            f"************ {row} records have been added to the ÉLUS table!"
-        )
+        logging.info(f"************ {row} records have been added to the ÉLUS table!")
     commit_and_close_conn(siren_db_conn)
 
 

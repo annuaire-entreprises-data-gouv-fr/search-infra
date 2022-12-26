@@ -3,8 +3,10 @@ import logging
 
 
 def preprocess_etablissements_data(departement):
-    url = f"https://files.data.gouv.fr/geo-sirene/last/dep/geo_siret" \
-          f"_{departement}.csv.gz"
+    url = (
+        f"https://files.data.gouv.fr/geo-sirene/last/dep/geo_siret"
+        f"_{departement}.csv.gz"
+    )
     logging.info(f"Dep file url: {url}")
     df_dep = pd.read_csv(
         url,

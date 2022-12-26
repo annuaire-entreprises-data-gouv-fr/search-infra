@@ -24,8 +24,8 @@ def preprocess_convcollective_data(data_dir):
     df_conv_coll["idcc"] = df_conv_coll["idcc"].apply(lambda x: str(x).replace(" ", ""))
     df_liste_cc = (
         df_conv_coll.groupby(by=["siren"])["idcc"]
-            .apply(list)
-            .reset_index(name="liste_idcc")
+        .apply(list)
+        .reset_index(name="liste_idcc")
     )
     # df_liste_cc["siren"] = df_liste_cc["siret"].str[0:9]
     df_liste_cc["liste_idcc"] = df_liste_cc["liste_idcc"].astype(str)
