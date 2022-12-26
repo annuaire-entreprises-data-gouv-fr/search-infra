@@ -959,11 +959,10 @@ def fill_elastic_siren_index(**kwargs):
                         s.libelle_pays_etranger_2 as libelle_pays_etranger_2,
                         s.libelle_voie as libelle_voie,
                         s.libelle_voie_2 as libelle_voie_2,
-                        (SELECT liste_finess FROM finess WHERE siret = s.siret) as 
+                        (SELECT liste_finess FROM finess WHERE siret = s.siret) as
                         liste_finess,
-                        (SELECT liste_idcc FROM convention_collective WHERE siret = 
-                        s.siret) as 
-                        liste_idcc,
+                        (SELECT liste_idcc FROM convention_collective WHERE siret =
+                        s.siret) as liste_idcc,
                         (SELECT liste_rge FROM rge WHERE siret = s.siret) as liste_rge,
                         (SELECT liste_uai FROM uai WHERE siret = s.siret) as liste_uai,
                         s.longitude as longitude,
@@ -1070,11 +1069,10 @@ def fill_elastic_siren_index(**kwargs):
                         s.libelle_pays_etranger_2 as libelle_pays_etranger_2,
                         s.libelle_voie as libelle_voie,
                         s.libelle_voie_2 as libelle_voie_2,
-                        (SELECT liste_finess FROM finess WHERE siret = s.siret) as 
+                        (SELECT liste_finess FROM finess WHERE siret = s.siret) as
                         liste_finess,
-                        (SELECT liste_idcc FROM convention_collective WHERE siret = 
-                        s.siret) as 
-                        liste_idcc,
+                        (SELECT liste_idcc FROM convention_collective WHERE siret =
+                        s.siret) as liste_idcc,
                         (SELECT liste_rge FROM rge WHERE siret = s.siret) as liste_rge,
                         (SELECT liste_uai FROM uai WHERE siret = s.siret) as liste_uai,
                         s.longitude as longitude,
