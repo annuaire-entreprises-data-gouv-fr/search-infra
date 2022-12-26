@@ -10,26 +10,28 @@ from urllib.request import urlopen
 import pandas as pd
 import requests
 from airflow.models import Variable
-from dag_datalake_sirene.data_aggregation.collectivite_territoriale import (
+from dag_datalake_sirene.data_preprocessing.collectivite_territoriale import (
     preprocess_colter_data,
     preprocess_elus_data,
 )
-from dag_datalake_sirene.data_aggregation.convention_collective import (
+from dag_datalake_sirene.data_preprocessing.convention_collective import (
     preprocess_convcollective_data,
 )
-from dag_datalake_sirene.data_aggregation.departements import all_deps
-from dag_datalake_sirene.data_aggregation.entrepreneur_spectacle import (
+from dag_datalake_sirene.data_preprocessing.departements import all_deps
+from dag_datalake_sirene.data_preprocessing.entrepreneur_spectacle import (
     preprocess_spectacle_data,
 )
-from dag_datalake_sirene.data_aggregation.etablissements import (
+from dag_datalake_sirene.data_preprocessing.etablissements import (
     preprocess_etablissements_data,
 )
-from dag_datalake_sirene.data_aggregation.finess import preprocess_finess_data
-from dag_datalake_sirene.data_aggregation.dirigeants_pm import preprocess_dirigeant_pm
-from dag_datalake_sirene.data_aggregation.dirigeants_pp import preprocess_dirigeants_pp
-from dag_datalake_sirene.data_aggregation.rge import preprocess_rge_data
-from dag_datalake_sirene.data_aggregation.uai import preprocess_uai_data
-from dag_datalake_sirene.data_aggregation.unite_legale import (
+from dag_datalake_sirene.data_preprocessing.finess import preprocess_finess_data
+from dag_datalake_sirene.data_preprocessing.dirigeants_pm import preprocess_dirigeant_pm
+from dag_datalake_sirene.data_preprocessing.dirigeants_pp import (
+    preprocess_dirigeants_pp,
+)
+from dag_datalake_sirene.data_preprocessing.rge import preprocess_rge_data
+from dag_datalake_sirene.data_preprocessing.uai import preprocess_uai_data
+from dag_datalake_sirene.data_preprocessing.unite_legale import (
     preprocess_unite_legale_data,
 )
 from dag_datalake_sirene.elasticsearch.create_sirene_index import ElasticCreateSiren
