@@ -1085,7 +1085,7 @@ def fill_elastic_siren_index(**kwargs):
                         s.type_voie as type_voie,
                         s.type_voie_2 as type_voie_2
                         FROM siretsiege as s
-                        WHERE s.siren = ul.siren
+                        WHERE s.siren = st.siren
                     )
                 ) as siege,
             (SELECT est_entrepreneur_spectacle FROM spectacle WHERE siren = ul.siren) as
