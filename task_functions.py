@@ -17,7 +17,7 @@ from dag_datalake_sirene.data_preprocessing.collectivite_territoriale import (
 from dag_datalake_sirene.data_preprocessing.convention_collective import (
     preprocess_convcollective_data,
 )
-from dag_datalake_sirene.data_preprocessing.departements import all_deps
+from dag_datalake_sirene.labels.departements import all_deps
 from dag_datalake_sirene.data_preprocessing.entrepreneur_spectacle import (
     preprocess_spectacle_data,
 )
