@@ -10,6 +10,7 @@ from dag_datalake_sirene.helpers.utils import (
     drop_exact_duplicates,
     get_empty_string_if_none,
     normalize_date,
+    str_to_list,
 )
 
 labels_file_path = "dags/dag_datalake_sirene/labels/"
@@ -242,3 +243,50 @@ def create_list_names_elus(list_elus):
         name_elu = f"{elu['nom']} {elu['prenom']}"
         list_elus_names.append(name_elu)
     return list(set(list_elus_names))
+
+
+# Etablissements
+def format_etablissements(list_etablissements_sqlite):
+    etablissements = json.loads(list_etablissements_sqlite)
+    etablissements_processed = []
+    for etablissement in etablissements:
+        etablissement["adresse"] = format_adresse_complete(
+            etablissement["complement_adresse"],
+            etablissement["numero_voie"],
+            etablissement["indice_repetition"],
+            etablissement["type_voie"],
+            etablissement["libelle_voie"],
+            etablissement["libelle_commune"],
+            etablissement["libelle_cedex"],
+            etablissement["distribution_speciale"],
+            etablissement["commune"],
+            etablissement["cedex"],
+            etablissement["libelle_commune_etranger"],
+            etablissement["libelle_pays_etranger"],
+        )
+        etablissement["concat_enseigne_adresse_siren_siret"] = (
+            + get_empty_string_if_none(etablissement["enseigne_1"])
+            + " "
+            + get_empty_string_if_none(etablissement["enseigne_2"])
+            + " "
+            + get_empty_string_if_none(etablissement["enseigne_3"])
+            + " "
+            + get_empty_string_if_none(etablissement["adresse"])
+            + " "
+            + get_empty_string_if_none(etablissement["siren"])
+            + " "
+            + get_empty_string_if_none(etablissement["siret"])
+        ).strip()
+        etablissement["coordonnees"] = format_coordonnees(
+            etablissement["longitude"], etablissement["latitude"]
+        )
+        etablissement["departement"] = format_departement(etablissement["commune"])
+        unite_legale_processed["liste_idcc"] = str_to_list(
+            unite_legale_processed["liste_idcc"]
+        )
+        etablissement["liste_rge"] = str_to_list(etablissement["liste_rge"])
+        etablissement["liste_uai"] = str_to_list(etablissement["liste_uai"])
+        etablissement["liste_finess"] = str_to_list(etablissement["liste_finess"])
+        etablissements_processed.append(etablissement)
+    return etablissements_processed
+
