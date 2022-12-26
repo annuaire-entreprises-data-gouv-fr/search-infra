@@ -804,7 +804,7 @@ def create_elastic_index(**kwargs):
     create_index.execute()
 
 
-def fill_elastic_index(**kwargs):
+def fill_elastic_siren_index(**kwargs):
     next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
     elastic_index = f"siren-{next_color}"
     siren_db_conn, siren_db_cursor = connect_to_db(SIRENE_DATABASE_LOCATION)
@@ -973,7 +973,8 @@ def fill_elastic_index(**kwargs):
 
 
 def check_elastic_index(**kwargs):
-    doc_count = kwargs["ti"].xcom_pull(key="doc_count", task_ids="fill_elastic_index")
+    doc_count = kwargs["ti"].xcom_pull(key="doc_count",
+                                       task_ids="fill_elastic_siren_index")
     count_sieges = kwargs["ti"].xcom_pull(
         key="count_sieges", task_ids="create_siege_only_table"
     )
