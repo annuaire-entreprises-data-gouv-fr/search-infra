@@ -622,7 +622,7 @@ def create_rge_table():
         """
      CREATE TABLE IF NOT EXISTS rge
      (
-         siren,
+         siret,
          liste_rge
      )
     """
@@ -630,7 +630,7 @@ def create_rge_table():
     siren_db_cursor.execute(
         """
      CREATE UNIQUE INDEX index_rge
-     ON rge (siren);
+     ON rge (siret);
      """
     )
     df_list_rge = preprocess_rge_data()
