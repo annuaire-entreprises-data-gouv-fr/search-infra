@@ -166,7 +166,7 @@ class ElasticsearchSireneIndex(Document):
     class Index:
         name = f"siren-{NEXT_COLOR}"
         settings = {
-            "number_of_shards": 4,
+            "number_of_shards": 1,
             "number_of_replicas": 0,
             "mapping": {"ignore_malformed": True},
         }
