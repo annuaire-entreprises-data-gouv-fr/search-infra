@@ -27,7 +27,7 @@ def preprocess_rge_data():
         .apply(list)
         .reset_index(name="liste_rge")
     )
-    df_list_rge = df_list_rge[["siren", "liste_rge"]]
+    df_list_rge = df_list_rge[["siret", "liste_rge"]]
     df_list_rge["liste_rge"] = df_list_rge["liste_rge"].astype(str)
     del df_rge
     return df_list_rge
