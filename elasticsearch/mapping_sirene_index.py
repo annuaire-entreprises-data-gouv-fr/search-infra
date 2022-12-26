@@ -87,7 +87,7 @@ class ElasticsearchEtablissementIndex(InnerDoc):
     code_postal = Keyword()
     commune = Keyword()
     commune_2 = Text()
-    concat_nom_enseigne_adresse_siren_siret = Text(
+    concat_enseigne_adresse_siren_siret = Text(
         analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
     )
     coordonnees = GeoPoint()
