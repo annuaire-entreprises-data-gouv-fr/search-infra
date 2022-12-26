@@ -10,6 +10,7 @@ from dag_datalake_sirene.helpers.utils import (
     drop_exact_duplicates,
     get_empty_string_if_none,
     normalize_date,
+    str_to_bool,
     str_to_list,
 )
 
@@ -265,7 +266,7 @@ def format_etablissements(list_etablissements_sqlite):
             etablissement["libelle_pays_etranger"],
         )
         etablissement["concat_enseigne_adresse_siren_siret"] = (
-            + get_empty_string_if_none(etablissement["enseigne_1"])
+            get_empty_string_if_none(etablissement["enseigne_1"])
             + " "
             + get_empty_string_if_none(etablissement["enseigne_2"])
             + " "
@@ -281,12 +282,53 @@ def format_etablissements(list_etablissements_sqlite):
             etablissement["longitude"], etablissement["latitude"]
         )
         etablissement["departement"] = format_departement(etablissement["commune"])
-        unite_legale_processed["liste_idcc"] = str_to_list(
-            unite_legale_processed["liste_idcc"]
-        )
+        etablissement["est_siege"] = str_to_bool(etablissement["est_siege"])
+        etablissement["liste_idcc"] = str_to_list(etablissement["liste_idcc"])
         etablissement["liste_rge"] = str_to_list(etablissement["liste_rge"])
         etablissement["liste_uai"] = str_to_list(etablissement["liste_uai"])
         etablissement["liste_finess"] = str_to_list(etablissement["liste_finess"])
         etablissements_processed.append(etablissement)
     return etablissements_processed
 
+
+# Siege
+def format_siege(siege):
+    siege = json.loads(siege)
+    siege["adresse"] = format_adresse_complete(
+        siege["complement_adresse"],
+        siege["numero_voie"],
+        siege["indice_repetition"],
+        siege["type_voie"],
+        siege["libelle_voie"],
+        siege["libelle_commune"],
+        siege["libelle_cedex"],
+        siege["distribution_speciale"],
+        siege["commune"],
+        siege["cedex"],
+        siege["libelle_commune_etranger"],
+        siege["libelle_pays_etranger"],
+        )
+    siege["concat_enseigne_adresse_siren_siret"] = (
+        get_empty_string_if_none(siege["enseigne_1"])
+        + " "
+        + get_empty_string_if_none(siege["enseigne_2"])
+        + " "
+        + get_empty_string_if_none(siege["enseigne_3"])
+        + " "
+        + get_empty_string_if_none(siege["adresse"])
+        + " "
+        + get_empty_string_if_none(siege["siren"])
+        + " "
+        + get_empty_string_if_none(siege["siret"])
+        ).strip()
+    siege["coordonnees"] = format_coordonnees(
+        siege["longitude"], siege["latitude"]
+    )
+    siege["departement"] = format_departement(siege["commune"])
+    siege["est_siege"] = str_to_bool(siege["est_siege"])
+    siege["liste_idcc"] = str_to_list(siege["liste_idcc"])
+    siege["liste_rge"] = str_to_list(siege["liste_rge"])
+    siege["liste_uai"] = str_to_list(siege["liste_uai"])
+    siege["liste_finess"] = str_to_list(siege["liste_finess"])
+
+    return siege
