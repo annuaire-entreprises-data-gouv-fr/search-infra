@@ -589,7 +589,7 @@ def create_convention_collective_table():
         """
      CREATE TABLE IF NOT EXISTS convention_collective
      (
-         siren,
+         siret,
          liste_idcc
      )
     """
@@ -597,7 +597,7 @@ def create_convention_collective_table():
     siren_db_cursor.execute(
         """
      CREATE UNIQUE INDEX index_convention_collective
-     ON convention_collective (siren);
+     ON convention_collective (siret);
      """
     )
 

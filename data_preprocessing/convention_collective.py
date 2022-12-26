@@ -16,11 +16,11 @@ def preprocess_convcollective_data(data_dir):
         names=["mois", "siret", "idcc", "date_maj"],
         header=0,
     )
-    df_conv_coll["siren"] = df_conv_coll["siret"].str[0:9]
-    df_conv_coll = df_conv_coll[df_conv_coll["siren"].notna()]
+    # df_conv_coll["siren"] = df_conv_coll["siret"].str[0:9]
+    df_conv_coll = df_conv_coll[df_conv_coll["siret"].notna()]
     df_conv_coll["idcc"] = df_conv_coll["idcc"].apply(lambda x: str(x).replace(" ", ""))
     df_liste_cc = (
-        df_conv_coll.groupby(by=["siren"])["idcc"]
+        df_conv_coll.groupby(by=["siret"])["idcc"]
         .apply(list)
         .reset_index(name="liste_idcc")
     )
