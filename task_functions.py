@@ -978,8 +978,9 @@ def fill_elastic_siren_index(**kwargs):
                         WHERE s.siren = ul.siren
                     )
                 ) as etablissements,
-            (SELECT est_entrepreneur_spectacle FROM spectacle WHERE siren = st.siren) as est_entrepreneur_spectacle,
-            (SELECT colter_code_insee FROM colter WHERE siren = st.siren) as 
+            (SELECT est_entrepreneur_spectacle FROM spectacle WHERE siren = ul.siren) as
+             est_entrepreneur_spectacle,
+            (SELECT colter_code_insee FROM colter WHERE siren = ul.siren) as
             colter_code_insee,
             (SELECT colter_code FROM colter WHERE siren = ul.siren) as colter_code,
             (SELECT colter_niveau FROM colter WHERE siren = ul.siren) as colter_niveau,
@@ -997,7 +998,7 @@ def fill_elastic_siren_index(**kwargs):
                     SELECT siren, nom, prenom, date_naissance,
                     sexe, fonction
                     FROM elus
-                    WHERE siren = st.siren
+                    WHERE siren = ul.siren
                 )
             ) as colter_elus
             FROM
