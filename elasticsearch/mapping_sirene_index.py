@@ -57,7 +57,7 @@ annuaire_analyzer = analyzer(
     ],
 )
 
-ELASTIC_SHARDS = 4
+ELASTIC_SHARDS = 1
 
 
 class ElasticsearchDirigeantPPIndex(InnerDoc):
@@ -124,6 +124,7 @@ class ElasticsearchEtablissementIndex(InnerDoc):
     libelle_voie_2 = Text()
     longitude = Text()
     nom_commercial = Text()
+    nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     numero_voie = Text()
     numero_voie_2 = Text()
     siren = Keyword(required=True)
@@ -144,9 +145,6 @@ class ElasticsearchSiegeIndex(InnerDoc):
     code_postal = Keyword()
     commune = Keyword()
     commune_2 = Text()
-    concat_enseigne_adresse_siren_siret = Text(
-        analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
-    )
     coordonnees = GeoPoint()
     complement_adresse = Text()
     complement_adresse_2 = Text()
