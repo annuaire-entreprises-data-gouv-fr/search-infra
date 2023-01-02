@@ -247,10 +247,11 @@ def create_list_names_elus(list_elus):
 
 
 # Etablissements
-def format_etablissements(list_etablissements_sqlite):
+def format_etablissements(list_etablissements_sqlite, nom_complet):
     etablissements = json.loads(list_etablissements_sqlite)
     etablissements_processed = []
     for etablissement in etablissements:
+        etablissement["nom_complet"] = nom_complet
         etablissement["adresse"] = format_adresse_complete(
             etablissement["complement_adresse"],
             etablissement["numero_voie"],
@@ -308,19 +309,6 @@ def format_siege(siege):
         siege["libelle_commune_etranger"],
         siege["libelle_pays_etranger"],
     )
-    siege["concat_enseigne_adresse_siren_siret"] = (
-        get_empty_string_if_none(siege["enseigne_1"])
-        + " "
-        + get_empty_string_if_none(siege["enseigne_2"])
-        + " "
-        + get_empty_string_if_none(siege["enseigne_3"])
-        + " "
-        + get_empty_string_if_none(siege["adresse"])
-        + " "
-        + get_empty_string_if_none(siege["siren"])
-        + " "
-        + get_empty_string_if_none(siege["siret"])
-    ).strip()
     siege["coordonnees"] = format_coordonnees(siege["longitude"], siege["latitude"])
     siege["departement"] = format_departement(siege["commune"])
     siege["est_siege"] = str_to_bool(siege["est_siege"])
