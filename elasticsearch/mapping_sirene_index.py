@@ -210,6 +210,7 @@ class ElasticsearchSireneIndex(Document):
 
     activite_principale_unite_legale = Keyword()
     categorie_entreprise = Text()
+    convention_collective_renseignee = Boolean()
     colter_code = Keyword()
     colter_code_insee = Keyword()
     colter_elus = Nested(ElasticsearchEluIndex)
@@ -221,6 +222,9 @@ class ElasticsearchSireneIndex(Document):
     economie_sociale_solidaire_unite_legale = Keyword()
     est_entrepreneur_individuel = Boolean()
     est_entrepreneur_spectacle = Boolean()
+    est_finess = Boolean()
+    est_rge = Boolean()
+    est_uai = Boolean()
     etablissements = Nested(ElasticsearchEtablissementIndex)
     etat_administratif_unite_legale = Keyword()
     identifiant_association_unite_legale = Keyword()
