@@ -4,7 +4,7 @@ from dag_datalake_sirene.data_enrichment import (
     create_list_names_elus,
     format_dirigeants_pm,
     format_dirigeants_pp,
-    format_etablissements,
+    format_etablissements_and_complements,
     format_nom,
     format_nom_complet,
     format_siege,
@@ -117,9 +117,24 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         # Etablissements
-        unite_legale_processed["etablissements"] = format_etablissements(
+        unite_legale_processed[
+            "etablissements"
+        ] = format_etablissements_and_complements(
             unite_legale["etablissements"], unite_legale_processed["nom_complet"]
-        )
+        )[
+            "etablissements_processed"
+        ]
+
+        # Complements
+        for field in [
+            "convention_collective_renseignee",
+            "est_finess",
+            "est_rge",
+            "est_uai",
+        ]:
+            unite_legale_processed[field] = format_etablissements_and_complements(
+                unite_legale["etablissements"], unite_legale_processed["nom_complet"]
+            )["complements"][field]
 
         # Siege
         unite_legale_processed["siege"] = format_siege(unite_legale["siege"])
