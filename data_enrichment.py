@@ -6,6 +6,7 @@ from dag_datalake_sirene.helpers.clean_dirigeants import (
     drop_duplicates_dirigeants_pp,
     unique_qualites,
 )
+from dag_datalake_sirene.helpers.es_fields import get_elasticsearch_field_name
 from dag_datalake_sirene.helpers.utils import (
     drop_exact_duplicates,
     get_empty_string_if_none,
@@ -247,9 +248,15 @@ def create_list_names_elus(list_elus):
 
 
 # Etablissements
-def format_etablissements(list_etablissements_sqlite, nom_complet):
+def format_etablissements_and_complements(list_etablissements_sqlite, nom_complet):
     etablissements = json.loads(list_etablissements_sqlite)
     etablissements_processed = []
+    complements = {
+        "est_uai": False,
+        "est_rge": False,
+        "est_finess": False,
+        "convention_collective_renseignee": False,
+    }
     for etablissement in etablissements:
         etablissement["nom_complet"] = nom_complet
         etablissement["adresse"] = format_adresse_complete(
@@ -289,7 +296,17 @@ def format_etablissements(list_etablissements_sqlite, nom_complet):
         etablissement["liste_uai"] = str_to_list(etablissement["liste_uai"])
         etablissement["liste_finess"] = str_to_list(etablissement["liste_finess"])
         etablissements_processed.append(etablissement)
-    return etablissements_processed
+
+        # Get complements
+        for field in ["liste_finess", "liste_idcc", "liste_rge", "liste_uai"]:
+            if etablissement["field"]:
+                complements[get_elasticsearch_field_name(field)] = True
+        etablissements_formatted.append(etablissement_formatted)
+
+    return {
+        "etablissements_processed": etablissements_processed,
+        "complements": complements,
+    }
 
 
 # Siege
