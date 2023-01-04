@@ -299,9 +299,8 @@ def format_etablissements_and_complements(list_etablissements_sqlite, nom_comple
 
         # Get complements
         for field in ["liste_finess", "liste_idcc", "liste_rge", "liste_uai"]:
-            if etablissement["field"]:
+            if etablissement[field]:
                 complements[get_elasticsearch_field_name(field)] = True
-        etablissements_formatted.append(etablissement_formatted)
 
     return {
         "etablissements_processed": etablissements_processed,
