@@ -7,7 +7,7 @@ from dag_datalake_sirene.data_enrichment import (
     format_etablissements_and_complements,
     format_nom,
     format_nom_complet,
-    format_siege,
+    format_siege_unite_legale,
     is_entrepreneur_individuel,
     label_section_from_activite,
 )
@@ -116,14 +116,12 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["est_entrepreneur_spectacle"]
         )
 
-        # Etablissements
-        unite_legale_processed[
-            "etablissements"
-        ] = format_etablissements_and_complements(
+        etablissements_processed, complements = format_etablissements_and_complements(
             unite_legale["etablissements"], unite_legale_processed["nom_complet"]
-        )[
-            "etablissements_processed"
-        ]
+        )
+
+        # Etablissements
+        unite_legale_processed["etablissements"] = etablissements_processed
 
         # Complements
         for field in [
@@ -132,12 +130,12 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             "est_rge",
             "est_uai",
         ]:
-            unite_legale_processed[field] = format_etablissements_and_complements(
-                unite_legale["etablissements"], unite_legale_processed["nom_complet"]
-            )["complements"][field]
+            unite_legale_processed[field] = complements[field]
 
         # Siege
-        unite_legale_processed["siege"] = format_siege(unite_legale["siege"])
+        unite_legale_processed["siege"] = format_siege_unite_legale(
+            unite_legale["siege"]
+        )
 
         list_unites_legales_processed.append(unite_legale_processed)
     return list_unites_legales_processed

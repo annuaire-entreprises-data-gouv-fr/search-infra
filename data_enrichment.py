@@ -302,14 +302,11 @@ def format_etablissements_and_complements(list_etablissements_sqlite, nom_comple
             if etablissement[field]:
                 complements[get_elasticsearch_field_name(field)] = True
 
-    return {
-        "etablissements_processed": etablissements_processed,
-        "complements": complements,
-    }
+    return etablissements_processed, complements
 
 
 # Siege
-def format_siege(siege):
+def format_siege_unite_legale(siege):
     siege = json.loads(siege)
     siege["adresse"] = format_adresse_complete(
         siege["complement_adresse"],
