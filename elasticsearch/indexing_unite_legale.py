@@ -43,7 +43,7 @@ def index_unites_legales_by_chunk(
             liste_unites_legales_sqlite
         )
         logger += 1
-        if logger % 1000 == 0:
+        if logger % 100000 == 0:
             logging.info(f"logger={logger}")
         try:
             chunk_doc_generator = elasticsearch_doc_siren_generator(
