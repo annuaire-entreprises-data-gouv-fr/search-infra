@@ -1,14 +1,8 @@
-import os
-
 import pandas as pd
 import requests
 
 
-def preprocess_spectacle_data(
-    data_dir,
-) -> None:
-    os.makedirs(os.path.dirname(data_dir), exist_ok=True)
-
+def preprocess_spectacle_data(data_dir):
     r = requests.get(
         "https://www.data.gouv.fr/fr/datasets/r/fb6c3b2e-da8c-4e69-a719-6a96329e4cb2"
     )
@@ -24,17 +18,5 @@ def preprocess_spectacle_data(
     ].str[:9]
     df_spectacle = df_spectacle[["siren", "est_entrepreneur_spectacle"]]
     df_spectacle = df_spectacle[df_spectacle["siren"].notna()]
-    df_spectacle.to_csv(data_dir + "spectacle-new.csv", index=False)
 
-
-def generate_updates_spectacle(df_spectacle, current_color):
-    for index, row in df_spectacle.iterrows():
-        yield {
-            "_op_type": "update",
-            "_index": "siren-" + current_color,
-            "_type": "_doc",
-            "_id": row["siren"],
-            "doc": {
-                "est_entrepreneur_spectacle": True,
-            },
-        }
+    return df_spectacle

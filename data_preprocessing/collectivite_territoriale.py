@@ -1,15 +1,10 @@
-import os
 import zipfile
 
 import pandas as pd
 import requests
 
 
-def preprocess_colter_data(
-    data_dir,
-    **kwargs,
-) -> None:
-    os.makedirs(os.path.dirname(data_dir), exist_ok=True)
+def preprocess_colter_data(data_dir, **kwargs):
     # Process Régions
     df_regions = pd.read_csv(
         "https://www.data.gouv.fr/fr/datasets/r/619ee62e-8f9e-4c62-b166-abc6f2b86201",
@@ -100,25 +95,20 @@ def preprocess_colter_data(
     ] = "particulier"
 
     df_colter = pd.concat([df_colter, df_communes])
-
-    if os.path.exists(data_dir + "colter-new.csv"):
-        os.remove(data_dir + "colter-new.csv")
-
     df_colter.to_csv(data_dir + "colter-new.csv", index=False)
+    del df_communes
+
+    return df_colter
 
 
-def preprocess_elu_data(
-    data_dir,
-    **kwargs,
-) -> None:
-    os.makedirs(os.path.dirname(data_dir), exist_ok=True)
-
+def preprocess_elus_data(data_dir):
     df_colter = pd.read_csv(data_dir + "colter-new.csv", dtype=str)
     # Conseillers régionaux
     elus = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/430e13f9-834b-4411-a1a8-da0b4b6e715c",
         "Code de la région",
     )
+
     # Conseillers départementaux
     df_elus_deps = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/601ef073-d986-4582-8e1a-ed14dc857fba",
@@ -127,6 +117,7 @@ def preprocess_elu_data(
     df_elus_deps["colter_code"] = df_elus_deps["colter_code"] + "D"
     df_elus_deps.loc[df_elus_deps["colter_code"] == "6AED", "colter_code"] = "6AE"
     elus = pd.concat([elus, df_elus_deps])
+
     # membres des assemblées des collectivités à statut particulier
     df_elus_part = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/a595be27-cfab-4810-b9d4-22e193bffe35",
@@ -163,7 +154,15 @@ def preprocess_elu_data(
             "fonction_elu",
         ]
     ]
-    df_colter_elus.to_csv(data_dir + "elu-new.csv", index=False)
+    for col in df_colter_elus.columns:
+        df_colter_elus = df_colter_elus.rename(columns={col: col.replace("_elu", "")})
+
+    del elus
+    del df_elus_part
+    del df_colter
+    del df_elus_epci
+
+    return df_colter_elus
 
 
 def process_elus_files(url, colname):
@@ -189,51 +188,3 @@ def process_elus_files(url, colname):
         }
     )
     return df_elus
-
-
-def generate_updates_colter(df_colter, current_color):
-    for index, row in df_colter.iterrows():
-        colter_code_insee = row["colter_code_insee"]
-        if row["colter_code_insee"] != row["colter_code_insee"]:
-            colter_code_insee = None
-        yield {
-            "_op_type": "update",
-            "_index": "siren-" + current_color,
-            "_type": "_doc",
-            "_id": row["siren"],
-            "doc": {
-                "colter_code_insee": colter_code_insee,
-                "colter_code": row["colter_code"],
-                "colter_niveau": row["colter_niveau"],
-            },
-        }
-
-
-def generate_updates_elu(df_elus, current_color):
-    for col in df_elus.columns:
-        df_elus = df_elus.rename(columns={col: col.replace("_elu", "")})
-
-    for siren in df_elus["siren"].unique():
-        df_elus_siren = df_elus[df_elus["siren"] == siren]
-        list_elus = []
-        del df_elus_siren["siren"]
-        for index, row in df_elus_siren.iterrows():
-            for col in row.to_dict():
-                if row[col] != row[col]:
-                    row[col] = None
-
-            list_elus.append(row.to_dict())
-        list_elus_names = []
-        for elu in list_elus:
-            name_elu = f"{elu['nom']} {elu['prenom']}"
-            list_elus_names.append(name_elu)
-        yield {
-            "_op_type": "update",
-            "_index": "siren-" + current_color,
-            "_type": "_doc",
-            "_id": siren,
-            "doc": {
-                "colter_elus": list_elus,
-                "liste_elus": list_elus_names,
-            },
-        }
