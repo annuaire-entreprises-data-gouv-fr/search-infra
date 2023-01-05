@@ -61,6 +61,10 @@ ELASTIC_SHARDS = 1
 
 
 class ElasticsearchDirigeantPPIndex(InnerDoc):
+    # Indexing the field 'nom' as both a keyword (exactly how it is given to the index)
+    # and as text (analysed with the french analyser), allows us to search both the
+    # exact match for a query and an analysed version of it (without stop words for
+    # example)
     nom = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     prenoms = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     date_naissance = Date()

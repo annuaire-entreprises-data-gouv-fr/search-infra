@@ -142,7 +142,8 @@ def create_unite_legale_table(**kwargs):
 
         for row in siren_db_cursor.execute("""SELECT COUNT() FROM unite_legale"""):
             logging.info(
-                f"************ {row} records have been added to the unite_legale table!"
+                f"************ {row} total records have been added "
+                f"to the unité légale table!"
             )
 
     del df_unite_legale
@@ -154,8 +155,8 @@ def create_unite_legale_table(**kwargs):
         """
     ):
         logging.info(
-            f"************ {count_unites_legales} records have been added to the "
-            f"unite_legale table!"
+            f"************ {count_unites_legales} total records have been added to the "
+            f"unité légale table!"
         )
     kwargs["ti"].xcom_push(key="count_unites_legales", value=count_unites_legales[0])
     commit_and_close_conn(siren_db_conn)
@@ -229,8 +230,8 @@ def create_etablissements_table():
         siren_db_conn.commit()
         for row in siren_db_cursor.execute("""SELECT COUNT() FROM siret"""):
             logging.info(
-                f"************ {row} records have been added to the `établissements` "
-                f"table!"
+                f"************ {row} total records have been added to the "
+                f"`établissements` table!"
             )
     del df_dep
     commit_and_close_conn(siren_db_conn)
@@ -438,8 +439,8 @@ def create_siege_only_table(**kwargs):
     )
     for count_sieges in siren_db_cursor.execute("""SELECT COUNT() FROM siretsiege"""):
         logging.info(
-            f"************ {count_sieges} records have been added to the "
-            f"unite_legale table!"
+            f"************ {count_sieges} total records have been added to the "
+            f"unité légale table!"
         )
     kwargs["ti"].xcom_push(key="count_sieges", value=count_sieges[0])
     commit_and_close_conn(siren_db_conn)
@@ -610,7 +611,7 @@ def create_convention_collective_table():
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM convention_collective"""):
         logging.info(
             f"************ {row} "
-            f"records have been added to the CONVENTION COLLECTIVE table!"
+            f"total records have been added to the CONVENTION COLLECTIVE table!"
         )
     commit_and_close_conn(siren_db_conn)
 
@@ -638,7 +639,9 @@ def create_rge_table():
     del df_list_rge
 
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM rge"""):
-        logging.info(f"************ {row} records have been added to the RGE table!")
+        logging.info(
+            f"************ {row} total records have been added to the RGE table!"
+        )
     commit_and_close_conn(siren_db_conn)
 
 
@@ -666,7 +669,9 @@ def create_uai_table():
     del df_list_uai
 
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM uai"""):
-        logging.info(f"************ {row} records have been added to the UAI table!")
+        logging.info(
+            f"************ {row} total records have been added to the UAI table!"
+        )
     commit_and_close_conn(siren_db_conn)
 
 
@@ -694,7 +699,9 @@ def create_finess_table():
     del df_list_finess
 
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM finess"""):
-        logging.info(f"************ {row} records have been added to the FINESS table!")
+        logging.info(
+            f"************ {row} total records have been added to the FINESS table!"
+        )
     commit_and_close_conn(siren_db_conn)
 
 
@@ -723,7 +730,7 @@ def create_spectacle_table():
 
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM spectacle"""):
         logging.info(
-            f"************ {row} records have been added to the SPECTACLE table!"
+            f"************ {row} total records have been added to the SPECTACLE table!"
         )
     commit_and_close_conn(siren_db_conn)
 
@@ -754,7 +761,9 @@ def create_colter_table():
     del df_colter
 
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM colter"""):
-        logging.info(f"************ {row} records have been added to the COLTER table!")
+        logging.info(
+            f"************ {row} total records have been added to the COLTER table!"
+        )
     commit_and_close_conn(siren_db_conn)
 
 
@@ -786,7 +795,9 @@ def create_elu_table():
     del df_colter_elus
 
     for row in siren_db_cursor.execute("""SELECT COUNT() FROM elus"""):
-        logging.info(f"************ {row} records have been added to the ÉLUS table!")
+        logging.info(
+            f"************ {row} total records have been added to the ÉLUS table!"
+        )
     commit_and_close_conn(siren_db_conn)
 
 
