@@ -20,14 +20,14 @@ def preprocess_rge_data():
         data = r.json()
         list_rge = list_rge + data["results"]
     df_rge = pd.DataFrame(list_rge)
-    df_rge["siren"] = df_rge["siret"].str[:9]
-    df_rge = df_rge[df_rge["siren"].notna()]
+    # df_rge["siren"] = df_rge["siret"].str[:9]
+    df_rge = df_rge[df_rge["siret"].notna()]
     df_list_rge = (
-        df_rge.groupby(["siren"])["code_qualification"]
+        df_rge.groupby(["siret"])["code_qualification"]
         .apply(list)
         .reset_index(name="liste_rge")
     )
-    df_list_rge = df_list_rge[["siren", "liste_rge"]]
+    df_list_rge = df_list_rge[["siret", "liste_rge"]]
     df_list_rge["liste_rge"] = df_list_rge["liste_rge"].astype(str)
     del df_rge
     return df_list_rge

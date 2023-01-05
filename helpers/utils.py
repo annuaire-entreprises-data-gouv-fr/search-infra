@@ -17,6 +17,15 @@ def str_to_list(string):
     return li
 
 
+def str_to_bool(string):
+    if string is None:
+        return None
+    if string == "true":
+        return True
+    elif string == "false":
+        return False
+
+
 def sqlite_str_to_bool(string):
     if string is None:
         return None

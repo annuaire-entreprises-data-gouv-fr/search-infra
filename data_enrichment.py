@@ -6,10 +6,13 @@ from dag_datalake_sirene.helpers.clean_dirigeants import (
     drop_duplicates_dirigeants_pp,
     unique_qualites,
 )
+from dag_datalake_sirene.helpers.es_fields import get_elasticsearch_field_name
 from dag_datalake_sirene.helpers.utils import (
     drop_exact_duplicates,
     get_empty_string_if_none,
     normalize_date,
+    str_to_bool,
+    str_to_list,
 )
 
 labels_file_path = "dags/dag_datalake_sirene/labels/"
@@ -242,3 +245,89 @@ def create_list_names_elus(list_elus):
         name_elu = f"{elu['nom']} {elu['prenom']}"
         list_elus_names.append(name_elu)
     return list(set(list_elus_names))
+
+
+# Etablissements
+def format_etablissements_and_complements(list_etablissements_sqlite, nom_complet):
+    etablissements = json.loads(list_etablissements_sqlite)
+    etablissements_processed = []
+    complements = {
+        "est_uai": False,
+        "est_rge": False,
+        "est_finess": False,
+        "convention_collective_renseignee": False,
+    }
+    for etablissement in etablissements:
+        etablissement["nom_complet"] = nom_complet
+        etablissement["adresse"] = format_adresse_complete(
+            etablissement["complement_adresse"],
+            etablissement["numero_voie"],
+            etablissement["indice_repetition"],
+            etablissement["type_voie"],
+            etablissement["libelle_voie"],
+            etablissement["libelle_commune"],
+            etablissement["libelle_cedex"],
+            etablissement["distribution_speciale"],
+            etablissement["commune"],
+            etablissement["cedex"],
+            etablissement["libelle_commune_etranger"],
+            etablissement["libelle_pays_etranger"],
+        )
+        etablissement["concat_enseigne_adresse_siren_siret"] = (
+            get_empty_string_if_none(etablissement["enseigne_1"])
+            + " "
+            + get_empty_string_if_none(etablissement["enseigne_2"])
+            + " "
+            + get_empty_string_if_none(etablissement["enseigne_3"])
+            + " "
+            + get_empty_string_if_none(etablissement["adresse"])
+            + " "
+            + get_empty_string_if_none(etablissement["siren"])
+            + " "
+            + get_empty_string_if_none(etablissement["siret"])
+        ).strip()
+        etablissement["coordonnees"] = format_coordonnees(
+            etablissement["longitude"], etablissement["latitude"]
+        )
+        etablissement["departement"] = format_departement(etablissement["commune"])
+        etablissement["est_siege"] = str_to_bool(etablissement["est_siege"])
+        etablissement["liste_idcc"] = str_to_list(etablissement["liste_idcc"])
+        etablissement["liste_rge"] = str_to_list(etablissement["liste_rge"])
+        etablissement["liste_uai"] = str_to_list(etablissement["liste_uai"])
+        etablissement["liste_finess"] = str_to_list(etablissement["liste_finess"])
+        etablissements_processed.append(etablissement)
+
+        # Get complements
+        for field in ["liste_finess", "liste_idcc", "liste_rge", "liste_uai"]:
+            if etablissement[field]:
+                complements[get_elasticsearch_field_name(field)] = True
+
+    return etablissements_processed, complements
+
+
+# Siege
+def format_siege_unite_legale(siege):
+    siege = json.loads(siege)
+    siege["adresse"] = format_adresse_complete(
+        siege["complement_adresse"],
+        siege["numero_voie"],
+        siege["indice_repetition"],
+        siege["type_voie"],
+        siege["libelle_voie"],
+        siege["libelle_commune"],
+        siege["libelle_cedex"],
+        siege["distribution_speciale"],
+        siege["commune"],
+        siege["cedex"],
+        siege["libelle_commune_etranger"],
+        siege["libelle_pays_etranger"],
+    )
+    siege["coordonnees"] = format_coordonnees(siege["longitude"], siege["latitude"])
+    siege["departement"] = format_departement(siege["commune"])
+    siege["est_siege"] = str_to_bool(siege["est_siege"])
+    siege["liste_idcc"] = str_to_list(siege["liste_idcc"])
+    siege["liste_rge"] = str_to_list(siege["liste_rge"])
+    siege["liste_uai"] = str_to_list(siege["liste_uai"])
+    siege["liste_finess"] = str_to_list(siege["liste_finess"])
+
+    return siege

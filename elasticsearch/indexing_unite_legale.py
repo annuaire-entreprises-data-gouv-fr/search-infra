@@ -6,10 +6,10 @@ from dag_datalake_sirene.elasticsearch.mapping_sirene_index import (
 from dag_datalake_sirene.elasticsearch.process_unites_legales import (
     process_unites_legales,
 )
-from elasticsearch import helpers
+from elasticsearch.helpers import parallel_bulk
 
 
-def elasticsearch_doc_generator(data):
+def elasticsearch_doc_siren_generator(data):
     # Serialize the instance into a dictionary so that it can be saved in elasticsearch.
     for index, document in enumerate(data):
         yield ElasticsearchSireneIndex(
@@ -43,17 +43,17 @@ def index_unites_legales_by_chunk(
             liste_unites_legales_sqlite
         )
         logger += 1
-        if logger % 1000 == 0:
+        if logger % 100000 == 0:
             logging.info(f"logger={logger}")
         try:
-            chunk_doc_generator = elasticsearch_doc_generator(
+            chunk_doc_generator = elasticsearch_doc_siren_generator(
                 chunk_unites_legales_processed
             )
             # Bulk index documents into elasticsearch using the parallel version of the
             # bulk helper that runs in multiple threads
             # The bulk helper accept an instance of Elasticsearch class and an
             # iterable, a generator in our case
-            for success, details in helpers.parallel_bulk(
+            for success, details in parallel_bulk(
                 elastic_connection, chunk_doc_generator, chunk_size=elastic_bulk_size
             ):
                 if not success:
