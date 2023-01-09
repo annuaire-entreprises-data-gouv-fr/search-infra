@@ -53,7 +53,7 @@ with DAG(
 
     success_email_body = f"""
     Hi, <br><br>
-    Change API COLOR-{ENV} DAG has been executed successfully at {datetime.now()}.
+    Change API color ***{ENV}*** DAG has been executed successfully at {datetime.now()}.
     """
 
     send_email = EmailOperator(
