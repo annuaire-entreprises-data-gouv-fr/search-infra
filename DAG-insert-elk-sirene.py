@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from airflow.contrib.operators.ssh_operator import SSHOperator
+# from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
