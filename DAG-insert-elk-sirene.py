@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from airflow.contrib.operators.ssh_operator import SSHOperator
+# from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
@@ -202,6 +202,7 @@ with DAG(
         python_callable=update_color_file,
     )
 
+    """
     execute_aio_container = SSHOperator(
         ssh_conn_id="SERVER",
         task_id="execute_aio_container",
@@ -209,6 +210,7 @@ with DAG(
         f"&& docker-compose -f docker-compose-aio.yml up --build -d --force",
         dag=dag,
     )
+    """
 
     success_email_body = f"""
     Hi, <br><br>
@@ -254,7 +256,7 @@ with DAG(
 
     update_color_file.set_upstream(check_elastic_index)
 
-    execute_aio_container.set_upstream(update_color_file)
+    # execute_aio_container.set_upstream(update_color_file)
 
-    send_email.set_upstream(execute_aio_container)
+    send_email.set_upstream(update_color_file)
     send_email.set_upstream(update_sitemap)
