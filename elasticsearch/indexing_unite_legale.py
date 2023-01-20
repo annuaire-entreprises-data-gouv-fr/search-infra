@@ -35,7 +35,7 @@ def elasticsearch_doc_siren_generator(data):
                     meta={"id": f"{smaller_document['siren']}-{etablissements_indexed}"},
                     **smaller_document,
                 ).to_dict(include_meta=True)
-        # Otherwise (the docuemnt has less than 100 établissements), index document
+        # Otherwise, (the document has less than 100 établissements), index document
         # as is
         else:
             yield ElasticsearchSireneIndex(
