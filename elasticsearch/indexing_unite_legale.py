@@ -12,9 +12,37 @@ from elasticsearch.helpers import parallel_bulk
 def elasticsearch_doc_siren_generator(data):
     # Serialize the instance into a dictionary so that it can be saved in elasticsearch.
     for index, document in enumerate(data):
-        yield ElasticsearchSireneIndex(
-            meta={"id": document["siren"]}, **document
-        ).to_dict(include_meta=True)
+        etablissements_count = len(document["etablissements"])
+        # If ` unité légale` had more than 100 `établissements`, the main document is
+        # separated into smaller documents consisting of 100 établissements each
+        if etablissements_count > 100:
+            smaller_document = document.copy()
+            etablissements = document["etablissements"]
+            etablissements_left = etablissements_count
+            etablissements_indexed = 0
+            while etablissements_left > 0:
+                # min is used for the last iteration
+                number_etablissements_to_add = min(etablissements_left, 100)
+                # Select a 100 etablissements from the main document,
+                # and use it as a list for the smaller document
+                smaller_document["etablissements"] = etablissements[
+                    etablissements_indexed : etablissements_indexed
+                    + number_etablissements_to_add
+                ]
+                etablissements_left = etablissements_left - 100
+                etablissements_indexed += 100
+                yield ElasticsearchSireneIndex(
+                    meta={
+                        "id": f"{smaller_document['siren']}-{etablissements_indexed}"
+                    },
+                    **smaller_document,
+                ).to_dict(include_meta=True)
+        # Otherwise, (the document has less than 100 établissements), index document
+        # as is
+        else:
+            yield ElasticsearchSireneIndex(
+                meta={"id": document["siren"]}, **document
+            ).to_dict(include_meta=True)
 
 
 def index_unites_legales_by_chunk(
