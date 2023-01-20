@@ -14,7 +14,7 @@ def elasticsearch_doc_siren_generator(data):
     for index, document in enumerate(data):
         etablissements_count = len(document["etablissements"])
         # If ` unité légale` had more than 100 `établissements`, the main document is
-        # seperated into smaller documents consisting of 100 établissements each
+        # separated into smaller documents consisting of 100 établissements each
         if etablissements_count > 100:
             smaller_document = document.copy()
             etablissements = document["etablissements"]
@@ -32,7 +32,9 @@ def elasticsearch_doc_siren_generator(data):
                 etablissements_left = etablissements_left - 100
                 etablissements_indexed += 100
                 yield ElasticsearchSireneIndex(
-                    meta={"id": f"{smaller_document['siren']}-{etablissements_indexed}"},
+                    meta={
+                        "id": f"{smaller_document['siren']}-{etablissements_indexed}"
+                    },
                     **smaller_document,
                 ).to_dict(include_meta=True)
         # Otherwise, (the document has less than 100 établissements), index document
