@@ -93,7 +93,7 @@ def format_adresse_complete(
     libelle_commune,
     libelle_cedex,
     distribution_speciale,
-    commune,
+    code_postal,
     cedex,
     libelle_commune_etranger,
     libelle_pays_etranger,
@@ -111,13 +111,13 @@ def format_adresse_complete(
         if column:
             adresse = adresse + " " + column
     if cedex is None:
-        if commune is None:
+        if code_postal is None:
             adresse = adresse
         else:
             adresse = (
                 adresse
                 + " "
-                + get_empty_string_if_none(commune)
+                + get_empty_string_if_none(code_postal)
                 + " "
                 + get_empty_string_if_none(libelle_commune)
             )
@@ -268,7 +268,7 @@ def format_etablissements_and_complements(list_etablissements_sqlite, nom_comple
             etablissement["libelle_commune"],
             etablissement["libelle_cedex"],
             etablissement["distribution_speciale"],
-            etablissement["commune"],
+            etablissement["code_postal"],
             etablissement["cedex"],
             etablissement["libelle_commune_etranger"],
             etablissement["libelle_pays_etranger"],
@@ -317,7 +317,7 @@ def format_siege_unite_legale(siege):
         siege["libelle_commune"],
         siege["libelle_cedex"],
         siege["distribution_speciale"],
-        siege["commune"],
+        siege["code_postal"],
         siege["cedex"],
         siege["libelle_commune_etranger"],
         siege["libelle_pays_etranger"],

@@ -88,8 +88,9 @@ class ElasticsearchEtablissementIndex(InnerDoc):
     cedex_2 = Text()
     code_pays_etranger = Text()
     code_pays_etranger_2 = Text()
-    code_postal = Keyword()
-    commune = Keyword()
+    code_postal = Text(analyzer=annuaire_analyzer)
+    # Using analyzer to be able to search using multi-match
+    commune = Text(analyzer=annuaire_analyzer)
     commune_2 = Text()
     concat_enseigne_adresse_siren_siret = Text(
         analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
