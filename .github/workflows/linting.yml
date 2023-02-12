@@ -21,3 +21,5 @@ jobs:
         run: ruff check --diff --format=github .
       - name: Run Black
         uses: psf/black@stable
+      - name: Run mypy
+        run: mypy --no-strict-optional --ignore-missing-imports
