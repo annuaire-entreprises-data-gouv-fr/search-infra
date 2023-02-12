@@ -3,7 +3,6 @@ import requests
 
 
 def preprocess_uai_data(data_dir):
-
     r = requests.get(
         "https://www.data.gouv.fr/fr/datasets/r/b22f04bf-64a8-495d-b8bb-d84dbc4c7983"
     )

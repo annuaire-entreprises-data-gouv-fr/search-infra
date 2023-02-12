@@ -25,4 +25,4 @@ repos:
     hooks:
       - id: mypy
         args: [--no-strict-optional, --ignore-missing-imports]
-        additional_dependencies: [tokenize-rt==3.2.0]
+        additional_dependencies: [tokenize-rt==3.2.0, 'types-requests']
