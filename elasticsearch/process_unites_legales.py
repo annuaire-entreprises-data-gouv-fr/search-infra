@@ -26,6 +26,9 @@ def process_unites_legales(chunk_unites_legales_sqlite):
 
         # Nom complet
         unite_legale_processed["nom_complet"] = format_nom_complet(
+            unite_legale["denomination_usuelle_1_unite_legale"],
+            unite_legale["denomination_usuelle_2_unite_legale"],
+            unite_legale["denomination_usuelle_3_unite_legale"],
             unite_legale["nom"],
             unite_legale["nom_usage"],
             unite_legale["nom_raison_sociale"],

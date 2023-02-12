@@ -29,6 +29,9 @@ sections_NAF = load_file("sections_codes_naf.json")
 
 # Nom complet
 def format_nom_complet(
+    denomination_usuelle_1=None,
+    denomination_usuelle_2=None,
+    denomination_usuelle_3=None,
     nom=None,
     nom_usage=None,
     nom_raison_sociale=None,
@@ -45,6 +48,14 @@ def format_nom_complet(
         name = f"{prenom if prenom else ''}{formatted_name}"
     if nom_raison_sociale:
         name = nom_raison_sociale
+    if denomination_usuelle_1 or denomination_usuelle_2 or denomination_usuelle_3:
+        all_denomination_usuelle = (
+            f"{denomination_usuelle_1}"
+            f" {denomination_usuelle_2} "
+            f"{denomination_usuelle_3}"
+        )
+        if all_denomination_usuelle:
+            name = f"{name} ({all_denomination_usuelle.strip()})"
 
     if sigle:
         name = f"{name} ({sigle})"
