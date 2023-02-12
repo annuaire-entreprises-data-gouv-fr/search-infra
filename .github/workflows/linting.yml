@@ -23,4 +23,6 @@ jobs:
       - name: Run Black
         uses: psf/black@stable
       - name: Run mypy
-        run: mypy . --no-strict-optional --ignore-missing-imports
+        run: |
+          mypy --install-types
+          mypy . --no-strict-optional --ignore-missing-imports
