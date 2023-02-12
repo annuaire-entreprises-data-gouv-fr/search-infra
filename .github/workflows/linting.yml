@@ -16,6 +16,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade ruff
           python -m pip install --upgrade black
+          python -m pip install --upgrade mypy
       # Include `--format=github` to enable automatic inline annotations.
       - name: Run Ruff
         run: ruff check --diff --format=github .
