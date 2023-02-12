@@ -19,7 +19,7 @@ def preprocess_unite_legale_data(data_dir):
                 "siren",
                 "dateCreationUniteLegale",
                 "sigleUniteLegale",
-                "prenom1UniteLegale",
+                "prenomUsuelUniteLegale",
                 "identifiantAssociationUniteLegale",
                 "trancheEffectifsUniteLegale",
                 "dateDernierTraitementUniteLegale",
@@ -41,7 +41,7 @@ def preprocess_unite_legale_data(data_dir):
             columns={
                 "dateCreationUniteLegale": "date_creation_unite_legale",
                 "sigleUniteLegale": "sigle",
-                "prenom1UniteLegale": "prenom",
+                "prenomUsuelUniteLegale": "prenom",
                 "trancheEffectifsUniteLegale": "tranche_effectif_salarie_unite_legale",
                 "dateDernierTraitementUniteLegale": "date_mise_a_jour_unite_legale",
                 "categorieEntreprise": "categorie_entreprise",
