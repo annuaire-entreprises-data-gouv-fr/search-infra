@@ -48,14 +48,17 @@ def format_nom_complet(
         name = f"{prenom if prenom else ''}{formatted_name}"
     if nom_raison_sociale:
         name = nom_raison_sociale
-    if denomination_usuelle_1 or denomination_usuelle_2 or denomination_usuelle_3:
-        all_denomination_usuelle = (
-            f"{denomination_usuelle_1}"
-            f" {denomination_usuelle_2} "
-            f"{denomination_usuelle_3}"
-        )
-        if all_denomination_usuelle:
-            name = f"{name} ({all_denomination_usuelle.strip()})"
+
+    all_denomination_usuelle = ""
+    for item in [
+        denomination_usuelle_1,
+        denomination_usuelle_2,
+        denomination_usuelle_3,
+    ]:
+        if item:
+            all_denomination_usuelle += f"{item} "
+    if all_denomination_usuelle:
+        name = f"{name} ({all_denomination_usuelle.strip()})"
 
     if sigle:
         name = f"{name} ({sigle})"
