@@ -61,7 +61,6 @@ class ElasticCreateSiren:
             logging.info(f"Cluster status is functional: {self.elastic_status}")
 
     def execute(self):
-
         self.check_health()
 
         if not self.elastic_url:
