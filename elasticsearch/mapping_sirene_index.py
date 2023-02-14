@@ -100,6 +100,15 @@ class ElasticsearchEtablissementIndex(InnerDoc):
     complement_adresse_2 = Text()
     date_creation = Date()
     date_debut_activite = Date()
+    denomination_usuelle_1 = Text(
+        analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
+    )
+    denomination_usuelle_2 = Text(
+        analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
+    )
+    denomination_usuelle_3 = Text(
+        analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
+    )
     departement = Keyword()
     distribution_speciale = Text()
     distribution_speciale_2 = Text()
@@ -238,7 +247,7 @@ class ElasticsearchSireneIndex(Document):
     nature_juridique_unite_legale = Integer()
     nom = Text(analyzer=annuaire_analyzer)
     nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
-    nom_raison_sociale = Text()
+    nom_raison_sociale = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     nombre_etablissements = Integer()  # NaN can't be stored in an integer array
     nombre_etablissements_ouverts = Integer()
     prenom = Text(analyzer=annuaire_analyzer)
