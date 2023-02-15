@@ -100,15 +100,6 @@ class ElasticsearchEtablissementIndex(InnerDoc):
     complement_adresse_2 = Text()
     date_creation = Date()
     date_debut_activite = Date()
-    denomination_usuelle_1 = Text(
-        analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
-    )
-    denomination_usuelle_2 = Text(
-        analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
-    )
-    denomination_usuelle_3 = Text(
-        analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
-    )
     departement = Keyword()
     distribution_speciale = Text()
     distribution_speciale_2 = Text()
@@ -137,7 +128,7 @@ class ElasticsearchEtablissementIndex(InnerDoc):
     libelle_voie = Text()
     libelle_voie_2 = Text()
     longitude = Text()
-    nom_commercial = Text()
+    nom_commercial = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     numero_voie = Text()
     numero_voie_2 = Text()
@@ -192,7 +183,7 @@ class ElasticsearchSiegeIndex(InnerDoc):
     libelle_voie = Text()
     libelle_voie_2 = Text()
     longitude = Text()
-    nom_commercial = Text()
+    nom_commercial = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     numero_voie = Text()
     numero_voie_2 = Text()
     siren = Keyword(required=True)
@@ -231,6 +222,15 @@ class ElasticsearchSireneIndex(Document):
     colter_niveau = Keyword()
     date_creation_unite_legale = Date()
     date_mise_a_jour_unite_legale = Date()
+    denomination_usuelle_1_unite_legale = Text(
+        analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
+    )
+    denomination_usuelle_2_unite_legale = Text(
+        analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
+    )
+    denomination_usuelle_3_unite_legale = Text(
+        analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
+    )
     dirigeants_pp = Nested(ElasticsearchDirigeantPPIndex)
     dirigeants_pm = Nested(ElasticsearchDirigeantPMIndex)
     economie_sociale_solidaire_unite_legale = Keyword()
@@ -253,7 +253,7 @@ class ElasticsearchSireneIndex(Document):
     prenom = Text(analyzer=annuaire_analyzer)
     section_activite_principale = Keyword()
     siege = Nested(ElasticsearchSiegeIndex)
-    sigle = Keyword()
+    sigle = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     siren = Keyword(required=True)
     siret_siege = Keyword()
     tranche_effectif_salarie_unite_legale = Keyword()
