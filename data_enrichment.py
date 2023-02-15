@@ -32,7 +32,6 @@ def format_nom_complet(
     nom=None,
     nom_usage=None,
     nom_raison_sociale=None,
-    sigle=None,
     prenom=None,
 ):
     name = None
@@ -45,8 +44,6 @@ def format_nom_complet(
         name = f"{prenom if prenom else ''}{formatted_name}"
     if nom_raison_sociale:
         name = nom_raison_sociale
-    if sigle:
-        name = f"{name} ({sigle})"
     return name.upper().strip() if name else name
 
 
