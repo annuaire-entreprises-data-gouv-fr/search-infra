@@ -244,7 +244,7 @@ class ElasticsearchSireneIndex(Document):
     identifiant_association_unite_legale = Keyword()
     liste_dirigeants = Text(analyzer=annuaire_analyzer)
     liste_elus = Text(analyzer=annuaire_analyzer)
-    nature_juridique_unite_legale = Integer()
+    nature_juridique_unite_legale = Keyword()
     nom = Text(analyzer=annuaire_analyzer)
     nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     nom_raison_sociale = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
