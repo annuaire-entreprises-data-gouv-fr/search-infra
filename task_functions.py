@@ -122,6 +122,9 @@ def create_unite_legale_table(**kwargs):
             nom,
             nom_usage,
             nom_raison_sociale,
+            denomination_usuelle_1,
+            denomination_usuelle_2,
+            denomination_usuelle_3,
             nature_juridique_unite_legale,
             activite_principale_unite_legale,
             economie_sociale_solidaire_unite_legale
@@ -825,6 +828,9 @@ def fill_elastic_siren_index(**kwargs):
             ul.categorie_entreprise as categorie_entreprise,
             ul.date_creation_unite_legale as date_creation_unite_legale,
             ul.date_mise_a_jour_unite_legale as date_mise_a_jour_unite_legale,
+            ul.denomination_usuelle_1 as denomination_usuelle_1_unite_legale,
+            ul.denomination_usuelle_2 as denomination_usuelle_2_unite_legale,
+            ul.denomination_usuelle_3 as denomination_usuelle_3_unite_legale,
             ul.economie_sociale_solidaire_unite_legale as
             economie_sociale_solidaire_unite_legale,
             ul.etat_administratif_unite_legale as etat_administratif_unite_legale,

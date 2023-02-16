@@ -29,7 +29,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["nom"],
             unite_legale["nom_usage"],
             unite_legale["nom_raison_sociale"],
-            unite_legale["sigle"],
             unite_legale["prenom"],
         )
 

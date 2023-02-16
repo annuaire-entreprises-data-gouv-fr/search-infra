@@ -32,7 +32,6 @@ def format_nom_complet(
     nom=None,
     nom_usage=None,
     nom_raison_sociale=None,
-    sigle=None,
     prenom=None,
 ):
     name = None
@@ -45,10 +44,7 @@ def format_nom_complet(
         name = f"{prenom if prenom else ''}{formatted_name}"
     if nom_raison_sociale:
         name = nom_raison_sociale
-
-    if sigle:
-        name = f"{name} ({sigle})"
-    return name.lower().strip() if name else name
+    return name.upper().strip() if name else name
 
 
 # Noms
@@ -60,7 +56,7 @@ def format_nom(
         formatted_name = f"{nom_usage} ({nom})" if nom else f"{nom_usage}"
     else:
         formatted_name = f"{nom}" if nom else None
-    return formatted_name.lower().strip() if formatted_name else formatted_name
+    return formatted_name.upper().strip() if formatted_name else formatted_name
 
 
 # Entrepreneur individuel
@@ -133,7 +129,7 @@ def format_adresse_complete(
     for column in etranger_list:
         if column:
             adresse = adresse + " " + column if column != "" else ""
-    return adresse.strip()
+    return adresse.upper().strip()
 
 
 # Département
