@@ -9,6 +9,7 @@ from dag_datalake_sirene.data_enrichment import (
     format_nom_complet,
     format_siege_unite_legale,
     is_entrepreneur_individuel,
+    is_service_public,
     label_section_from_activite,
 )
 from dag_datalake_sirene.helpers.utils import sqlite_str_to_bool
@@ -89,6 +90,10 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         unite_legale_processed[
             "est_entrepreneur_individuel"
         ] = is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
+
+        unite_legale_processed["est_service_public"] = is_service_public(
+            unite_legale["nature_juridique_unite_legale"]
+        )
 
         if unite_legale_processed["est_entrepreneur_individuel"]:
             unite_legale_processed["liste_dirigeants"].append(
