@@ -238,6 +238,7 @@ class ElasticsearchSireneIndex(Document):
     est_entrepreneur_spectacle = Boolean()
     est_finess = Boolean()
     est_rge = Boolean()
+    est_service_public = Boolean()
     est_uai = Boolean()
     etablissements = Nested(ElasticsearchEtablissementIndex)
     etat_administratif_unite_legale = Keyword()
