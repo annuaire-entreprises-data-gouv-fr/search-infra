@@ -69,7 +69,7 @@ def is_entrepreneur_individuel(nature_juridique_unite_legale):
 
 # Service public
 def is_service_public(nature_juridique_unite_legale):
-    if nature_juridique_unite_legale.startswith(
+    if nature_juridique_unite_legale and nature_juridique_unite_legale.startswith(
         ("3210", "3110", "4", "71", "72", "73", "74")
     ):
         return True
