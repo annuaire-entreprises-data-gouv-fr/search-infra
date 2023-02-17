@@ -67,6 +67,16 @@ def is_entrepreneur_individuel(nature_juridique_unite_legale):
         return False
 
 
+# Service public
+def is_service_public(nature_juridique_unite_legale):
+    if nature_juridique_unite_legale.startswith(
+        ("3210", "3110", "4", "71", "72", "73", "74")
+    ):
+        return True
+    else:
+        return False
+
+
 # Section activité principale
 def label_section_from_activite(activite_principale_unite_legale):
     if activite_principale_unite_legale is not None:
