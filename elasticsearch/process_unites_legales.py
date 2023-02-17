@@ -92,7 +92,8 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         ] = is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
 
         unite_legale_processed["est_service_public"] = is_service_public(
-            unite_legale["nature_juridique_unite_legale"]
+            unite_legale["nature_juridique_unite_legale"],
+            unite_legale_processed["siren"],
         )
 
         if unite_legale_processed["est_entrepreneur_individuel"]:
