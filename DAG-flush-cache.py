@@ -9,9 +9,9 @@ from dag_datalake_sirene.task_functions import flush_cache
 DAG_NAME = "flush-cache"
 EMAIL_LIST = Variable.get("EMAIL_LIST")
 ENV = Variable.get("ENV")
-REDIS_HOST = Variable.get("REDIS_HOST")
-REDIS_PORT = Variable.get("REDIS_PORT")
-REDIS_DB = Variable.get("REDIS_DB")
+REDIS_HOST = "redis"
+REDIS_PORT = "6379"
+REDIS_DB = "0"
 REDIS_PASSWORD = Variable.get("REDIS_PASSWORD")
 
 
