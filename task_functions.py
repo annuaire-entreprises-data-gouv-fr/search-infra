@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import re
+import redis
 import shutil
 import sqlite3
 from urllib.request import urlopen
@@ -1321,3 +1322,14 @@ def put_object_minio(
             object_name=minio_path,
             file_path=local_path + filename,
         )
+
+
+def flush_cache(host, port, db, password):
+    redis_client = redis.Redis(
+        host=host,
+        port=port,
+        db=db,
+        password=password,
+    )
+    # Delete keys in the background in a different thread without blocking the server
+    redis_client.execute_command("FLUSHALL ASYNC")
