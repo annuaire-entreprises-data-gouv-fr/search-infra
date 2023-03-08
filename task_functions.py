@@ -2,6 +2,8 @@ import json
 import logging
 import os
 import re
+import redis
+import requests
 import shutil
 import sqlite3
 from urllib.request import urlopen
@@ -48,6 +50,7 @@ AIRFLOW_DAG_HOME = "/opt/airflow/dags/"
 ELASTIC_BULK_SIZE = 1500
 
 AIRFLOW_URL = Variable.get("AIRFLOW_URL")
+AIO_URL = Variable.get("AIO_URL")
 COLOR_URL = Variable.get("COLOR_URL")
 ELASTIC_PASSWORD = Variable.get("ELASTIC_PASSWORD")
 ELASTIC_URL = Variable.get("ELASTIC_URL")
@@ -1321,3 +1324,32 @@ def put_object_minio(
             object_name=minio_path,
             file_path=local_path + filename,
         )
+
+
+def flush_cache(host, port, db, password):
+    redis_client = redis.Redis(
+        host=host,
+        port=port,
+        db=db,
+        password=password,
+    )
+    # Delete keys in the background in a different thread without blocking the server
+    flush_command = redis_client.execute_command("FLUSHALL ASYNC")
+    logging.info(f"Flush cache command status: {flush_command}")
+    if redis_client.keys():
+        raise Exception(f"****** Could not flush cache: {redis_client.keys()}")
+
+
+def execute_slow_requests():
+    session = requests.Session()
+    base_url = AIO_URL
+    slow_queries = ["q=rue", "q=rue%20de%20la", "q=france"]
+    for query in slow_queries:
+        try:
+            path = f"/search?{query}"
+            logging.info(f"******* Searching query : {query}")
+            response = session.get(url=base_url + path)
+            logging.info(f"******* Request status : {response.status_code}")
+            response.raise_for_status()
+        except requests.exceptions.RequestException as error:
+            raise SystemExit(error)
