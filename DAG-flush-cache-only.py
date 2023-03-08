@@ -6,7 +6,7 @@ from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from dag_datalake_sirene.task_functions import flush_cache
 
-DAG_NAME = "flush-cache"
+DAG_NAME = "flush-cache-only"
 EMAIL_LIST = Variable.get("EMAIL_LIST")
 ENV = Variable.get("ENV")
 REDIS_HOST = "redis"
@@ -30,7 +30,7 @@ with DAG(
     schedule_interval="0 23 10 * *",
     start_date=days_ago(10),
     dagrun_timeout=timedelta(minutes=60 * 8),
-    tags=["flush cache"],
+    tags=["flush cache only"],
 ) as dag:
     flush_cache = PythonOperator(
         task_id="flush_cache",
