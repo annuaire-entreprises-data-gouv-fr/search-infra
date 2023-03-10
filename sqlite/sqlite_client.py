@@ -1,12 +1,6 @@
 import logging
 import sqlite3
 
-TMP_FOLDER = "/tmp/"
-DAG_FOLDER = "dag_datalake_sirene/"
-DAG_NAME = "insert-elk-sirene"
-DATA_DIR = TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/"
-SIRENE_DATABASE_LOCATION = DATA_DIR + "sirene.db"
-
 
 class SqliteClient:
     # Connect to database
