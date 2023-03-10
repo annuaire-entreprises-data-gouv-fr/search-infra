@@ -1,5 +1,6 @@
 import json
 import logging
+from slugify import slugify
 
 from dag_datalake_sirene.helpers.clean_dirigeants import (
     drop_duplicates_dirigeants_pm,
@@ -45,6 +46,35 @@ def format_nom_complet(
     if nom_raison_sociale:
         name = nom_raison_sociale
     return name.upper().strip() if name else name
+
+
+# Slug Nom complet
+def format_slug_nom_complet(
+    nom_complet,
+    sigle=None,
+    denomination_usuelle_1=None,
+    denomination_usuelle_2=None,
+    denomination_usuelle_3=None,
+    siren=None,
+):
+    all_denomination_usuelle = ""
+    for item in [
+        denomination_usuelle_1,
+        denomination_usuelle_2,
+        denomination_usuelle_3,
+    ]:
+        if item:
+            all_denomination_usuelle += f"{item} "
+    if all_denomination_usuelle:
+        nom_complet = f"{nom_complet} {all_denomination_usuelle.strip()}"
+    if sigle:
+        nom_complet = f"{nom_complet} {sigle}"
+    if siren:
+        nom_complet = f"{nom_complet} {siren}"
+    if nom_complet:
+        return slugify(nom_complet.lower())
+    # if nom_complet is null
+    return ""
 
 
 # Noms

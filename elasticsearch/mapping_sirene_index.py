@@ -262,6 +262,7 @@ class ElasticsearchSireneIndex(Document):
     sigle = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     siren = Keyword(required=True)
     siret_siege = Keyword()
+    slug = Text()
     statut_entrepreneur_spectacle = Text()
     tranche_effectif_salarie_unite_legale = Keyword()
 
