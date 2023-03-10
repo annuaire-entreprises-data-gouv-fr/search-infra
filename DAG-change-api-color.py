@@ -5,7 +5,8 @@ from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.task_functions import get_colors, update_color_file
+from dag_datalake_sirene.task_functions.get_colors import get_colors
+from dag_datalake_sirene.task_functions.update_color_file import update_color_file
 
 DAG_NAME = "change-api-color"
 EMAIL_LIST = Variable.get("EMAIL_LIST")
