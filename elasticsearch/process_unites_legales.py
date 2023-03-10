@@ -132,6 +132,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         for field in [
             "convention_collective_renseignee",
             "est_finess",
+            "est_bio",
             "est_rge",
             "est_uai",
         ]:
