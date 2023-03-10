@@ -2,13 +2,13 @@ import logging
 import requests
 
 from dag_datalake_sirene.task_functions.global_variables import AIO_URL
+from dag_datalake_sirene.task_functions.slow_requests import SLOW_REQUESTS
 
 
 def execute_slow_requests():
     session = requests.Session()
     base_url = AIO_URL
-    slow_queries = ["q=rue", "q=rue%20de%20la", "q=france"]
-    for query in slow_queries:
+    for query in SLOW_REQUESTS:
         try:
             path = f"/search?{query}"
             logging.info(f"******* Searching query : {query}")
