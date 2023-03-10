@@ -5,31 +5,47 @@ from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.task_functions import (
-    check_elastic_index,
+from dag_datalake_sirene.task_functions.check_elastic_index import check_elastic_index
+from dag_datalake_sirene.task_functions.count_nombre_etablissements import (
     count_nombre_etablissements,
+)
+from dag_datalake_sirene.task_functions.count_nombre_etablissements_ouverts import (
     count_nombre_etablissements_ouverts,
+)
+from dag_datalake_sirene.task_functions.create_additional_data_tables import (
     create_colter_table,
+    create_rge_table,
+    create_finess_table,
+    create_elu_table,
+    create_spectacle_table,
+    create_uai_table,
     create_convention_collective_table,
+)
+from dag_datalake_sirene.task_functions.get_colors import get_colors
+from dag_datalake_sirene.task_functions.create_dirig_tables import (
     create_dirig_pm_table,
     create_dirig_pp_table,
-    create_elastic_index,
-    create_elu_table,
-    create_etablissements_table,
-    create_finess_table,
-    create_rge_table,
-    create_siege_only_table,
-    create_sitemap,
-    create_spectacle_table,
-    create_sqlite_database,
-    create_uai_table,
-    create_unite_legale_table,
-    fill_elastic_siren_index,
-    get_colors,
-    get_object_minio,
-    update_color_file,
-    update_sitemap,
 )
+from dag_datalake_sirene.task_functions.create_elastic_index import create_elastic_index
+from dag_datalake_sirene.task_functions.create_etablissements_table import (
+    create_etablissements_table,
+)
+from dag_datalake_sirene.task_functions.create_siege_only_table import (
+    create_siege_only_table,
+)
+from dag_datalake_sirene.task_functions.create_sitemap import create_sitemap
+from dag_datalake_sirene.task_functions.create_sqlite_database import (
+    create_sqlite_database,
+)
+from dag_datalake_sirene.task_functions.create_unite_legale_table import (
+    create_unite_legale_table,
+)
+from dag_datalake_sirene.task_functions.fill_elastic_siren_index import (
+    fill_elastic_siren_index,
+)
+from dag_datalake_sirene.task_functions.get_and_put_minio_object import get_object_minio
+from dag_datalake_sirene.task_functions.update_color_file import update_color_file
+from dag_datalake_sirene.task_functions.update_sitemap import update_sitemap
 from operators.clean_folder import CleanFolderOperator
 
 DAG_FOLDER = "dag_datalake_sirene/"
