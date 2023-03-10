@@ -24,8 +24,11 @@ def create_sitemap():
 
     chunk_unites_legales_sqlite = 1
     while chunk_unites_legales_sqlite:
-        chunk_unites_legales_sqlite = sqlite_client.fetchmany(1500)
-        unite_legale_columns = tuple([x[0] for x in sqlite_client.description])
+        chunk_unites_legales_sqlite = sqlite_client.db_cursor.fetchmany(1500)
+
+        unite_legale_columns = tuple(
+            [x[0] for x in sqlite_client.db_cursor.description]
+        )
         liste_unites_legales_sqlite = []
         # Group all fetched unites_legales from sqlite in one list
         for unite_legale in chunk_unites_legales_sqlite:
