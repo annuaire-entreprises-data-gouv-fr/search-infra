@@ -4,7 +4,7 @@ import pandas as pd
 import requests
 
 
-def preprocess_rge_data():
+def preprocess_rge_data(**kwargs):
     rge_url = (
         "https://data.ademe.fr/data-fair/api/v1/datasets/liste-des-entreprises-rge-2/"
         "lines?size=10000&select=siret%2Ccode_qualification"
@@ -20,7 +20,6 @@ def preprocess_rge_data():
         data = r.json()
         list_rge = list_rge + data["results"]
     df_rge = pd.DataFrame(list_rge)
-    # df_rge["siren"] = df_rge["siret"].str[:9]
     df_rge = df_rge[df_rge["siret"].notna()]
     df_list_rge = (
         df_rge.groupby(["siret"])["code_qualification"]
