@@ -4,7 +4,7 @@ from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.task_functions import flush_cache
+from dag_datalake_sirene.task_functions.flush_cache import flush_cache
 
 DAG_NAME = "flush-cache-only"
 EMAIL_LIST = Variable.get("EMAIL_LIST")

@@ -4,7 +4,10 @@ from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.task_functions import execute_slow_requests, flush_cache
+from dag_datalake_sirene.task_functions.flush_cache import flush_cache
+from dag_datalake_sirene.task_functions.execute_slow_elastic_queries import (
+    execute_slow_requests,
+)
 
 DAG_NAME = "flush-cache-and-execute-queries"
 EMAIL_LIST = Variable.get("EMAIL_LIST")
