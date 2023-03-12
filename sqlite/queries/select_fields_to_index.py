@@ -100,6 +100,11 @@ select_fields_to_index_query = """SELECT
                         'liste_finess', liste_finess,
                         'liste_id_bio', liste_id_bio,
                         'statut_bio', statut_bio,
+                        'liste_id_organisme_formation', liste_id_organisme_formation,
+                        'qualiopi_action_de_formation', qualiopi_action_de_formation,
+                        'qualiopi_bilan_de_competence', qualiopi_bilan_de_competence,
+                        'qualiopi_vae', qualiopi_vae,
+                        'qualiopi_apprentissage', qualiopi_apprentissage,
                         'liste_idcc', liste_idcc,
                         'liste_rge', liste_rge,
                         'liste_uai', liste_uai,
@@ -159,6 +164,16 @@ select_fields_to_index_query = """SELECT
                         liste_id_bio,
                         (SELECT statut_bio FROM agence_bio WHERE siret = s.siret) as
                         statut_bio,
+                        (SELECT liste_id_organisme_formation FROM organisme_formation
+                        WHERE siret = s.siret) as liste_id_organisme_formation,
+                        (SELECT qualiopi_action_de_formation FROM organisme_formation
+                        WHERE siret = s.siret) as qualiopi_action_de_formation,
+                        (SELECT qualiopi_bilan_de_competence FROM organisme_formation
+                        WHERE siret = s.siret) as qualiopi_bilan_de_competence,
+                        (SELECT qualiopi_vae FROM organisme_formation
+                        WHERE siret = s.siret) as qualiopi_vae,
+                        (SELECT qualiopi_apprentissage FROM organisme_formation
+                        WHERE siret = s.siret) as qualiopi_apprentissage,
                         (SELECT liste_idcc FROM convention_collective WHERE siret =
                         s.siret) as liste_idcc,
                         (SELECT liste_rge FROM rge WHERE siret = s.siret) as liste_rge,
@@ -216,6 +231,11 @@ select_fields_to_index_query = """SELECT
                         'liste_finess', liste_finess,
                         'liste_id_bio', liste_id_bio,
                         'statut_bio', statut_bio,
+                        'liste_id_organisme_formation', liste_id_organisme_formation,
+                        'qualiopi_action_de_formation', qualiopi_action_de_formation,
+                        'qualiopi_bilan_de_competence', qualiopi_bilan_de_competence,
+                        'qualiopi_vae', qualiopi_vae,
+                        'qualiopi_apprentissage', qualiopi_apprentissage,
                         'liste_idcc', liste_idcc,
                         'liste_rge', liste_rge,
                         'liste_uai', liste_uai,
@@ -275,6 +295,16 @@ select_fields_to_index_query = """SELECT
                         liste_id_bio,
                         (SELECT statut_bio FROM agence_bio WHERE siret = s.siret) as
                         statut_bio,
+                        (SELECT liste_id_organisme_formation FROM organisme_formation
+                        WHERE siret = s.siret) as liste_id_organisme_formation,
+                        (SELECT qualiopi_action_de_formation FROM organisme_formation
+                        WHERE siret = s.siret) as qualiopi_action_de_formation,
+                        (SELECT qualiopi_bilan_de_competence FROM organisme_formation
+                        WHERE siret = s.siret) as qualiopi_bilan_de_competence,
+                        (SELECT qualiopi_vae FROM organisme_formation
+                        WHERE siret = s.siret) as qualiopi_vae,
+                        (SELECT qualiopi_apprentissage FROM organisme_formation
+                        WHERE siret = s.siret) as qualiopi_apprentissage,
                         (SELECT liste_idcc FROM convention_collective WHERE siret =
                         s.siret) as liste_idcc,
                         (SELECT liste_rge FROM rge WHERE siret = s.siret) as liste_rge,
