@@ -7,7 +7,6 @@ def get_statut(statuts):
     if "ENGAGEE" in statuts_clean:
         return "ENGAGEE"
     else:
-        print(statuts_clean)
         return ",".join(list(dict.fromkeys(statuts_clean)))
 
 
