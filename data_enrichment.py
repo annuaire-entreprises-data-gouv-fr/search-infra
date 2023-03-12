@@ -294,6 +294,7 @@ def format_etablissements_and_complements(list_etablissements_sqlite, nom_comple
         "est_uai": False,
         "est_rge": False,
         "est_finess": False,
+        "est_organisme_formation": False,
         "est_bio": False,
         "convention_collective_renseignee": False,
     }
@@ -336,6 +337,9 @@ def format_etablissements_and_complements(list_etablissements_sqlite, nom_comple
         etablissement["liste_uai"] = str_to_list(etablissement["liste_uai"])
         etablissement["liste_finess"] = str_to_list(etablissement["liste_finess"])
         etablissement["liste_id_bio"] = str_to_list(etablissement["liste_id_bio"])
+        etablissement["liste_id_organisme_formation"] = str_to_list(
+            etablissement["liste_id_organisme_formation"]
+        )
         etablissements_processed.append(etablissement)
 
         # Get complements
@@ -343,6 +347,7 @@ def format_etablissements_and_complements(list_etablissements_sqlite, nom_comple
             "liste_finess",
             "liste_id_bio",
             "liste_idcc",
+            "liste_id_organisme_formation",
             "liste_rge",
             "liste_uai",
         ]:
@@ -377,5 +382,8 @@ def format_siege_unite_legale(siege):
     siege["liste_uai"] = str_to_list(siege["liste_uai"])
     siege["liste_finess"] = str_to_list(siege["liste_finess"])
     siege["liste_id_bio"] = str_to_list(siege["liste_id_bio"])
+    siege["liste_id_organisme_formation"] = str_to_list(
+        siege["liste_id_organisme_formation"]
+    )
 
     return siege

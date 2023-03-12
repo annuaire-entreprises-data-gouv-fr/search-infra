@@ -10,6 +10,9 @@ from dag_datalake_sirene.data_preprocessing.entrepreneur_spectacle import (
     preprocess_spectacle_data,
 )
 from dag_datalake_sirene.data_preprocessing.finess import preprocess_finess_data
+from dag_datalake_sirene.data_preprocessing.organisme_formation import (
+    preprocess_organisme_formation_data,
+)
 from dag_datalake_sirene.data_preprocessing.rge import preprocess_rge_data
 from dag_datalake_sirene.data_preprocessing.uai import preprocess_uai_data
 
@@ -28,6 +31,9 @@ from dag_datalake_sirene.sqlite.queries.create_table_rge import create_table_rge
 
 from dag_datalake_sirene.sqlite.queries.create_table_finess import (
     create_table_finess_query,
+)
+from dag_datalake_sirene.sqlite.queries.create_table_organisme_formation import (
+    create_table_organisme_formation_query,
 )
 from dag_datalake_sirene.sqlite.queries.create_table_spectacle import (
     create_table_spectacle_query,
@@ -98,6 +104,17 @@ def create_agence_bio_table():
         index_name="index_agence_bio",
         index_column="siret",
         preprocess_table_data=preprocess_agence_bio_data,
+    )
+
+
+def create_organisme_formation_table():
+    return create_and_fill_table_model(
+        table_name="organisme_formation",
+        create_table_query=create_table_organisme_formation_query,
+        create_index_func=create_index,
+        index_name="index_organisme_formation",
+        index_column="siret",
+        preprocess_table_data=preprocess_organisme_formation_data,
     )
 
 
