@@ -17,6 +17,7 @@ from dag_datalake_sirene.task_functions.create_additional_data_tables import (
     create_colter_table,
     create_rge_table,
     create_finess_table,
+    create_egapro_table,
     create_elu_table,
     create_organisme_formation_table,
     create_spectacle_table,
@@ -184,6 +185,12 @@ with DAG(
         python_callable=create_spectacle_table,
     )
 
+    create_egapro_table = PythonOperator(
+        task_id="create_egapro_table",
+        provide_context=True,
+        python_callable=create_egapro_table,
+    )
+
     create_elu_table = PythonOperator(
         task_id="create_elu_table",
         provide_context=True,
@@ -274,7 +281,8 @@ with DAG(
     create_organisme_formation_table.set_upstream(create_agence_bio_table)
     create_uai_table.set_upstream(create_organisme_formation_table)
     create_spectacle_table.set_upstream(create_uai_table)
-    create_colter_table.set_upstream(create_spectacle_table)
+    create_egapro_table.set_upstream(create_spectacle_table)
+    create_colter_table.set_upstream(create_egapro_table)
     create_elu_table.set_upstream(create_colter_table)
 
     create_elastic_index.set_upstream(create_elu_table)

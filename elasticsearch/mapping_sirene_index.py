@@ -3,6 +3,7 @@ from elasticsearch_dsl import (
     Boolean,
     Date,
     Document,
+    Float,
     GeoPoint,
     InnerDoc,
     Integer,
@@ -250,6 +251,7 @@ class ElasticsearchSireneIndex(Document):
     economie_sociale_solidaire_unite_legale = Keyword()
     est_entrepreneur_individuel = Boolean()
     est_entrepreneur_spectacle = Boolean()
+    est_egapro = Boolean()
     est_finess = Boolean()
     est_bio = Boolean()
     est_organisme_formation = Boolean()
@@ -267,6 +269,7 @@ class ElasticsearchSireneIndex(Document):
     nom_raison_sociale = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     nombre_etablissements = Integer()  # NaN can't be stored in an integer array
     nombre_etablissements_ouverts = Integer()
+    note_egapro = Float()
     prenom = Text(analyzer=annuaire_analyzer)
     section_activite_principale = Keyword()
     siege = Nested(ElasticsearchSiegeIndex)
