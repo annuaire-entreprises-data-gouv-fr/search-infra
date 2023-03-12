@@ -125,6 +125,17 @@ def create_organisme_formation_table():
     )
 
 
+def create_organisme_formation_table():
+    return create_and_fill_table_model(
+        table_name="organisme_formation",
+        create_table_query=create_table_organisme_formation_query,
+        create_index_func=create_index,
+        index_name="index_organisme_formation",
+        index_column="siret",
+        preprocess_table_data=preprocess_organisme_formation_data,
+    )
+
+
 def create_spectacle_table():
     return create_and_fill_table_model(
         table_name="spectacle",
