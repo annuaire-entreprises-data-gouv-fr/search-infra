@@ -21,6 +21,9 @@ def preprocess_spectacle_data(data_dir):
     df_spectacle = df_spectacle.rename(
         columns={"statut_du_recepisse": "statut_entrepreneur_spectacle"}
     )
+    df_spectacle["statut_entrepreneur_spectacle"] = df_spectacle[
+        "statut_entrepreneur_spectacle"
+    ].apply(lambda x: "valide" if x == "Valide" else "invalide")
     df_spectacle = df_spectacle[df_spectacle["siren"].notna()]
 
     return df_spectacle

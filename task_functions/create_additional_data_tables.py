@@ -43,6 +43,7 @@ from dag_datalake_sirene.sqlite.queries.create_table_uai import create_table_uai
 
 from dag_datalake_sirene.task_functions.create_and_fill_table_model import (
     create_and_fill_table_model,
+    create_only_index,
 )
 
 
@@ -91,13 +92,19 @@ def create_finess_table():
 
 
 def create_agence_bio_table():
-    return create_and_fill_table_model(
+    create_and_fill_table_model(
         table_name="agence_bio",
         create_table_query=create_table_agence_bio_query,
         create_index_func=create_index,
         index_name="index_agence_bio",
         index_column="siret",
         preprocess_table_data=preprocess_agence_bio_data,
+    )
+    create_only_index(
+        table_name="agence_bio",
+        create_index_func=create_index,
+        index_name="index_siren_agence_bio",
+        index_column="siren",
     )
 
 
