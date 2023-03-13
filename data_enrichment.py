@@ -48,8 +48,11 @@ def format_nom_complet(
     return name.upper().strip() if name else name
 
 
-# Slug Nom complet
-def format_slug_nom_complet(
+# Slug
+# Because we need to create sitemap and for keeping coherence
+# between sitemap values and slug in API. We calculate this field
+# with this function and we add it both in elasticsearch and in sitemap
+def format_slug(
     nom_complet,
     sigle=None,
     denomination_usuelle_1=None,

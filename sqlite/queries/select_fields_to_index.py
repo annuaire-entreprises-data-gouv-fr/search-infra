@@ -25,6 +25,9 @@ select_fields_to_index_query = """SELECT
             nombre_etablissements,
             (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = st.siren) as
             nombre_etablissements_ouverts,
+            (SELECT json_group_array(statut_bio)
+                FROM agence_bio WHERE siren = ul.siren
+            ) as statut_bio,
             (SELECT json_group_array(
                 json_object(
                     'siren', siren,
@@ -99,7 +102,6 @@ select_fields_to_index_query = """SELECT
                         'libelle_voie_2',libelle_voie_2,
                         'liste_finess', liste_finess,
                         'liste_id_bio', liste_id_bio,
-                        'statut_bio', statut_bio,
                         'liste_id_organisme_formation', liste_id_organisme_formation,
                         'qualiopi_action_de_formation', qualiopi_action_de_formation,
                         'qualiopi_bilan_de_competence', qualiopi_bilan_de_competence,
@@ -162,8 +164,6 @@ select_fields_to_index_query = """SELECT
                         liste_finess,
                         (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
                         liste_id_bio,
-                        (SELECT statut_bio FROM agence_bio WHERE siret = s.siret) as
-                        statut_bio,
                         (SELECT liste_id_organisme_formation FROM organisme_formation
                         WHERE siret = s.siret) as liste_id_organisme_formation,
                         (SELECT qualiopi_action_de_formation FROM organisme_formation
@@ -230,7 +230,6 @@ select_fields_to_index_query = """SELECT
                         'libelle_voie_2',libelle_voie_2,
                         'liste_finess', liste_finess,
                         'liste_id_bio', liste_id_bio,
-                        'statut_bio', statut_bio,
                         'liste_id_organisme_formation', liste_id_organisme_formation,
                         'qualiopi_action_de_formation', qualiopi_action_de_formation,
                         'qualiopi_bilan_de_competence', qualiopi_bilan_de_competence,
@@ -293,8 +292,6 @@ select_fields_to_index_query = """SELECT
                         liste_finess,
                         (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
                         liste_id_bio,
-                        (SELECT statut_bio FROM agence_bio WHERE siret = s.siret) as
-                        statut_bio,
                         (SELECT liste_id_organisme_formation FROM organisme_formation
                         WHERE siret = s.siret) as liste_id_organisme_formation,
                         (SELECT qualiopi_action_de_formation FROM organisme_formation

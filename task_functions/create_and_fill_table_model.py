@@ -48,3 +48,14 @@ def create_table_model(
     sqlite_client.execute(create_table_query)
     sqlite_client.execute(create_index_func(index_name, table_name, index_column))
     return sqlite_client
+
+
+def create_only_index(
+    table_name,
+    create_index_func,
+    index_name,
+    index_column,
+):
+    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
+    sqlite_client.execute(create_index_func(index_name, table_name, index_column))
+    sqlite_client.commit_and_close_conn()
