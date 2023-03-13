@@ -2,12 +2,11 @@ import pandas as pd
 
 
 def get_statut(statuts):
-    statuts_clean = [statut for statut in statuts if str(statut) != "nan"]
-    statuts_clean.sort()
-    if "ENGAGEE" in statuts_clean:
-        return "ENGAGEE"
-    else:
-        return ",".join(list(dict.fromkeys(statuts_clean)))
+    if statuts:
+        statuts_clean = [statut for statut in statuts if str(statut) != "nan"]
+        if "ENGAGEE" in statuts_clean:
+            return "valide"
+    return "invalide"
 
 
 def preprocess_agence_bio_data(data_dir):

@@ -135,7 +135,6 @@ class ElasticsearchEtablissementIndex(InnerDoc):
     numero_voie_2 = Text()
     siren = Keyword(required=True)
     siret = Keyword(required=True)
-    statut_bio = Text()
     tranche_effectif_salarie = Keyword()
     type_voie = Text()
     type_voie_2 = Text()
@@ -191,7 +190,6 @@ class ElasticsearchSiegeIndex(InnerDoc):
     numero_voie_2 = Text()
     siren = Keyword(required=True)
     siret = Keyword(required=True)
-    statut_bio = Text()
     tranche_effectif_salarie = Keyword()
     type_voie = Text()
     type_voie_2 = Text()
@@ -262,6 +260,7 @@ class ElasticsearchSireneIndex(Document):
     sigle = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     siren = Keyword(required=True)
     siret_siege = Keyword()
+    statut_bio = Text()
     statut_entrepreneur_spectacle = Text()
     tranche_effectif_salarie_unite_legale = Keyword()
 

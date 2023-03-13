@@ -143,5 +143,12 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["siege"]
         )
 
+        # Statut Bio
+        if unite_legale["statut_bio"]:
+            if "valide" in unite_legale["statut_bio"]:
+                unite_legale_processed["statut_bio"] = "valide"
+            else:
+                unite_legale_processed["statut_bio"] = "invalide"
+
         list_unites_legales_processed.append(unite_legale_processed)
     return list_unites_legales_processed
