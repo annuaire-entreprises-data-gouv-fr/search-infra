@@ -25,6 +25,9 @@ select_fields_to_index_query = """SELECT
             nombre_etablissements,
             (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = st.siren) as
             nombre_etablissements_ouverts,
+            (SELECT json_group_array(statut_bio)
+                FROM agence_bio WHERE siren = ul.siren
+            ) as statut_bio,
             (SELECT json_group_array(
                 json_object(
                     'siren', siren,
@@ -310,18 +313,7 @@ select_fields_to_index_query = """SELECT
                     FROM elus
                     WHERE siren = ul.siren
                 )
-            ) as colter_elus,
-            (SELECT json_group_array(
-                json_object(
-                    'statut_bio', statut_bio
-                    )
-                ) FROM
-                (
-                    SELECT statut_bio
-                    FROM agence_bio
-                    WHERE SUBSTRING(siret,1,9) = ul.siren
-                )
-            ) as statut_bio
+            ) as colter_elus
             FROM
                 siretsiege st
             LEFT JOIN

@@ -125,6 +125,15 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["etablissements"], unite_legale_processed["nom_complet"]
         )
 
+        # Statut Bio
+        if "statut_bio" in unite_legale and json.loads(unite_legale["statut_bio"]):
+            if "valide" in unite_legale["statut_bio"]:
+                unite_legale_processed["statut_bio"] = "valide"
+            else:
+                unite_legale_processed["statut_bio"] = "invalide"
+        else:
+            unite_legale_processed["statut_bio"] = None
+
         # Etablissements
         unite_legale_processed["etablissements"] = etablissements_processed
 
@@ -142,13 +151,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         unite_legale_processed["siege"] = format_siege_unite_legale(
             unite_legale["siege"]
         )
-
-        # Statut Bio
-        if unite_legale["statut_bio"]:
-            if "valide" in unite_legale["statut_bio"]:
-                unite_legale_processed["statut_bio"] = "valide"
-            else:
-                unite_legale_processed["statut_bio"] = "invalide"
 
         list_unites_legales_processed.append(unite_legale_processed)
     return list_unites_legales_processed

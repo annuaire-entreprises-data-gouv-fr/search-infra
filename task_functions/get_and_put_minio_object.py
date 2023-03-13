@@ -14,7 +14,6 @@ def get_object_minio(
     minio_path: str,
     local_path: str,
 ) -> None:
-    print(filename, minio_path, local_path)
     minio_url = MINIO_URL
     minio_bucket = MINIO_BUCKET
     minio_user = MINIO_USER
