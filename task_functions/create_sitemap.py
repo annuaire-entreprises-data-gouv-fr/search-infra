@@ -1,6 +1,10 @@
 import os
-import re
 
+
+from dag_datalake_sirene.data_enrichment import (
+    format_nom_complet,
+    format_slug_nom_complet,
+)
 
 from dag_datalake_sirene.sqlite.sqlite_client import SqliteClient
 
@@ -40,7 +44,7 @@ def create_sitemap():
                     )
                 }
             )
-        noms_url = ""
+        slugs = ""
         for ul in liste_unites_legales_sqlite:
             if (
                 ul["etat_administratif_unite_legale"] == "A"
@@ -50,21 +54,21 @@ def create_sitemap():
                     ul["code_postal"] = ""
                 if not ul["activite_principale_unite_legale"]:
                     ul["activite_principale_unite_legale"] = ""
-                array_url = [ul["nom_raison_sociale"], ul["sigle"], ul["siren"]]
-                nom_url = str(
-                    re.sub(
-                        "[^0-9a-zA-Z]+", "-", "-".join(filter(None, array_url))
-                    ).lower()
+                nom_complet = format_nom_complet(
+                    nom_raison_sociale=ul["nom_raison_sociale"],
                 )
-                noms_url = (
-                    noms_url
-                    + ul["code_postal"]
-                    + ","
-                    + ul["activite_principale_unite_legale"]
-                    + ","
-                    + nom_url
-                    + "\n"
+                slug = format_slug_nom_complet(
+                    nom_complet,
+                    ul["sigle"],
+                    ul["denomination_usuelle_1_unite_legale"],
+                    ul["denomination_usuelle_2_unite_legale"],
+                    ul["denomination_usuelle_3_unite_legale"],
+                    ul["siren"],
+                )
+                slugs = (
+                    f"{slugs}{ul['code_postal']},"
+                    f"{ul['activite_principale_unite_legale']},{slug}\n"
                 )
 
         with open(DATA_DIR + "sitemap-" + ENV + ".csv", "a+") as f:
-            f.write(noms_url)
+            f.write(slugs)
