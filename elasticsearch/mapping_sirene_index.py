@@ -114,6 +114,7 @@ class ElasticsearchEtablissementIndex(InnerDoc):
     indice_repetition_2 = Text()
     latitude = Text()
     liste_finess = Text()
+    liste_id_bio = Text()
     liste_idcc = Text()
     liste_rge = Text()
     liste_uai = Text()
@@ -169,6 +170,7 @@ class ElasticsearchSiegeIndex(InnerDoc):
     indice_repetition_2 = Text()
     latitude = Text()
     liste_finess = Text()
+    liste_id_bio = Text()
     liste_idcc = Text()
     liste_rge = Text()
     liste_uai = Text()
@@ -237,6 +239,7 @@ class ElasticsearchSireneIndex(Document):
     est_entrepreneur_individuel = Boolean()
     est_entrepreneur_spectacle = Boolean()
     est_finess = Boolean()
+    est_bio = Boolean()
     est_rge = Boolean()
     est_service_public = Boolean()
     est_uai = Boolean()
@@ -257,6 +260,8 @@ class ElasticsearchSireneIndex(Document):
     sigle = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     siren = Keyword(required=True)
     siret_siege = Keyword()
+    statut_bio = Text()
+    statut_entrepreneur_spectacle = Text()
     tranche_effectif_salarie_unite_legale = Keyword()
 
     class Index:

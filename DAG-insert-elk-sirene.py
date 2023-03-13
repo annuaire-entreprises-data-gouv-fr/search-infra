@@ -13,6 +13,7 @@ from dag_datalake_sirene.task_functions.count_nombre_etablissements_ouverts impo
     count_nombre_etablissements_ouverts,
 )
 from dag_datalake_sirene.task_functions.create_additional_data_tables import (
+    create_agence_bio_table,
     create_colter_table,
     create_rge_table,
     create_finess_table,
@@ -158,6 +159,12 @@ with DAG(
         python_callable=create_finess_table,
     )
 
+    create_agence_bio_table = PythonOperator(
+        task_id="create_agence_bio_table",
+        provide_context=True,
+        python_callable=create_agence_bio_table,
+    )
+
     create_uai_table = PythonOperator(
         task_id="create_uai_table",
         provide_context=True,
@@ -256,7 +263,8 @@ with DAG(
     create_convention_collective_table.set_upstream(create_dirig_pm_table)
     create_rge_table.set_upstream(create_convention_collective_table)
     create_finess_table.set_upstream(create_rge_table)
-    create_uai_table.set_upstream(create_finess_table)
+    create_agence_bio_table.set_upstream(create_finess_table)
+    create_uai_table.set_upstream(create_agence_bio_table)
     create_spectacle_table.set_upstream(create_uai_table)
     create_colter_table.set_upstream(create_spectacle_table)
     create_elu_table.set_upstream(create_colter_table)

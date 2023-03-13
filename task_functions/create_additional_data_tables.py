@@ -1,3 +1,4 @@
+from dag_datalake_sirene.data_preprocessing.agence_bio import preprocess_agence_bio_data
 from dag_datalake_sirene.data_preprocessing.collectivite_territoriale import (
     preprocess_colter_data,
     preprocess_elus_data,
@@ -17,6 +18,9 @@ from dag_datalake_sirene.sqlite.queries.helpers import (
     create_index,
 )
 
+from dag_datalake_sirene.sqlite.queries.create_table_agence_bio import (
+    create_table_agence_bio_query,
+)
 from dag_datalake_sirene.sqlite.queries.create_table_convention_collective import (
     create_table_convention_collective_query,
 )
@@ -39,6 +43,7 @@ from dag_datalake_sirene.sqlite.queries.create_table_uai import create_table_uai
 
 from dag_datalake_sirene.task_functions.create_and_fill_table_model import (
     create_and_fill_table_model,
+    create_only_index,
 )
 
 
@@ -83,6 +88,23 @@ def create_finess_table():
         index_name="index_finess",
         index_column="siret",
         preprocess_table_data=preprocess_finess_data,
+    )
+
+
+def create_agence_bio_table():
+    create_and_fill_table_model(
+        table_name="agence_bio",
+        create_table_query=create_table_agence_bio_query,
+        create_index_func=create_index,
+        index_name="index_agence_bio",
+        index_column="siret",
+        preprocess_table_data=preprocess_agence_bio_data,
+    )
+    create_only_index(
+        table_name="agence_bio",
+        create_index_func=create_index,
+        index_name="index_siren_agence_bio",
+        index_column="siren",
     )
 
 
