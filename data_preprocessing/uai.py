@@ -5,6 +5,7 @@ def preprocess_uai_data(data_dir):
     df_uai = pd.read_csv(
         "https://object.files.data.gouv.fr/data-pipeline-open/"
         "prod/uai/latest/annuaire_uai.csv",
+        dtype=str,
     )
     df_list_uai = (
         df_uai.groupby(["siret"])["uai"].apply(list).reset_index(name="liste_uai")
