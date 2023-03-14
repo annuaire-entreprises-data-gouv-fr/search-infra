@@ -326,8 +326,8 @@ select_fields_to_index_query = """SELECT
              est_entrepreneur_spectacle,
             (SELECT statut_entrepreneur_spectacle FROM spectacle WHERE siren = ul.siren)
               as statut_entrepreneur_spectacle,
-            (SELECT note_egapro FROM egapro WHERE siren = ul.siren) as
-             note_egapro,
+            (SELECT egapro_renseignee FROM egapro WHERE siren = ul.siren) as
+             egapro_renseignee,
             (SELECT colter_code_insee FROM colter WHERE siren = ul.siren) as
             colter_code_insee,
             (SELECT colter_code FROM colter WHERE siren = ul.siren) as colter_code,

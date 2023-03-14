@@ -13,7 +13,6 @@ from dag_datalake_sirene.data_enrichment import (
     is_service_public,
     label_section_from_activite,
 )
-from dag_datalake_sirene.helpers.es_fields import get_elasticsearch_field_name
 from dag_datalake_sirene.helpers.utils import sqlite_str_to_bool
 
 
@@ -134,11 +133,9 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         # Egapro
-        for field in [
-            "note_egapro",
-        ]:
-            if unite_legale_processed[field]:
-                unite_legale_processed[get_elasticsearch_field_name(field)] = True
+        unite_legale_processed["egapro_renseignee"] = sqlite_str_to_bool(
+            unite_legale["egapro_renseignee"]
+        )
 
         etablissements_processed, complements = format_etablissements_and_complements(
             unite_legale["etablissements"], unite_legale_processed["nom_complet"]
