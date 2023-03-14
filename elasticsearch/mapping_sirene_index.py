@@ -240,6 +240,7 @@ class ElasticsearchSireneIndex(Document):
     economie_sociale_solidaire_unite_legale = Keyword()
     est_entrepreneur_individuel = Boolean()
     est_entrepreneur_spectacle = Boolean()
+    egapro_renseignee = Boolean()
     est_finess = Boolean()
     est_bio = Boolean()
     est_organisme_formation = Boolean()

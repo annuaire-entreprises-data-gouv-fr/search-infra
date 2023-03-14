@@ -6,6 +6,9 @@ from dag_datalake_sirene.data_preprocessing.collectivite_territoriale import (
 from dag_datalake_sirene.data_preprocessing.convention_collective import (
     preprocess_convcollective_data,
 )
+from dag_datalake_sirene.data_preprocessing.egapro import (
+    preprocess_egapro_data,
+)
 from dag_datalake_sirene.data_preprocessing.entrepreneur_spectacle import (
     preprocess_spectacle_data,
 )
@@ -26,6 +29,9 @@ from dag_datalake_sirene.sqlite.queries.create_table_agence_bio import (
 )
 from dag_datalake_sirene.sqlite.queries.create_table_convention_collective import (
     create_table_convention_collective_query,
+)
+from dag_datalake_sirene.sqlite.queries.create_table_egapro import (
+    create_table_egapro_query,
 )
 from dag_datalake_sirene.sqlite.queries.create_table_rge import create_table_rge_query
 
@@ -133,6 +139,17 @@ def create_spectacle_table():
         index_name="index_spectacle",
         index_column="siren",
         preprocess_table_data=preprocess_spectacle_data,
+    )
+
+
+def create_egapro_table():
+    return create_and_fill_table_model(
+        table_name="egapro",
+        create_table_query=create_table_egapro_query,
+        create_index_func=create_index,
+        index_name="index_egapro",
+        index_column="siren",
+        preprocess_table_data=preprocess_egapro_data,
     )
 
 

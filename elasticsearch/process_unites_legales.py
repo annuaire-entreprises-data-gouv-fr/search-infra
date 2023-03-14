@@ -132,6 +132,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["est_entrepreneur_spectacle"]
         )
 
+        # Egapro
+        unite_legale_processed["egapro_renseignee"] = sqlite_str_to_bool(
+            unite_legale["egapro_renseignee"]
+        )
+
         etablissements_processed, complements = format_etablissements_and_complements(
             unite_legale["etablissements"], unite_legale_processed["nom_complet"]
         )
