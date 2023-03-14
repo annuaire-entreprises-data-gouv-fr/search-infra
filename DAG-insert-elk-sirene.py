@@ -30,8 +30,14 @@ from dag_datalake_sirene.task_functions.create_dirig_tables import (
     create_dirig_pp_table,
 )
 from dag_datalake_sirene.task_functions.create_elastic_index import create_elastic_index
-from dag_datalake_sirene.task_functions.create_etablissements_table import (
+from dag_datalake_sirene.task_functions.create_etablissements_tables import (
     create_etablissements_table,
+)
+from dag_datalake_sirene.task_functions.create_etablissements_tables import (
+    create_flux_etablissements_table,
+)
+from dag_datalake_sirene.task_functions.create_unite_legale_tables import (
+    create_flux_unite_legale_table,
 )
 from dag_datalake_sirene.task_functions.create_siege_only_table import (
     create_siege_only_table,
@@ -40,7 +46,7 @@ from dag_datalake_sirene.task_functions.create_sitemap import create_sitemap
 from dag_datalake_sirene.task_functions.create_sqlite_database import (
     create_sqlite_database,
 )
-from dag_datalake_sirene.task_functions.create_unite_legale_table import (
+from dag_datalake_sirene.task_functions.create_unite_legale_tables import (
     create_unite_legale_table,
 )
 from dag_datalake_sirene.task_functions.fill_elastic_siren_index import (
@@ -55,6 +61,7 @@ DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "insert-elk-sirene"
 TMP_FOLDER = "/tmp/"
 EMAIL_LIST = Variable.get("EMAIL_LIST")
+MINIO_BUCKET = Variable.get("MINIO_BUCKET")
 ENV = Variable.get("ENV")
 PATH_AIO = Variable.get("PATH_AIO")
 
@@ -102,6 +109,18 @@ with DAG(
         python_callable=create_etablissements_table,
     )
 
+    create_flux_unite_legale_table = PythonOperator(
+        task_id="create_flux_unite_legale_table",
+        provide_context=True,
+        python_callable=create_flux_unite_legale_table,
+    )
+
+    create_flux_etablissements_table = PythonOperator(
+        task_id="create_flux_etablissements_table",
+        provide_context=True,
+        python_callable=create_flux_etablissements_table,
+    )
+
     count_nombre_etablissements = PythonOperator(
         task_id="count_nombre_etablissements",
         provide_context=True,
@@ -128,6 +147,7 @@ with DAG(
             "inpi.db",
             "inpi/",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/inpi.db",
+            MINIO_BUCKET,
         ),
     )
 
@@ -266,7 +286,9 @@ with DAG(
     create_unite_legale_table.set_upstream(create_sqlite_database)
 
     create_etablissements_table.set_upstream(create_unite_legale_table)
-    count_nombre_etablissements.set_upstream(create_etablissements_table)
+    create_flux_unite_legale_table.set_upstream(create_etablissements_table)
+    create_flux_etablissements_table.set_upstream(create_flux_unite_legale_table)
+    count_nombre_etablissements.set_upstream(create_flux_etablissements_table)
     count_nombre_etablissements_ouverts.set_upstream(count_nombre_etablissements)
     create_siege_only_table.set_upstream(count_nombre_etablissements_ouverts)
 

@@ -3,7 +3,6 @@ from minio import Minio
 
 from dag_datalake_sirene.task_functions.global_variables import (
     MINIO_URL,
-    MINIO_BUCKET,
     MINIO_USER,
     MINIO_PASSWORD,
 )
@@ -13,9 +12,10 @@ def get_object_minio(
     filename: str,
     minio_path: str,
     local_path: str,
+    minio_bucket: str,
 ) -> None:
     minio_url = MINIO_URL
-    minio_bucket = MINIO_BUCKET
+    minio_bucket = minio_bucket
     minio_user = MINIO_USER
     minio_password = MINIO_PASSWORD
 
@@ -36,9 +36,10 @@ def put_object_minio(
     filename: str,
     minio_path: str,
     local_path: str,
+    minio_bucket: str,
 ):
     minio_url = MINIO_URL
-    minio_bucket = MINIO_BUCKET
+    minio_bucket = minio_bucket
     minio_user = MINIO_USER
     minio_password = MINIO_PASSWORD
 

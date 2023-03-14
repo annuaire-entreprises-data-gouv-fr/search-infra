@@ -1,17 +1,51 @@
+from datetime import datetime
 import shutil
 
 import pandas as pd
 import requests
 
+from dag_datalake_sirene.task_functions.get_and_put_minio_object import (
+    get_object_minio,
+)
+from dag_datalake_sirene.task_functions.global_variables import (
+    MINIO_BUCKET_DATA_PIPELINE,
+)
 
-def preprocess_unite_legale_data(data_dir):
+
+def download_stock(data_dir):
     url = "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip"
     r = requests.get(url, allow_redirects=True)
     open(data_dir + "StockUniteLegale_utf8.zip", "wb").write(r.content)
     shutil.unpack_archive(data_dir + "StockUniteLegale_utf8.zip", data_dir)
     df_iterator = pd.read_csv(
-        data_dir + "StockUniteLegale_utf8.csv", chunksize=100000, dtype=str
+        f"{data_dir}StockUniteLegale_utf8.csv", chunksize=100000, dtype=str
     )
+    return df_iterator
+
+
+def download_flux(data_dir):
+    year_month = datetime.today().strftime("%Y-%m")
+    get_object_minio(
+        f"flux_unite_legale_{year_month}.csv.gz",
+        "prod/insee/sirene/sirene_flux/",
+        f"{data_dir}flux_unite_legale_{year_month}.csv.gz",
+        MINIO_BUCKET_DATA_PIPELINE,
+    )
+    df_iterator = pd.read_csv(
+        f"{data_dir}flux_unite_legale_{year_month}.csv.gz",
+        chunksize=100000,
+        dtype=str,
+        compression="gzip",
+    )
+    return df_iterator
+
+
+def preprocess_unite_legale_data(data_dir, sirene_file_type):
+    if sirene_file_type == "stock":
+        df_iterator = download_stock(data_dir)
+    if sirene_file_type == "flux":
+        df_iterator = download_flux(data_dir)
+
     # Insert rows in database by chunk
     for i, df_unite_legale in enumerate(df_iterator):
         df_unite_legale = df_unite_legale[
