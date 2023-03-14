@@ -1,4 +1,4 @@
-create_table_siret_siege_query = """CREATE TABLE IF NOT EXISTS siretsiege
+create_table_flux_etablissements_query = """CREATE TABLE IF NOT EXISTS flux_siret
             (
             siren,
             siret TEXT PRIMARY KEY,
@@ -39,9 +39,5 @@ create_table_siret_siege_query = """CREATE TABLE IF NOT EXISTS siretsiege
             libelle_pays_etranger,
             libelle_commune_etranger_2,
             code_pays_etranger_2,
-            libelle_pays_etranger_2,
-            longitude,
-            latitude,
-            geo_adresse,
-            geo_id)
-    """
+            libelle_pays_etranger_2)
+            """

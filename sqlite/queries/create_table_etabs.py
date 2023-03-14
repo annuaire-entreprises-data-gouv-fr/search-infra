@@ -1,8 +1,7 @@
 create_table_etablissements_query = """CREATE TABLE IF NOT EXISTS siret
             (
-            id INTEGER NOT NULL PRIMARY KEY,
             siren,
-            siret,
+            siret TEXT PRIMARY KEY,
             date_creation,
             tranche_effectif_salarie,
             activite_principale_registre_metier,

@@ -18,6 +18,7 @@ create_table_unite_legale_query = """
             denomination_usuelle_3,
             nature_juridique_unite_legale,
             activite_principale_unite_legale,
-            economie_sociale_solidaire_unite_legale
+            economie_sociale_solidaire_unite_legale,
+            statut_diffusion_unite_legale
         )
     """

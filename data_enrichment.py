@@ -292,11 +292,9 @@ def create_list_names_elus(list_elus):
 # Etablissements
 def format_etablissements_and_complements(
     list_etablissements_sqlite,
-    liste_flux_etablissements_sqlite,
     nom_complet,
 ):
     etablissements = json.loads(list_etablissements_sqlite)
-    flux_etablissements = json.loads(liste_flux_etablissements_sqlite)
     etablissements_processed = []
     complements = {
         "est_uai": False,
@@ -307,12 +305,6 @@ def format_etablissements_and_complements(
         "convention_collective_renseignee": False,
     }
     for etablissement in etablissements:
-        if flux_etablissements:
-            for flux_etablissement in flux_etablissements:
-                if flux_etablissement["siret"] == etablissement["siret"]:
-                    for item in flux_etablissement:
-                        etablissement[item] = flux_etablissement[item]
-
         etablissement["nom_complet"] = nom_complet
         etablissement["adresse"] = format_adresse_complete(
             etablissement["complement_adresse"],
@@ -372,14 +364,8 @@ def format_etablissements_and_complements(
 
 
 # Siege
-def format_siege_unite_legale(siege, flux_etablissements):
+def format_siege_unite_legale(siege):
     siege = json.loads(siege)
-    if flux_etablissements:
-        for etablissement in json.loads(flux_etablissements):
-            if etablissement["siret"] == siege["siret"]:
-                for item in etablissement:
-                    siege[item] = etablissement[item]
-
     siege["adresse"] = format_adresse_complete(
         siege["complement_adresse"],
         siege["numero_voie"],

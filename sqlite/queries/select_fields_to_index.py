@@ -21,6 +21,8 @@ select_fields_to_index_query = """SELECT
             st.siret as siret_siege,
             ul.tranche_effectif_salarie_unite_legale as
             tranche_effectif_salarie_unite_legale,
+            ul.statut_diffusion_unite_legale as
+            statut_diffusion_unite_legale,
             (SELECT count FROM count_etab ce WHERE ce.siren = st.siren) as
             nombre_etablissements,
             (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = st.siren) as
@@ -295,130 +297,6 @@ select_fields_to_index_query = """SELECT
                         WHERE s.siren = st.siren
                     )
                 ) as siege,
-            (SELECT json_group_array(
-                    json_object(
-                        'activite_principale',activite_principale,
-                        'activite_principale_registre_metier',
-                        activite_principale_registre_metier,
-                        'cedex',cedex,
-                        'cedex_2',cedex_2,
-                        'code_pays_etranger',code_pays_etranger,
-                        'code_pays_etranger_2',code_pays_etranger_2,
-                        'code_postal',code_postal,
-                        'commune',commune,
-                        'commune_2',commune_2,
-                        'complement_adresse',complement_adresse,
-                        'complement_adresse_2',complement_adresse_2,
-                        'date_creation',date_creation,
-                        'date_debut_activite',date_debut_activite,
-                        'distribution_speciale',distribution_speciale,
-                        'distribution_speciale_2',distribution_speciale_2,
-                        'enseigne_1',enseigne_1,
-                        'enseigne_2',enseigne_2,
-                        'enseigne_3',enseigne_3,
-                        'est_siege',est_siege,
-                        'etat_administratif',etat_administratif_etablissement,
-                        'indice_repetition',indice_repetition,
-                        'indice_repetition_2',indice_repetition_2,
-                        'libelle_cedex',libelle_cedex,
-                        'libelle_cedex_2',libelle_cedex_2,
-                        'libelle_commune',libelle_commune,
-                        'libelle_commune_2',libelle_commune_2,
-                        'libelle_commune_etranger',libelle_commune_etranger,
-                        'libelle_commune_etranger_2',libelle_commune_etranger_2,
-                        'libelle_pays_etranger',libelle_pays_etranger,
-                        'libelle_pays_etranger_2',libelle_pays_etranger_2,
-                        'libelle_voie',libelle_voie,
-                        'libelle_voie_2',libelle_voie_2,
-                        'liste_finess', liste_finess,
-                        'liste_id_bio', liste_id_bio,
-                        'statut_bio', statut_bio,
-                        'liste_id_organisme_formation', liste_id_organisme_formation,
-                        'qualiopi_action_de_formation', qualiopi_action_de_formation,
-                        'qualiopi_bilan_de_competence', qualiopi_bilan_de_competence,
-                        'qualiopi_vae', qualiopi_vae,
-                        'qualiopi_apprentissage', qualiopi_apprentissage,
-                        'liste_idcc', liste_idcc,
-                        'liste_rge', liste_rge,
-                        'liste_uai', liste_uai,
-                        'nom_commercial',nom_commercial,
-                        'numero_voie',numero_voie,
-                        'numero_voie_2',numero_voie_2,
-                        'siren', siren,
-                        'siret', siret,
-                        'tranche_effectif_salarie',tranche_effectif_salarie,
-                        'type_voie',type_voie,
-                        'type_voie_2',type_voie_2
-                        )
-                    ) FROM
-                    (
-                        SELECT
-                        s.activite_principale as activite_principale,
-                        s.activite_principale_registre_metier as
-                        activite_principale_registre_metier,
-                        s.cedex as cedex,
-                        s.cedex_2 as cedex_2,
-                        s.code_pays_etranger as code_pays_etranger,
-                        s.code_pays_etranger_2 as code_pays_etranger_2,
-                        s.code_postal as code_postal,
-                        s.commune as commune,
-                        s.commune_2 as commune_2,
-                        s.complement_adresse as complement_adresse,
-                        s.complement_adresse_2 as complement_adresse_2,
-                        s.date_creation as date_creation,
-                        s.date_debut_activite as date_debut_activite,
-                        s.distribution_speciale as distribution_speciale,
-                        s.distribution_speciale_2 as distribution_speciale_2,
-                        s.enseigne_1 as enseigne_1,
-                        s.enseigne_2 as enseigne_2,
-                        s.enseigne_3 as enseigne_3,
-                        s.est_siege as est_siege,
-                        s.etat_administratif_etablissement as
-                        etat_administratif_etablissement,
-                        s.indice_repetition as indice_repetition,
-                        s.indice_repetition_2 as indice_repetition_2,
-                        s.libelle_cedex as libelle_cedex,
-                        s.libelle_cedex_2 as libelle_cedex_2,
-                        s.libelle_commune as libelle_commune,
-                        s.libelle_commune_2 as libelle_commune_2,
-                        s.libelle_commune_etranger as libelle_commune_etranger,
-                        s.libelle_commune_etranger_2 as libelle_commune_etranger_2,
-                        s.libelle_pays_etranger as libelle_pays_etranger,
-                        s.libelle_pays_etranger_2 as libelle_pays_etranger_2,
-                        s.libelle_voie as libelle_voie,
-                        s.libelle_voie_2 as libelle_voie_2,
-                        (SELECT liste_finess FROM finess WHERE siret = s.siret) as
-                        liste_finess,
-                        (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
-                        liste_id_bio,
-                        (SELECT statut_bio FROM agence_bio WHERE siret = s.siret) as
-                        statut_bio,
-                        (SELECT liste_id_organisme_formation FROM organisme_formation
-                        WHERE siret = s.siret) as liste_id_organisme_formation,
-                        (SELECT qualiopi_action_de_formation FROM organisme_formation
-                        WHERE siret = s.siret) as qualiopi_action_de_formation,
-                        (SELECT qualiopi_bilan_de_competence FROM organisme_formation
-                        WHERE siret = s.siret) as qualiopi_bilan_de_competence,
-                        (SELECT qualiopi_vae FROM organisme_formation
-                        WHERE siret = s.siret) as qualiopi_vae,
-                        (SELECT qualiopi_apprentissage FROM organisme_formation
-                        WHERE siret = s.siret) as qualiopi_apprentissage,
-                        (SELECT liste_idcc FROM convention_collective WHERE siret =
-                        s.siret) as liste_idcc,
-                        (SELECT liste_rge FROM rge WHERE siret = s.siret) as liste_rge,
-                        (SELECT liste_uai FROM uai WHERE siret = s.siret) as liste_uai,
-                        s.nom_commercial as nom_commercial,
-                        s.numero_voie as numero_voie,
-                        s.numero_voie_2 as numero_voie_2,
-                        s.siren as siren,
-                        s.siret as siret,
-                        s.tranche_effectif_salarie as tranche_effectif_salarie,
-                        s.type_voie as type_voie,
-                        s.type_voie_2 as type_voie_2
-                        FROM flux_siret s
-                        WHERE s.siren = ul.siren
-                    )
-                ) as flux_etablissements,
             (SELECT est_entrepreneur_spectacle FROM spectacle WHERE siren = ul.siren) as
              est_entrepreneur_spectacle,
             (SELECT statut_entrepreneur_spectacle FROM spectacle WHERE siren = ul.siren)

@@ -49,6 +49,7 @@ def create_sitemap():
             if (
                 ul["etat_administratif_unite_legale"] == "A"
                 and ul["nature_juridique_unite_legale"] != "1000"
+                and ul["statut_diffusion_unite_legale"] == "O"
             ):
                 if not ul["code_postal"]:
                     ul["code_postal"] = ""

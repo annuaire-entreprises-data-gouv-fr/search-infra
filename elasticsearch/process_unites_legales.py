@@ -26,14 +26,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             else:
                 unite_legale_processed[field] = unite_legale[field]
 
-        # Remplacement données flux Sirene
-        if unite_legale["flux_unite_legale"]:
-            for item in json.loads(unite_legale["flux_unite_legale"]):
-                unite_legale_processed[item] = json.loads(
-                    unite_legale["flux_unite_legale"]
-                )[item]
-        del unite_legale_processed["flux_unite_legale"]
-
         # Nom complet
         unite_legale_processed["nom_complet"] = format_nom_complet(
             unite_legale["nom"],
@@ -147,7 +139,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
 
         etablissements_processed, complements = format_etablissements_and_complements(
             unite_legale["etablissements"],
-            unite_legale["flux_etablissements"],
             unite_legale_processed["nom_complet"],
         )
 
@@ -176,9 +167,8 @@ def process_unites_legales(chunk_unites_legales_sqlite):
 
         # Siege
         unite_legale_processed["siege"] = format_siege_unite_legale(
-            unite_legale["siege"], unite_legale["flux_etablissements"]
+            unite_legale["siege"]
         )
-        del unite_legale_processed["flux_etablissements"]
 
         list_unites_legales_processed.append(unite_legale_processed)
     return list_unites_legales_processed
