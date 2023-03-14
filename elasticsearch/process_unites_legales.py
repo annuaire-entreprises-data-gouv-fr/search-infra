@@ -7,7 +7,7 @@ from dag_datalake_sirene.data_enrichment import (
     format_etablissements_and_complements,
     format_nom,
     format_nom_complet,
-    format_slug_nom_complet,
+    format_slug,
     format_siege_unite_legale,
     is_entrepreneur_individuel,
     is_service_public,
@@ -35,7 +35,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         # Slug Nom Complet
-        unite_legale_processed["slug"] = format_slug_nom_complet(
+        unite_legale_processed["slug"] = format_slug(
             unite_legale_processed["nom_complet"],
             unite_legale["sigle"],
             unite_legale["denomination_usuelle_1_unite_legale"],

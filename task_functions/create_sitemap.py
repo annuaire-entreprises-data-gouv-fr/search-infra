@@ -3,7 +3,7 @@ import os
 
 from dag_datalake_sirene.data_enrichment import (
     format_nom_complet,
-    format_slug_nom_complet,
+    format_slug,
 )
 
 from dag_datalake_sirene.sqlite.sqlite_client import SqliteClient
@@ -57,7 +57,7 @@ def create_sitemap():
                 nom_complet = format_nom_complet(
                     nom_raison_sociale=ul["nom_raison_sociale"],
                 )
-                slug = format_slug_nom_complet(
+                slug = format_slug(
                     nom_complet,
                     ul["sigle"],
                     ul["denomination_usuelle_1_unite_legale"],
