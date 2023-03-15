@@ -1,18 +1,6 @@
 import pandas as pd
 
 
-def reduce_array(values):
-    values_clean = [val for val in values if str(val) != "nan"]
-    values_clean.sort()
-    if values_clean == []:
-        return None
-
-    if True in values_clean:
-        return True
-    else:
-        return False
-
-
 def preprocess_organisme_formation_data(data_dir):
     df_organisme_formation = pd.read_csv(
         "https://object.files.data.gouv.fr/data-pipeline-open/"

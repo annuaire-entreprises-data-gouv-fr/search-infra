@@ -290,7 +290,10 @@ def create_list_names_elus(list_elus):
 
 
 # Etablissements
-def format_etablissements_and_complements(list_etablissements_sqlite, nom_complet):
+def format_etablissements_and_complements(
+    list_etablissements_sqlite,
+    nom_complet,
+):
     etablissements = json.loads(list_etablissements_sqlite)
     etablissements_processed = []
     complements = {

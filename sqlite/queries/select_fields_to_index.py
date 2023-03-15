@@ -21,6 +21,8 @@ select_fields_to_index_query = """SELECT
             st.siret as siret_siege,
             ul.tranche_effectif_salarie_unite_legale as
             tranche_effectif_salarie_unite_legale,
+            ul.statut_diffusion_unite_legale as
+            statut_diffusion_unite_legale,
             (SELECT count FROM count_etab ce WHERE ce.siren = st.siren) as
             nombre_etablissements,
             (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = st.siren) as

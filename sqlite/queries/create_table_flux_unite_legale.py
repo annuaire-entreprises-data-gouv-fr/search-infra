@@ -1,5 +1,5 @@
-create_table_unite_legale_query = """
-        CREATE TABLE IF NOT EXISTS unite_legale
+create_table_flux_unite_legale_query = """
+        CREATE TABLE IF NOT EXISTS flux_unite_legale
         (
             siren,
             date_creation_unite_legale,

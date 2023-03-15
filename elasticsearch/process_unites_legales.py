@@ -138,12 +138,13 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         etablissements_processed, complements = format_etablissements_and_complements(
-            unite_legale["etablissements"], unite_legale_processed["nom_complet"]
+            unite_legale["etablissements"],
+            unite_legale_processed["nom_complet"],
         )
 
         # Statut Bio
         if "statut_bio" in unite_legale and json.loads(unite_legale["statut_bio"]):
-            if "valide" in unite_legale["statut_bio"]:
+            if "valide" in json.loads(unite_legale["statut_bio"]):
                 unite_legale_processed["statut_bio"] = "valide"
             else:
                 unite_legale_processed["statut_bio"] = "invalide"

@@ -30,8 +30,11 @@ from dag_datalake_sirene.task_functions.create_dirig_tables import (
     create_dirig_pp_table,
 )
 from dag_datalake_sirene.task_functions.create_elastic_index import create_elastic_index
-from dag_datalake_sirene.task_functions.create_etablissements_table import (
+from dag_datalake_sirene.task_functions.create_etablissements_tables import (
     create_etablissements_table,
+)
+from dag_datalake_sirene.task_functions.create_etablissements_tables import (
+    create_flux_etablissements_table,
 )
 from dag_datalake_sirene.task_functions.create_siege_only_table import (
     create_siege_only_table,
@@ -40,13 +43,25 @@ from dag_datalake_sirene.task_functions.create_sitemap import create_sitemap
 from dag_datalake_sirene.task_functions.create_sqlite_database import (
     create_sqlite_database,
 )
-from dag_datalake_sirene.task_functions.create_unite_legale_table import (
+from dag_datalake_sirene.task_functions.create_unite_legale_tables import (
+    create_flux_unite_legale_table,
+)
+from dag_datalake_sirene.task_functions.create_unite_legale_tables import (
     create_unite_legale_table,
 )
 from dag_datalake_sirene.task_functions.fill_elastic_siren_index import (
     fill_elastic_siren_index,
 )
 from dag_datalake_sirene.task_functions.get_and_put_minio_object import get_object_minio
+from dag_datalake_sirene.task_functions.replace_etablissements_table import (
+    replace_etablissements_table,
+)
+from dag_datalake_sirene.task_functions.replace_siege_only_table import (
+    replace_siege_only_table,
+)
+from dag_datalake_sirene.task_functions.replace_unite_legale_table import (
+    replace_unite_legale_table,
+)
 from dag_datalake_sirene.task_functions.update_color_file import update_color_file
 from dag_datalake_sirene.task_functions.update_sitemap import update_sitemap
 from operators.clean_folder import CleanFolderOperator
@@ -55,6 +70,7 @@ DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "insert-elk-sirene"
 TMP_FOLDER = "/tmp/"
 EMAIL_LIST = Variable.get("EMAIL_LIST")
+MINIO_BUCKET = Variable.get("MINIO_BUCKET")
 ENV = Variable.get("ENV")
 PATH_AIO = Variable.get("PATH_AIO")
 
@@ -102,6 +118,30 @@ with DAG(
         python_callable=create_etablissements_table,
     )
 
+    create_flux_unite_legale_table = PythonOperator(
+        task_id="create_flux_unite_legale_table",
+        provide_context=True,
+        python_callable=create_flux_unite_legale_table,
+    )
+
+    create_flux_etablissements_table = PythonOperator(
+        task_id="create_flux_etablissements_table",
+        provide_context=True,
+        python_callable=create_flux_etablissements_table,
+    )
+
+    replace_unite_legale_table = PythonOperator(
+        task_id="replace_unite_legale_table",
+        provide_context=True,
+        python_callable=replace_unite_legale_table,
+    )
+
+    replace_etablissements_table = PythonOperator(
+        task_id="replace_etablissements_table",
+        provide_context=True,
+        python_callable=replace_etablissements_table,
+    )
+
     count_nombre_etablissements = PythonOperator(
         task_id="count_nombre_etablissements",
         provide_context=True,
@@ -120,6 +160,12 @@ with DAG(
         python_callable=create_siege_only_table,
     )
 
+    replace_siege_only_table = PythonOperator(
+        task_id="replace_siege_only_table",
+        provide_context=True,
+        python_callable=replace_siege_only_table,
+    )
+
     get_dirigeants_database = PythonOperator(
         task_id="get_dirig_database",
         provide_context=True,
@@ -128,6 +174,7 @@ with DAG(
             "inpi.db",
             "inpi/",
             f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/inpi.db",
+            MINIO_BUCKET,
         ),
     )
 
@@ -266,11 +313,16 @@ with DAG(
     create_unite_legale_table.set_upstream(create_sqlite_database)
 
     create_etablissements_table.set_upstream(create_unite_legale_table)
-    count_nombre_etablissements.set_upstream(create_etablissements_table)
+    create_flux_unite_legale_table.set_upstream(create_etablissements_table)
+    create_flux_etablissements_table.set_upstream(create_flux_unite_legale_table)
+    replace_unite_legale_table.set_upstream(create_flux_etablissements_table)
+    replace_etablissements_table.set_upstream(replace_unite_legale_table)
+    count_nombre_etablissements.set_upstream(replace_etablissements_table)
     count_nombre_etablissements_ouverts.set_upstream(count_nombre_etablissements)
     create_siege_only_table.set_upstream(count_nombre_etablissements_ouverts)
+    replace_siege_only_table.set_upstream(create_siege_only_table)
 
-    get_dirigeants_database.set_upstream(create_siege_only_table)
+    get_dirigeants_database.set_upstream(replace_siege_only_table)
     create_dirig_pp_table.set_upstream(get_dirigeants_database)
     create_dirig_pm_table.set_upstream(create_dirig_pp_table)
 
