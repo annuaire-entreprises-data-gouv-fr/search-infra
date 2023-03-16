@@ -14,6 +14,7 @@ from dag_datalake_sirene.task_functions.count_nombre_etablissements_ouverts impo
 )
 from dag_datalake_sirene.task_functions.create_additional_data_tables import (
     create_agence_bio_table,
+    create_bilan_financiers_table,
     create_colter_table,
     create_rge_table,
     create_finess_table,
@@ -190,6 +191,12 @@ with DAG(
         python_callable=create_dirig_pm_table,
     )
 
+    create_bilan_financiers_table = PythonOperator(
+        task_id="create_bilan_financiers_table",
+        provide_context=True,
+        python_callable=create_bilan_financiers_table,
+    )
+
     create_convention_collective_table = PythonOperator(
         task_id="create_convention_collective_table",
         provide_context=True,
@@ -326,7 +333,8 @@ with DAG(
     create_dirig_pp_table.set_upstream(get_dirigeants_database)
     create_dirig_pm_table.set_upstream(create_dirig_pp_table)
 
-    create_convention_collective_table.set_upstream(create_dirig_pm_table)
+    create_bilan_financiers_table.set_upstream(create_dirig_pm_table)
+    create_convention_collective_table.set_upstream(create_bilan_financiers_table)
     create_rge_table.set_upstream(create_convention_collective_table)
     create_finess_table.set_upstream(create_rge_table)
     create_agence_bio_table.set_upstream(create_finess_table)

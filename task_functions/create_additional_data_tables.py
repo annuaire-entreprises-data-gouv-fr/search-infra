@@ -3,6 +3,9 @@ from dag_datalake_sirene.data_preprocessing.collectivite_territoriale import (
     preprocess_colter_data,
     preprocess_elus_data,
 )
+from dag_datalake_sirene.data_preprocessing.bilan_financier import (
+    preprocess_bilan_financier_data,
+)
 from dag_datalake_sirene.data_preprocessing.convention_collective import (
     preprocess_convcollective_data,
 )
@@ -26,6 +29,9 @@ from dag_datalake_sirene.sqlite.queries.helpers import (
 
 from dag_datalake_sirene.sqlite.queries.create_table_agence_bio import (
     create_table_agence_bio_query,
+)
+from dag_datalake_sirene.sqlite.queries.create_table_bilan_financier import (
+    create_table_bilan_financier_query,
 )
 from dag_datalake_sirene.sqlite.queries.create_table_convention_collective import (
     create_table_convention_collective_query,
@@ -57,6 +63,17 @@ from dag_datalake_sirene.task_functions.create_and_fill_table_model import (
     create_and_fill_table_model,
     create_only_index,
 )
+
+
+def create_bilan_financiers_table():
+    return create_and_fill_table_model(
+        table_name="bilan_financier",
+        create_table_query=create_table_bilan_financier_query,
+        create_index_func=create_unique_index,
+        index_name="index_bilan_financier",
+        index_column="siren",
+        preprocess_table_data=preprocess_bilan_financier_data,
+    )
 
 
 def create_convention_collective_table():
