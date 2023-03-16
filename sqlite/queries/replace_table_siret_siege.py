@@ -1,5 +1,5 @@
 replace_table_siret_siege_query = """
-        REPLACE INTO siret
+        REPLACE INTO siretsiege
         (
             siren,
             siret,
