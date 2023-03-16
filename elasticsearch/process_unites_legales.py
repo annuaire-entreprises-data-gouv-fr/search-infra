@@ -51,6 +51,14 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             else unite_legale_processed["nombre_etablissements_ouverts"]
         )
 
+        # Bilan financier
+        if unite_legale["bilan_financier"]:
+            unite_legale_processed["bilan_financier"] = json.loads(
+                unite_legale["bilan_financier"]
+            )
+        else:
+            unite_legale_processed["bilan_financier"] = {}
+
         # Activite principale
         unite_legale_processed[
             "section_activite_principale"

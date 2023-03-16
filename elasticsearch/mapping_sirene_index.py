@@ -205,6 +205,12 @@ class ElasticsearchEluIndex(InnerDoc):
     fonction = Text()
 
 
+class BilanFinancierIndex(InnerDoc):
+    ca = Integer()
+    resultat_net = Integer()
+    date_cloture_exercice = Text()
+
+
 class ElasticsearchSireneIndex(Document):
     """
 
@@ -218,6 +224,7 @@ class ElasticsearchSireneIndex(Document):
     """
 
     activite_principale_unite_legale = Keyword()
+    bilan_financier = Nested(BilanFinancierIndex)
     categorie_entreprise = Text()
     convention_collective_renseignee = Boolean()
     colter_code = Keyword()
