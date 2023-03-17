@@ -342,4 +342,5 @@ select_fields_to_index_query = """SELECT
             LEFT JOIN
                 unite_legale ul
             ON
-                ul.siren = st.siren;"""
+                ul.siren = st.siren
+            WHERE ul.siren IS NOT NULL;"""
