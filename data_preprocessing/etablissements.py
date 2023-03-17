@@ -128,6 +128,9 @@ def download_flux(data_dir):
             "libellePaysEtranger2Etablissement",
         ],
     )
+    df_flux["est_siege"] = df_flux["est_siege"].apply(
+        lambda x: "true" if x is True else "false"
+    )
     return df_flux
 
 

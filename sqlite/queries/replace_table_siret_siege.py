@@ -82,7 +82,7 @@ replace_table_siret_siege_query = """
             a.libelle_commune_etranger_2,
             a.code_pays_etranger_2,
             a.libelle_pays_etranger_2
-        FROM flux_siret a LEFT JOIN siret b
+        FROM flux_siret a LEFT JOIN siretsiege b
         ON a.siret = b.siret
         WHERE a.est_siege = 'true'
     """
