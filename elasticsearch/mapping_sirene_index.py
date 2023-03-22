@@ -208,7 +208,7 @@ class ElasticsearchEluIndex(InnerDoc):
 
 class BilanFinancierIndex(InnerDoc):
     ca = Long()
-    resultat_net = Integer()
+    resultat_net = Long()
     date_cloture_exercice = Text()
 
 
