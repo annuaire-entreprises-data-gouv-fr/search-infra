@@ -7,6 +7,7 @@ from elasticsearch_dsl import (
     InnerDoc,
     Integer,
     Keyword,
+    Long,
     Nested,
     Text,
     analyzer,
@@ -206,7 +207,7 @@ class ElasticsearchEluIndex(InnerDoc):
 
 
 class BilanFinancierIndex(InnerDoc):
-    ca = Integer()
+    ca = Long()
     resultat_net = Integer()
     date_cloture_exercice = Text()
 
