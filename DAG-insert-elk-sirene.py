@@ -53,6 +53,7 @@ from dag_datalake_sirene.task_functions.create_unite_legale_tables import (
 from dag_datalake_sirene.task_functions.fill_elastic_siren_index import (
     fill_elastic_siren_index,
 )
+from dag_datalake_sirene.task_functions.flush_cache import flush_cache
 from dag_datalake_sirene.task_functions.get_and_put_minio_object import get_object_minio
 from dag_datalake_sirene.task_functions.replace_etablissements_table import (
     replace_etablissements_table,
@@ -74,6 +75,10 @@ EMAIL_LIST = Variable.get("EMAIL_LIST")
 MINIO_BUCKET = Variable.get("MINIO_BUCKET")
 ENV = Variable.get("ENV")
 PATH_AIO = Variable.get("PATH_AIO")
+REDIS_HOST = "redis"
+REDIS_PORT = "6379"
+REDIS_DB = "0"
+REDIS_PASSWORD = Variable.get("REDIS_PASSWORD")
 
 default_args = {
     "depends_on_past": False,
@@ -301,6 +306,18 @@ with DAG(
         dag=dag,
     )
 
+    flush_cache = PythonOperator(
+        task_id="flush_cache",
+        provide_context=True,
+        python_callable=flush_cache,
+        op_args=(
+            REDIS_HOST,
+            REDIS_PORT,
+            REDIS_DB,
+            REDIS_PASSWORD,
+        ),
+    )
+
     success_email_body = f"""
     Hi, <br><br>
     insert-elk-sirene-{ENV} DAG has been executed successfully at {datetime.now()}.
@@ -355,6 +372,7 @@ with DAG(
     update_color_file.set_upstream(check_elastic_index)
 
     execute_aio_container.set_upstream(update_color_file)
+    flush_cache.set_upstream(execute_aio_container)
 
-    send_email.set_upstream(update_color_file)
+    send_email.set_upstream(flush_cache)
     send_email.set_upstream(update_sitemap)
