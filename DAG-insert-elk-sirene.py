@@ -66,6 +66,7 @@ from dag_datalake_sirene.task_functions.replace_unite_legale_table import (
 )
 from dag_datalake_sirene.task_functions.update_color_file import update_color_file
 from dag_datalake_sirene.task_functions.update_sitemap import update_sitemap
+from dag_datalake_sirene.tests.e2e_tests.run_tests import run_e2e_tests
 from operators.clean_folder import CleanFolderOperator
 
 DAG_FOLDER = "dag_datalake_sirene/"
@@ -306,6 +307,12 @@ with DAG(
         dag=dag,
     )
 
+    test_api = PythonOperator(
+        task_id="test_api",
+        provide_context=True,
+        python_callable=run_e2e_tests,
+    )
+
     flush_cache = PythonOperator(
         task_id="flush_cache",
         provide_context=True,
@@ -372,6 +379,7 @@ with DAG(
     update_color_file.set_upstream(check_elastic_index)
 
     execute_aio_container.set_upstream(update_color_file)
+    test_api.set_upstream(execute_aio_container)
     flush_cache.set_upstream(execute_aio_container)
 
     send_email.set_upstream(flush_cache)
