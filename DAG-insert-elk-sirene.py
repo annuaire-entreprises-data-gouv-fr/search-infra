@@ -380,7 +380,7 @@ with DAG(
 
     execute_aio_container.set_upstream(update_color_file)
     test_api.set_upstream(execute_aio_container)
-    flush_cache.set_upstream(execute_aio_container)
+    flush_cache.set_upstream(test_api)
 
     send_email.set_upstream(flush_cache)
     send_email.set_upstream(update_sitemap)
