@@ -4,7 +4,6 @@ from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.models import DAG, Variable
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
-from airflow.utils.dates import days_ago
 from dag_datalake_sirene.task_functions.check_elastic_index import check_elastic_index
 from dag_datalake_sirene.task_functions.count_nombre_etablissements import (
     count_nombre_etablissements,
@@ -93,8 +92,8 @@ default_args = {
 with DAG(
     dag_id=DAG_NAME,
     default_args=default_args,
-    schedule_interval="0 23 10 * *",
-    start_date=days_ago(10),
+    schedule_interval="0 0 * * 1,3,5",
+    start_date=datetime(2023, 3, 29),
     dagrun_timeout=timedelta(minutes=60 * 12),
     tags=["siren"],
 ) as dag:
