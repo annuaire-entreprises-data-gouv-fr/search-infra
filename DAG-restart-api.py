@@ -6,7 +6,7 @@ from airflow.operators.email_operator import EmailOperator
 from airflow.utils.dates import days_ago
 
 
-DAG_NAME = "restart-aio-service"
+DAG_NAME = "restart-api"
 EMAIL_LIST = Variable.get("EMAIL_LIST")
 ENV = Variable.get("ENV")
 PATH_AIO = Variable.get("PATH_AIO")
@@ -26,7 +26,7 @@ with DAG(
     schedule_interval="0 23 10 * *",
     start_date=days_ago(10),
     dagrun_timeout=timedelta(minutes=60 * 8),
-    tags=["restart-aio"],
+    tags=["restart-api"],
 ) as dag:
     restart_aio_container = SSHOperator(
         ssh_conn_id="SERVER",
@@ -39,7 +39,7 @@ with DAG(
 
     success_email_body = f"""
     Hi, <br><br>
-    Restarting aio service ***{ENV}*** DAG has been executed successfully at
+    Restarting API ***{ENV}*** DAG has been executed successfully at
      {datetime.now()}.
     """
 
