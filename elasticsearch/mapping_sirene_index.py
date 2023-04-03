@@ -273,7 +273,6 @@ class ElasticsearchSireneIndex(Document):
     siren = Keyword(required=True)
     siret_siege = Keyword()
     slug = Text()
-    statut_bio = Text()
     statut_diffusion_unite_legale = Keyword()
     statut_entrepreneur_spectacle = Text()
     tranche_effectif_salarie_unite_legale = Keyword()

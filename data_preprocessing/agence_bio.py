@@ -32,6 +32,8 @@ def preprocess_agence_bio_data(data_dir):
     )
     df_list_bio = pd.merge(df_list_bio, df_list_statut, on="siret", how="left")
     df_list_bio["statut_bio"] = df_list_bio["statut_bio"].apply(lambda x: get_statut(x))
+    # Only keep siren with statut "ENGAGEE"
+    df_list_bio = df_list_bio.loc[df_list_bio["statut_bio"] == "valide"]
     df_list_bio["liste_id_bio"] = df_list_bio["liste_id_bio"].astype(str)
     df_list_bio["siren"] = df_list_bio["siret"].str[:9]
     del df_agence_bio
