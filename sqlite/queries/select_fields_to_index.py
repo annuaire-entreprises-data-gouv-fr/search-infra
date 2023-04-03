@@ -27,9 +27,6 @@ select_fields_to_index_query = """SELECT
             nombre_etablissements,
             (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = st.siren) as
             nombre_etablissements_ouverts,
-            (SELECT json_group_array(statut_bio)
-                FROM agence_bio WHERE siren = ul.siren
-            ) as statut_bio,
             (
                 SELECT json_object(
                     'ca', ca,
