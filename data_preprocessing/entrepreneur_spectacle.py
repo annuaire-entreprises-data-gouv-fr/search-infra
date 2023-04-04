@@ -11,34 +11,21 @@ def preprocess_spectacle_data(data_dir):
             f.write(chunk)
 
     df_spectacle = pd.read_csv(data_dir + "spectacle-download.csv", dtype=str, sep=";")
-    df_spectacle["est_entrepreneur_spectacle"] = True
     df_spectacle["siren"] = df_spectacle[
         "siren_personne_physique_siret_personne_morale"
     ].str[:9]
-    df_spectacle = df_spectacle[
-        [
-            "siren",
-            "est_entrepreneur_spectacle",
-            "statut_du_recepisse",
-            "date_de_depot_de_la_declaration_inscrite_sur_le_recepisse",
-        ]
-    ]
-    df_spectacle = df_spectacle.rename(
-        columns={
-            "statut_du_recepisse": "statut_entrepreneur_spectacle",
-            "date_de_depot_de_la_declaration_inscrite_sur_le_recepisse": "date",
-        }
+    df_spectacle = df_spectacle[["siren", "statut_du_recepisse"]]
+    df_spectacle["statut_du_recepisse"] = df_spectacle["statut_du_recepisse"].apply(
+        lambda x: "valide" if x == "Valide" else "invalide"
     )
-    df_spectacle["statut_entrepreneur_spectacle"] = df_spectacle[
-        "statut_entrepreneur_spectacle"
-    ].apply(lambda x: "valide" if x == "Valide" else "invalide")
+
     df_spectacle = df_spectacle[df_spectacle["siren"].notna()]
-    df_spectacle["date"] = pd.to_datetime(df_spectacle["date"])
-    # Only keep the latest entry
-    df_spectacle_processed = (
-        df_spectacle.sort_values(by="date", ascending=False)
-        .groupby("siren")
-        .first()
-        .reset_index()
+    df_spectacle_clean = (
+        df_spectacle.groupby("siren")["statut_du_recepisse"].unique().reset_index()
     )
-    return df_spectacle_processed
+    # If at least one of `statut` values is valid, then the value we keep is `valide`
+    df_spectacle_clean["statut_entrepreneur_spectacle"] = df_spectacle_clean[
+        "statut_du_recepisse"
+    ].apply(lambda x: "valide" if "valide" in x else "invalide")
+    df_spectacle_clean["est_entrepreneur_spectacle"] = True
+    return df_spectacle_clean
