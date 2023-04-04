@@ -23,9 +23,10 @@ def preprocess_spectacle_data(data_dir):
     df_spectacle_clean = (
         df_spectacle.groupby("siren")["statut_du_recepisse"].unique().reset_index()
     )
-    # If at least one of `statut` values is valid, then the value we keep is `valide`
+    # If at least one of `statut` values is valid, then the value we keep is `valide
     df_spectacle_clean["statut_entrepreneur_spectacle"] = df_spectacle_clean[
         "statut_du_recepisse"
-    ].apply(lambda x: "valide" if "valide" in x else "invalide")
+    ].apply(lambda list_statuts: "valide" if "valide" in list_statuts else "invalide")
     df_spectacle_clean["est_entrepreneur_spectacle"] = True
+    df_spectacle_clean.drop("statut_du_recepisse", axis=1, inplace=True)
     return df_spectacle_clean
