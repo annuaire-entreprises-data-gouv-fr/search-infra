@@ -22,7 +22,7 @@ def preprocess_organisme_formation_data(data_dir):
             "Bilans de compétences": "cert_bdc",
             "VAE": "cert_vae",
             "Actions de formations par apprentissage": "cert_app",
-            "Certifications": "Certifications",
+            "Certifications": "certifications",
         }
     )
     df_qualiopi = df_qualiopi[
