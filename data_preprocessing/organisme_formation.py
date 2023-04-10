@@ -1,27 +1,56 @@
 import pandas as pd
+import requests
 
 
 def preprocess_organisme_formation_data(data_dir):
-    df_organisme_formation = pd.read_csv(
-        "https://object.files.data.gouv.fr/data-pipeline-open/"
-        "prod/formation/latest/organismes_formation_clean.csv",
-        dtype=str,
+    # get dataset directly from dge website
+    r = requests.get(
+        "https://dgefp.opendatasoft.com/api/explore/v2.1/catalog/datasets/liste"
+        "-publique-des-of-v2/exports/csv?lang=fr&timezone=Europe%2FBerlin&use_labels"
+        "=true&delimiter=%3B"
     )
-    df_organisme_formation = df_organisme_formation[
+    with open(data_dir + "qualiopi-download.csv", "wb") as f:
+        for chunk in r.iter_content(1024):
+            f.write(chunk)
+    df_qualiopi = pd.read_csv(data_dir + "qualiopi-download.csv", dtype=str, sep=";")
+    df_qualiopi = df_qualiopi.rename(
+        columns={
+            "Numéro Déclaration Activité": "id_nda",
+            "Code SIREN": "siren",
+            "Siret Etablissement Déclarant": "siret",
+            "Actions de formations": "cert_adf",
+            "Bilans de compétences": "cert_bdc",
+            "VAE": "cert_vae",
+            "Actions de formations par apprentissage": "cert_app",
+            "Certifications": "Certifications",
+        }
+    )
+    df_qualiopi = df_qualiopi[
         [
             "id_nda",
+            "siren",
             "siret",
+            "cert_adf",
+            "cert_bdc",
+            "cert_vae",
+            "cert_app",
+            "certifications",
         ]
     ]
-    df_list_of = (
-        df_organisme_formation.groupby(["siret"])[["id_nda"]].agg(list).reset_index()
+
+    df_qualiopi = df_qualiopi.dropna(subset=["certifications"], how="all")
+    df_qualiopi = df_qualiopi[["siret", "id_nda"]]
+    df_liste_organisme_formation = (
+        df_qualiopi.groupby(["siret"])[["id_nda"]].agg(list).reset_index()
     )
-    df_list_of["id_nda"] = df_list_of["id_nda"].astype(str)
-    df_list_of = df_list_of.rename(
+    df_liste_organisme_formation["id_nda"] = df_liste_organisme_formation[
+        "id_nda"
+    ].astype(str)
+    df_liste_organisme_formation = df_liste_organisme_formation.rename(
         columns={
             "id_nda": "liste_id_organisme_formation",
         }
     )
-    del df_organisme_formation
+    del df_qualiopi
 
-    return df_list_of
+    return df_liste_organisme_formation
