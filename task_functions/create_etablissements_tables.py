@@ -35,7 +35,7 @@ def create_etablissements_table():
         df_dep = preprocess_etablissements_data("stock", dep, None)
         df_dep.to_sql("siret", sqlite_client.db_conn, if_exists="append", index=False)
         for row in sqlite_client.execute(get_table_count("siret")):
-            logging.info(
+            logging.debug(
                 f"************ {row} total records have been added to the "
                 f"`établissements` table!"
             )
