@@ -75,7 +75,7 @@ def normalize_date(date_string):
         except ValueError:
             pass
 
-    logging.info(f"Date is not in expected format: {date_string}")
+    logging.debug(f"Date is not in expected format: {date_string}")
 
 
 def drop_exact_duplicates(list_dict):

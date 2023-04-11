@@ -226,18 +226,20 @@ def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
             )
         elif dirigeant_pp["prenoms"] and not dirigeant_pp["nom"]:
             list_all_dirigeants.append(dirigeant_pp["prenoms"])
-            logging.info(
+            logging.debug(
                 f'Missing dirigeant nom for ****** {dirigeant_pp["siren"]} '
                 f'****** prenoms = {dirigeant_pp["prenoms"]}'
             )
         elif dirigeant_pp["nom"] and not dirigeant_pp["prenoms"]:
             list_all_dirigeants.append(dirigeant_pp["nom"])
-            logging.info(
+            logging.debug(
                 f"Missing dirigeant prenoms for ****** "
                 f'{dirigeant_pp["siren"]} ****** nom : {dirigeant_pp["nom"]}'
             )
         else:
-            logging.info(f'Missing dirigeants names for ****** {dirigeant_pp["siren"]}')
+            logging.debug(
+                f"Missing dirigeants names for ******" f' {dirigeant_pp["siren"]}'
+            )
 
     if dirigeants_pp_processed:
         # Case when two dirigeant have exactly the same fields/value
@@ -257,7 +259,7 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
         if dirigeant_pm["denomination"]:
             list_all_dirigeants.append(dirigeant_pm["denomination"])
         else:
-            logging.info(
+            logging.debug(
                 f'Missing denomination dirigeant for ***** {dirigeant_pm["siren"]}'
             )
         dirigeant_pm["qualite"] = unique_qualites(dirigeant_pm["qualite"])

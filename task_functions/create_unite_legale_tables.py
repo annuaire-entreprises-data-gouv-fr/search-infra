@@ -36,7 +36,7 @@ def create_table(query, table_name, index, sirene_file_type):
             table_name, sqlite_client.db_conn, if_exists="append", index=False
         )
         for row in sqlite_client.execute(get_table_count(table_name)):
-            logging.info(
+            logging.debug(
                 f"************ {row} total records have been added "
                 f"to the {table_name} table!"
             )
