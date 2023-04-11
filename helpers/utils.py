@@ -13,8 +13,11 @@ ENV = Variable.get("ENV")
 def str_to_list(string):
     if string is None:
         return None
-    li = literal_eval(string)
-    return li
+    try:
+        li = literal_eval(string)
+        return li
+    except ValueError:
+        logging.info(f"////////////////Could not evaluate: {string}")
 
 
 def str_to_bool(string):
