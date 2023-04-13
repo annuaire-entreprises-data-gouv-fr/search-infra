@@ -182,7 +182,7 @@ def format_adresse_complete(
 def format_departement(commune):
     departement = (
         str(commune)[:3]
-        if str(commune)[:2] == "97"
+        if str(commune)[:2] in ["97", "98"]
         else (None if commune is None else str(commune)[:2])
     )
     return departement
