@@ -11,6 +11,7 @@ from elasticsearch_dsl import (
     Nested,
     Text,
     analyzer,
+    char_filter,
     token_filter,
     tokenizer,
 )
@@ -37,12 +38,23 @@ french_elision = token_filter(
     ],
 )
 french_stop = token_filter("french_stop", type="stop", stopwords="_french_")
-french_stemmer = token_filter("french_stemmer", type="stemmer", language="light_french")
+french_stemmer = token_filter(
+    "french_stemmer", type="stemmer", language="minimal_french"
+)
 # ignore_case option deprecated, use lowercase filter before synonym filter
 french_synonym = token_filter(
     "french_synonym", type="synonym", expand=True, synonyms=[]
 )
-
+# for apostrophe and dots
+remove_special_char = char_filter(
+    "remove_special_char",
+    type="mapping",
+    mappings=["'=>", "‘=>", "`=>", "-=>", ",=>", ".=>"],
+)
+"""
+word_delimiter = token_filter("word_delimiter", type="word_delimiter",
+                              catenate_all=True)
+"""
 # Define analyzer
 annuaire_analyzer = analyzer(
     "annuaire_analyzer",
@@ -56,6 +68,7 @@ annuaire_analyzer = analyzer(
         "asciifolding",
         french_stemmer,
     ],
+    char_filter=[remove_special_char],
 )
 
 ELASTIC_SHARDS = 1
