@@ -17,58 +17,56 @@ from elasticsearch_dsl import (
 )
 
 # Define filters
-french_elision = token_filter(
-    "french_elision",
-    type="elision",
-    articles_case=True,
-    articles=[
-        "l",
-        "m",
-        "t",
-        "qu",
-        "n",
-        "s",
-        "j",
-        "d",
-        "c",
-        "jusqu",
-        "quoiqu",
-        "lorsqu",
-        "puisqu",
-    ],
-)
 french_stop = token_filter("french_stop", type="stop", stopwords="_french_")
 french_stemmer = token_filter(
     "french_stemmer", type="stemmer", language="minimal_french"
 )
-# ignore_case option deprecated, use lowercase filter before synonym filter
+# Ignore_case option deprecated, use lowercase filter before synonym filter
 french_synonym = token_filter(
     "french_synonym", type="synonym", expand=True, synonyms=[]
 )
-# for apostrophe and dots
+
+# This filter replaces single quotes, dots and commas with empty
 remove_special_char = char_filter(
     "remove_special_char",
     type="mapping",
-    mappings=["'=>", "‘=>", "`=>", "-=>", ",=>", ".=>"],
+    mappings=["'=>", "‘=>", "`=>", "’=>", ",=>", ".=>"],
 )
-"""
-word_delimiter = token_filter("word_delimiter", type="word_delimiter",
-                              catenate_all=True)
-"""
+
+# This char filter replaces the French elision token filter.
+# Character filters are executed within the analyzer first before token filters.
+# Consequently, the character filter (above) which removes single quotes, among other
+# special characters, would be executed first (before the elision token filter) and
+# might disturb the elision filter execution in some cases.
+# We replace the elision token filter with a pattern replace character filter
+# example : L'EDUCATION
+# * using elision token filter + apostrophe char filter -> leducation
+# * using pattern replace char filter to remove "l'" +
+# mapping char filter to remove apostrophe -> education
+
+remove_elision_char = char_filter(
+    "remove_elision_char",
+    type="pattern_replace",
+    pattern="(\\bl|\\bm|\\bt|\\bqu|\\bn|\\bs|\\bj|\\bd|\\bc|\\bjusqu|\\bquoiqu"
+    "|\\blorsqu|\\bpuisqu)("
+    "'|’|`|‘)",
+    replacement="",
+    flags="CASE_INSENSITIVE",
+)
+
 # Define analyzer
 annuaire_analyzer = analyzer(
     "annuaire_analyzer",
     tokenizer=tokenizer("icu_tokenizer"),
     filter=[
         "lowercase",
-        french_elision,
         french_stop,
         "icu_folding",
         french_synonym,
         "asciifolding",
         french_stemmer,
     ],
-    char_filter=[remove_special_char],
+    char_filter=[remove_elision_char, remove_special_char],
 )
 
 ELASTIC_SHARDS = 1
