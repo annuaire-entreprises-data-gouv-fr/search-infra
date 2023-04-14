@@ -94,7 +94,7 @@ def drop_duplicates_dirigeants_pp(list_dict_dirigeants):
                 }
             )
             if len(dates) > 1:
-                logging.info(
+                logging.debug(
                     f"At least two dirigeant with same name, firstname but different "
                     f"date: {dates}, siren {unique_dirigeant}"
                 )
