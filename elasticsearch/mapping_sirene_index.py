@@ -27,6 +27,9 @@ french_synonym = token_filter(
 )
 
 # This filter replaces single quotes, dots and commas with empty char
+# This char filter addition allows for finding queries which contain special characters
+# without having to include the latter in the query
+# e.g. "RENN'OV", "R.P.S.", "NUMERI'CITE"
 remove_special_char = char_filter(
     "remove_special_char",
     type="mapping",
