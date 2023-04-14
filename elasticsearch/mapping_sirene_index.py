@@ -26,7 +26,7 @@ french_synonym = token_filter(
     "french_synonym", type="synonym", expand=True, synonyms=[]
 )
 
-# This filter replaces single quotes, dots and commas with empty
+# This filter replaces single quotes, dots and commas with empty char
 remove_special_char = char_filter(
     "remove_special_char",
     type="mapping",
