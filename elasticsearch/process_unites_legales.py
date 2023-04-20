@@ -25,6 +25,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
                 unite_legale_processed[field] = json.loads(unite_legale[field])
             else:
                 unite_legale_processed[field] = unite_legale[field]
+        # Statut de diffusion
+
+        is_non_diffusible = (
+            True if unite_legale["statut_diffusion_unite_legale"] == "P" else False
+        )
 
         # Nom complet
         unite_legale_processed["nom_complet"] = format_nom_complet(
@@ -145,12 +150,12 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["egapro_renseignee"]
         )
 
+        # Etablissements
         etablissements_processed, complements = format_etablissements_and_complements(
+            is_non_diffusible,
             unite_legale["etablissements"],
             unite_legale_processed["nom_complet"],
         )
-
-        # Etablissements
         unite_legale_processed["etablissements"] = etablissements_processed
 
         # Complements
@@ -166,7 +171,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
 
         # Siege
         unite_legale_processed["siege"] = format_siege_unite_legale(
-            unite_legale["siege"]
+            unite_legale["siege"], is_non_diffusible
         )
 
         list_unites_legales_processed.append(unite_legale_processed)
