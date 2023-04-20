@@ -321,7 +321,6 @@ def format_etablissements_and_complements(
     for etablissement in etablissements:
         etablissement["nom_complet"] = nom_complet
         etablissement["adresse"] = format_adresse_complete(
-            is_non_diffusible,
             etablissement["complement_adresse"],
             etablissement["numero_voie"],
             etablissement["indice_repetition"],
@@ -335,6 +334,7 @@ def format_etablissements_and_complements(
             etablissement["commune"],
             etablissement["libelle_commune_etranger"],
             etablissement["libelle_pays_etranger"],
+            is_non_diffusible,
         )
         etablissement["concat_enseigne_adresse_siren_siret"] = (
             get_empty_string_if_none(etablissement["enseigne_1"])
@@ -383,7 +383,6 @@ def format_etablissements_and_complements(
 def format_siege_unite_legale(siege, is_non_diffusible=False):
     siege = json.loads(siege)
     siege["adresse"] = format_adresse_complete(
-        is_non_diffusible,
         siege["complement_adresse"],
         siege["numero_voie"],
         siege["indice_repetition"],
@@ -397,6 +396,7 @@ def format_siege_unite_legale(siege, is_non_diffusible=False):
         siege["commune"],
         siege["libelle_commune_etranger"],
         siege["libelle_pays_etranger"],
+        is_non_diffusible,
     )
     siege["coordonnees"] = format_coordonnees(siege["longitude"], siege["latitude"])
     siege["departement"] = format_departement(siege["commune"])
