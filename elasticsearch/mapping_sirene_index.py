@@ -240,7 +240,7 @@ class ElasticsearchSireneIndex(Document):
 
     activite_principale_unite_legale = Keyword()
     bilan_financier = Nested(BilanFinancierIndex)
-    categorie_entreprise = Text()
+    categorie_entreprise = Keyword()
     convention_collective_renseignee = Boolean()
     colter_code = Keyword()
     colter_code_insee = Keyword()
