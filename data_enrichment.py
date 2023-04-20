@@ -127,7 +127,6 @@ def label_section_from_activite(activite_principale_unite_legale):
 
 # Adresse complète
 def format_adresse_complete(
-    is_non_diffusible,
     complement_adresse,
     numero_voie,
     indice_repetition,
@@ -141,6 +140,7 @@ def format_adresse_complete(
     commune,
     libelle_commune_etranger,
     libelle_pays_etranger,
+    is_non_diffusible=False,
 ):
     col_list = [
         complement_adresse,
@@ -304,9 +304,9 @@ def create_list_names_elus(list_elus):
 
 # Etablissements
 def format_etablissements_and_complements(
-    is_non_diffusible,
     list_etablissements_sqlite,
     nom_complet,
+    is_non_diffusible=False,
 ):
     etablissements = json.loads(list_etablissements_sqlite)
     etablissements_processed = []
@@ -380,7 +380,7 @@ def format_etablissements_and_complements(
 
 
 # Siege
-def format_siege_unite_legale(siege, is_non_diffusible):
+def format_siege_unite_legale(siege, is_non_diffusible=False):
     siege = json.loads(siege)
     siege["adresse"] = format_adresse_complete(
         is_non_diffusible,
