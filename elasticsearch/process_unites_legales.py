@@ -28,7 +28,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         # Statut de diffusion
 
         is_non_diffusible = (
-            True if unite_legale["statut_diffusion_unite_legale"] == "P" else False
+            True if unite_legale["statut_diffusion_unite_legale"] != "O" else False
         )
 
         # Nom complet
