@@ -137,8 +137,10 @@ def format_adresse_complete(
     distribution_speciale,
     code_postal,
     cedex,
+    commune,
     libelle_commune_etranger,
     libelle_pays_etranger,
+    is_non_diffusible=False,
 ):
     col_list = [
         complement_adresse,
@@ -148,6 +150,15 @@ def format_adresse_complete(
         libelle_voie,
         distribution_speciale,
     ]
+
+    if is_non_diffusible:
+        adresse = (
+            get_empty_string_if_none(commune)
+            + " "
+            + get_empty_string_if_none(libelle_commune)
+        )
+        return adresse.upper().strip()
+
     adresse = ""
     for column in col_list:
         if column:
@@ -295,6 +306,7 @@ def create_list_names_elus(list_elus):
 def format_etablissements_and_complements(
     list_etablissements_sqlite,
     nom_complet,
+    is_non_diffusible=False,
 ):
     etablissements = json.loads(list_etablissements_sqlite)
     etablissements_processed = []
@@ -319,8 +331,10 @@ def format_etablissements_and_complements(
             etablissement["distribution_speciale"],
             etablissement["code_postal"],
             etablissement["cedex"],
+            etablissement["commune"],
             etablissement["libelle_commune_etranger"],
             etablissement["libelle_pays_etranger"],
+            is_non_diffusible,
         )
         etablissement["concat_enseigne_adresse_siren_siret"] = (
             get_empty_string_if_none(etablissement["enseigne_1"])
@@ -366,7 +380,7 @@ def format_etablissements_and_complements(
 
 
 # Siege
-def format_siege_unite_legale(siege):
+def format_siege_unite_legale(siege, is_non_diffusible=False):
     siege = json.loads(siege)
     siege["adresse"] = format_adresse_complete(
         siege["complement_adresse"],
@@ -379,8 +393,10 @@ def format_siege_unite_legale(siege):
         siege["distribution_speciale"],
         siege["code_postal"],
         siege["cedex"],
+        siege["commune"],
         siege["libelle_commune_etranger"],
         siege["libelle_pays_etranger"],
+        is_non_diffusible,
     )
     siege["coordonnees"] = format_coordonnees(siege["longitude"], siege["latitude"])
     siege["departement"] = format_departement(siege["commune"])
