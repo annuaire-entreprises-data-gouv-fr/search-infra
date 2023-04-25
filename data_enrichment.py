@@ -59,7 +59,11 @@ def format_slug(
     denomination_usuelle_2=None,
     denomination_usuelle_3=None,
     siren=None,
+    statut_diffusion=None,
 ):
+    if statut_diffusion == "P":
+        if siren:
+            return slugify(f"{siren}")
     all_denomination_usuelle = ""
     for item in [
         denomination_usuelle_1,
