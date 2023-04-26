@@ -19,7 +19,11 @@ Ce repository fait partie d'un ensemble de services qui constituent l'[Annuaire 
 
 ## Sources de données
 
-L'API de recherche utilise les données de différentes administrations. Toutes les données saud les dirigeants données sont accessibles sur [data.gouv.fr](https://data.gouv.fr/).
+L'API de recherche utilise les données de différentes administrations. Toutes les
+données sauf les données des dirigeants sont accessibles sur [data.gouv.fr]
+(https://data.gouv.fr/).
+Plus d'informations sur ces sources de données [par
+ici 👉](https://annuaire-entreprises.data.gouv.fr/donnees/sources).
 
 | Données                                                          | Administration responsable                                                                                                                                                                                | Accès au jeu de données                                                                                                                                                                                                                                                                                                                                         |
 | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
