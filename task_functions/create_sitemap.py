@@ -65,6 +65,7 @@ def create_sitemap():
                     ul["denomination_usuelle_2_unite_legale"],
                     ul["denomination_usuelle_3_unite_legale"],
                     ul["siren"],
+                    ul["statut_diffusion_unite_legale"],
                 )
                 slugs = (
                     f"{slugs}{ul['code_postal']},"
