@@ -94,7 +94,7 @@ with DAG(
     default_args=default_args,
     schedule_interval="0 0 * * 1,3,5",
     start_date=datetime(2023, 3, 29),
-    dagrun_timeout=timedelta(minutes=60 * 12),
+    dagrun_timeout=timedelta(minutes=60 * 15),
     tags=["siren"],
 ) as dag:
     get_colors = PythonOperator(
