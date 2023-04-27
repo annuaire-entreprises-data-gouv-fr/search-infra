@@ -363,9 +363,6 @@ def format_etablissements_and_complements(
         etablissement["liste_uai"] = str_to_list(etablissement["liste_uai"])
         etablissement["liste_finess"] = str_to_list(etablissement["liste_finess"])
         etablissement["liste_id_bio"] = str_to_list(etablissement["liste_id_bio"])
-        etablissement["liste_id_organisme_formation"] = str_to_list(
-            etablissement["liste_id_organisme_formation"]
-        )
         etablissements_processed.append(etablissement)
 
         # Get complements
@@ -373,7 +370,6 @@ def format_etablissements_and_complements(
             "liste_finess",
             "liste_id_bio",
             "liste_idcc",
-            "liste_id_organisme_formation",
             "liste_rge",
             "liste_uai",
         ]:
@@ -410,8 +406,5 @@ def format_siege_unite_legale(siege, is_non_diffusible=False):
     siege["liste_uai"] = str_to_list(siege["liste_uai"])
     siege["liste_finess"] = str_to_list(siege["liste_finess"])
     siege["liste_id_bio"] = str_to_list(siege["liste_id_bio"])
-    siege["liste_id_organisme_formation"] = str_to_list(
-        siege["liste_id_organisme_formation"]
-    )
 
     return siege
