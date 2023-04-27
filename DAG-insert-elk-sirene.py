@@ -303,6 +303,7 @@ with DAG(
         task_id="execute_aio_container",
         command=f"cd {PATH_AIO} "
         f"&& docker-compose -f docker-compose-aio.yml up --build -d --force",
+        cmd_timeout=60,
         dag=dag,
     )
 
