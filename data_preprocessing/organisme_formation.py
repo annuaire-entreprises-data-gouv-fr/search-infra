@@ -52,6 +52,12 @@ def preprocess_organisme_formation_data(data_dir):
     df_liste_organisme_formation["id_nda"] = df_liste_organisme_formation[
         "id_nda"
     ].astype(str)
+    df_liste_organisme_formation = pd.merge(
+        df_liste_organisme_formation,
+        df_organisme_formation[["siren", "est_qualiopi"]],
+        on="siren",
+        how="left",
+    )
     df_liste_organisme_formation = df_liste_organisme_formation.rename(
         columns={
             "id_nda": "liste_id_organisme_formation",
