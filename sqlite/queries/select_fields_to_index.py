@@ -328,10 +328,10 @@ select_fields_to_index_query = """SELECT
                     WHERE siren = ul.siren
                 )
             ) as colter_elus,
-            (SELECT liste_id_organisme_formation as liste_id_organisme_formation,
-                est_qualiopi as est_qualiopi
-                FROM organisme_formation
-                WHERE siren = ul.siren)
+            (SELECT est_qualiopi FROM organisme_formation WHERE siren = ul.siren) as
+            est_qualiopi,
+            (SELECT liste_id_organisme_formation FROM organisme_formation
+            WHERE siren = ul.siren)  as liste_id_organisme_formation
             FROM
                 siretsiege st
             LEFT JOIN
