@@ -170,14 +170,14 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed[field] = complements[field]
 
         # Organismes de formation
-        unite_legale_processed["est_qualiopi"] = sqlite_str_to_bool(
-            unite_legale_processed["est_qualiopi"]
-        )
         unite_legale_processed["liste_id_organisme_formation"] = str_to_list(
             unite_legale_processed["liste_id_organisme_formation"]
         )
         unite_legale_processed["est_organisme_formation"] = (
             True if unite_legale_processed["liste_id_organisme_formation"] else False
+        )
+        unite_legale_processed["est_qualiopi"] = sqlite_str_to_bool(
+            unite_legale_processed["est_qualiopi"]
         )
 
         # Siege
