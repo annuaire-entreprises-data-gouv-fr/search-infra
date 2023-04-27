@@ -114,7 +114,6 @@ select_fields_to_index_query = """SELECT
                         'libelle_voie_2',libelle_voie_2,
                         'liste_finess', liste_finess,
                         'liste_id_bio', liste_id_bio,
-                        'liste_id_organisme_formation', liste_id_organisme_formation,
                         'liste_idcc', liste_idcc,
                         'liste_rge', liste_rge,
                         'liste_uai', liste_uai,
@@ -172,8 +171,6 @@ select_fields_to_index_query = """SELECT
                         liste_finess,
                         (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
                         liste_id_bio,
-                        (SELECT liste_id_organisme_formation FROM organisme_formation
-                        WHERE siret = s.siret) as liste_id_organisme_formation,
                         (SELECT liste_idcc FROM convention_collective WHERE siret =
                         s.siret) as liste_idcc,
                         (SELECT liste_rge FROM rge WHERE siret = s.siret) as liste_rge,
@@ -230,7 +227,6 @@ select_fields_to_index_query = """SELECT
                         'libelle_voie_2',libelle_voie_2,
                         'liste_finess', liste_finess,
                         'liste_id_bio', liste_id_bio,
-                        'liste_id_organisme_formation', liste_id_organisme_formation,
                         'liste_idcc', liste_idcc,
                         'liste_rge', liste_rge,
                         'liste_uai', liste_uai,
@@ -288,8 +284,6 @@ select_fields_to_index_query = """SELECT
                         liste_finess,
                         (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
                         liste_id_bio,
-                        (SELECT liste_id_organisme_formation FROM organisme_formation
-                        WHERE siret = s.siret) as liste_id_organisme_formation,
                         (SELECT liste_idcc FROM convention_collective WHERE siret =
                         s.siret) as liste_idcc,
                         (SELECT liste_rge FROM rge WHERE siret = s.siret) as liste_rge,
@@ -333,7 +327,11 @@ select_fields_to_index_query = """SELECT
                     FROM elus
                     WHERE siren = ul.siren
                 )
-            ) as colter_elus
+            ) as colter_elus,
+            (SELECT liste_id_organisme_formation as liste_id_organisme_formation,
+                est_qualiopi as est_qualiopi
+                FROM organisme_formation
+                WHERE siren = ul.siren)
             FROM
                 siretsiege st
             LEFT JOIN
