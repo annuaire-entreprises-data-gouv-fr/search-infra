@@ -12,8 +12,10 @@ def preprocess_organisme_formation_data(data_dir):
     with open(data_dir + "qualiopi-download.csv", "wb") as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)
-    df_qualiopi = pd.read_csv(data_dir + "qualiopi-download.csv", dtype=str, sep=";")
-    df_qualiopi = df_qualiopi.rename(
+    df_organisme_formation = pd.read_csv(
+        data_dir + "qualiopi-download.csv", dtype=str, sep=";"
+    )
+    df_organisme_formation = df_organisme_formation.rename(
         columns={
             "Numéro Déclaration Activité": "id_nda",
             "Code SIREN": "siren",
@@ -25,7 +27,7 @@ def preprocess_organisme_formation_data(data_dir):
             "Certifications": "certifications",
         }
     )
-    df_qualiopi = df_qualiopi[
+    df_organisme_formation = df_organisme_formation[
         [
             "id_nda",
             "siren",
@@ -37,20 +39,30 @@ def preprocess_organisme_formation_data(data_dir):
             "certifications",
         ]
     ]
-
-    df_qualiopi = df_qualiopi.dropna(subset=["certifications"], how="all")
-    df_qualiopi = df_qualiopi[["siret", "id_nda"]]
+    df_organisme_formation = df_organisme_formation.where(
+        pd.notnull(df_organisme_formation), None
+    )
+    df_organisme_formation["est_qualiopi"] = df_organisme_formation.apply(
+        lambda x: True if x["certifications"] else False, axis=1
+    )
+    df_organisme_formation = df_organisme_formation[["siren", "est_qualiopi", "id_nda"]]
     df_liste_organisme_formation = (
-        df_qualiopi.groupby(["siret"])[["id_nda"]].agg(list).reset_index()
+        df_organisme_formation.groupby(["siren"])[["id_nda"]].agg(list).reset_index()
     )
     df_liste_organisme_formation["id_nda"] = df_liste_organisme_formation[
         "id_nda"
     ].astype(str)
+    df_liste_organisme_formation = pd.merge(
+        df_liste_organisme_formation,
+        df_organisme_formation[["siren", "est_qualiopi"]],
+        on="siren",
+        how="left",
+    )
     df_liste_organisme_formation = df_liste_organisme_formation.rename(
         columns={
             "id_nda": "liste_id_organisme_formation",
         }
     )
-    del df_qualiopi
+    del df_organisme_formation
 
     return df_liste_organisme_formation
