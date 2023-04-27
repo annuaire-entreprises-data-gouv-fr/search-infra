@@ -13,7 +13,7 @@ from dag_datalake_sirene.data_enrichment import (
     is_service_public,
     label_section_from_activite,
 )
-from dag_datalake_sirene.helpers.utils import sqlite_str_to_bool
+from dag_datalake_sirene.helpers.utils import sqlite_str_to_bool, str_to_list
 
 
 def process_unites_legales(chunk_unites_legales_sqlite):
@@ -164,11 +164,21 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             "convention_collective_renseignee",
             "est_bio",
             "est_finess",
-            "est_organisme_formation",
             "est_rge",
             "est_uai",
         ]:
             unite_legale_processed[field] = complements[field]
+
+        # Organismes de formation
+        unite_legale_processed["est_qualiopi"] = sqlite_str_to_bool(
+            unite_legale_processed["est_qualiopi"]
+        )
+        unite_legale_processed["liste_id_organisme_formation"] = str_to_list(
+            unite_legale_processed["liste_id_organisme_formation"]
+        )
+        unite_legale_processed["est_organisme_formation"] = (
+            True if unite_legale_processed["liste_id_organisme_formation"] else False
+        )
 
         # Siege
         unite_legale_processed["siege"] = format_siege_unite_legale(
