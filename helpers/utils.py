@@ -34,6 +34,7 @@ def sqlite_str_to_bool(string):
         return None
     if string == 1:
         return True
+    return False
 
 
 def unique_list(lst):
