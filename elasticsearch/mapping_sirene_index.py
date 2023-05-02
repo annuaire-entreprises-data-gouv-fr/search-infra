@@ -268,6 +268,7 @@ class ElasticsearchSireneIndex(Document):
     est_qualiopi = Boolean()
     est_rge = Boolean()
     est_service_public = Boolean()
+    est_societe_mission = Keyword()
     est_uai = Boolean()
     etablissements = Nested(ElasticsearchEtablissementIndex)
     etat_administratif_unite_legale = Keyword()
