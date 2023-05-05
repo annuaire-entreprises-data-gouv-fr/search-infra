@@ -30,6 +30,10 @@ def str_to_bool(string):
 
 
 def sqlite_str_to_bool(string):
+    """Return True only if sqlite value is one, else (None or False) return None
+    SQlite tables (egapro, entrepreneur spectacle, qualiopi) only include siren
+    numbers which have those labels otherwise it's empty hence this function to make
+    sure it gets labeled False"""
     if string == 1:
         return True
     return False
