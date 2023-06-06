@@ -20,6 +20,8 @@ create_table_flux_unite_legale_query = """
             activite_principale_unite_legale,
             economie_sociale_solidaire_unite_legale,
             statut_diffusion_unite_legale,
-            est_societe_mission
+            est_societe_mission,
+            annee_categorie_entreprise,
+            annee_tranche_effectif_salarie
         )
     """

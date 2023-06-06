@@ -20,7 +20,9 @@ replace_table_unite_legale_query = """
             activite_principale_unite_legale,
             economie_sociale_solidaire_unite_legale,
             statut_diffusion_unite_legale,
-            est_societe_mission
+            est_societe_mission,
+            annee_categorie_entreprise,
+            annee_tranche_effectif_salarie
         ) SELECT
             a.siren,
             a.date_creation_unite_legale,
@@ -41,7 +43,9 @@ replace_table_unite_legale_query = """
             a.activite_principale_unite_legale,
             a.economie_sociale_solidaire_unite_legale,
             a.statut_diffusion_unite_legale,
-            a.est_societe_mission
+            a.est_societe_mission,
+            a.annee_categorie_entreprise,
+            a.annee_tranche_effectif_salarie
         FROM flux_unite_legale a LEFT JOIN unite_legale b
         ON a.siren = b.siren
     """

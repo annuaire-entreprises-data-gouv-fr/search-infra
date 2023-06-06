@@ -24,6 +24,8 @@ select_fields_to_index_query = """SELECT
             ul.statut_diffusion_unite_legale as
             statut_diffusion_unite_legale,
             ul.est_societe_mission as est_societe_mission,
+            ul.annee_categorie_entreprise as annee_categorie_entreprise,
+            ul.annee_tranche_effectif_salarie as annee_tranche_effectif_salarie,
             (SELECT count FROM count_etab ce WHERE ce.siren = st.siren) as
             nombre_etablissements,
             (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = st.siren) as
