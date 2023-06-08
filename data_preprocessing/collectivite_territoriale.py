@@ -141,9 +141,11 @@ def preprocess_elus_data(data_dir):
     elus = pd.concat([elus, df_elus_epci])
     df_colter_elus = elus.merge(df_colter, on="colter_code", how="left")
     df_colter_elus = df_colter_elus[df_colter_elus["siren"].notna()]
+    """
     df_colter_elus["date_naissance_elu"] = df_colter_elus["date_naissance_elu"].apply(
         lambda x: x.split("/")[2] + "-" + x.split("/")[1] + "-" + x.split("/")[0]
     )
+    """
     df_colter_elus = df_colter_elus[
         [
             "siren",
