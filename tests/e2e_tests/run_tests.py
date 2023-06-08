@@ -1,33 +1,97 @@
 from dag_datalake_sirene.tests.e2e_tests.test_api import (
     test_fetch_company,
     test_personne_filter,
-    test_format_date_naissance,
     test_error_query,
     test_accept_three_characters,
+    test_format_date_naissance,
     test_query_too_short,
     test_short_query_with_filter,
     test_terms_empty_only,
     test_bool_filters,
-    test_est_service_public,
-    test_min_per_page,
-    test_page_number,
-    test_siren_search,
+    test_organisme_formation,
+    test_near_point,
+    test_categorie_entreprise_list,
     test_banned_param,
+    test_siren_search,
+    test_page_number,
+    test_min_per_page,
+    test_est_service_public,
+    test_est_societe_a_mission,
+    test_commune_filter,
+    test_activite_principale_filter,
+    test_categorie_entreprise,
+    test_code_collectivite_territoriale,
+    test_convention_collective_renseignee,
+    test_departement,
+    test_egapro_renseignee,
+    test_est_association,
+    test_est_collectivite_territoriale,
+    test_est_bio,
+    test_est_entrepreneur_individuel,
+    test_est_entrepreneur_spectacle,
+    test_est_rge,
+    test_est_finess,
+    test_est_ess,
+    test_est_organisme_formation,
+    test_est_qualiopi,
+    test_est_uai,
+    test_etat_administratif,
+    test_id_convention_collective,
+    test_id_finess,
+    test_id_rge,
+    test_id_uai,
+    test_nature_juridique,
+    test_section_activite_principale,
+    test_tranche_effectif_salarie,
+    test_date_naiss_interval,
+    test_type_personne,
 )
 
 
 def run_e2e_tests():
     test_fetch_company()
     test_personne_filter()
-    test_format_date_naissance()
     test_error_query()
     test_accept_three_characters()
+    test_format_date_naissance()
     test_query_too_short()
     test_short_query_with_filter()
     test_terms_empty_only()
     test_bool_filters()
-    test_est_service_public()
-    test_min_per_page()
-    test_page_number()
-    test_siren_search()
+    test_organisme_formation()
+    test_near_point()
+    test_categorie_entreprise_list()
     test_banned_param()
+    test_siren_search()
+    test_page_number()
+    test_min_per_page()
+    test_est_service_public()
+    test_est_societe_a_mission()
+    test_commune_filter()
+    test_activite_principale_filter()
+    test_categorie_entreprise()
+    test_code_collectivite_territoriale()
+    test_convention_collective_renseignee()
+    test_departement()
+    test_egapro_renseignee()
+    test_est_association()
+    test_est_collectivite_territoriale()
+    test_est_bio()
+    test_est_entrepreneur_individuel()
+    test_est_entrepreneur_spectacle()
+    test_est_rge()
+    test_est_finess()
+    test_est_ess()
+    test_est_organisme_formation()
+    test_est_qualiopi()
+    test_est_uai()
+    test_etat_administratif()
+    test_id_convention_collective()
+    test_id_finess()
+    test_id_rge()
+    test_id_uai()
+    test_nature_juridique()
+    test_section_activite_principale()
+    test_tranche_effectif_salarie()
+    test_date_naiss_interval()
+    test_type_personne()
