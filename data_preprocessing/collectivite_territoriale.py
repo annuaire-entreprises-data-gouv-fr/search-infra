@@ -167,6 +167,24 @@ def preprocess_elus_data(data_dir):
 
 def process_elus_files(url, colname):
     df_elus = pd.read_csv(url, dtype=str, sep="\t")
+    if colname == "numero_siren":
+        df_elus = df_elus[
+            [
+                colname,
+                "nom_elu",
+                "prenom_elu",
+                "sexe_elu",
+                "date_naissance_elu",
+                "code_fonction",
+            ]
+        ]
+        df_elus = df_elus.rename(
+            columns={
+                colname: "colter_code",
+                "code_fonction": "fonction_elu",
+            }
+        )
+        return df_elus
     df_elus = df_elus[
         [
             colname,
