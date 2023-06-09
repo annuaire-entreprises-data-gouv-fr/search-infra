@@ -106,13 +106,13 @@ def preprocess_elus_data(data_dir):
     # Conseillers régionaux
     elus = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/430e13f9-834b-4411-a1a8-da0b4b6e715c",
-        "Code de la région",
+        "code_region",
     )
 
     # Conseillers départementaux
     df_elus_deps = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/601ef073-d986-4582-8e1a-ed14dc857fba",
-        "Code du département",
+        "code_departement",
     )
     df_elus_deps["colter_code"] = df_elus_deps["colter_code"] + "D"
     df_elus_deps.loc[df_elus_deps["colter_code"] == "6AED", "colter_code"] = "6AE"
@@ -121,7 +121,7 @@ def preprocess_elus_data(data_dir):
     # membres des assemblées des collectivités à statut particulier
     df_elus_part = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/a595be27-cfab-4810-b9d4-22e193bffe35",
-        "Code de la collectivité à statut particulier",
+        "code_collectivite_statut_particulier",
     )
     df_elus_part.loc[df_elus_part["colter_code"] == "972", "colter_code"] = "02"
     df_elus_part.loc[df_elus_part["colter_code"] == "973", "colter_code"] = "03"
@@ -129,21 +129,18 @@ def preprocess_elus_data(data_dir):
     # Conseillers communautaires
     df_elus_epci = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/41d95d7d-b172-4636-ac44-32656367cdc7",
-        "N° SIREN",
+        "numero_siren",
     )
     elus = pd.concat([elus, df_elus_epci])
     # Conseillers municipaux
     df_elus_epci = process_elus_files(
         "https://www.data.gouv.fr/fr/datasets/r/d5f400de-ae3f-4966-8cb6-a85c70c6c24a",
-        "Code de la commune",
+        "code_commune",
     )
     df_elus_epci.loc[df_elus_epci["colter_code"] == "75056", "colter_code"] = "75C"
     elus = pd.concat([elus, df_elus_epci])
     df_colter_elus = elus.merge(df_colter, on="colter_code", how="left")
     df_colter_elus = df_colter_elus[df_colter_elus["siren"].notna()]
-    df_colter_elus["date_naissance_elu"] = df_colter_elus["date_naissance_elu"].apply(
-        lambda x: x.split("/")[2] + "-" + x.split("/")[1] + "-" + x.split("/")[0]
-    )
     df_colter_elus = df_colter_elus[
         [
             "siren",
@@ -167,24 +164,38 @@ def preprocess_elus_data(data_dir):
 
 def process_elus_files(url, colname):
     df_elus = pd.read_csv(url, dtype=str, sep="\t")
+    if colname == "numero_siren":
+        df_elus = df_elus[
+            [
+                colname,
+                "nom_elu",
+                "prenom_elu",
+                "sexe_elu",
+                "date_naissance_elu",
+                "code_fonction",
+            ]
+        ]
+        df_elus = df_elus.rename(
+            columns={
+                colname: "colter_code",
+                "code_fonction": "fonction_elu",
+            }
+        )
+        return df_elus
     df_elus = df_elus[
         [
             colname,
-            "Nom de l'élu",
-            "Prénom de l'élu",
-            "Code sexe",
-            "Date de naissance",
-            "Libellé de la fonction",
+            "nom_elu",
+            "prenom_elu",
+            "sexe_elu",
+            "date_naissance_elu",
+            "libelle_fonction",
         ]
     ]
     df_elus = df_elus.rename(
         columns={
             colname: "colter_code",
-            "Nom de l'élu": "nom_elu",
-            "Prénom de l'élu": "prenom_elu",
-            "Code sexe": "sexe_elu",
-            "Date de naissance": "date_naissance_elu",
-            "Libellé de la fonction": "fonction_elu",
+            "libelle_fonction": "fonction_elu",
         }
     )
     return df_elus
