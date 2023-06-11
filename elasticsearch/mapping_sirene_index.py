@@ -237,6 +237,8 @@ class ElasticsearchSireneIndex(Document):
     """
 
     activite_principale_unite_legale = Keyword()
+    annee_categorie_entreprise = Date()
+    annee_tranche_effectif_salarie = Date()
     bilan_financier = Nested(BilanFinancierIndex)
     categorie_entreprise = Keyword()
     convention_collective_renseignee = Boolean()

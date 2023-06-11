@@ -70,6 +70,8 @@ def preprocess_unite_legale_data(data_dir, sirene_file_type):
                 "economieSocialeSolidaireUniteLegale",
                 "statutDiffusionUniteLegale",
                 "societeMissionUniteLegale",
+                "anneeCategorieEntreprise",
+                "anneeEffectifsUniteLegale",
             ]
         ]
         # Rename columns
@@ -96,6 +98,8 @@ def preprocess_unite_legale_data(data_dir, sirene_file_type):
                 "_unite_legale",
                 "statutDiffusionUniteLegale": "statut_diffusion_unite_legale",
                 "societeMissionUniteLegale": "est_societe_mission",
+                "anneeCategorieEntreprise": "annee_categorie_entreprise",
+                "anneeEffectifsUniteLegale": "annee_tranche_effectif_salarie",
             }
         )
         yield df_unite_legale
