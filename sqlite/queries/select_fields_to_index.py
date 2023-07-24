@@ -34,11 +34,13 @@ select_fields_to_index_query = """SELECT
                 SELECT json_object(
                     'ca', ca,
                     'resultat_net', resultat_net,
-                    'date_cloture_exercice', date_cloture_exercice
+                    'date_cloture_exercice', date_cloture_exercice,
+                    'annee_cloture_exercice', annee_cloture_exercice
                 )
                 FROM
                 (
-                    SELECT ca, resultat_net, date_cloture_exercice
+                    SELECT ca, resultat_net,
+                    date_cloture_exercice, annee_cloture_exercice
                     FROM bilan_financier
                     WHERE siren = st.siren
                 )

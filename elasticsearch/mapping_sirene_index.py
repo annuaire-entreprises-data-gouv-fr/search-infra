@@ -222,6 +222,7 @@ class BilanFinancierIndex(InnerDoc):
     ca = Long()
     resultat_net = Long()
     date_cloture_exercice = Text()
+    annee_cloture_exercice = Text()
 
 
 class ElasticsearchSireneIndex(Document):
