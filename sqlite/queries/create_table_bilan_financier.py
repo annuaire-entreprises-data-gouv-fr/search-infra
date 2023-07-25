@@ -4,6 +4,7 @@ create_table_bilan_financier_query = """
          siren,
          ca,
          resultat_net,
-         date_cloture_exercice
+         date_cloture_exercice,
+         annee_cloture_exercice
      )
     """
