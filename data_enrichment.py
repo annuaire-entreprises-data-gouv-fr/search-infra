@@ -26,6 +26,7 @@ def load_file(file_name: str):
 
 
 sections_NAF = load_file("sections_codes_naf.json")
+mapping_dep_to_reg = load_file("dep_to_reg.json")
 
 
 # Nom complet
@@ -127,6 +128,18 @@ def label_section_from_activite(activite_principale_unite_legale):
         return section_activite_principale
     else:
         return None
+
+
+# Région
+def label_region_from_departement(departement):
+    if departement is not None:
+        region = (
+            mapping_dep_to_reg[departement]
+            if departement in mapping_dep_to_reg
+            else None
+        )
+        return region
+    return None
 
 
 # Adresse complète
@@ -357,6 +370,9 @@ def format_etablissements_and_complements(
             etablissement["longitude"], etablissement["latitude"]
         )
         etablissement["departement"] = format_departement(etablissement["commune"])
+        etablissement["region"] = label_region_from_departement(
+            etablissement["departement"]
+        )
         etablissement["est_siege"] = str_to_bool(etablissement["est_siege"])
         etablissement["liste_idcc"] = str_to_list(etablissement["liste_idcc"])
         etablissement["liste_rge"] = str_to_list(etablissement["liste_rge"])
@@ -400,6 +416,7 @@ def format_siege_unite_legale(siege, is_non_diffusible=False):
     )
     siege["coordonnees"] = format_coordonnees(siege["longitude"], siege["latitude"])
     siege["departement"] = format_departement(siege["commune"])
+    siege["region"] = label_region_from_departement(siege["departement"])
     siege["est_siege"] = str_to_bool(siege["est_siege"])
     siege["liste_idcc"] = str_to_list(siege["liste_idcc"])
     siege["liste_rge"] = str_to_list(siege["liste_rge"])
