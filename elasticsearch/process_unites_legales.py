@@ -1,6 +1,6 @@
 import json
 
-from dag_datalake_sirene.data_enrichment import (
+from dag_datalake_sirene.elasticsearch.data_enrichment import (
     create_list_names_elus,
     format_dirigeants_pm,
     format_dirigeants_pp,
@@ -26,7 +26,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             else:
                 unite_legale_processed[field] = unite_legale[field]
         # Statut de diffusion
-
         is_non_diffusible = (
             True if unite_legale["statut_diffusion_unite_legale"] != "O" else False
         )
@@ -185,5 +184,12 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["siege"], is_non_diffusible
         )
 
-        list_unites_legales_processed.append(unite_legale_processed)
+        # Create unité légale (structure) to be indexed
+        unite_legale_to_index = {}
+        unite_legale_to_index["identifiant"] = unite_legale_processed["siren"]
+        unite_legale_to_index["nom_complet"] = unite_legale_processed["nom_complet"]
+        unite_legale_to_index["unite_legale"] = unite_legale_processed
+
+        list_unites_legales_processed.append(unite_legale_to_index)
+
     return list_unites_legales_processed

@@ -1,7 +1,7 @@
 import logging
 
-from dag_datalake_sirene.elasticsearch.mapping_sirene_index import (
-    ElasticsearchSireneIndex,
+from dag_datalake_sirene.elasticsearch.mapping_index import (
+    StructureMapping,
 )
 from dag_datalake_sirene.elasticsearch.process_unites_legales import (
     process_unites_legales,
@@ -9,15 +9,15 @@ from dag_datalake_sirene.elasticsearch.process_unites_legales import (
 from elasticsearch.helpers import parallel_bulk
 
 
-def elasticsearch_doc_siren_generator(data):
+def doc_unite_legale_generator(data):
     # Serialize the instance into a dictionary so that it can be saved in elasticsearch.
     for index, document in enumerate(data):
-        etablissements_count = len(document["etablissements"])
+        etablissements_count = len(document["unite_legale"]["etablissements"])
         # If ` unité légale` had more than 100 `établissements`, the main document is
         # separated into smaller documents consisting of 100 établissements each
         if etablissements_count > 100:
             smaller_document = document.copy()
-            etablissements = document["etablissements"]
+            etablissements = document["unite_legale"]["etablissements"]
             etablissements_left = etablissements_count
             etablissements_indexed = 0
             while etablissements_left > 0:
@@ -25,23 +25,24 @@ def elasticsearch_doc_siren_generator(data):
                 number_etablissements_to_add = min(etablissements_left, 100)
                 # Select a 100 etablissements from the main document,
                 # and use it as a list for the smaller document
-                smaller_document["etablissements"] = etablissements[
+                smaller_document["unite_legale"]["etablissements"] = etablissements[
                     etablissements_indexed : etablissements_indexed
                     + number_etablissements_to_add
                 ]
                 etablissements_left = etablissements_left - 100
                 etablissements_indexed += 100
-                yield ElasticsearchSireneIndex(
+                yield StructureMapping(
                     meta={
-                        "id": f"{smaller_document['siren']}-{etablissements_indexed}"
+                        "id": f"{smaller_document['identifiant']}-"
+                        f"{etablissements_indexed}"
                     },
                     **smaller_document,
                 ).to_dict(include_meta=True)
         # Otherwise, (the document has less than 100 établissements), index document
         # as is
         else:
-            yield ElasticsearchSireneIndex(
-                meta={"id": document["siren"]}, **document
+            yield StructureMapping(
+                meta={"id": document["identifiant"]}, **document
             ).to_dict(include_meta=True)
 
 
@@ -74,7 +75,7 @@ def index_unites_legales_by_chunk(
         if logger % 100000 == 0:
             logging.info(f"logger={logger}")
         try:
-            chunk_doc_generator = elasticsearch_doc_siren_generator(
+            chunk_doc_generator = doc_unite_legale_generator(
                 chunk_unites_legales_processed
             )
             # Bulk index documents into elasticsearch using the parallel version of the
