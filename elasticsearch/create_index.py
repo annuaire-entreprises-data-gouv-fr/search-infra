@@ -1,13 +1,13 @@
 import logging
 from typing import Optional
 
-from dag_datalake_sirene.elasticsearch.mapping_sirene_index import (
-    ElasticsearchSireneIndex,
+from dag_datalake_sirene.elasticsearch.mapping_index import (
+    StructureMapping,
 )
 from elasticsearch_dsl import Index, connections
 
 
-class ElasticCreateSiren:
+class ElasticCreateIndex:
     """
     Create elasticsearch Index
     :param elastic_url: endpoint url of elasticsearch
@@ -73,4 +73,4 @@ class ElasticCreateSiren:
             logging.info(f"Index {self.elastic_index} deleted!")
         logging.info(f"Creating {self.elastic_index} index!")
         # Create the mapping in elasticsearch
-        ElasticsearchSireneIndex.init()
+        StructureMapping.init()

@@ -1,7 +1,7 @@
 import os
 
 
-from dag_datalake_sirene.data_enrichment import (
+from dag_datalake_sirene.elasticsearch.data_enrichment import (
     format_nom_complet,
     format_slug,
 )

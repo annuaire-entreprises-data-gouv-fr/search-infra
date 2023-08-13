@@ -9,6 +9,7 @@ from elasticsearch_dsl import (
     Keyword,
     Long,
     Nested,
+    Object,
     Text,
     analyzer,
     char_filter,
@@ -75,7 +76,7 @@ annuaire_analyzer = analyzer(
 ELASTIC_SHARDS = 1
 
 
-class ElasticsearchDirigeantPPIndex(InnerDoc):
+class DirigeantPPMapping(InnerDoc):
     # Indexing the field 'nom' as both a keyword (exactly how it is given to the index)
     # and as text (analysed with the french analyser), allows us to search both the
     # exact match for a query and an analysed version of it (without stop words for
@@ -88,14 +89,14 @@ class ElasticsearchDirigeantPPIndex(InnerDoc):
     qualite = Text(analyzer=annuaire_analyzer)
 
 
-class ElasticsearchDirigeantPMIndex(InnerDoc):
+class DirigeantPMMapping(InnerDoc):
     siren = Keyword()
     denomination = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     sigle = Text(analyzer=annuaire_analyzer)
     qualite = Text(analyzer=annuaire_analyzer)
 
 
-class ElasticsearchEtablissementIndex(InnerDoc):
+class EtablissementMapping(InnerDoc):
     activite_principale = Text()
     activite_principale_registre_metier = Keyword()
     adresse = Text(analyzer=annuaire_analyzer)
@@ -156,7 +157,7 @@ class ElasticsearchEtablissementIndex(InnerDoc):
     type_voie_2 = Text()
 
 
-class ElasticsearchSiegeIndex(InnerDoc):
+class SiegeMapping(InnerDoc):
     activite_principale = Text()
     activite_principale_registre_metier = Keyword()
     adresse = Text(analyzer=annuaire_analyzer)
@@ -212,7 +213,7 @@ class ElasticsearchSiegeIndex(InnerDoc):
     type_voie_2 = Text()
 
 
-class ElasticsearchEluIndex(InnerDoc):
+class EluMapping(InnerDoc):
     nom = Text()
     prenom = Text()
     date_naissance = Date()
@@ -220,14 +221,14 @@ class ElasticsearchEluIndex(InnerDoc):
     fonction = Text()
 
 
-class BilanFinancierIndex(InnerDoc):
+class BilanFinancierMapping(InnerDoc):
     ca = Long()
     resultat_net = Long()
     date_cloture_exercice = Text()
     annee_cloture_exercice = Text()
 
 
-class ElasticsearchSireneIndex(Document):
+class UniteLegaleMapping(InnerDoc):
     """
 
     Model-like class for persisting documents in elasticsearch.
@@ -242,12 +243,12 @@ class ElasticsearchSireneIndex(Document):
     activite_principale_unite_legale = Keyword()
     annee_categorie_entreprise = Date()
     annee_tranche_effectif_salarie = Date()
-    bilan_financier = Nested(BilanFinancierIndex)
+    bilan_financier = Nested(BilanFinancierMapping)
     categorie_entreprise = Keyword()
     convention_collective_renseignee = Boolean()
     colter_code = Keyword()
     colter_code_insee = Keyword()
-    colter_elus = Nested(ElasticsearchEluIndex)
+    colter_elus = Nested(EluMapping)
     colter_niveau = Keyword()
     date_creation_unite_legale = Date()
     date_mise_a_jour_unite_legale = Date()
@@ -260,8 +261,8 @@ class ElasticsearchSireneIndex(Document):
     denomination_usuelle_3_unite_legale = Text(
         analyzer=annuaire_analyzer, fields={"keyword": Keyword()}
     )
-    dirigeants_pp = Nested(ElasticsearchDirigeantPPIndex)
-    dirigeants_pm = Nested(ElasticsearchDirigeantPMIndex)
+    dirigeants_pp = Nested(DirigeantPPMapping)
+    dirigeants_pm = Nested(DirigeantPMMapping)
     economie_sociale_solidaire_unite_legale = Keyword()
     est_entrepreneur_individuel = Boolean()
     est_entrepreneur_spectacle = Boolean()
@@ -275,20 +276,19 @@ class ElasticsearchSireneIndex(Document):
     est_service_public = Boolean()
     est_societe_mission = Keyword()
     est_uai = Boolean()
-    etablissements = Nested(ElasticsearchEtablissementIndex)
+    etablissements = Nested(EtablissementMapping)
     etat_administratif_unite_legale = Keyword()
     identifiant_association_unite_legale = Keyword()
     liste_dirigeants = Text(analyzer=annuaire_analyzer)
     liste_elus = Text(analyzer=annuaire_analyzer)
     nature_juridique_unite_legale = Keyword()
     nom = Text(analyzer=annuaire_analyzer)
-    nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     nom_raison_sociale = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     nombre_etablissements = Integer()  # NaN can't be stored in an integer array
     nombre_etablissements_ouverts = Integer()
     prenom = Text(analyzer=annuaire_analyzer)
     section_activite_principale = Keyword()
-    siege = Nested(ElasticsearchSiegeIndex)
+    siege = Object(SiegeMapping)
     sigle = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     siren = Keyword(required=True)
     siret_siege = Keyword()
@@ -296,6 +296,13 @@ class ElasticsearchSireneIndex(Document):
     statut_diffusion_unite_legale = Keyword()
     statut_entrepreneur_spectacle = Text()
     tranche_effectif_salarie_unite_legale = Keyword()
+
+
+class StructureMapping(Document):
+    identifiant = Keyword()
+    nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
+    adresse = Text(analyzer=annuaire_analyzer)
+    unite_legale = Object(UniteLegaleMapping)
 
     class Index:
         name = f"siren-{NEXT_COLOR}"
