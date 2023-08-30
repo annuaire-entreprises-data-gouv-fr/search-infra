@@ -93,5 +93,7 @@ def index_unites_legales_by_chunk(
         doc_count = elastic_connection.cat.count(
             index=elastic_index, params={"format": "json"}
         )[0]["count"]
-        logging.info(f"Number of unité légales documents indexed: {doc_count}")
+        logging.info(
+            f"Number of documents indexed(indexing unité légales): {doc_count}"
+        )
     return doc_count
