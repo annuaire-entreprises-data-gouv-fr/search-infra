@@ -30,7 +30,7 @@ def process_association(chunk_associations_sqlite):
         )
         association_to_index["slug"] = format_slug_association(
             association_processed["titre"],
-            association_processed["identifiant-association"],
+            association_processed["identifiant_association"],
         )
         association_to_index["association"] = association_processed
         list_associations_processed.append(association_to_index)
