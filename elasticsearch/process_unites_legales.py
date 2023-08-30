@@ -7,7 +7,7 @@ from dag_datalake_sirene.elasticsearch.data_enrichment import (
     format_etablissements_and_complements,
     format_nom,
     format_nom_complet,
-    format_slug,
+    format_slug_unite_legale,
     format_siege_unite_legale,
     is_entrepreneur_individuel,
     is_service_public,
@@ -36,17 +36,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["nom_usage"],
             unite_legale["nom_raison_sociale"],
             unite_legale["prenom"],
-        )
-
-        # Slug Nom Complet
-        unite_legale_processed["slug"] = format_slug(
-            unite_legale_processed["nom_complet"],
-            unite_legale["sigle"],
-            unite_legale["denomination_usuelle_1_unite_legale"],
-            unite_legale["denomination_usuelle_2_unite_legale"],
-            unite_legale["denomination_usuelle_3_unite_legale"],
-            unite_legale["siren"],
-            unite_legale["statut_diffusion_unite_legale"],
         )
 
         # Replace missing values with 0
@@ -189,6 +178,16 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         unite_legale_to_index["identifiant"] = unite_legale_processed["siren"]
         unite_legale_to_index["nom_complet"] = unite_legale_processed["nom_complet"]
         unite_legale_to_index["unite_legale"] = unite_legale_processed
+        # Slug Nom Complet
+        unite_legale_to_index["slug"] = format_slug_unite_legale(
+            unite_legale_processed["nom_complet"],
+            unite_legale["sigle"],
+            unite_legale["denomination_usuelle_1_unite_legale"],
+            unite_legale["denomination_usuelle_2_unite_legale"],
+            unite_legale["denomination_usuelle_3_unite_legale"],
+            unite_legale["siren"],
+            unite_legale["statut_diffusion_unite_legale"],
+        )
 
         list_unites_legales_processed.append(unite_legale_to_index)
 
