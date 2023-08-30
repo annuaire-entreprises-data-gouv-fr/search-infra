@@ -301,6 +301,7 @@ class UniteLegaleMapping(InnerDoc):
 class AssociationMapping(InnerDoc):
     identifiant_association = Keyword(required=True)
     siret = Keyword()
+    siren = Keyword()
     date_creation = Date()
     titre = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     numero_voie = Text()
