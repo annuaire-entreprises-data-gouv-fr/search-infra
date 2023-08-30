@@ -354,6 +354,7 @@ select_association_fields_to_index_query = """SELECT
             asso.date_creation as date_creation,
             asso.titre as titre,
             asso.siret,
+            asso.siren,
             asso.code_postal as code_postal,
             asso.commune as commune,
             asso.complement_adresse as complement_adresse,
