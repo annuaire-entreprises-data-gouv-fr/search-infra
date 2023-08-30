@@ -79,9 +79,13 @@ def preprocess_rna(data_dir):
             "adrs_distrib": "distribution_speciale",
         }
     )
-    # merged_rna_df["siren"] = merged_rna_df["siret"].str[:9]
-    # merged_rna_df["siren"] = merged_rna_df["identifiant_association"]
-    # merged_rna_df["est_siege"] = "true"
+    merged_rna_df["distribution_speciale"] = merged_rna_df[
+        "distribution_speciale"
+    ].replace("_", None)
+    merged_rna_df["distribution_speciale"] = merged_rna_df[
+        "distribution_speciale"
+    ].str.lstrip("_")
+    merged_rna_df["siren"] = merged_rna_df["siret"].str[:9]
 
     del rna_dataframes
 
