@@ -2,6 +2,7 @@ create_table_rna_query = """CREATE TABLE IF NOT EXISTS rna
             (
             identifiant_association TEXT PRIMARY KEY,
             siret,
+            siren,
             date_creation,
             titre,
             type_voie,
