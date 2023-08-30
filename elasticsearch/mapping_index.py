@@ -299,8 +299,9 @@ class UniteLegaleMapping(InnerDoc):
 
 
 class AssociationMapping(InnerDoc):
-    identifiant_association_unite_legale = Keyword()
-    date_creation_association = Date()
+    identifiant_association = Keyword(required=True)
+    siret = Keyword()
+    date_creation = Date()
     titre = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     numero_voie = Text()
     type_voie = Text()
@@ -311,12 +312,14 @@ class AssociationMapping(InnerDoc):
     complement_adresse = Text()
     indice_repetition = Text()
     distribution_speciale = Text()
+    slug = Text()
 
 
 class StructureMapping(Document):
     identifiant = Keyword()
     nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     adresse = Text(analyzer=annuaire_analyzer)
+    slug = Text()
     unite_legale = Object(UniteLegaleMapping)
     association = Object(AssociationMapping)
 
