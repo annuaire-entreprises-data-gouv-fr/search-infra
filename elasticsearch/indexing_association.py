@@ -40,6 +40,10 @@ def index_association_by_chunk(
             )
 
         liste_associations_sqlite = tuple(liste_associations_sqlite)
+        # Check if association siren already indexed with unités légales
+        for association in liste_associations_sqlite:
+            if check_if_siren_already_indexed(association):
+                liste_associations_sqlite.remove(association)
 
         chunk_associations_processed = process_association(liste_associations_sqlite)
         logger += 1
@@ -63,5 +67,24 @@ def index_association_by_chunk(
         doc_count = elastic_connection.cat.count(
             index=elastic_index, params={"format": "json"}
         )[0]["count"]
-        logging.info(f"Number of associations documents indexed: {doc_count}")
+        logging.info(f"Number of documents indexed(indexing associations): {doc_count}")
     return doc_count
+
+
+def check_if_siren_already_indexed(association):
+    """If siren already indexed from base SIRENE.
+    then data should be taked from INSEE and not RNA."""
+    if association["siren"]:
+        search = StructureMapping.search()
+        # Define the search query to check for the existence of the siren
+        search = search.filter("term", **{"identifiant": association["siren"]})
+        search = search.filter(
+            "exists", field="unite_legale.identifiant_association_unite_legale"
+        )
+        es_result = search.execute()
+        siren_found = es_result["hits"]["total"]["value"] > 0
+        if siren_found:
+            return True
+        else:
+            return False
+    return False
