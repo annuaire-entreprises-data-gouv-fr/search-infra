@@ -12,6 +12,6 @@ create_table_rna_query = """CREATE TABLE IF NOT EXISTS rna
             commune,
             complement_adresse,
             indice_repetition,
-            distribution_speciale,
+            distribution_speciale
             )
             """
