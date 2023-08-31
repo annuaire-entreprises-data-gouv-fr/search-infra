@@ -22,7 +22,7 @@ from dag_datalake_sirene.task_functions.global_variables import (
 )
 
 
-def fill_elastic_index(**kwargs):
+def fill_elastic_index_sirene(**kwargs):
     next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
     elastic_index = f"siren-{next_color}"
     connections.create_connection(
@@ -36,13 +36,28 @@ def fill_elastic_index(**kwargs):
 
     sqlite_client.execute(select_unite_legale_fields_to_index_query)
 
-    doc_count_siren = index_unites_legales_by_chunk(
+    doc_count_sirene = index_unites_legales_by_chunk(
         cursor=sqlite_client.db_cursor,
         elastic_connection=elastic_connection,
         elastic_bulk_size=ELASTIC_BULK_SIZE,
         elastic_index=elastic_index,
     )
-    kwargs["ti"].xcom_push(key="doc_count_siren", value=doc_count_siren)
+    kwargs["ti"].xcom_push(key="doc_count_siren", value=doc_count_sirene)
+
+    sqlite_client.commit_and_close_conn()
+
+
+def fill_elastic_index_rna(**kwargs):
+    next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
+    elastic_index = f"siren-{next_color}"
+    connections.create_connection(
+        hosts=[ELASTIC_URL],
+        http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        retry_on_timeout=True,
+    )
+    elastic_connection = connections.get_connection()
+
+    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
 
     sqlite_client.execute(select_association_fields_to_index_query)
     doc_count_rna = index_association_by_chunk(
