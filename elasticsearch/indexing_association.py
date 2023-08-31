@@ -41,11 +41,14 @@ def index_association_by_chunk(
 
         liste_associations_sqlite = tuple(liste_associations_sqlite)
         # Check if association siren already indexed with unités légales
+        liste_associations_not_in_sirene = []
         for association in liste_associations_sqlite:
-            if check_if_siren_already_indexed(association):
-                liste_associations_sqlite.remove(association)
+            if not check_if_siren_already_indexed(association):
+                liste_associations_not_in_sirene.append(association)
 
-        chunk_associations_processed = process_association(liste_associations_sqlite)
+        chunk_associations_processed = process_association(
+            tuple(liste_associations_not_in_sirene)
+        )
         logger += 1
         if logger % 100000 == 0:
             logging.info(f"logger={logger}")
