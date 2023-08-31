@@ -320,6 +320,7 @@ class StructureMapping(Document):
     identifiant = Keyword()
     nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     adresse = Text(analyzer=annuaire_analyzer)
+    est_association = Boolean()
     slug = Text()
     unite_legale = Object(UniteLegaleMapping)
     association = Object(AssociationMapping)
