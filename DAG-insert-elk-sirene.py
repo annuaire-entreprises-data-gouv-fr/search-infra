@@ -52,8 +52,9 @@ from dag_datalake_sirene.task_functions.create_unite_legale_tables import (
 from dag_datalake_sirene.task_functions.create_rna_table import (
     create_rna_table,
 )
-from dag_datalake_sirene.task_functions.fill_elastic_siren_index import (
-    fill_elastic_index,
+from dag_datalake_sirene.task_functions.fill_elastic_index import (
+    fill_elastic_index_sirene,
+    fill_elastic_index_rna,
 )
 from dag_datalake_sirene.task_functions.flush_cache import flush_cache
 from dag_datalake_sirene.task_functions.get_and_put_minio_object import get_object_minio
@@ -289,10 +290,16 @@ with DAG(
         python_callable=update_sitemap,
     )
 
-    fill_elastic_index = PythonOperator(
-        task_id="fill_elastic_index",
+    fill_elastic_index_sirene = PythonOperator(
+        task_id="fill_elastic_index_sirene",
         provide_context=True,
-        python_callable=fill_elastic_index,
+        python_callable=fill_elastic_index_sirene,
+    )
+
+    fill_elastic_index_rna = PythonOperator(
+        task_id="fill_elastic_index_rna",
+        provide_context=True,
+        python_callable=fill_elastic_index_rna,
     )
 
     check_elastic_index = PythonOperator(
@@ -381,8 +388,9 @@ with DAG(
     create_elu_table.set_upstream(create_colter_table)
 
     create_elastic_index.set_upstream(create_elu_table)
-    fill_elastic_index.set_upstream(create_elastic_index)
-    check_elastic_index.set_upstream(fill_elastic_index)
+    fill_elastic_index_sirene.set_upstream(create_elastic_index)
+    fill_elastic_index_rna.set_upstream(fill_elastic_index_sirene)
+    check_elastic_index.set_upstream(fill_elastic_index_rna)
 
     create_sitemap.set_upstream(check_elastic_index)
     update_sitemap.set_upstream(create_sitemap)
