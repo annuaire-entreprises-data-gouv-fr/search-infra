@@ -28,6 +28,7 @@ def process_association(chunk_associations_sqlite):
             code_postal=association_processed["code_postal"],
             commune=association_processed["commune"],
         )
+        association_to_index["est_association"] = True
         association_to_index["slug"] = format_slug_association(
             association_processed["titre"],
             association_processed["identifiant_association"],
