@@ -104,6 +104,17 @@ def format_nom(
     return formatted_name.upper().strip() if formatted_name else formatted_name
 
 
+# Association
+def is_association(nature_juridique_unite_legale, identifiant_association):
+    if identifiant_association:
+        return True
+    if nature_juridique_unite_legale and nature_juridique_unite_legale.startswith(
+        ("5195", "92")
+    ):
+        return True
+    return False
+
+
 # Entrepreneur individuel
 def is_entrepreneur_individuel(nature_juridique_unite_legale):
     if nature_juridique_unite_legale in ["1", "10", "1000"]:
