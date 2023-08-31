@@ -3,7 +3,7 @@ import logging
 
 def check_elastic_index(**kwargs):
     doc_count = kwargs["ti"].xcom_pull(
-        key="doc_count", task_ids="fill_elastic_siren_index"
+        key="doc_count_sirene", task_ids="fill_elastic_index_sirene"
     )
     count_sieges = kwargs["ti"].xcom_pull(
         key="count_sieges", task_ids="create_siege_only_table"
