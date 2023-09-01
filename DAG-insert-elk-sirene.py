@@ -93,7 +93,7 @@ with DAG(
     dag_id=DAG_NAME,
     default_args=default_args,
     schedule_interval="0 0 * * 1,3,5",
-    start_date=datetime(2023, 3, 29),
+    start_date=datetime.today(),
     dagrun_timeout=timedelta(minutes=60 * 15),
     tags=["siren"],
 ) as dag:
