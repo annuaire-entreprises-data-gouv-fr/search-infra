@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 
 import pandas as pd
@@ -73,7 +73,14 @@ def download_stock(departement):
 
 
 def download_flux(data_dir):
-    year_month = datetime.today().strftime("%Y-%m")
+    today = datetime.today()
+    if today.day == 1:
+        # Calculate the first day of the previous month
+        first_day_of_previous_month = today - timedelta(days=1)
+        year_month = first_day_of_previous_month.strftime("%Y-%m")
+    else:
+        year_month = datetime.today().strftime("%Y-%m")
+    logging.info(f"Downloading flux for : {year_month}")
     get_object_minio(
         f"flux_etablissement_{year_month}.csv.gz",
         "prod/insee/sirene/sirene_flux/",
