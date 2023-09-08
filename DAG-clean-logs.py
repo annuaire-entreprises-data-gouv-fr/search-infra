@@ -50,7 +50,7 @@ with DAG(
     "delete_airflow_logs",
     default_args=default_args,
     description="Delete Airflow logs older than 15 days",
-    schedule_interval=timedelta(days=1),
+    schedule_interval="0 0 * * 1",  # run every Monday at midnight (UTC)
     catchup=False,  # False to ignore past runs
     max_active_runs=1,  # Allow only one execution at a time
 ) as dag:
