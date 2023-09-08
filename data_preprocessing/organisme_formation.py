@@ -63,6 +63,14 @@ def preprocess_organisme_formation_data(data_dir):
             "id_nda": "liste_id_organisme_formation",
         }
     )
+    # Drop est_qualiopi=False when True value exists
+    df_liste_organisme_formation.sort_values(
+        "est_qualiopi", ascending=False, inplace=True
+    )
+    df_liste_organisme_formation.drop_duplicates(
+        subset=["siren", "liste_id_organisme_formation"], keep="first", inplace=True
+    )
+
     del df_organisme_formation
 
     return df_liste_organisme_formation
