@@ -96,6 +96,8 @@ with DAG(
     start_date=datetime(2023, 9, 4),
     dagrun_timeout=timedelta(minutes=60 * 15),
     tags=["siren"],
+    catchup=False,  # False to ignore past runs
+    max_active_runs=1,
 ) as dag:
     get_colors = PythonOperator(
         task_id="get_colors", provide_context=True, python_callable=get_colors
