@@ -9,6 +9,7 @@ from dag_datalake_sirene.elasticsearch.data_enrichment import (
     format_nom_complet,
     format_slug,
     format_siege_unite_legale,
+    is_association,
     is_entrepreneur_individuel,
     is_service_public,
     label_section_from_activite,
@@ -118,6 +119,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         unite_legale_processed["est_service_public"] = is_service_public(
             unite_legale["nature_juridique_unite_legale"],
             unite_legale_processed["siren"],
+        )
+
+        unite_legale_processed["est_association"] = is_association(
+            unite_legale_processed["nature_juridique_unite_legale"],
+            unite_legale_processed["identifiant_association_unite_legale"],
         )
 
         if unite_legale_processed["est_entrepreneur_individuel"]:

@@ -118,6 +118,17 @@ def is_service_public(nature_juridique_unite_legale, siren):
         return False
 
 
+# Association
+def is_association(nature_juridique_unite_legale, identifiant_association):
+    if identifiant_association:
+        return True
+    if nature_juridique_unite_legale and nature_juridique_unite_legale.startswith(
+        ("5195", "92")
+    ):
+        return True
+    return False
+
+
 # Section activité principale
 def label_section_from_activite(activite_principale_unite_legale):
     if activite_principale_unite_legale is not None:
