@@ -13,8 +13,8 @@ MATTERMOST_DATAGOUV_DATAENG_TEST = Variable.get("MATTERMOST_DATAGOUV_DATAENG_TES
 # Minio
 MINIO_URL = Variable.get("MINIO_URL", "object.files.data.gouv.fr")
 MINIO_BUCKET = Variable.get("MINIO_BUCKET", "")
-SECRET_MINIO_USER = Variable.get("SECRET_MINIO_USER", "")
-SECRET_MINIO_PASSWORD = Variable.get("SECRET_MINIO_PASSWORD", "")
+MINIO_USER = Variable.get("MINIO_USER", "")
+MINIO_PASSWORD = Variable.get("MINIO_PASSWORD", "")
 
 # RNE
 RNE_FTP_URL = Variable.get("RNE_FTP_URL", "")

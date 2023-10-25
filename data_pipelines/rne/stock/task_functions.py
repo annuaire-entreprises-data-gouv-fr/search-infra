@@ -7,8 +7,8 @@ from dag_datalake_sirene.data_pipelines.config import (
     AIRFLOW_DAG_TMP,
     MINIO_URL,
     MINIO_BUCKET,
-    SECRET_MINIO_USER,
-    SECRET_MINIO_PASSWORD,
+    MINIO_USER,
+    MINIO_PASSWORD,
 )
 
 DAG_FOLDER = "dag_datalake_sirene/data_pipelines/"
@@ -29,8 +29,8 @@ def unzip_files_and_upload_minio(**kwargs):
             send_files(
                 MINIO_URL=MINIO_URL,
                 MINIO_BUCKET=MINIO_BUCKET,
-                MINIO_USER=SECRET_MINIO_USER,
-                MINIO_PASSWORD=SECRET_MINIO_PASSWORD,
+                MINIO_USER=MINIO_USER,
+                MINIO_PASSWORD=MINIO_PASSWORD,
                 list_files=[
                     {
                         "source_path": EXTRACTED_FILES_PATH,
