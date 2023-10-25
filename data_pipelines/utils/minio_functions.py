@@ -63,3 +63,40 @@ def send_files(
                 )
     else:
         raise Exception(f"Bucket {MINIO_BUCKET} does not exists")
+
+
+def get_files_from_prefix(
+    MINIO_URL: str,
+    MINIO_BUCKET: str,
+    MINIO_USER: str,
+    MINIO_PASSWORD: str,
+    prefix: str,
+):
+    """Retrieve only the list of files in a Minio pattern
+
+    Args:
+        MINIO_URL (str): Minio endpoint
+        MINIO_BUCKET (str): bucket
+        MINIO_USER (str): user
+        MINIO_PASSWORD (str): password
+        prefix: (str): prefix to search files
+
+    Raises:
+        Exception: _description_
+    """
+    client = Minio(
+        MINIO_URL,
+        access_key=MINIO_USER,
+        secret_key=MINIO_PASSWORD,
+        secure=True,
+    )
+    found = client.bucket_exists(MINIO_BUCKET)
+    if found:
+        list_objects = []
+        objects = client.list_objects(MINIO_BUCKET, prefix=f"{AIRFLOW_ENV}/ae/{prefix}")
+        for obj in objects:
+            print(obj.object_name)
+            list_objects.append(obj.object_name.replace(f"{AIRFLOW_ENV}/ae/", ""))
+        return list_objects
+    else:
+        raise Exception(f"Bucket {MINIO_BUCKET} does not exists")
