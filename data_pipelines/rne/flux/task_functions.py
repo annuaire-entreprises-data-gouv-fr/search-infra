@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timedelta
 import re
 import logging
-from dag_datalake_sirene.data_pipelines.utils.mattermost import send_message
+from dag_datalake_sirene.data_pipelines.utils.tchap import send_message
 from dag_datalake_sirene.data_pipelines.utils.minio_functions import (
     get_files_from_prefix,
     send_files,
@@ -152,7 +152,7 @@ def get_every_day_flux(**kwargs):
     kwargs["ti"].xcom_push(key="rne_flux_end_date", value=end_date)
 
 
-def send_notification_mattermost(**kwargs):
+def send_notification_success_tchap(**kwargs):
     rne_flux_start_date = kwargs["ti"].xcom_pull(
         key="rne_flux_start_date", task_ids="get_every_day_flux"
     )
@@ -160,8 +160,13 @@ def send_notification_mattermost(**kwargs):
         key="rne_flux_end_date", task_ids="get_every_day_flux"
     )
     send_message(
-        f"Données flux RNE mise à jour sur Minio "
-        f"- Bucket {MINIO_BUCKET} :"
+        f"\U0001F7E2 Données :"
+        f"\nDonnées flux RNE mise à jour sur Minio "
+        f"- Bucket {MINIO_BUCKET}."
         f"\n - Date début flux : {rne_flux_start_date} "
         f"\n - Date fin flux : {rne_flux_end_date} "
     )
+
+
+def send_notification_failure_tchap(context):
+    send_message("\U0001F534 Données :" "\nFail DAG flux RNE!!!!")

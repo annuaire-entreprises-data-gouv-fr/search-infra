@@ -5,7 +5,8 @@ from airflow.operators.python import PythonOperator
 from dag_datalake_sirene.data_pipelines.rne.flux.task_functions import (
     TMP_FOLDER,
     get_every_day_flux,
-    send_notification_mattermost,
+    send_notification_failure_tchap,
+    send_notification_success_tchap,
 )
 
 
@@ -16,6 +17,7 @@ with DAG(
     catchup=False,
     max_active_runs=1,
     dagrun_timeout=timedelta(minutes=(60 * 20)),
+    on_failure_callback=send_notification_failure_tchap,
     tags=["api", "rne", "flux"],
     params={},
 ) as dag:
@@ -31,7 +33,7 @@ with DAG(
 
     send_notification_mattermost = PythonOperator(
         task_id="send_notification_mattermost",
-        python_callable=send_notification_mattermost,
+        python_callable=send_notification_success_tchap,
     )
 
     get_daily_flux_rne.set_upstream(clean_previous_outputs)
