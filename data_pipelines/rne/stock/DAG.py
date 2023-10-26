@@ -7,16 +7,28 @@ from dag_datalake_sirene.data_pipelines.rne.stock.task_functions import (
     TMP_FOLDER,
     DAG_FOLDER,
     unzip_files_and_upload_minio,
-    send_notification_mattermost,
+    send_notification_failure_tchap,
+    send_notification_success_tchap,
 )
+from dag_datalake_sirene.data_pipelines.config import EMAIL_LIST
 
+default_args = {
+    "depends_on_past": False,
+    "email": EMAIL_LIST,
+    "email_on_failure": True,
+    "email_on_retry": True,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
+}
 
 with DAG(
     dag_id="get_stock_rne",
+    default_args=default_args,
     start_date=datetime(2023, 10, 5),
     catchup=False,
     max_active_runs=1,
     dagrun_timeout=timedelta(minutes=(60 * 8)),
+    on_failure_callback=send_notification_failure_tchap,
     tags=["download", "rne", "stock"],
     params={},
 ) as dag:
@@ -43,12 +55,12 @@ with DAG(
         bash_command=f"rm -rf {TMP_FOLDER}",
     )
 
-    send_notification_mattermost = PythonOperator(
-        task_id="send_notification_mattermost",
-        python_callable=send_notification_mattermost,
+    send_notification_tchap = PythonOperator(
+        task_id="send_notification_tchap",
+        python_callable=send_notification_success_tchap,
     )
 
     get_rne_latest_stock.set_upstream(clean_previous_outputs)
     unzip_files_and_upload_minio.set_upstream(get_rne_latest_stock)
     clean_outputs.set_upstream(unzip_files_and_upload_minio)
-    send_notification_mattermost.set_upstream(clean_outputs)
+    send_notification_tchap.set_upstream(clean_outputs)
