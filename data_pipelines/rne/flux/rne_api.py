@@ -107,8 +107,8 @@ class ApiRNEClient:
                     logging.info("Got a new access token and retrying...")
                 elif hasattr(e, "response") and e.response.status_code == 500:
                     if "Allowed memory size of" in str(e.response.content):
-                        url = url.replace("pageSize=100", "pageSize=25")
-                        logging.info(f"***Memory Error changing page size to 25 : {e}")
+                        url = url.replace("pageSize=100", "pageSize=15")
+                        logging.info(f"***Memory Error changing page size to 15 : {e}")
                     else:
                         logging.info(f"***Error HTTP: {e}")
                         url = url.replace("pageSize=100", "pageSize=20")
