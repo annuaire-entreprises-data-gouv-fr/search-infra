@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import re
 import logging
 from dag_datalake_sirene.data_pipelines.utils.tchap import send_message
-from dag_datalake_sirene.data_pipelines.utils.minio_functions import (
+from dags.dag_datalake_sirene.data_pipelines.utils.minio_helpers import (
     get_files_from_prefix,
     send_files,
 )
