@@ -7,9 +7,10 @@ AIRFLOW_DAG_TMP = Variable.get("AIRFLOW_DAG_TMP", "/tmp/")
 AIRFLOW_ENV = Variable.get("AIRFLOW_ENV", "dev")
 AIRFLOW_URL = Variable.get("AIRFLOW_URL", "")
 
-# Mattermost
-MATTERMOST_DATAGOUV_DATAENG = Variable.get("MATTERMOST_DATAGOUV_DATAENG", "")
-MATTERMOST_DATAGOUV_DATAENG_TEST = Variable.get("MATTERMOST_DATAGOUV_DATAENG_TEST", "")
+# Notification
+TCHAP_ANNUAIRE_WEBHOOK = Variable.get("TCHAP_ANNUAIRE_WEBHOOK", "")
+TCHA_ANNUAIRE_ROOM_ID = Variable.get("TCHA_ANNUAIRE_ROOM_ID", "")
+EMAIL_LIST = Variable.get("EMAIl_LIST", "")
 
 # Minio
 MINIO_URL = Variable.get("MINIO_URL", "object.files.data.gouv.fr")
