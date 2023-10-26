@@ -100,9 +100,7 @@ class ApiRNEClient:
                 return response, last_siren
 
             except Exception as e:
-                if hasattr(e, "response") and (
-                    e.response.status_code == 403 or e.response.status_code == 401
-                ):
+                if hasattr(e, "response") and e.response.status_code in [401, 403, 429]:
                     self.token = self.get_new_token()
                     logging.info("Got a new access token and retrying...")
                 elif hasattr(e, "response") and e.response.status_code == 500:
