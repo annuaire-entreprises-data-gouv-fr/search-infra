@@ -2,6 +2,7 @@ from airflow.models import DAG
 from datetime import timedelta, datetime
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
+from dag_datalake_sirene.data_pipelines.config import EMAIL_LIST
 from dag_datalake_sirene.data_pipelines.rne.flux.flux_tasks import (
     TMP_FOLDER,
     get_every_day_flux,
@@ -9,6 +10,14 @@ from dag_datalake_sirene.data_pipelines.rne.flux.flux_tasks import (
     send_notification_success_tchap,
 )
 
+default_args = {
+    "depends_on_past": False,
+    "email": EMAIL_LIST,
+    "email_on_failure": True,
+    "email_on_retry": True,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
+}
 
 with DAG(
     dag_id="get_flux_rne",
