@@ -3,7 +3,7 @@ import logging
 from dag_datalake_sirene.data_pipelines.config import (
     AIRFLOW_ENV,
     TCHAP_ANNUAIRE_WEBHOOK,
-    TCHA_ANNUAIRE_ROOM_ID,
+    TCHAP_ANNUAIRE_ROOM_ID,
 )
 
 
@@ -25,7 +25,7 @@ def send_message(
             return None
         if AIRFLOW_ENV == "prod":
             endpoint_url = TCHAP_ANNUAIRE_WEBHOOK
-    data = {"roomId": TCHA_ANNUAIRE_ROOM_ID, "message": text}
+    data = {"roomId": TCHAP_ANNUAIRE_ROOM_ID, "message": text}
     if image_url:
         data["attachments"] = [{"image_url": image_url}]
 

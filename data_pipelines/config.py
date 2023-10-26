@@ -9,7 +9,7 @@ AIRFLOW_URL = Variable.get("AIRFLOW_URL", "")
 
 # Notification
 TCHAP_ANNUAIRE_WEBHOOK = Variable.get("TCHAP_ANNUAIRE_WEBHOOK", "")
-TCHA_ANNUAIRE_ROOM_ID = Variable.get("TCHA_ANNUAIRE_ROOM_ID", "")
+TCHAP_ANNUAIRE_ROOM_ID = Variable.get("TCHAP_ANNUAIRE_ROOM_ID", "")
 EMAIL_LIST = Variable.get("EMAIl_LIST", "")
 
 # Minio
