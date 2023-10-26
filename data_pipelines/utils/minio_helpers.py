@@ -93,10 +93,10 @@ def get_files_from_prefix(
     found = client.bucket_exists(MINIO_BUCKET)
     if found:
         list_objects = []
-        objects = client.list_objects(MINIO_BUCKET, prefix=f"{AIRFLOW_ENV}/ae/{prefix}")
+        objects = client.list_objects(MINIO_BUCKET, prefix=f"ae/{AIRFLOW_ENV}/{prefix}")
         for obj in objects:
             print(obj.object_name)
-            list_objects.append(obj.object_name.replace(f"{AIRFLOW_ENV}/ae/", ""))
+            list_objects.append(obj.object_name.replace(f"ae/{AIRFLOW_ENV}/", ""))
         return list_objects
     else:
         raise Exception(f"Bucket {MINIO_BUCKET} does not exists")
