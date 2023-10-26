@@ -3,13 +3,13 @@ import json
 from datetime import datetime, timedelta
 import re
 import logging
-from dag_datalake_sirene.data_pipelines.utils.tchap import send_message
-from dag_datalake_sirene.data_pipelines.utils.minio_helpers import (
+from dag_datalake_sirene.utils.tchap import send_message
+from dag_datalake_sirene.utils.minio_helpers import (
     get_files_from_prefix,
     send_files,
 )
 from dag_datalake_sirene.data_pipelines.rne.flux.rne_api import ApiRNEClient
-from dag_datalake_sirene.data_pipelines.config import (
+from dag_datalake_sirene.config import (
     AIRFLOW_DAG_TMP,
     MINIO_URL,
     MINIO_BUCKET,

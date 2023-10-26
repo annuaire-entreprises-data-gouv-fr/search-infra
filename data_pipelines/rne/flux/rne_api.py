@@ -3,7 +3,7 @@ import time
 import random
 from typing import Union
 import requests
-from dag_datalake_sirene.data_pipelines.config import RNE_AUTH
+from dag_datalake_sirene.config import RNE_AUTH
 from requests.adapters import HTTPAdapter
 from requests.exceptions import SSLError
 

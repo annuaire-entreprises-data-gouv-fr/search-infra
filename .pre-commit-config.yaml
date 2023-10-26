@@ -25,6 +25,6 @@ repos:
     hooks:
       - id: mypy
         args: [--no-strict-optional, --ignore-missing-imports, --install-types,
-               --non-interactive]
+               --non-interactive, --explicit-package-bases]
         additional_dependencies: [tokenize-rt==3.2.0, 'types-requests',
                                   'types-psutil', 'types-redis']
