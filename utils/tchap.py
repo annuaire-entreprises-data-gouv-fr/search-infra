@@ -1,6 +1,6 @@
 import requests
 import logging
-from dag_datalake_sirene.data_pipelines.config import (
+from dag_datalake_sirene.config import (
     AIRFLOW_ENV,
     TCHAP_ANNUAIRE_WEBHOOK,
     TCHAP_ANNUAIRE_ROOM_ID,
@@ -21,10 +21,10 @@ def send_message(
         with your text. Defaults to None.
     """
     if not endpoint_url:
-        if AIRFLOW_ENV != "prod":
-            return None
         if AIRFLOW_ENV == "prod":
             endpoint_url = TCHAP_ANNUAIRE_WEBHOOK
+        else:
+            return None
     data = {"roomId": TCHAP_ANNUAIRE_ROOM_ID, "message": text}
     if image_url:
         data["attachments"] = [{"image_url": image_url}]
