@@ -21,6 +21,7 @@ default_args = {
 
 with DAG(
     dag_id="get_flux_rne",
+    default_args=default_args,
     start_date=datetime(2023, 10, 18),
     schedule_interval="@daily",
     catchup=False,
