@@ -22,7 +22,7 @@ def send_message(
     """
     if not endpoint_url:
         if AIRFLOW_ENV == "dev":
-            endpoint_url = TCHAP_ANNUAIRE_WEBHOOK
+            return None
         if AIRFLOW_ENV == "prod":
             endpoint_url = TCHAP_ANNUAIRE_WEBHOOK
     data = {"roomId": TCHA_ANNUAIRE_ROOM_ID, "message": text}
