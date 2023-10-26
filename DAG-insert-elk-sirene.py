@@ -63,6 +63,10 @@ from dag_datalake_sirene.task_functions.replace_siege_only_table import (
 from dag_datalake_sirene.task_functions.replace_unite_legale_table import (
     replace_unite_legale_table,
 )
+from dag_datalake_sirene.task_functions.send_notification import (
+    send_notification_success_tchap,
+    send_notification_failure_tchap,
+)
 from dag_datalake_sirene.task_functions.update_color_file import update_color_file
 from dag_datalake_sirene.task_functions.update_sitemap import update_sitemap
 from dag_datalake_sirene.tests.e2e_tests.run_tests import run_e2e_tests
@@ -97,6 +101,7 @@ with DAG(
     dagrun_timeout=timedelta(minutes=60 * 15),
     tags=["siren"],
     catchup=False,  # False to ignore past runs
+    on_failure_callback=send_notification_failure_tchap,
     max_active_runs=1,
 ) as dag:
     get_colors = PythonOperator(
@@ -340,6 +345,11 @@ with DAG(
         dag=dag,
     )
 
+    send_notification_tchap = PythonOperator(
+        task_id="send_notification_tchap",
+        python_callable=send_notification_success_tchap,
+    )
+
     clean_previous_folder.set_upstream(get_colors)
     create_sqlite_database.set_upstream(clean_previous_folder)
 
@@ -386,3 +396,4 @@ with DAG(
 
     send_email.set_upstream(flush_cache)
     send_email.set_upstream(update_sitemap)
+    send_notification_tchap.set_upstream(send_email)
