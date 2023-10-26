@@ -1,4 +1,5 @@
 from airflow.models import Variable
+import json
 
 # Global
 AIRFLOW_DAG_HOME = Variable.get("AIRFLOW_DAG_HOME", "/opt/airflow/dags/")
@@ -19,3 +20,4 @@ MINIO_PASSWORD = Variable.get("MINIO_PASSWORD", "")
 
 # RNE
 RNE_FTP_URL = Variable.get("RNE_FTP_URL", "")
+RNE_AUTH = json.loads(Variable.get("RNE_AUTH", "[]"))

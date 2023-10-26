@@ -21,7 +21,7 @@ def send_message(
         with your text. Defaults to None.
     """
     if not endpoint_url:
-        if AIRFLOW_ENV == "dev":
+        if AIRFLOW_ENV != "prod":
             return None
         if AIRFLOW_ENV == "prod":
             endpoint_url = TCHAP_ANNUAIRE_WEBHOOK

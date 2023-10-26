@@ -2,7 +2,11 @@ from airflow.models import DAG
 from datetime import timedelta, datetime
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
-from dag_datalake_sirene.data_pipelines.config import AIRFLOW_DAG_HOME, RNE_FTP_URL
+from dag_datalake_sirene.data_pipelines.config import (
+    AIRFLOW_DAG_HOME,
+    RNE_FTP_URL,
+    EMAIL_LIST,
+)
 from dag_datalake_sirene.data_pipelines.rne.stock.task_functions import (
     TMP_FOLDER,
     DAG_FOLDER,
@@ -10,7 +14,6 @@ from dag_datalake_sirene.data_pipelines.rne.stock.task_functions import (
     send_notification_failure_tchap,
     send_notification_success_tchap,
 )
-from dag_datalake_sirene.data_pipelines.config import EMAIL_LIST
 
 default_args = {
     "depends_on_past": False,
