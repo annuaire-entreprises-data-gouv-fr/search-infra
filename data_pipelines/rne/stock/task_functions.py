@@ -1,6 +1,6 @@
 import os
 import zipfile
-from dag_datalake_sirene.data_pipelines.utils.mattermost import send_message
+from dag_datalake_sirene.data_pipelines.utils.tchap import send_message
 import logging
 from dag_datalake_sirene.data_pipelines.utils.minio_functions import send_files
 from dag_datalake_sirene.data_pipelines.config import (
@@ -10,6 +10,7 @@ from dag_datalake_sirene.data_pipelines.config import (
     MINIO_USER,
     MINIO_PASSWORD,
 )
+
 
 DAG_FOLDER = "dag_datalake_sirene/data_pipelines/"
 TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rne/stock/"
@@ -48,12 +49,17 @@ def unzip_files_and_upload_minio(**kwargs):
     kwargs["ti"].xcom_push(key="stock_files_rne_count", value=sent_files)
 
 
-def send_notification_mattermost(**kwargs):
+def send_notification_success_tchap(**kwargs):
     count_files_rne_stock = kwargs["ti"].xcom_pull(
-        key="stock_files_rne_count", task_ids="send_stock_rne"
+        key="stock_files_rne_count", task_ids="unzip_files_and_upload_minio"
     )
     send_message(
-        f"Données stock RNE mise à jour sur Minio "
-        f"- Bucket {MINIO_BUCKET} :"
+        f"\U0001F7E2 Données :"
+        f"\nDonnées stock RNE mise à jour sur Minio "
+        f"- Bucket {MINIO_BUCKET}."
         f"\n - Nombre de fichiers stock : {count_files_rne_stock}"
     )
+
+
+def send_notification_failure_tchap(context):
+    send_message("\U0001F534 Données :" "\nFail DAG stock RNE!!!!")
