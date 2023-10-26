@@ -2,7 +2,7 @@ from airflow.models import DAG
 from datetime import timedelta, datetime
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
-from dags.dag_datalake_sirene.data_pipelines.rne.flux.flux_tasks import (
+from dag_datalake_sirene.data_pipelines.rne.flux.flux_tasks import (
     TMP_FOLDER,
     get_every_day_flux,
     send_notification_failure_tchap,
@@ -31,10 +31,10 @@ with DAG(
         python_callable=get_every_day_flux,
     )
 
-    send_notification_mattermost = PythonOperator(
-        task_id="send_notification_mattermost",
+    send_notification_success_tchap = PythonOperator(
+        task_id="send_notification_success_tchap",
         python_callable=send_notification_success_tchap,
     )
 
     get_daily_flux_rne.set_upstream(clean_previous_outputs)
-    send_notification_mattermost.set_upstream(get_daily_flux_rne)
+    send_notification_success_tchap.set_upstream(get_daily_flux_rne)
