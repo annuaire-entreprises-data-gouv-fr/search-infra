@@ -101,6 +101,7 @@ def get_files_from_prefix(
     else:
         raise Exception(f"Bucket {MINIO_BUCKET} does not exists")
 
+
 def get_files(
     MINIO_URL: str,
     MINIO_BUCKET: str,

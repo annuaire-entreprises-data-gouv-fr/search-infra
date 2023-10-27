@@ -7,7 +7,7 @@ import sqlite3
 import json
 import re
 import logging
-from dag_datalake_sirene.data_pipelines.utils.minio_functions import (
+from dag_datalake_sirene.data_pipelines.utils.minio_helpers import (
     get_files_from_prefix,
     send_files,
     get_files,
@@ -131,6 +131,48 @@ def get_latest_db(**kwargs):
         )
 
 
+def process_stock_json_files(**kwargs):
+    start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
+    rne_database_location = get_database_location(**kwargs)
+    logging.info(f"^^^^^^^^^^^ rne database location : {rne_database_location}")
+
+    # Only process stock files if a date doesn't already exist
+    if start_date is not None:
+        return None
+
+    json_stock_rne_files = get_files_from_prefix(
+        MINIO_URL=MINIO_URL,
+        MINIO_BUCKET=MINIO_BUCKET,
+        MINIO_USER=MINIO_USER,
+        MINIO_PASSWORD=MINIO_PASSWORD,
+        prefix=MINIO_STOCK_DATA_PATH,
+    )
+
+    if not json_stock_rne_files:
+        raise Exception("No RNE stock files found!!!")
+
+    for file_path in json_stock_rne_files:
+        logging.info(f"Processing stock file: {file_path}...")
+        get_files(
+            MINIO_URL=MINIO_URL,
+            MINIO_BUCKET=MINIO_BUCKET,
+            MINIO_USER=MINIO_USER,
+            MINIO_PASSWORD=MINIO_PASSWORD,
+            list_files=[
+                {
+                    "source_path": "",
+                    "source_name": f"{file_path}",
+                    "dest_path": "",
+                    "dest_name": f"{file_path}",
+                }
+            ],
+        )
+        inject_stock_records_into_database(file_path, rne_database_location)
+        logging.info(
+            f"File {file_path} processed and stock records injected into the database."
+        )
+
+
 def process_flux_json_files(**kwargs):
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
     rne_database_location = get_database_location(**kwargs)
@@ -170,12 +212,13 @@ def process_flux_json_files(**kwargs):
                         }
                     ],
                 )
-                inject_records_into_database(file_path, rne_database_location)
+                json_path = f"{TMP_FOLDER}rne_flux_{file_date}.json"
+                inject_records_into_database(json_path, rne_database_location)
                 logging.info(
-                    f"File {file_path} processed and"
+                    f"File {json_path} processed and"
                     " records injected into the database."
                 )
-                os.remove(f"{TMP_FOLDER}rne_flux_{file_date}.json")
+                os.remove(json_path)
 
     # Extract dates from the JSON file names and sort them
     dates = sorted(
@@ -187,48 +230,6 @@ def process_flux_json_files(**kwargs):
     else:
         last_date = None
     kwargs["ti"].xcom_push(key="last_date", value=last_date)
-
-
-def process_stock_json_files(**kwargs):
-    start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
-    rne_database_location = get_database_location(**kwargs)
-    logging.info(f"^^^^^^^^^^^ rne database location : {rne_database_location}")
-
-    # Only process stock files if a date doesn't already exist
-    if start_date is not None:
-        return None
-
-    json_stock_rne_files = get_files_from_prefix(
-        MINIO_URL=MINIO_URL,
-        MINIO_BUCKET=MINIO_BUCKET,
-        MINIO_USER=MINIO_USER,
-        MINIO_PASSWORD=MINIO_PASSWORD,
-        prefix=MINIO_STOCK_DATA_PATH,
-    )
-
-    if not json_stock_rne_files:
-        return None
-
-    for file_path in json_stock_rne_files:
-        logging.info(f"Processing file {file_path}...")
-        get_files(
-            MINIO_URL=MINIO_URL,
-            MINIO_BUCKET=MINIO_BUCKET,
-            MINIO_USER=MINIO_USER,
-            MINIO_PASSWORD=MINIO_PASSWORD,
-            list_files=[
-                {
-                    "source_path": "",
-                    "source_name": f"{file_path}",
-                    "dest_path": "",
-                    "dest_name": f"{file_path}",
-                }
-            ],
-        )
-        inject_stock_records_into_database(file_path, rne_database_location)
-        logging.info(
-            f"File {file_path} processed and" " records injected into the database."
-        )
 
 
 def inject_stock_records_into_database(file_path, db_path):

@@ -11,7 +11,7 @@ from dag_datalake_sirene.data_pipelines.rne.database.task_functions import (
     get_latest_db,
     create_db,
     process_flux_json_files,
-    process_stock_rne_files,
+    process_stock_json_files,
     upload_db_to_minio,
     upload_latest_date_rne_minio,
     notification_mattermost,
@@ -43,8 +43,8 @@ with DAG(
     process_flux_json_files = PythonOperator(
         task_id="process_flux_json_files", python_callable=process_flux_json_files
     )
-    process_stock_rne_files = PythonOperator(
-        task_id="process_stock_rne_files", python_callable=process_stock_rne_files
+    process_stock_json_files = PythonOperator(
+        task_id="process_stock_json_files", python_callable=process_stock_json_files
     )
     upload_db_to_minio = PythonOperator(
         task_id="upload_db_to_minio", python_callable=upload_db_to_minio
@@ -61,7 +61,7 @@ with DAG(
     create_db.set_upstream(get_start_date)
     get_latest_db.set_upstream(create_db)
     process_flux_json_files.set_upstream(get_latest_db)
-    process_stock_rne_files.set_upstream(process_flux_json_files)
-    upload_db_to_minio.set_upstream(process_stock_rne_files)
+    process_stock_json_files.set_upstream(process_flux_json_files)
+    upload_db_to_minio.set_upstream(process_stock_json_files)
     upload_latest_date_rne_minio.set_upstream(upload_db_to_minio)
     notification_mattermost.set_upstream(upload_latest_date_rne_minio)
