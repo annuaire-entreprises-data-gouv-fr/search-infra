@@ -1,7 +1,7 @@
 from minio import Minio
 from typing import List, TypedDict, Optional
 import os
-from dag_datalake_sirene.data_pipelines.config import AIRFLOW_ENV
+from dag_datalake_sirene.config import AIRFLOW_ENV
 
 
 class File(TypedDict):

@@ -2,7 +2,7 @@ from airflow.models import DAG
 from datetime import timedelta, datetime
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
-from dag_datalake_sirene.data_pipelines.config import (
+from dag_datalake_sirene.config import (
     AIRFLOW_DAG_HOME,
     RNE_FTP_URL,
     EMAIL_LIST,

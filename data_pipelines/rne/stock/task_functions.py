@@ -1,9 +1,9 @@
 import os
 import zipfile
 import logging
-from dag_datalake_sirene.data_pipelines.utils.tchap import send_message
-from dag_datalake_sirene.data_pipelines.utils.minio_helpers import send_files
-from dag_datalake_sirene.data_pipelines.config import (
+from dag_datalake_sirene.utils.tchap import send_message
+from dag_datalake_sirene.utils.minio_helpers import send_files
+from dag_datalake_sirene.config import (
     AIRFLOW_DAG_TMP,
     MINIO_URL,
     MINIO_BUCKET,
