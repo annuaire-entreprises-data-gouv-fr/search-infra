@@ -4,7 +4,7 @@ import json
 # Global
 AIRFLOW_DAG_HOME = Variable.get("AIRFLOW_DAG_HOME", "/opt/airflow/dags/")
 AIRFLOW_DAG_TMP = Variable.get("AIRFLOW_DAG_TMP", "/tmp/")
-AIRFLOW_ENV = Variable.get("AIRFLOW_ENV", "dev")
+AIRFLOW_ENV = Variable.get("ENV", "dev")
 AIRFLOW_URL = Variable.get("AIRFLOW_URL", "")
 
 # Notification
