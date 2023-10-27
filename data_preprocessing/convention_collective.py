@@ -4,7 +4,7 @@ import requests
 
 def preprocess_convcollective_data(data_dir):
     cc_url = (
-        "https://www.data.gouv.fr/fr/datasets/r/bfc3a658-c054-4ecc-ba4b" "-22f3f5789dc7"
+        "https://www.data.gouv.fr/fr/datasets/r/" "a22e54f7-b937-4483-9a72-aad2ea1316f1"
     )
     r = requests.get(cc_url, allow_redirects=True)
     with open(data_dir + "convcollective-download.csv", "wb") as f:
