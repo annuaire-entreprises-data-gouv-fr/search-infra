@@ -1,6 +1,6 @@
 import logging
 import sqlite3
-from dag_datalake_sirene.data_pipelines.config import (
+from dag_datalake_sirene.config import (
     AIRFLOW_DAG_TMP,
 )
 

@@ -3,7 +3,7 @@ from datetime import timedelta
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.data_pipelines.config import (
+from dag_datalake_sirene.config import (
     AIRFLOW_DAG_TMP,
 )
 from dag_datalake_sirene.data_pipelines.rne.database.task_functions import (
@@ -20,7 +20,7 @@ from dag_datalake_sirene.data_pipelines.rne.database.task_functions import (
 TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rne/"
 
 with DAG(
-    dag_id="rne_dirigeants_database",
+    dag_id="fill_rne_dirigeants_database",
     start_date=days_ago(1),
     max_active_runs=1,
     catchup=False,

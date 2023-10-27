@@ -7,7 +7,7 @@ import sqlite3
 import json
 import re
 import logging
-from dag_datalake_sirene.data_pipelines.utils.minio_helpers import (
+from dag_datalake_sirene.utils.minio_helpers import (
     get_files_from_prefix,
     send_files,
     get_files,
@@ -17,7 +17,7 @@ from dag_datalake_sirene.data_pipelines.rne.database.process_rne import (
     extract_dirigeants_data,
     create_tables,
 )
-from dag_datalake_sirene.data_pipelines.config import (
+from dag_datalake_sirene.config import (
     AIRFLOW_DAG_TMP,
     MINIO_URL,
     MINIO_BUCKET,
@@ -25,7 +25,7 @@ from dag_datalake_sirene.data_pipelines.config import (
     MINIO_PASSWORD,
 )
 
-from dag_datalake_sirene.data_pipelines.utils.tchap import send_message
+from dag_datalake_sirene.utils.tchap import send_message
 
 PATH_MINIO_RNE_DATA = "rne/database/"
 LATEST_DATE_FILE = "latest_rne_date.json"
