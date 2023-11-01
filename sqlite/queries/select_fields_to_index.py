@@ -1,4 +1,5 @@
-select_fields_to_index_query = """SELECT
+select_unite_legale_fields_to_index_query = """
+            SELECT
             ul.activite_principale_unite_legale as activite_principale_unite_legale,
             ul.categorie_entreprise as categorie_entreprise,
             ul.date_creation_unite_legale as date_creation_unite_legale,
@@ -343,4 +344,24 @@ select_fields_to_index_query = """SELECT
                 unite_legale ul
             ON
                 ul.siren = st.siren
-            WHERE ul.siren IS NOT NULL;"""
+            WHERE ul.siren IS NOT NULL
+            """
+
+
+select_association_fields_to_index_query = """SELECT
+            asso.identifiant_association as
+            identifiant_association,
+            asso.date_creation as date_creation,
+            asso.titre as titre,
+            asso.siret,
+            asso.siren,
+            asso.code_postal as code_postal,
+            asso.commune as commune,
+            asso.complement_adresse as complement_adresse,
+            asso.distribution_speciale as distribution_speciale,
+            asso.indice_repetition as indice_repetition,
+            asso.libelle_commune as libelle_commune,
+            asso.libelle_voie as libelle_voie,
+            asso.numero_voie as numero_voie,
+            asso.type_voie as type_voie
+            FROM rna as asso"""

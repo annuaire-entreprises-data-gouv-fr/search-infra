@@ -53,7 +53,7 @@ def format_nom_complet(
 # Because we need to create sitemap and for keeping coherence
 # between sitemap values and slug in API. We calculate this field
 # with this function and we add it both in elasticsearch and in sitemap
-def format_slug(
+def format_slug_unite_legale(
     nom_complet,
     sigle=None,
     denomination_usuelle_1=None,
@@ -85,6 +85,13 @@ def format_slug(
     return ""
 
 
+def format_slug_association(titre=None, identifiant_association=None):
+    if titre:
+        return slugify(f"{titre} {identifiant_association}".lower())
+    # if nom_complet is null
+    return slugify(f"{identifiant_association}")
+
+
 # Noms
 def format_nom(
     nom=None,
@@ -95,6 +102,17 @@ def format_nom(
     else:
         formatted_name = f"{nom}" if nom else None
     return formatted_name.upper().strip() if formatted_name else formatted_name
+
+
+# Association
+def is_association(nature_juridique_unite_legale, identifiant_association):
+    if identifiant_association:
+        return True
+    if nature_juridique_unite_legale and nature_juridique_unite_legale.startswith(
+        ("5195", "92")
+    ):
+        return True
+    return False
 
 
 # Entrepreneur individuel
@@ -155,19 +173,19 @@ def label_region_from_departement(departement):
 
 # Adresse complète
 def format_adresse_complete(
-    complement_adresse,
-    numero_voie,
-    indice_repetition,
-    type_voie,
-    libelle_voie,
-    libelle_commune,
-    libelle_cedex,
-    distribution_speciale,
-    code_postal,
-    cedex,
-    commune,
-    libelle_commune_etranger,
-    libelle_pays_etranger,
+    complement_adresse=None,
+    numero_voie=None,
+    indice_repetition=None,
+    type_voie=None,
+    libelle_voie=None,
+    libelle_commune=None,
+    libelle_cedex=None,
+    distribution_speciale=None,
+    code_postal=None,
+    cedex=None,
+    commune=None,
+    libelle_commune_etranger=None,
+    libelle_pays_etranger=None,
     is_non_diffusible=False,
 ):
     col_list = [
@@ -416,23 +434,25 @@ def format_siege_unite_legale(siege, is_non_diffusible=False):
         siege["type_voie"],
         siege["libelle_voie"],
         siege["libelle_commune"],
-        siege["libelle_cedex"],
+        siege.get("libelle_cedex", None),
         siege["distribution_speciale"],
         siege["code_postal"],
-        siege["cedex"],
+        siege.get("cedex", None),
         siege["commune"],
-        siege["libelle_commune_etranger"],
-        siege["libelle_pays_etranger"],
+        siege.get("libelle_commune_etranger", None),
+        siege.get("libelle_pays_etranger", None),
         is_non_diffusible,
     )
-    siege["coordonnees"] = format_coordonnees(siege["longitude"], siege["latitude"])
+    siege["coordonnees"] = format_coordonnees(
+        siege.get("longitude", None), siege.get("latitude", None)
+    )
     siege["departement"] = format_departement(siege["commune"])
     siege["region"] = label_region_from_departement(siege["departement"])
     siege["est_siege"] = str_to_bool(siege["est_siege"])
-    siege["liste_idcc"] = str_to_list(siege["liste_idcc"])
-    siege["liste_rge"] = str_to_list(siege["liste_rge"])
-    siege["liste_uai"] = str_to_list(siege["liste_uai"])
-    siege["liste_finess"] = str_to_list(siege["liste_finess"])
-    siege["liste_id_bio"] = str_to_list(siege["liste_id_bio"])
+    siege["liste_idcc"] = str_to_list(siege.get("liste_idcc", None))
+    siege["liste_rge"] = str_to_list(siege.get("liste_rge", None))
+    siege["liste_uai"] = str_to_list(siege.get("liste_uai", None))
+    siege["liste_finess"] = str_to_list(siege.get("liste_finess", None))
+    siege["liste_id_bio"] = str_to_list(siege.get("liste_id_bio", None))
 
     return siege

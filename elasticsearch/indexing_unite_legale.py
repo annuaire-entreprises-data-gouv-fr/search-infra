@@ -6,6 +6,7 @@ from dag_datalake_sirene.elasticsearch.mapping_index import (
 from dag_datalake_sirene.elasticsearch.process_unites_legales import (
     process_unites_legales,
 )
+
 from elasticsearch.helpers import parallel_bulk
 
 
@@ -92,5 +93,7 @@ def index_unites_legales_by_chunk(
         doc_count = elastic_connection.cat.count(
             index=elastic_index, params={"format": "json"}
         )[0]["count"]
-        logging.info(f"Number of documents indexed: {doc_count}")
+        logging.info(
+            f"Number of documents indexed(indexing unité légales): {doc_count}"
+        )
     return doc_count

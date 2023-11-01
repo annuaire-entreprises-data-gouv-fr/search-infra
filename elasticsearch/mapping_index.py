@@ -299,11 +299,32 @@ class UniteLegaleMapping(InnerDoc):
     tranche_effectif_salarie_unite_legale = Keyword()
 
 
+class AssociationMapping(InnerDoc):
+    identifiant_association = Keyword(required=True)
+    siret = Keyword()
+    siren = Keyword()
+    date_creation = Date()
+    titre = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
+    numero_voie = Text()
+    type_voie = Text()
+    libelle_voie = Text()
+    code_postal = Keyword()
+    commune = Keyword()
+    libelle_commune = Text()
+    complement_adresse = Text()
+    indice_repetition = Text()
+    distribution_speciale = Text()
+    slug = Text()
+
+
 class StructureMapping(Document):
     identifiant = Keyword()
     nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     adresse = Text(analyzer=annuaire_analyzer)
+    est_association = Boolean()
+    slug = Text()
     unite_legale = Object(UniteLegaleMapping)
+    association = Object(AssociationMapping)
 
     class Index:
         name = f"siren-{NEXT_COLOR}"
