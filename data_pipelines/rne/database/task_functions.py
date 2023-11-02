@@ -17,9 +17,9 @@ from dag_datalake_sirene.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
 )
 from dag_datalake_sirene.utils.tchap import send_message
+from dag_datalake_sirene.config import MINIO_BUCKET
 from dag_datalake_sirene.data_pipelines.rne.database.vars import (
     MINIO_URL,
-    MINIO_BUCKET,
     MINIO_USER,
     MINIO_PASSWORD,
     PATH_MINIO_RNE_DATA,
