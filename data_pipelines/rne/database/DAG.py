@@ -3,9 +3,8 @@ from datetime import timedelta
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.config import (
-    AIRFLOW_DAG_TMP,
-)
+from dag_datalake_sirene.data_pipelines.rne.database.vars import TMP_FOLDER
+from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.data_pipelines.rne.database.task_functions import (
     get_start_date_minio,
     get_latest_db,
@@ -17,10 +16,18 @@ from dag_datalake_sirene.data_pipelines.rne.database.task_functions import (
     notification_tchap,
 )
 
-TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rne/"
+default_args = {
+    "depends_on_past": False,
+    "email": EMAIL_LIST,
+    "email_on_failure": True,
+    "email_on_retry": True,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
+}
 
 with DAG(
     dag_id="fill_rne_dirigeants_database",
+    default_args=default_args,
     start_date=days_ago(1),
     max_active_runs=1,
     catchup=False,
