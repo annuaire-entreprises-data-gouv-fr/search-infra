@@ -62,7 +62,7 @@ def create_index_db(cursor):
         """CREATE INDEX IF NOT EXISTS idx_pp_siren_file_name
         ON dirigeants_pp (siren, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_pm_siren_file_name
-        bON dirigeants_pm (siren, file_name);""",
+        ON dirigeants_pm (siren, file_name);""",
     ]
 
     for statement in index_statements:
