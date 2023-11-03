@@ -221,7 +221,7 @@ def process_flux_json_files(**kwargs):
                     ],
                 )
                 json_path = f"{TMP_FOLDER}rne_flux_{file_date}.json"
-                inject_records_into_db(json_path, rne_db_path, file_type="flux")
+                inject_records_into_db(json_path, rne_db_path, "flux")
                 logging.info(
                     f"File {json_path} processed and"
                     " records injected into the database."
@@ -250,15 +250,16 @@ def send_to_minio(list_files):
     )
 
 
-def upload_db_to_minio(ti):
-    last_date_processed = ti.xcom_pull(
+def upload_db_to_minio(**kwargs):
+    start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
+    last_date_processed = kwargs["ti"].xcom_pull(
         key="last_date_processed", task_ids="process_flux_json_files"
     )
     send_to_minio(
         [
             {
                 "source_path": TMP_FOLDER,
-                "source_name": f"rne_{last_date_processed}.db",
+                "source_name": f"rne_{start_date}.db",
                 "dest_path": PATH_MINIO_RNE_DATA,
                 "dest_name": f"rne_{last_date_processed}.db",
             }
