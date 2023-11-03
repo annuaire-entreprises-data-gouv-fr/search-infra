@@ -69,7 +69,7 @@ def create_index_db(cursor):
         cursor.execute(statement)
 
 
-def inject_records_into_db(file_path, db_path, file_type="stock"):
+def inject_records_into_db(file_path, db_path, file_type):
     dirigeants_pp, dirigeants_pm = [], []
 
     with open(file_path, "r") as file:
@@ -78,15 +78,22 @@ def inject_records_into_db(file_path, db_path, file_type="stock"):
             if file_type == "stock":
                 json_data = file.read()
                 data = json.loads(json_data)
+                for record in data:
+                    list_dirigeants_pp, list_dirigeants_pm = extract_dirigeants_data(
+                        record, file_type
+                    )
+                    dirigeants_pp = dirigeants_pp + list_dirigeants_pp
+                    dirigeants_pm = dirigeants_pm + list_dirigeants_pm
             elif file_type == "flux":
                 for line in file:
                     data = json.loads(line)
-            for record in data:
-                list_dirigeants_pp, list_dirigeants_pm = extract_dirigeants_data(
-                    record, file_type
-                )
-                dirigeants_pp = dirigeants_pp + list_dirigeants_pp
-                dirigeants_pm = dirigeants_pm + list_dirigeants_pm
+                    for record in data:
+                        (
+                            list_dirigeants_pp,
+                            list_dirigeants_pm,
+                        ) = extract_dirigeants_data(record, file_type)
+                        dirigeants_pp = dirigeants_pp + list_dirigeants_pp
+                        dirigeants_pm = dirigeants_pm + list_dirigeants_pm
         except json.JSONDecodeError as e:
             raise Exception(f"JSONDecodeError: {e} in file {file_path}")
         insert_dirigeants_into_db(dirigeants_pp, dirigeants_pm, file_path, db_path)
