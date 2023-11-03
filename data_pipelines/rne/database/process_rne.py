@@ -101,8 +101,7 @@ def inject_records_into_db(file_path, db_path, file_type):
 
 def find_and_delete_same_siren(cursor, siren, file_path):
     """
-    Find and delete rows with the same SIREN and a different file
-    name from the database.
+    Find and delete older rows with the same SIREN as they are outdated.
 
     Args:
         cursor: The database cursor.
@@ -115,7 +114,7 @@ def find_and_delete_same_siren(cursor, siren, file_path):
         (siren, file_path),
     )
     count_already_existing_siren = cursor.fetchone()[0]
-    # If existing rows are found, delete them
+    # If existing rows are found, delete them as they are outdated
     if count_already_existing_siren is not None:
         cursor.execute(
             "DELETE FROM dirigeants_pp WHERE siren = ? AND file_name != ?",
