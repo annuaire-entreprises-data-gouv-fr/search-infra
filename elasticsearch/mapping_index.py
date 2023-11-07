@@ -303,7 +303,7 @@ class StructureMapping(Document):
     identifiant = Keyword()
     nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     adresse = Text(analyzer=annuaire_analyzer)
-    unite_legale = Object(UniteLegaleMapping)
+    unite_legale = Object(UniteLegaleMapping, include_in_root=true)
 
     class Index:
         name = f"siren-{NEXT_COLOR}"
