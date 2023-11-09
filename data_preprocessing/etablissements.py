@@ -26,6 +26,8 @@ def download_stock(departement):
             "siret",
             "dateCreationEtablissement",
             "trancheEffectifsEtablissement",
+            "anneeEffectifsEtablissement",
+            "dateDernierTraitementEtablissement",
             "activitePrincipaleRegistreMetiersEtablissement",
             "etablissementSiege",
             "numeroVoieEtablissement",
@@ -96,6 +98,8 @@ def download_flux(data_dir):
             "siret",
             "dateCreationEtablissement",
             "trancheEffectifsEtablissement",
+            "anneeEffectifsEtablissement",
+            "dateDernierTraitementEtablissement",
             "activitePrincipaleRegistreMetiersEtablissement",
             "etablissementSiege",
             "numeroVoieEtablissement",
@@ -151,6 +155,8 @@ def preprocess_etablissements_data(siret_file_type, departement=None, data_dir=N
         columns={
             "dateCreationEtablissement": "date_creation",
             "trancheEffectifsEtablissement": "tranche_effectif_salarie",
+            "anneeEffectifsEtablissement": "annee_tranche_effectif_salarie",
+            "dateDernierTraitementEtablissement": "date_mise_a_jour",
             "activitePrincipaleRegistreMetiersEtablissement": "activite_principale"
             "_registre_metier",
             "etablissementSiege": "est_siege",

@@ -129,6 +129,8 @@ select_fields_to_index_query = """SELECT
                         'siren', siren,
                         'siret', siret,
                         'tranche_effectif_salarie',tranche_effectif_salarie,
+                        'annee_tranche_effectif_salarie',annee_tranche_effectif_salarie,
+                        'date_mise_a_jour', date_mise_a_jour,
                         'type_voie',type_voie,
                         'type_voie_2',type_voie_2
                         )
@@ -186,7 +188,11 @@ select_fields_to_index_query = """SELECT
                         s.numero_voie_2 as numero_voie_2,
                         s.siren as siren,
                         s.siret as siret,
-                        s.tranche_effectif_salarie as tranche_effectif_salarie,
+                        s.tranche_effectif_salarie as
+                        tranche_effectif_salarie,
+                        s.annee_tranche_effectif_salarie as
+                        annee_tranche_effectif_salarie,
+                        s.date_mise_a_jour as date_mise_a_jour,
                         s.type_voie as type_voie,
                         s.type_voie_2 as type_voie_2
                         FROM siret s
@@ -242,6 +248,9 @@ select_fields_to_index_query = """SELECT
                         'siren', siren,
                         'siret', siret,
                         'tranche_effectif_salarie',tranche_effectif_salarie,
+                        'annee_tranche_effectif_salarie',
+                        annee_tranche_effectif_salarie,
+                        'date_mise_a_jour', date_mise_a_jour,
                         'type_voie',type_voie,
                         'type_voie_2',type_voie_2
                         )
@@ -300,6 +309,9 @@ select_fields_to_index_query = """SELECT
                         s.siren as siren,
                         s.siret as siret,
                         s.tranche_effectif_salarie as tranche_effectif_salarie,
+                        s.annee_tranche_effectif_salarie as
+                        annee_tranche_effectif_salarie,
+                        s.date_mise_a_jour as date_mise_a_jour,
                         s.type_voie as type_voie,
                         s.type_voie_2 as type_voie_2
                         FROM siretsiege as s

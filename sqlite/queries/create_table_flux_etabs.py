@@ -4,6 +4,8 @@ create_table_flux_etablissements_query = """CREATE TABLE IF NOT EXISTS flux_sire
             siret TEXT PRIMARY KEY,
             date_creation,
             tranche_effectif_salarie,
+            annee_tranche_effectif_salarie,
+            date_mise_a_jour,
             activite_principale_registre_metier,
             est_siege,
             numero_voie,
