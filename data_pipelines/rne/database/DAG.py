@@ -1,8 +1,7 @@
 from airflow.models import DAG
-from datetime import timedelta
+from datetime import datetime, timedelta
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
-from airflow.utils.dates import days_ago
 from dag_datalake_sirene.data_pipelines.rne.database.vars import TMP_FOLDER
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.data_pipelines.rne.database.task_functions import (
@@ -29,7 +28,8 @@ default_args = {
 with DAG(
     dag_id="fill_rne_dirigeants_database",
     default_args=default_args,
-    start_date=days_ago(1),
+    start_date=datetime(2023, 10, 11),
+    schedule_interval="0 2 * * *",  # Run daily at 2 am
     max_active_runs=1,
     catchup=False,
     dagrun_timeout=timedelta(minutes=(60 * 20)),
