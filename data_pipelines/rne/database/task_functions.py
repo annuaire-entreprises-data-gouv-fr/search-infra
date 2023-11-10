@@ -53,9 +53,7 @@ def get_start_date_minio(**kwargs):
 
         previous_latest_date = data["latest_date"]
         previous_latest_date = datetime.strptime(previous_latest_date, "%Y-%m-%d")
-        start_date = datetime.strftime(
-            (previous_latest_date + timedelta(days=1)), "%Y-%m-%d"
-        )
+        start_date = datetime.strftime(previous_latest_date, "%Y-%m-%d")
         kwargs["ti"].xcom_push(key="start_date", value=start_date)
     except S3Error as e:
         if e.code == "NoSuchKey":
@@ -81,8 +79,10 @@ def create_db_path(start_date):
         str or None: The database path if it doesn't already exist, otherwise None.
     """
     # Only return path if start_date does not already exist
+    """
     if start_date:
         return None
+    """
     rne_database_location = TMP_FOLDER + f"rne_{start_date}.db"
     return rne_database_location
 
@@ -103,7 +103,7 @@ def create_db(**kwargs):
     kwargs["ti"].xcom_push(key="rne_db_path", value=rne_db_path)
     logging.info(f"***********RNE database path: {rne_db_path}")
 
-    if rne_db_path is None:
+    if start_date:
         return None
 
     if os.path.exists(rne_db_path):
@@ -124,6 +124,10 @@ def get_latest_db(**kwargs):
     """
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
     if start_date is not None:
+        previous_latest_date = datetime.strptime(start_date, "%Y-%m-%d")
+        previous_start_date = datetime.strftime(
+            (previous_latest_date - timedelta(days=1)), "%Y-%m-%d"
+        )
         get_files(
             MINIO_URL=MINIO_URL,
             MINIO_BUCKET=MINIO_BUCKET,
@@ -132,9 +136,9 @@ def get_latest_db(**kwargs):
             list_files=[
                 {
                     "source_path": PATH_MINIO_RNE_DATA,
-                    "source_name": f"rne_{start_date}.db",
+                    "source_name": f"rne_{previous_start_date}.db",
                     "dest_path": TMP_FOLDER,
-                    "dest_name": "rne.db",
+                    "dest_name": f"rne_{start_date}.db",
                 }
             ],
         )
