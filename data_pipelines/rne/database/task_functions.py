@@ -11,6 +11,7 @@ from dag_datalake_sirene.utils.minio_helpers import (
 )
 from dag_datalake_sirene.data_pipelines.rne.database.process_rne import (
     create_tables,
+    get_tables_count,
     inject_records_into_db,
 )
 from dag_datalake_sirene.data_pipelines.rne.database.db_connexion import (
@@ -238,6 +239,22 @@ def process_flux_json_files(**kwargs):
     else:
         last_date_processed = None
     kwargs["ti"].xcom_push(key="last_date_processed", value=last_date_processed)
+
+
+def check_db_count(ti, min_pp_table_count=12000000, min_pm_table_count=1000000):
+    try:
+        rne_db_path = ti.xcom_pull(key="rne_db_path", task_ids="create_db")
+        count_pp, count_pm = get_tables_count(rne_db_path)
+
+        if count_pp < min_pp_table_count or count_pm < min_pm_table_count:
+            raise Exception(
+                f"Counts below the minimum threshold: "
+                f"count pp : {count_pp}"
+                f"count pm : {count_pm}"
+            )
+
+    except Exception as e:
+        raise Exception(f"An error occurred: {e}")
 
 
 def send_to_minio(list_files):

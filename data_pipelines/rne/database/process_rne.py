@@ -200,6 +200,18 @@ def insert_dirigeants_into_db(
     connection.close()
 
 
+def get_tables_count(db_path):
+    connection, cursor = connect_to_db(db_path)
+    cursor.execute("SELECT COUNT(*) FROM dirigeants_pp")
+    count_pp = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM dirigeants_pm")
+    count_pm = cursor.fetchone()[0]
+
+    connection.close()
+    return count_pp, count_pm
+
+
 def get_company_data_from_stock(entity):
     siren = entity.get("siren")
     date_maj = entity.get("updatedAt")
