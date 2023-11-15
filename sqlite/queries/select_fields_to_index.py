@@ -48,34 +48,36 @@ select_fields_to_index_query = """SELECT
             (SELECT json_group_array(
                 json_object(
                     'siren', siren,
-                    'nom_patronymique', nom_patronymique,
+                    'date_mise_a_jour', date_mise_a_jour,
+                    'date_de_naissance', date_de_naissance,
+                    'nom', nom,
                     'nom_usage', nom_usage,
                     'prenoms', prenoms,
-                    'date_naissance', datenaissance,
-                    'ville_naissance', villenaissance,
-                    'pays_naissance', paysnaissance,
-                    'qualite', qualite
+                    'nationalite', nationalite,
+                    'role_description', role_description
                     )
                 ) FROM
                 (
-                    SELECT siren, nom_patronymique, nom_usage, prenoms,
-                    datenaissance, villenaissance, paysnaissance, qualite
-                    FROM dirigeant_pp
+                    SELECT siren, date_mise_a_jour, date_de_naissance, nom,
+                    nom_usage, prenoms, nationalite, role_description
+                    FROM dirigeants_pp
                     WHERE siren = st.siren
                 )
             ) as dirigeants_pp,
             (SELECT json_group_array(
                     json_object(
                         'siren', siren,
-                        'siren_pm', siren_pm,
+                        'date_mise_a_jour', date_mise_a_jour,
                         'denomination', denomination,
-                        'sigle', sigle,
-                        'qualite', qualite
+                        'siren_dirigeant', siren_dirigeant,
+                        'role_description', role_description,
+                        'forme_juridique', forme_juridique
                         )
                     ) FROM
                     (
-                        SELECT siren, siren_pm, denomination, sigle, qualite
-                        FROM dirigeant_pm
+                        SELECT siren, date_mise_a_jour, denomination, siren_dirigeant,
+                        role_description, forme_juridique
+                        FROM dirigeants_pm
                         WHERE siren = st.siren
                     )
                 ) as dirigeants_pm,
