@@ -22,6 +22,8 @@ def preprocess_dirigeant_pm(query):
         keep="first",
         inplace=True,
     )
+    dirig_chunk = dirig_chunk.applymap(lambda x: str(x).upper())
+
     # Map role numbers to descriptions
     dirig_chunk["role_description"] = map_roles(dirig_chunk["role"])
 
