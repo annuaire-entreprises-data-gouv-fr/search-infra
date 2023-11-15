@@ -1,22 +1,35 @@
 import pandas as pd
+from dag_datalake_sirene.elasticsearch.data_enrichment import map_roles
 
 
 def preprocess_dirigeant_pm(query):
     cols = [column[0] for column in query.description]
-    rep_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
-    rep_chunk.sort_values(
-        by=["siren", "siren_pm", "denomination", "sigle", "qualite"],
+    dirig_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
+    dirig_chunk.sort_values(
+        by=[
+            "siren",
+            "date_mise_a_jour",
+            "denomination",
+            "siren_dirigeant",
+            "role",
+            "forme_juridique",
+        ],
         inplace=True,
-        ascending=[True, False, False, False, False],
+        ascending=[True, True, False, False, False, False],
     )
-    rep_chunk.drop_duplicates(
-        subset=["siren", "siren_pm", "denomination", "sigle", "qualite"],
+    dirig_chunk.drop_duplicates(
+        subset=["siren", "date_mise_a_jour", "denomination", "siren_dirigeant", "role"],
         keep="first",
         inplace=True,
     )
-    rep_clean = (
-        rep_chunk.groupby(by=["siren", "siren_pm", "denomination", "sigle"])["qualite"]
-        .apply(lambda x: ", ".join(x))
+    # Map role numbers to descriptions
+    dirig_chunk["role_description"] = map_roles(dirig_chunk["role"])
+
+    dirig_clean = (
+        dirig_chunk.groupby(by=["siren", "siren_dirigeant", "denomination"])[
+            "role_description"
+        ]
+        .apply(lambda x: ", ".join(str(val) for val in x if val is not None))
         .reset_index()
     )
-    return rep_clean
+    return dirig_clean
