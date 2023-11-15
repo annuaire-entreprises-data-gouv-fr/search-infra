@@ -82,18 +82,20 @@ class DirigeantPPMapping(InnerDoc):
     # exact match for a query and an analysed version of it (without stop words for
     # example)
     nom = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
+    nom_usage = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     prenoms = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
-    date_naissance = Date()
-    ville_naissance = Text()
-    pays_naissance = Text()
-    qualite = Text(analyzer=annuaire_analyzer)
+    date_de_naissance = Date()
+    nationalite = Text()
+    role = Text(analyzer=annuaire_analyzer)
+    date_mise_a_jour = Date()
 
 
 class DirigeantPMMapping(InnerDoc):
     siren = Keyword()
     denomination = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
-    sigle = Text(analyzer=annuaire_analyzer)
-    qualite = Text(analyzer=annuaire_analyzer)
+    role = Text(analyzer=annuaire_analyzer)
+    forme_juridique = Keyword()
+    date_mise_a_jour = Date()
 
 
 class EtablissementMapping(InnerDoc):
