@@ -11,7 +11,6 @@ from dag_datalake_sirene.helpers.es_fields import get_elasticsearch_field_name
 from dag_datalake_sirene.helpers.utils import (
     drop_exact_duplicates,
     get_empty_string_if_none,
-    normalize_date,
     str_to_bool,
     str_to_list,
 )
@@ -27,6 +26,7 @@ def load_file(file_name: str):
 
 sections_NAF = load_file("sections_codes_naf.json")
 mapping_dep_to_reg = load_file("dep_to_reg.json")
+mapping_role_dirigeants = load_file("roles_dirigeants.json")
 
 
 # Nom complet
@@ -235,27 +235,33 @@ def format_coordonnees(longitude, latitude):
     return coordonnees
 
 
+# Role dirigeant
+def map_roles(codes):
+    if codes is None:
+        return None
+    return [mapping_role_dirigeants.get(str(code), None) for code in codes]
+
+
 # Dirigeants PP
 def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
     dirigeants_pp = json.loads(list_dirigeants_pp_sqlite)
     dirigeants_pp_processed = []
     for dirigeant_pp in dirigeants_pp:
-        dirigeant_pp["nom"] = format_nom(
-            dirigeant_pp["nom_patronymique"], dirigeant_pp["nom_usage"]
-        )
-        dirigeant_pp["date_naissance"] = normalize_date(dirigeant_pp["date_naissance"])
+        dirigeant_pp["nom"] = format_nom(dirigeant_pp["nom"], dirigeant_pp["nom_usage"])
 
         # Drop qualite`s exact and partial duplicates
-        dirigeant_pp["qualite"] = unique_qualites(dirigeant_pp["qualite"])
+        dirigeant_pp["role_description"] = unique_qualites(
+            dirigeant_pp["role_description"]
+        )
 
         dirigeants_pp_processed.append(
             dict(
                 nom=dirigeant_pp["nom"],
                 prenoms=dirigeant_pp["prenoms"],
-                date_naissance=dirigeant_pp["date_naissance"],
-                ville_naissance=dirigeant_pp["ville_naissance"],
-                pays_naissance=dirigeant_pp["pays_naissance"],
-                qualite=dirigeant_pp["qualite"],
+                date_de_naissance=dirigeant_pp["date_de_naissance"],
+                nationalite=dirigeant_pp["nationalite"],
+                role=dirigeant_pp["role_description"],
+                date_mise_a_jour=dirigeant_pp["date_mise_a_jour"],
             )
         )
         # Liste dirigeants
@@ -301,13 +307,16 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
             logging.debug(
                 f'Missing denomination dirigeant for ***** {dirigeant_pm["siren"]}'
             )
-        dirigeant_pm["qualite"] = unique_qualites(dirigeant_pm["qualite"])
+        dirigeant_pm["role_description"] = unique_qualites(
+            dirigeant_pm["role_description"]
+        )
         dirigeants_pm_processed.append(
             dict(
-                siren=dirigeant_pm["siren_pm"],
+                siren=dirigeant_pm["siren_dirigeant"],
                 denomination=dirigeant_pm["denomination"],
-                sigle=dirigeant_pm["sigle"],
-                qualite=dirigeant_pm["qualite"],
+                role=dirigeant_pm["role_description"],
+                forme_juridique=dirigeant_pm["forme_juridique"],
+                date_mise_a_jour=dirigeant_pm["date_mise_a_jour"],
             )
         )
 
