@@ -5,7 +5,7 @@ DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "insert-elk-sirene"
 DATA_DIR = TMP_FOLDER + DAG_FOLDER + DAG_NAME + "/data/"
 SIRENE_DATABASE_LOCATION = DATA_DIR + "sirene.db"
-DIRIG_DATABASE_LOCATION = DATA_DIR + "inpi.db"
+DIRIG_DATABASE_LOCATION = DATA_DIR + "rne.db"
 AIRFLOW_DAG_HOME = "/opt/airflow/dags/"
 ELASTIC_BULK_SIZE = 1500
 
