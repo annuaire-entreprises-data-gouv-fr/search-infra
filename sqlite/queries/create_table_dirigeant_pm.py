@@ -1,10 +1,12 @@
 create_table_dirigeant_pm_query = """
-        CREATE TABLE IF NOT EXISTS dirigeant_pm
+        CREATE TABLE IF NOT EXISTS dirigeants_pm
         (
             siren,
-            siren_pm,
+            date_mise_a_jour,
             denomination,
-            sigle,
-            qualite
+            siren_dirigeant,
+            role,
+            forme_juridique,
+            role_description
         )
     """
