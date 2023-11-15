@@ -35,7 +35,10 @@ def preprocess_dirigeants_pp(query):
         inplace=True,
     )
 
-    dirig_chunk = dirig_chunk.applymap(lambda x: str(x).upper())
+    # List of columns to convert to uppercase
+    columns_to_uppercase = ["nom", "nom_usage", "prenoms"]
+    for column in columns_to_uppercase:
+        dirig_chunk[column] = dirig_chunk[column].str.upper()
 
     # Map role numbers to descriptions
     dirig_chunk["role_description"] = map_roles(dirig_chunk["role"])
