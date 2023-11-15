@@ -75,22 +75,22 @@ def drop_duplicates_dirigeants_pp(list_dict_dirigeants):
             }
 
             list_qualites = [
-                dirigeant.get("qualite", "") for dirigeant in same_dirigeants
+                dirigeant.get("role_description", "") for dirigeant in same_dirigeants
             ]
             # using list comprehension to remove None values in list
             list_qualites_filtered = [
                 qualite for qualite in list_qualites if qualite is not None
             ]
 
-            unique_dirigeant["qualite"] = unique_qualites(
+            unique_dirigeant["role_description"] = unique_qualites(
                 ", ".join(list_qualites_filtered)
             )
 
             dates = list(
                 {
-                    dirigeant["date_naissance"]
+                    dirigeant["date_de_naissance"]
                     for dirigeant in same_dirigeants
-                    if dirigeant["date_naissance"]
+                    if dirigeant["date_de_naissance"]
                 }
             )
             if len(dates) > 1:
@@ -99,7 +99,9 @@ def drop_duplicates_dirigeants_pp(list_dict_dirigeants):
                     f"date: {dates}, siren {unique_dirigeant}"
                 )
 
-            unique_dirigeant["date_naissance"] = dates[-1] if len(dates) > 0 else None
+            unique_dirigeant["date_de_naissance"] = (
+                dates[-1] if len(dates) > 0 else None
+            )
             list_dirigeants_unique.append(unique_dirigeant)
     return list_dirigeants_unique
 
@@ -145,17 +147,16 @@ def drop_duplicates_dirigeants_pm(list_dict_dirigeants):
             unique_dirigeant = {
                 "siren": last_dirigeant["siren"],
                 "denomination": last_dirigeant["denomination"],
-                "sigle": last_dirigeant["sigle"],
             }
             list_qualites = [
-                dirigeant.get("qualite", "") for dirigeant in same_dirigeants
+                dirigeant.get("role_description", "") for dirigeant in same_dirigeants
             ]
             # using list comprehension to remove None values in list
             list_qualites_filtered = [
                 qualite for qualite in list_qualites if qualite is not None
             ]
 
-            unique_dirigeant["qualite"] = unique_qualites(
+            unique_dirigeant["role_description"] = unique_qualites(
                 ", ".join(list_qualites_filtered)
             )
 
