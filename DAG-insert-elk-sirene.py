@@ -53,7 +53,9 @@ from dag_datalake_sirene.task_functions.fill_elastic_siren_index import (
     fill_elastic_siren_index,
 )
 from dag_datalake_sirene.task_functions.flush_cache import flush_cache
-from dag_datalake_sirene.task_functions.get_and_put_minio_object import get_object_minio
+from dag_datalake_sirene.task_functions.get_and_put_minio_object import (
+    get_latest_file_minio,
+)
 from dag_datalake_sirene.task_functions.replace_etablissements_table import (
     replace_etablissements_table,
 )
@@ -71,6 +73,9 @@ from dag_datalake_sirene.task_functions.update_color_file import update_color_fi
 from dag_datalake_sirene.task_functions.update_sitemap import update_sitemap
 from dag_datalake_sirene.tests.e2e_tests.run_tests import run_e2e_tests
 from operators.clean_folder import CleanFolderOperator
+from dag_datalake_sirene.task_functions.global_variables import (
+    DIRIG_DATABASE_LOCATION,
+)
 
 DAG_FOLDER = "dag_datalake_sirene/"
 DAG_NAME = "insert-elk-sirene"
@@ -83,6 +88,7 @@ REDIS_HOST = "redis"
 REDIS_PORT = "6379"
 REDIS_DB = "0"
 REDIS_PASSWORD = Variable.get("REDIS_PASSWORD")
+
 
 default_args = {
     "depends_on_past": False,
@@ -179,14 +185,13 @@ with DAG(
         python_callable=replace_siege_only_table,
     )
 
-    get_dirigeants_database = PythonOperator(
+    get_latest_dirigeants_database = PythonOperator(
         task_id="get_dirig_database",
         provide_context=True,
-        python_callable=get_object_minio,
+        python_callable=get_latest_file_minio,
         op_args=(
-            "inpi.db",
-            "inpi/",
-            f"{TMP_FOLDER}{DAG_FOLDER}{DAG_NAME}/data/inpi.db",
+            f"ae/{ENV}/rne/database/",
+            DIRIG_DATABASE_LOCATION,
             MINIO_BUCKET,
         ),
     )
@@ -365,8 +370,8 @@ with DAG(
     create_siege_only_table.set_upstream(count_nombre_etablissements_ouverts)
     replace_siege_only_table.set_upstream(create_siege_only_table)
 
-    get_dirigeants_database.set_upstream(replace_siege_only_table)
-    create_dirig_pp_table.set_upstream(get_dirigeants_database)
+    get_latest_dirigeants_database.set_upstream(replace_siege_only_table)
+    create_dirig_pp_table.set_upstream(get_latest_dirigeants_database)
     create_dirig_pm_table.set_upstream(create_dirig_pp_table)
 
     create_bilan_financiers_table.set_upstream(create_dirig_pm_table)

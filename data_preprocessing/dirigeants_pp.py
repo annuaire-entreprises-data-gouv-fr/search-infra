@@ -1,50 +1,60 @@
 import pandas as pd
+from dag_datalake_sirene.elasticsearch.data_enrichment import map_roles
 
 
 def preprocess_dirigeants_pp(query):
     cols = [column[0] for column in query.description]
-    rep_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
-    rep_chunk.sort_values(
+    dirig_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
+    dirig_chunk.sort_values(
         by=[
             "siren",
-            "nom_patronymique",
+            "nom",
             "nom_usage",
             "prenoms",
-            "datenaissance",
-            "villenaissance",
-            "paysnaissance",
-            "qualite",
+            "role",
+            "date_mise_a_jour",
+            "date_de_naissance",
+            "nationalite",
         ],
         inplace=True,
-        ascending=[True, False, False, False, False, False, False, False],
+        ascending=[True, True, True, True, True, True, False, False],
     )
-    rep_chunk.drop_duplicates(
+
+    dirig_chunk.drop_duplicates(
         subset=[
             "siren",
-            "nom_patronymique",
+            "nom",
             "nom_usage",
             "prenoms",
-            "datenaissance",
-            "villenaissance",
-            "paysnaissance",
-            "qualite",
+            "date_de_naissance",
+            "role",
+            "date_mise_a_jour",
+            "nationalite",
         ],
         keep="first",
         inplace=True,
     )
-    rep_clean = (
-        rep_chunk.groupby(
-            by=[
+
+    # List of columns to convert to uppercase
+    columns_to_uppercase = ["nom", "nom_usage", "prenoms"]
+    for column in columns_to_uppercase:
+        dirig_chunk[column] = dirig_chunk[column].str.upper()
+
+    # Map role numbers to descriptions
+    dirig_chunk["role_description"] = map_roles(dirig_chunk["role"])
+
+    dirig_clean = (
+        dirig_chunk.groupby(
+            [
                 "siren",
-                "nom_patronymique",
-                "nom_usage",
+                "nom",
                 "prenoms",
-                "datenaissance",
-                "villenaissance",
-                "paysnaissance",
+                "date_de_naissance",
+                "nationalite",
+                "date_mise_a_jour",
             ]
-        )["qualite"]
-        .apply(lambda x: ", ".join(x))
+        )["role_description"]
+        .apply(lambda x: ", ".join(str(val) for val in x if val is not None))
         .reset_index()
     )
-    return rep_clean
+    return dirig_clean
