@@ -160,7 +160,7 @@ def get_and_save_daily_flux_rne(
                 # If the API request failed, delete the current
                 # JSON file and break the loop
                 logging.info(f"****** Deleting file: {json_file_path}")
-                # os.remove(json_file_path)
+                os.remove(json_file_path)
                 raise Exception(f"Error occurred during the API request: {e}")
 
     if os.path.exists(json_file_path):
