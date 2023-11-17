@@ -53,7 +53,7 @@ from dag_datalake_sirene.task_functions.fill_elastic_siren_index import (
     fill_elastic_siren_index,
 )
 from dag_datalake_sirene.task_functions.flush_cache import flush_cache
-from dag_datalake_sirene.task_functions.get_and_put_minio_object import (
+from dag_datalake_sirene.utils.minio_helpers import (
     get_latest_file_minio,
 )
 from dag_datalake_sirene.task_functions.replace_etablissements_table import (

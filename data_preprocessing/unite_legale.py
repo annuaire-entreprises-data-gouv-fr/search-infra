@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 import requests
 
-from dag_datalake_sirene.task_functions.get_and_put_minio_object import (
+from dag_datalake_sirene.utils.minio_helpers import (
     get_object_minio,
 )
 from dag_datalake_sirene.task_functions.global_variables import (
