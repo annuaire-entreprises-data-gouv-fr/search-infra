@@ -140,8 +140,7 @@ def get_and_save_daily_flux_rne(
                     json.dump(page_data, json_file)
                     json_file.write("\n")  # Add a newline for multiple JSON objects
             except Exception as e:
-                # If exception accures, save uncompleted file as tmp file
-                tmp_json_file_name = f"tmp_rne_flux_{start_date}.json"
+                # If exception accures, save uncompleted file
                 if os.path.exists(json_file_path):
                     send_files(
                         MINIO_URL=MINIO_URL,
@@ -153,7 +152,7 @@ def get_and_save_daily_flux_rne(
                                 "source_path": f"{DATADIR}/",
                                 "source_name": f"{json_file_name}",
                                 "dest_path": MINIO_DATA_PATH,
-                                "dest_name": f"{tmp_json_file_name}",
+                                "dest_name": f"{json_file_name}",
                             },
                         ],
                     )
