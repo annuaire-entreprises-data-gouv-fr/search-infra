@@ -1,6 +1,4 @@
 import logging
-
-
 from dag_datalake_sirene.sqlite.queries.helpers import (
     get_table_count,
     create_index,
@@ -11,8 +9,6 @@ from dag_datalake_sirene.sqlite.queries.create_table_siret_siege import (
 from dag_datalake_sirene.sqlite.queries.populate_table_siret_siege import (
     populate_table_siret_siege_query,
 )
-
-
 from dag_datalake_sirene.task_functions.create_and_fill_table_model import (
     create_table_model,
 )

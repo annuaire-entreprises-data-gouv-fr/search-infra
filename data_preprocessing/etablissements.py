@@ -1,21 +1,17 @@
-from datetime import datetime, timedelta
 import logging
-
 import pandas as pd
-
+from datetime import datetime, timedelta
 from dag_datalake_sirene.utils.minio_helpers import (
     get_object_minio,
 )
-from dag_datalake_sirene.task_functions.global_variables import (
+from dag_datalake_sirene.config import (
     MINIO_BUCKET_DATA_PIPELINE,
+    URL_ETABLISSEMENTS,
 )
 
 
 def download_stock(departement):
-    url = (
-        f"https://files.data.gouv.fr/geo-sirene/last/dep/geo_siret"
-        f"_{departement}.csv.gz"
-    )
+    url = f"{URL_ETABLISSEMENTS}_{departement}.csv.gz"
     logging.info(f"Dep file url: {url}")
     df_dep = pd.read_csv(
         url,

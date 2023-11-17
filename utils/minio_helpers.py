@@ -3,9 +3,8 @@ import logging
 from minio import Minio
 from typing import List, TypedDict, Optional
 import os
-from dag_datalake_sirene.config import AIRFLOW_ENV
-
-from dag_datalake_sirene.task_functions.global_variables import (
+from dag_datalake_sirene.config import (
+    AIRFLOW_ENV,
     MINIO_URL,
     MINIO_USER,
     MINIO_PASSWORD,

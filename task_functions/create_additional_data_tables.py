@@ -26,7 +26,6 @@ from dag_datalake_sirene.sqlite.queries.helpers import (
     create_unique_index,
     create_index,
 )
-
 from dag_datalake_sirene.sqlite.queries.create_table_agence_bio import (
     create_table_agence_bio_query,
 )
@@ -40,7 +39,6 @@ from dag_datalake_sirene.sqlite.queries.create_table_egapro import (
     create_table_egapro_query,
 )
 from dag_datalake_sirene.sqlite.queries.create_table_rge import create_table_rge_query
-
 from dag_datalake_sirene.sqlite.queries.create_table_finess import (
     create_table_finess_query,
 )
@@ -50,15 +48,11 @@ from dag_datalake_sirene.sqlite.queries.create_table_organisme_formation import 
 from dag_datalake_sirene.sqlite.queries.create_table_spectacle import (
     create_table_spectacle_query,
 )
-
 from dag_datalake_sirene.sqlite.queries.create_table_elus import create_table_elus_query
 from dag_datalake_sirene.sqlite.queries.create_table_colter import (
     create_table_colter_query,
 )
-
 from dag_datalake_sirene.sqlite.queries.create_table_uai import create_table_uai_query
-
-
 from dag_datalake_sirene.task_functions.create_and_fill_table_model import (
     create_and_fill_table_model,
     create_only_index,

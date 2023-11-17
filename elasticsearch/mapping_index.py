@@ -16,6 +16,7 @@ from elasticsearch_dsl import (
     token_filter,
     tokenizer,
 )
+from dag_datalake_sirene.config import ELASTIC_SHARDS, ELASTIC_REPLICAS
 
 # Define filters
 french_stop = token_filter("french_stop", type="stop", stopwords="_french_")
@@ -72,8 +73,6 @@ annuaire_analyzer = analyzer(
     ],
     char_filter=[remove_elision_char, remove_special_char],
 )
-
-ELASTIC_SHARDS = 1
 
 
 class DirigeantPPMapping(InnerDoc):
@@ -315,7 +314,7 @@ class StructureMapping(Document):
         name = f"siren-{NEXT_COLOR}"
         settings = {
             "number_of_shards": ELASTIC_SHARDS,
-            "number_of_replicas": 0,
+            "number_of_replicas": ELASTIC_REPLICAS,
             "mapping": {"ignore_malformed": True},
             "index.mapping.nested_objects.limit": 20000,
         }

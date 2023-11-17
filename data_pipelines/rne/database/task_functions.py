@@ -18,16 +18,16 @@ from dag_datalake_sirene.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
 )
 from dag_datalake_sirene.utils.tchap import send_message
-from dag_datalake_sirene.config import MINIO_BUCKET
-from dag_datalake_sirene.data_pipelines.rne.database.vars import (
+from dag_datalake_sirene.config import (
+    MINIO_BUCKET,
     MINIO_URL,
     MINIO_USER,
     MINIO_PASSWORD,
-    PATH_MINIO_RNE_DATA,
-    LATEST_DATE_FILE,
-    TMP_FOLDER,
-    MINIO_STOCK_DATA_PATH,
-    MINIO_FLUX_DATA_PATH,
+    RNE_MINIO_DATA_PATH,
+    RNE_LATEST_DATE_FILE,
+    RNE_DB_TMP_FOLDER,
+    RNE_MINIO_STOCK_DATA_PATH,
+    RNE_MINIO_FLUX_DATA_PATH,
 )
 
 
@@ -40,15 +40,15 @@ def get_start_date_minio(**kwargs):
             MINIO_PASSWORD=MINIO_PASSWORD,
             list_files=[
                 {
-                    "source_path": PATH_MINIO_RNE_DATA,
-                    "source_name": LATEST_DATE_FILE,
-                    "dest_path": TMP_FOLDER,
-                    "dest_name": LATEST_DATE_FILE,
+                    "source_path": RNE_MINIO_DATA_PATH,
+                    "source_name": RNE_LATEST_DATE_FILE,
+                    "dest_path": RNE_DB_TMP_FOLDER,
+                    "dest_name": RNE_LATEST_DATE_FILE,
                 }
             ],
         )
 
-        with open(f"{TMP_FOLDER}/latest_rne_date.json") as fp:
+        with open(f"{RNE_DB_TMP_FOLDER}/latest_rne_date.json") as fp:
             data = json.load(fp)
 
         previous_latest_date = data["latest_date"]
@@ -58,7 +58,7 @@ def get_start_date_minio(**kwargs):
     except S3Error as e:
         if e.code == "NoSuchKey":
             logging.info(
-                f"The file {PATH_MINIO_RNE_DATA + LATEST_DATE_FILE} "
+                f"The file {RNE_MINIO_STOCK_DATA_PATH + RNE_LATEST_DATE_FILE} "
                 f"does not exist in the bucket {MINIO_BUCKET}."
             )
             kwargs["ti"].xcom_push(key="start_date", value=None)
@@ -83,7 +83,7 @@ def create_db_path(start_date):
     if start_date:
         return None
     """
-    rne_database_location = TMP_FOLDER + f"rne_{start_date}.db"
+    rne_database_location = RNE_DB_TMP_FOLDER + f"rne_{start_date}.db"
     return rne_database_location
 
 
@@ -135,9 +135,9 @@ def get_latest_db(**kwargs):
             MINIO_PASSWORD=MINIO_PASSWORD,
             list_files=[
                 {
-                    "source_path": PATH_MINIO_RNE_DATA,
+                    "source_path": RNE_MINIO_DATA_PATH,
                     "source_name": f"rne_{previous_start_date}.db",
-                    "dest_path": TMP_FOLDER,
+                    "dest_path": RNE_DB_TMP_FOLDER,
                     "dest_name": f"rne_{start_date}.db",
                 }
             ],
@@ -157,7 +157,7 @@ def process_stock_json_files(**kwargs):
         MINIO_BUCKET=MINIO_BUCKET,
         MINIO_USER=MINIO_USER,
         MINIO_PASSWORD=MINIO_PASSWORD,
-        prefix=MINIO_STOCK_DATA_PATH,
+        prefix=RNE_MINIO_STOCK_DATA_PATH,
     )
 
     if not json_stock_rne_files:
@@ -196,7 +196,7 @@ def process_flux_json_files(**kwargs):
         MINIO_BUCKET=MINIO_BUCKET,
         MINIO_USER=MINIO_USER,
         MINIO_PASSWORD=MINIO_PASSWORD,
-        prefix=MINIO_FLUX_DATA_PATH,
+        prefix=RNE_MINIO_FLUX_DATA_PATH,
     )
 
     if not json_daily_flux_files:
@@ -218,14 +218,14 @@ def process_flux_json_files(**kwargs):
                     MINIO_PASSWORD=MINIO_PASSWORD,
                     list_files=[
                         {
-                            "source_path": MINIO_FLUX_DATA_PATH,
+                            "source_path": RNE_MINIO_FLUX_DATA_PATH,
                             "source_name": f"rne_flux_{file_date}.json",
-                            "dest_path": TMP_FOLDER,
+                            "dest_path": RNE_DB_TMP_FOLDER,
                             "dest_name": f"rne_flux_{file_date}.json",
                         }
                     ],
                 )
-                json_path = f"{TMP_FOLDER}rne_flux_{file_date}.json"
+                json_path = f"{RNE_DB_TMP_FOLDER}rne_flux_{file_date}.json"
                 inject_records_into_db(json_path, rne_db_path, "flux")
                 logging.info(
                     f"File {json_path} processed and"
@@ -279,9 +279,9 @@ def upload_db_to_minio(**kwargs):
     send_to_minio(
         [
             {
-                "source_path": TMP_FOLDER,
+                "source_path": RNE_DB_TMP_FOLDER,
                 "source_name": f"rne_{start_date}.db",
-                "dest_path": PATH_MINIO_RNE_DATA,
+                "dest_path": RNE_MINIO_DATA_PATH,
                 "dest_name": f"rne_{last_date_processed}.db",
             }
         ]
@@ -297,16 +297,16 @@ def upload_latest_date_rne_minio(ti):
     latest_date = (last_date_processed + timedelta(days=1)).strftime("%Y-%m-%d")
     data = {}
     data["latest_date"] = latest_date
-    with open(TMP_FOLDER + "latest_rne_date.json", "w") as write_file:
+    with open(RNE_DB_TMP_FOLDER + "latest_rne_date.json", "w") as write_file:
         json.dump(data, write_file)
 
     send_to_minio(
         [
             {
-                "source_path": TMP_FOLDER,
-                "source_name": LATEST_DATE_FILE,
-                "dest_path": PATH_MINIO_RNE_DATA,
-                "dest_name": LATEST_DATE_FILE,
+                "source_path": RNE_DB_TMP_FOLDER,
+                "source_name": RNE_LATEST_DATE_FILE,
+                "dest_path": RNE_MINIO_DATA_PATH,
+                "dest_name": RNE_LATEST_DATE_FILE,
             }
         ]
     )

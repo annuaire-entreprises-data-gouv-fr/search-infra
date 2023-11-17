@@ -3,7 +3,6 @@ import logging
 from dag_datalake_sirene.data_preprocessing.unite_legale import (
     preprocess_unite_legale_data,
 )
-
 from dag_datalake_sirene.sqlite.queries.helpers import (
     get_table_count,
     create_unique_index,
@@ -14,13 +13,10 @@ from dag_datalake_sirene.sqlite.queries.create_table_flux_unite_legale import (
 from dag_datalake_sirene.sqlite.queries.create_table_unite_legale import (
     create_table_unite_legale_query,
 )
-
-
 from dag_datalake_sirene.task_functions.create_and_fill_table_model import (
     create_table_model,
 )
-
-from dag_datalake_sirene.task_functions.global_variables import DATA_DIR
+from dag_datalake_sirene.config import AIRFLOW_DATA_DIR
 
 
 def create_table(query, table_name, index, sirene_file_type):
@@ -31,7 +27,9 @@ def create_table(query, table_name, index, sirene_file_type):
         index_name=index,
         index_column="siren",
     )
-    for df_unite_legale in preprocess_unite_legale_data(DATA_DIR, sirene_file_type):
+    for df_unite_legale in preprocess_unite_legale_data(
+        AIRFLOW_DATA_DIR, sirene_file_type
+    ):
         df_unite_legale.to_sql(
             table_name, sqlite_client.db_conn, if_exists="append", index=False
         )

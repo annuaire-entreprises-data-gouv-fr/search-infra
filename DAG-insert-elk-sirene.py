@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.models import DAG, Variable
+from airflow.models import DAG
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from dag_datalake_sirene.task_functions.check_elastic_index import check_elastic_index
@@ -73,21 +73,20 @@ from dag_datalake_sirene.task_functions.update_color_file import update_color_fi
 from dag_datalake_sirene.task_functions.update_sitemap import update_sitemap
 from dag_datalake_sirene.tests.e2e_tests.run_tests import run_e2e_tests
 from operators.clean_folder import CleanFolderOperator
-from dag_datalake_sirene.task_functions.global_variables import (
+from dag_datalake_sirene.config import (
+    AIRFLOW_DAG_TMP,
+    AIRFLOW_DAG_NAME,
+    AIRFLOW_DAG_FOLDER,
+    AIRFLOW_ENV,
     DIRIG_DATABASE_LOCATION,
+    EMAIL_LIST,
+    MINIO_BUCKET,
+    PATH_AIO,
+    REDIS_HOST,
+    REDIS_PORT,
+    REDIS_DB,
+    REDIS_PASSWORD,
 )
-
-DAG_FOLDER = "dag_datalake_sirene/"
-DAG_NAME = "insert-elk-sirene"
-TMP_FOLDER = "/tmp/"
-EMAIL_LIST = Variable.get("EMAIL_LIST")
-MINIO_BUCKET = Variable.get("MINIO_BUCKET")
-ENV = Variable.get("ENV")
-PATH_AIO = Variable.get("PATH_AIO")
-REDIS_HOST = "redis"
-REDIS_PORT = "6379"
-REDIS_DB = "0"
-REDIS_PASSWORD = Variable.get("REDIS_PASSWORD")
 
 
 default_args = {
@@ -100,7 +99,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id=DAG_NAME,
+    dag_id=AIRFLOW_DAG_NAME,
     default_args=default_args,
     schedule_interval="0 0 * * 1,3,5",
     start_date=datetime(2023, 9, 4),
@@ -116,7 +115,7 @@ with DAG(
 
     clean_previous_folder = CleanFolderOperator(
         task_id="clean_previous_folder",
-        folder_path=f"{TMP_FOLDER}+{DAG_FOLDER}+{DAG_NAME}",
+        folder_path=f"{AIRFLOW_DAG_TMP}+{AIRFLOW_DAG_FOLDER}+{AIRFLOW_DAG_NAME}",
     )
 
     create_sqlite_database = PythonOperator(
@@ -190,7 +189,7 @@ with DAG(
         provide_context=True,
         python_callable=get_latest_file_minio,
         op_args=(
-            f"ae/{ENV}/rne/database/",
+            f"ae/{AIRFLOW_ENV}/rne/database/",
             DIRIG_DATABASE_LOCATION,
             MINIO_BUCKET,
         ),
@@ -339,13 +338,14 @@ with DAG(
 
     success_email_body = f"""
     Hi, <br><br>
-    insert-elk-sirene-{ENV} DAG has been executed successfully at {datetime.now()}.
+    insert-elk-sirene-{AIRFLOW_ENV} DAG has been executed
+    successfully at {datetime.now()}.
     """
 
     send_email = EmailOperator(
         task_id="send_email",
         to=EMAIL_LIST,
-        subject=f"Airflow Success: DAG-{ENV}!",
+        subject=f"Airflow Success: DAG-{AIRFLOW_ENV}!",
         html_content=success_email_body,
         dag=dag,
     )

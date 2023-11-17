@@ -24,9 +24,7 @@ from dag_datalake_sirene.sqlite.queries.create_table_dirigeant_pm import (
 from dag_datalake_sirene.sqlite.queries.select_dirigeants_pm_from_db import (
     get_chunk_dirig_pm_from_db_query,
 )
-
-
-from dag_datalake_sirene.task_functions.global_variables import (
+from dag_datalake_sirene.config import (
     SIRENE_DATABASE_LOCATION,
     DIRIG_DATABASE_LOCATION,
 )

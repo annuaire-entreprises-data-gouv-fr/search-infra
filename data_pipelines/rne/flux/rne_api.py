@@ -3,19 +3,14 @@ import time
 import random
 from typing import Union
 import requests
-from dag_datalake_sirene.config import RNE_AUTH
 from requests.adapters import HTTPAdapter
 from requests.exceptions import SSLError
+from dag_datalake_sirene.config import RNE_AUTH, RNE_API_TOKEN_URL, RNE_API_DIFF_URL
 
 
 class ApiRNEClient:
     """API client for interacting with the
     Registre National des Entreprises (RNE) API."""
-
-    RNE_API_TOKEN_URL = "https://registre-national-entreprises.inpi.fr/api/sso/login"
-    RNE_API_DIFF_URL = (
-        "https://registre-national-entreprises.inpi.fr/api/companies/diff?"
-    )
 
     def __init__(self, max_retries=10):
         """
@@ -49,7 +44,7 @@ class ApiRNEClient:
         try:
             selected_auth = random.choice(self.auth)
             logging.info(f"Authentification account used: {selected_auth['username']}")
-            response = self.session.post(self.RNE_API_TOKEN_URL, json=selected_auth)
+            response = self.session.post(RNE_API_TOKEN_URL, json=selected_auth)
             response.raise_for_status()
             token = response.json()["token"]
             logging.info("New token received...")
@@ -81,7 +76,7 @@ class ApiRNEClient:
             response and the last SIREN number.
         """
 
-        url = f"{self.RNE_API_DIFF_URL}from={start_date}&to={end_date}&pageSize=100"
+        url = f"{RNE_API_DIFF_URL}from={start_date}&to={end_date}&pageSize=100"
         if last_siren:
             url += f"&searchAfter={last_siren}"
 

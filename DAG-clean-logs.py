@@ -1,14 +1,14 @@
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.email_operator import EmailOperator
-from airflow.models import DAG, Variable
+from airflow.models import DAG
 from datetime import datetime, timedelta
 import os
 import logging
 import shutil
-
-
-EMAIL_LIST = Variable.get("EMAIL_LIST")
-ENV = Variable.get("ENV")
+from dag_datalake_sirene.config import (
+    AIRFLOW_ENV,
+    EMAIL_LIST,
+)
 
 # Define default arguments for the DAG
 default_args = {
@@ -64,13 +64,13 @@ with DAG(
 
     success_email_body = f"""
     Hi, <br><br>
-    delete-logs-{ENV} DAG has been executed successfully at {datetime.now()}.
+    delete-logs-{AIRFLOW_ENV} DAG has been executed successfully at {datetime.now()}.
     """
 
     send_email = EmailOperator(
         task_id="send_email",
         to=EMAIL_LIST,
-        subject=f"Airflow Success: DAG-{ENV}!",
+        subject=f"Airflow Success: DAG-{AIRFLOW_ENV}!",
         html_content=success_email_body,
         dag=dag,
     )

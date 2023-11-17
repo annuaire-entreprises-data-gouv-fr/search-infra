@@ -11,19 +11,15 @@ from dag_datalake_sirene.utils.minio_helpers import (
 )
 from dag_datalake_sirene.data_pipelines.rne.flux.rne_api import ApiRNEClient
 from dag_datalake_sirene.config import (
-    AIRFLOW_DAG_TMP,
     AIRFLOW_ENV,
     MINIO_URL,
     MINIO_BUCKET,
     MINIO_USER,
     MINIO_PASSWORD,
+    RNE_FLUX_DATADIR,
+    RNE_MINIO_FLUX_DATA_PATH,
+    RNE_DEFAULT_START_DATE,
 )
-
-
-TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rne/flux/"
-DATADIR = f"{TMP_FOLDER}data"
-DEFAULT_START_DATE = "2023-07-01"
-MINIO_DATA_PATH = "rne/flux/data/"
 
 
 def get_last_json_file_date():
@@ -32,7 +28,7 @@ def get_last_json_file_date():
         MINIO_BUCKET=MINIO_BUCKET,
         MINIO_USER=MINIO_USER,
         MINIO_PASSWORD=MINIO_PASSWORD,
-        prefix=MINIO_DATA_PATH,
+        prefix=RNE_MINIO_FLUX_DATA_PATH,
     )
 
     if not json_daily_flux_files:
@@ -53,10 +49,10 @@ def get_last_json_file_date():
 
 def get_latest_json_file(ti):
     start_date = compute_start_date()
-    last_json_file_path = f"{DATADIR}/rne_flux_{start_date}.json"
+    last_json_file_path = f"{RNE_FLUX_DATADIR}/rne_flux_{start_date}.json"
     get_object_minio(
         f"rne_flux_{start_date}.json",
-        f"ae/{AIRFLOW_ENV}/{MINIO_DATA_PATH}",
+        f"ae/{AIRFLOW_ENV}/{RNE_MINIO_FLUX_DATA_PATH}",
         last_json_file_path,
         MINIO_BUCKET,
     )
@@ -92,7 +88,7 @@ def compute_start_date():
         start_date = last_date_obj.strftime("%Y-%m-%d")
         logging.info(f"++++++++Start date: {start_date}")
     else:
-        start_date = DEFAULT_START_DATE
+        start_date = RNE_DEFAULT_START_DATE
 
     return start_date
 
@@ -115,11 +111,11 @@ def get_and_save_daily_flux_rne(
         None
     """
     json_file_name = f"rne_flux_{start_date}.json"
-    json_file_path = f"{DATADIR}/{json_file_name}"
+    json_file_path = f"{RNE_FLUX_DATADIR}/{json_file_name}"
 
-    if not os.path.exists(DATADIR):
-        logging.info(f"********** Creating {DATADIR}")
-        os.makedirs(DATADIR)
+    if not os.path.exists(RNE_FLUX_DATADIR):
+        logging.info(f"********** Creating {RNE_FLUX_DATADIR}")
+        os.makedirs(RNE_FLUX_DATADIR)
 
     if first_exec:
         last_siren = get_last_siren(ti)
@@ -149,9 +145,9 @@ def get_and_save_daily_flux_rne(
                         MINIO_PASSWORD=MINIO_PASSWORD,
                         list_files=[
                             {
-                                "source_path": f"{DATADIR}/",
+                                "source_path": f"{RNE_FLUX_DATADIR}/",
                                 "source_name": f"{json_file_name}",
-                                "dest_path": MINIO_DATA_PATH,
+                                "dest_path": RNE_MINIO_FLUX_DATA_PATH,
                                 "dest_name": f"{json_file_name}",
                             },
                         ],
@@ -170,9 +166,9 @@ def get_and_save_daily_flux_rne(
             MINIO_PASSWORD=MINIO_PASSWORD,
             list_files=[
                 {
-                    "source_path": f"{DATADIR}/",
+                    "source_path": f"{RNE_FLUX_DATADIR}/",
                     "source_name": f"{json_file_name}",
-                    "dest_path": MINIO_DATA_PATH,
+                    "dest_path": RNE_MINIO_FLUX_DATA_PATH,
                     "dest_name": f"{json_file_name}",
                 },
             ],

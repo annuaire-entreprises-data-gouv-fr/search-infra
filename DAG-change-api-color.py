@@ -1,17 +1,19 @@
 from datetime import datetime, timedelta
 
 from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.models import DAG, Variable
+from airflow.models import DAG
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from dag_datalake_sirene.task_functions.get_colors import get_colors
 from dag_datalake_sirene.task_functions.update_color_file import update_color_file
+from dag_datalake_sirene.config import (
+    AIRFLOW_ENV,
+    EMAIL_LIST,
+    PATH_AIO,
+)
 
 DAG_NAME = "change-api-color"
-EMAIL_LIST = Variable.get("EMAIL_LIST")
-ENV = Variable.get("ENV")
-PATH_AIO = Variable.get("PATH_AIO")
 
 default_args = {
     "depends_on_past": False,
@@ -51,13 +53,14 @@ with DAG(
 
     success_email_body = f"""
     Hi, <br><br>
-    Change API color ***{ENV}*** DAG has been executed successfully at {datetime.now()}.
+    Change API color ***{AIRFLOW_ENV}*** DAG has been executed
+    successfully at {datetime.now()}.
     """
 
     send_email = EmailOperator(
         task_id="send_email",
         to=EMAIL_LIST,
-        subject=f"Airflow Success: DAG-{ENV}!",
+        subject=f"Airflow Success: DAG-{AIRFLOW_ENV}!",
         html_content=success_email_body,
         dag=dag,
     )

@@ -1,11 +1,10 @@
 import pandas as pd
 import requests
+from dag_datalake_sirene.config import URL_FINESS
 
 
 def preprocess_finess_data(data_dir):
-    r = requests.get(
-        "https://www.data.gouv.fr/fr/datasets/r/2ce43ade-8d2c-4d1d-81da-ca06c82abc68"
-    )
+    r = requests.get(URL_FINESS)
     with open(data_dir + "finess-download.csv", "wb") as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)

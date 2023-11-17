@@ -1,7 +1,7 @@
 import logging
 import requests
 
-from dag_datalake_sirene.task_functions.global_variables import AIO_URL
+from dag_datalake_sirene.config import AIO_URL
 from dag_datalake_sirene.task_functions.slow_requests import SLOW_REQUESTS
 
 

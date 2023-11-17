@@ -2,14 +2,11 @@ from dag_datalake_sirene.elasticsearch.indexing_unite_legale import (
     index_unites_legales_by_chunk,
 )
 from elasticsearch_dsl import connections
-
 from dag_datalake_sirene.sqlite.sqlite_client import SqliteClient
-
-
 from dag_datalake_sirene.sqlite.queries.select_fields_to_index import (
     select_fields_to_index_query,
 )
-from dag_datalake_sirene.task_functions.global_variables import (
+from dag_datalake_sirene.config import (
     SIRENE_DATABASE_LOCATION,
     ELASTIC_URL,
     ELASTIC_USER,

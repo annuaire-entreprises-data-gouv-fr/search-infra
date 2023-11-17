@@ -1,14 +1,11 @@
 from typing import List
-
 import pandas as pd
 import requests
+from dag_datalake_sirene.config import URL_RGE
 
 
 def preprocess_rge_data(**kwargs):
-    rge_url = (
-        "https://data.ademe.fr/data-fair/api/v1/datasets/liste-des-entreprises-rge-2/"
-        "lines?size=10000&select=siret%2Ccode_qualification"
-    )
+    rge_url = URL_RGE
     r = requests.get(rge_url, allow_redirects=True)
     data = r.json()
     list_rge: List[str] = []

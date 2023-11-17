@@ -1,19 +1,20 @@
 from datetime import datetime, timedelta
 
-from airflow.models import DAG, Variable
+from airflow.models import DAG
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from dag_datalake_sirene.task_functions.flush_cache import flush_cache
+from dag_datalake_sirene.config import (
+    AIRFLOW_ENV,
+    EMAIL_LIST,
+    REDIS_HOST,
+    REDIS_PORT,
+    REDIS_DB,
+    REDIS_PASSWORD,
+)
 
 DAG_NAME = "flush-cache-only"
-EMAIL_LIST = Variable.get("EMAIL_LIST")
-ENV = Variable.get("ENV")
-REDIS_HOST = "redis"
-REDIS_PORT = "6379"
-REDIS_DB = "0"
-REDIS_PASSWORD = Variable.get("REDIS_PASSWORD")
-
 
 default_args = {
     "depends_on_past": False,
@@ -46,13 +47,14 @@ with DAG(
 
     success_email_body = f"""
     Hi, <br><br>
-    Flush cache ***{ENV}*** DAG has been executed successfully at {datetime.now()}.
+    Flush cache ***{AIRFLOW_ENV}*** DAG has been executed
+    successfully at {datetime.now()}.
     """
 
     send_email = EmailOperator(
         task_id="send_email",
         to=EMAIL_LIST,
-        subject=f"Airflow Success: DAG-{ENV}!",
+        subject=f"Airflow Success: DAG-{AIRFLOW_ENV}!",
         html_content=success_email_body,
         dag=dag,
     )
