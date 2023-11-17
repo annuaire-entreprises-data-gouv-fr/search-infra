@@ -38,7 +38,7 @@ with DAG(
     clean_previous_outputs = BashOperator(
         task_id="clean_previous_outputs",
         bash_command=(
-            f"rm -rf {RNE_STOCK_TMP_FOLDER} && mkdir -p {RNE_STOCK_TMP_FOLDER}",
+            f"rm -rf {RNE_STOCK_TMP_FOLDER} && mkdir -p {RNE_STOCK_TMP_FOLDER}"
         ),
     )
 
