@@ -3,6 +3,12 @@ from typing import List, TypedDict, Optional
 import os
 from dag_datalake_sirene.config import AIRFLOW_ENV
 
+from dag_datalake_sirene.task_functions.global_variables import (
+    MINIO_URL,
+    MINIO_USER,
+    MINIO_PASSWORD,
+)
+
 
 class File(TypedDict):
     source_path: str
@@ -139,3 +145,27 @@ def get_files(
             )
     else:
         raise Exception(f"Bucket {MINIO_BUCKET} does not exists")
+
+
+def get_object_minio(
+    filename: str,
+    minio_path: str,
+    local_path: str,
+    minio_bucket: str,
+) -> None:
+    minio_url = MINIO_URL
+    minio_bucket = minio_bucket
+    minio_user = MINIO_USER
+    minio_password = MINIO_PASSWORD
+
+    client = Minio(
+        minio_url,
+        access_key=minio_user,
+        secret_key=minio_password,
+        secure=True,
+    )
+    client.fget_object(
+        minio_bucket,
+        f"{minio_path}{filename}",
+        local_path,
+    )
