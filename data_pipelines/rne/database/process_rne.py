@@ -73,7 +73,7 @@ def inject_records_into_db(file_path, db_path, file_type):
     dirigeants_pp, dirigeants_pm = [], []
 
     with open(file_path, "r") as file:
-        logging.info(f"Processing stock file: {file_path}")
+        logging.info(f"Injecting records from file: {file_path}")
         try:
             if file_type == "stock":
                 json_data = file.read()

@@ -142,6 +142,8 @@ def get_latest_db(**kwargs):
                 }
             ],
         )
+    count_pp, count_pm = get_tables_count(TMP_FOLDER + f"rne_{start_date}.db")
+    logging.info(f"*****Count pp : {count_pp}" f"*****Count pm : {count_pm}")
 
 
 def process_stock_json_files(**kwargs):
@@ -209,7 +211,7 @@ def process_flux_json_files(**kwargs):
         date_match = re.search(r"rne_flux_(\d{4}-\d{2}-\d{2})", file_path)
         if date_match:
             file_date = date_match.group(1)
-            if file_date > start_date:
+            if file_date >= start_date:
                 logging.info(f"Processing file {file_path} with date {file_date}")
                 get_files(
                     MINIO_URL=MINIO_URL,
@@ -249,6 +251,7 @@ def check_db_count(ti, min_pp_table_count=12000000, min_pm_table_count=1000000):
     try:
         rne_db_path = ti.xcom_pull(key="rne_db_path", task_ids="create_db")
         count_pp, count_pm = get_tables_count(rne_db_path)
+        logging.info(f"*****Count pp : {count_pp}" f"*****Count pm : {count_pm}")
 
         if count_pp < min_pp_table_count or count_pm < min_pm_table_count:
             raise Exception(
