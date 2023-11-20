@@ -4,27 +4,21 @@ import logging
 from dag_datalake_sirene.utils.tchap import send_message
 from dag_datalake_sirene.utils.minio_helpers import send_files
 from dag_datalake_sirene.config import (
-    AIRFLOW_DAG_TMP,
     MINIO_URL,
     MINIO_BUCKET,
     MINIO_USER,
     MINIO_PASSWORD,
+    RNE_STOCK_ZIP_FILE_PATH,
+    RNE_STOCK_EXTRACTED_FILES_PATH,
 )
 
 
-DAG_FOLDER = "dag_datalake_sirene/data_pipelines/"
-TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rne/stock/"
-DATADIR = f"{TMP_FOLDER}data"
-ZIP_FILE_PATH = f"{TMP_FOLDER}stock_rne.zip"
-EXTRACTED_FILES_PATH = f"{TMP_FOLDER}extracted/"
-
-
 def unzip_files_and_upload_minio(**kwargs):
-    with zipfile.ZipFile(ZIP_FILE_PATH, mode="r") as z:
+    with zipfile.ZipFile(RNE_STOCK_ZIP_FILE_PATH, mode="r") as z:
         sent_files = 0
         for file_info in z.infolist():
             # Extract each file one by one
-            z.extract(file_info, path=EXTRACTED_FILES_PATH)
+            z.extract(file_info, path=RNE_STOCK_EXTRACTED_FILES_PATH)
 
             logging.info(f"Saving file {file_info.filename} in MinIO.....")
             send_files(
@@ -34,7 +28,7 @@ def unzip_files_and_upload_minio(**kwargs):
                 MINIO_PASSWORD=MINIO_PASSWORD,
                 list_files=[
                     {
-                        "source_path": EXTRACTED_FILES_PATH,
+                        "source_path": RNE_STOCK_EXTRACTED_FILES_PATH,
                         "source_name": file_info.filename,
                         "dest_path": "rne/stock/data/",
                         "dest_name": file_info.filename,
@@ -43,7 +37,9 @@ def unzip_files_and_upload_minio(**kwargs):
             )
             sent_files += 1
             # Delete the extracted file
-            extracted_file_path = os.path.join(EXTRACTED_FILES_PATH, file_info.filename)
+            extracted_file_path = os.path.join(
+                RNE_STOCK_EXTRACTED_FILES_PATH, file_info.filename
+            )
             os.remove(extracted_file_path)
 
     kwargs["ti"].xcom_push(key="stock_files_rne_count", value=sent_files)

@@ -1,12 +1,10 @@
 import pandas as pd
 import requests
+from dag_datalake_sirene.config import URL_CONVENTION_COLLECTIVE
 
 
 def preprocess_convcollective_data(data_dir):
-    cc_url = (
-        "https://www.data.gouv.fr/fr/datasets/r/" "a22e54f7-b937-4483-9a72-aad2ea1316f1"
-    )
-    r = requests.get(cc_url, allow_redirects=True)
+    r = requests.get(URL_CONVENTION_COLLECTIVE, allow_redirects=True)
     with open(data_dir + "convcollective-download.csv", "wb") as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)

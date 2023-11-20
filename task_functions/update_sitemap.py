@@ -1,8 +1,8 @@
 from minio import Minio
 
-from dag_datalake_sirene.task_functions.global_variables import (
-    ENV,
-    DATA_DIR,
+from dag_datalake_sirene.config import (
+    AIRFLOW_ENV,
+    AIRFLOW_DATA_DIR,
     MINIO_URL,
     MINIO_BUCKET,
     MINIO_USER,
@@ -11,7 +11,7 @@ from dag_datalake_sirene.task_functions.global_variables import (
 
 
 def update_sitemap():
-    minio_filepath = "ae/sitemap-" + ENV + ".csv"
+    minio_filepath = "ae/sitemap-" + AIRFLOW_ENV + ".csv"
     minio_url = MINIO_URL
     minio_bucket = MINIO_BUCKET
     minio_user = MINIO_USER
@@ -31,6 +31,6 @@ def update_sitemap():
         client.fput_object(
             bucket_name=minio_bucket,
             object_name=minio_filepath,
-            file_path=DATA_DIR + "sitemap-" + ENV + ".csv",
+            file_path=AIRFLOW_DATA_DIR + "sitemap-" + AIRFLOW_ENV + ".csv",
             content_type="text/csv",
         )

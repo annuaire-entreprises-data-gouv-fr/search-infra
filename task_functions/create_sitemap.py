@@ -12,10 +12,10 @@ from dag_datalake_sirene.sqlite.sqlite_client import SqliteClient
 from dag_datalake_sirene.sqlite.queries.select_sitemap_fields import (
     select_sitemap_fields_query,
 )
-from dag_datalake_sirene.task_functions.global_variables import (
+from dag_datalake_sirene.config import (
+    AIRFLOW_DATA_DIR,
+    AIRFLOW_ENV,
     SIRENE_DATABASE_LOCATION,
-    DATA_DIR,
-    ENV,
 )
 
 
@@ -23,8 +23,8 @@ def create_sitemap():
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(select_sitemap_fields_query)
 
-    if os.path.exists(DATA_DIR + "sitemap-" + ENV + ".csv"):
-        os.remove(DATA_DIR + "sitemap-" + ENV + ".csv")
+    if os.path.exists(AIRFLOW_DATA_DIR + "sitemap-" + AIRFLOW_ENV + ".csv"):
+        os.remove(AIRFLOW_DATA_DIR + "sitemap-" + AIRFLOW_ENV + ".csv")
 
     chunk_unites_legales_sqlite = 1
     while chunk_unites_legales_sqlite:
@@ -72,5 +72,5 @@ def create_sitemap():
                     f"{ul['activite_principale_unite_legale']},{slug}\n"
                 )
 
-        with open(DATA_DIR + "sitemap-" + ENV + ".csv", "a+") as f:
+        with open(AIRFLOW_DATA_DIR + "sitemap-" + AIRFLOW_ENV + ".csv", "a+") as f:
             f.write(slugs)

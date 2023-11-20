@@ -2,7 +2,7 @@ import json
 import logging
 from urllib.request import urlopen
 
-from dag_datalake_sirene.task_functions.global_variables import COLOR_URL
+from dag_datalake_sirene.config import COLOR_URL
 
 
 def get_colors(**kwargs):

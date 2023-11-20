@@ -1,14 +1,11 @@
 import pandas as pd
 import requests
+from dag_datalake_sirene.config import URL_ORGANISME_FORMATION
 
 
 def preprocess_organisme_formation_data(data_dir):
     # get dataset directly from dge website
-    r = requests.get(
-        "https://dgefp.opendatasoft.com/api/explore/v2.1/catalog/datasets/liste"
-        "-publique-des-of-v2/exports/csv?lang=fr&timezone=Europe%2FBerlin&use_labels"
-        "=true&delimiter=%3B"
-    )
+    r = requests.get(URL_ORGANISME_FORMATION)
     with open(data_dir + "qualiopi-download.csv", "wb") as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)

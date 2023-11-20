@@ -2,8 +2,8 @@ import json
 import logging
 
 from minio import Minio
-from dag_datalake_sirene.task_functions.global_variables import (
-    ENV,
+from dag_datalake_sirene.config import (
+    AIRFLOW_ENV,
     MINIO_URL,
     MINIO_BUCKET,
     MINIO_USER,
@@ -19,7 +19,7 @@ def update_color_file(**kwargs):
 
     with open("colors.json", "w") as write_file:
         json.dump(colors, write_file)
-    minio_filepath = f"ae/colors-{ENV}.json"
+    minio_filepath = f"ae/colors-{AIRFLOW_ENV}.json"
     minio_url = MINIO_URL
     minio_bucket = MINIO_BUCKET
     minio_user = MINIO_USER

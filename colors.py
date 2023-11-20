@@ -1,10 +1,7 @@
 import json
 import logging
 from urllib.request import urlopen
-
-from airflow.models import Variable
-
-COLOR_URL = Variable.get("COLOR_URL")
+from dag_datalake_sirene.config import COLOR_URL
 
 
 def get_next_color():

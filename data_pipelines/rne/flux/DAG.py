@@ -4,11 +4,11 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.data_pipelines.rne.flux.flux_tasks import (
-    TMP_FOLDER,
     get_every_day_flux,
     send_notification_failure_tchap,
     send_notification_success_tchap,
 )
+from dag_datalake_sirene.config import RNE_FLUX_TMP_FOLDER
 
 default_args = {
     "depends_on_past": False,
@@ -33,7 +33,7 @@ with DAG(
 ) as dag:
     clean_previous_outputs = BashOperator(
         task_id="clean_previous_outputs",
-        bash_command=f"rm -rf {TMP_FOLDER} && mkdir -p {TMP_FOLDER}",
+        bash_command=f"rm -rf {RNE_FLUX_TMP_FOLDER} && mkdir -p {RNE_FLUX_TMP_FOLDER}",
     )
 
     get_daily_flux_rne = PythonOperator(

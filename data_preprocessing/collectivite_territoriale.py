@@ -1,16 +1,22 @@
-import zipfile
-
 import pandas as pd
 import requests
+import zipfile
+from dag_datalake_sirene.config import (
+    URL_COLTER_REGIONS,
+    URL_COLTER_DEP,
+    URL_COLTER_EPCI,
+    URL_COLTER_COMMUNES,
+    URL_ELUS_EPCI,
+    URL_CONSEILLERS_REGIONAUX,
+    URL_CONSEILLERS_DEPARTEMENTAUX,
+    URL_CONSEILLERS_MUNICIPAUX,
+    URL_ASSEMBLEE_COL_STATUT_PARTICULIER,
+)
 
 
 def preprocess_colter_data(data_dir, **kwargs):
     # Process Régions
-    df_regions = pd.read_csv(
-        "https://www.data.gouv.fr/fr/datasets/r/619ee62e-8f9e-4c62-b166-abc6f2b86201",
-        dtype=str,
-        sep=";",
-    )
+    df_regions = pd.read_csv(URL_COLTER_REGIONS, dtype=str, sep=";")
     df_regions = df_regions[df_regions["exer"] == df_regions.exer.max()][
         ["reg_code", "siren"]
     ]
@@ -26,11 +32,7 @@ def preprocess_colter_data(data_dir, **kwargs):
     df_colter = df_regions
 
     # Process Départements
-    df_deps = pd.read_csv(
-        "https://www.data.gouv.fr/fr/datasets/r/2f4f901d-e3ce-4760-b122-56a311340fc4",
-        dtype=str,
-        sep=";",
-    )
+    df_deps = pd.read_csv(URL_COLTER_DEP, dtype=str, sep=";")
     df_deps = df_deps[df_deps["exer"] == df_deps["exer"].max()]
     df_deps = df_deps[["dep_code", "siren"]]
     df_deps = df_deps.drop_duplicates(keep="first")
@@ -58,11 +60,7 @@ def preprocess_colter_data(data_dir, **kwargs):
     df_colter = pd.concat([df_colter, df_deps])
 
     # Process EPCI
-    df_epci = pd.read_excel(
-        "https://www.collectivites-locales.gouv.fr/files/2022/epcisanscom2022.xlsx",
-        dtype=str,
-        engine="openpyxl",
-    )
+    df_epci = pd.read_excel(URL_COLTER_EPCI, dtype=str, engine="openpyxl")
     df_epci["colter_code_insee"] = None
     df_epci["siren"] = df_epci["siren_epci"]
     df_epci["colter_code"] = df_epci["siren"]
@@ -71,8 +69,7 @@ def preprocess_colter_data(data_dir, **kwargs):
     df_colter = pd.concat([df_colter, df_epci])
 
     # Process Communes
-    URL = "https://www.data.gouv.fr/fr/datasets/r/42b16d68-958e-4518-8551-93e095fe8fda"
-    response = requests.get(URL)
+    response = requests.get(URL_COLTER_COMMUNES)
     open(data_dir + "siren-communes.zip", "wb").write(response.content)
 
     with zipfile.ZipFile(data_dir + "siren-communes.zip", "r") as zip_ref:
@@ -105,13 +102,13 @@ def preprocess_elus_data(data_dir):
     df_colter = pd.read_csv(data_dir + "colter-new.csv", dtype=str)
     # Conseillers régionaux
     elus = process_elus_files(
-        "https://www.data.gouv.fr/fr/datasets/r/430e13f9-834b-4411-a1a8-da0b4b6e715c",
+        URL_CONSEILLERS_REGIONAUX,
         "code_region",
     )
 
     # Conseillers départementaux
     df_elus_deps = process_elus_files(
-        "https://www.data.gouv.fr/fr/datasets/r/601ef073-d986-4582-8e1a-ed14dc857fba",
+        URL_CONSEILLERS_DEPARTEMENTAUX,
         "code_departement",
     )
     df_elus_deps["colter_code"] = df_elus_deps["colter_code"] + "D"
@@ -120,7 +117,7 @@ def preprocess_elus_data(data_dir):
 
     # membres des assemblées des collectivités à statut particulier
     df_elus_part = process_elus_files(
-        "https://www.data.gouv.fr/fr/datasets/r/a595be27-cfab-4810-b9d4-22e193bffe35",
+        URL_ASSEMBLEE_COL_STATUT_PARTICULIER,
         "code_collectivite_statut_particulier",
     )
     df_elus_part.loc[df_elus_part["colter_code"] == "972", "colter_code"] = "02"
@@ -128,13 +125,13 @@ def preprocess_elus_data(data_dir):
     elus = pd.concat([elus, df_elus_part])
     # Conseillers communautaires
     df_elus_epci = process_elus_files(
-        "https://www.data.gouv.fr/fr/datasets/r/41d95d7d-b172-4636-ac44-32656367cdc7",
+        URL_ELUS_EPCI,
         "numero_siren",
     )
     elus = pd.concat([elus, df_elus_epci])
     # Conseillers municipaux
     df_elus_epci = process_elus_files(
-        "https://www.data.gouv.fr/fr/datasets/r/d5f400de-ae3f-4966-8cb6-a85c70c6c24a",
+        URL_CONSEILLERS_MUNICIPAUX,
         "code_commune",
     )
     df_elus_epci.loc[df_elus_epci["colter_code"] == "75056", "colter_code"] = "75C"

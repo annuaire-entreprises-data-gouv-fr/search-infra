@@ -1,11 +1,10 @@
 import pandas as pd
 import requests
+from dag_datalake_sirene.config import URL_ENTREPRENEUR_SPECTACLE
 
 
 def preprocess_spectacle_data(data_dir):
-    r = requests.get(
-        "https://www.data.gouv.fr/fr/datasets/r/fb6c3b2e-da8c-4e69-a719-6a96329e4cb2"
-    )
+    r = requests.get(URL_ENTREPRENEUR_SPECTACLE)
     with open(data_dir + "spectacle-download.csv", "wb") as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)

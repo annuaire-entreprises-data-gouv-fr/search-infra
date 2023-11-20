@@ -4,7 +4,6 @@ from dag_datalake_sirene.sqlite.queries.helpers import (
 from dag_datalake_sirene.sqlite.queries.create_table_count_etabs_ouverts import (
     create_table_count_etablissements_ouverts_query,
 )
-
 from dag_datalake_sirene.task_functions.create_and_fill_table_model import (
     create_table_model,
 )

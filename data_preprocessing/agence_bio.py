@@ -1,4 +1,5 @@
 import pandas as pd
+from dag_datalake_sirene.config import URL_AGENCE_BIO
 
 
 def get_statut(statuts):
@@ -10,11 +11,7 @@ def get_statut(statuts):
 
 
 def preprocess_agence_bio_data(data_dir):
-    df_agence_bio = pd.read_csv(
-        "https://object.files.data.gouv.fr/data-pipeline-open/"
-        "prod/agence_bio/latest/agence_bio_certifications.csv",
-        dtype=str,
-    )
+    df_agence_bio = pd.read_csv(URL_AGENCE_BIO, dtype=str)
 
     df_agence_bio = df_agence_bio[["siret", "id_bio", "etat_certification"]]
     df_agence_bio = df_agence_bio[df_agence_bio["siret"].str.len() == 14]

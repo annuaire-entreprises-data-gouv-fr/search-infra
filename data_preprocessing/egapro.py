@@ -1,9 +1,10 @@
 import pandas as pd
+from dag_datalake_sirene.config import URL_EGAPRO
 
 
 def preprocess_egapro_data(data_dir):
     df_egapro = pd.read_excel(
-        "https://www.data.gouv.fr/fr/datasets/r/d434859f-8d3b-4381-bcdb-ec9200653ae6",
+        URL_EGAPRO,
         dtype=str,
         engine="openpyxl",
     )

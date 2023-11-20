@@ -1,7 +1,7 @@
 import logging
 
 from dag_datalake_sirene.elasticsearch.create_index import ElasticCreateIndex
-from dag_datalake_sirene.task_functions.global_variables import (
+from dag_datalake_sirene.config import (
     ELASTIC_BULK_SIZE,
     ELASTIC_PASSWORD,
     ELASTIC_USER,

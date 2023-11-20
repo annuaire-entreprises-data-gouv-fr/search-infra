@@ -1,21 +1,19 @@
 from datetime import datetime, timedelta
 import shutil
 import logging
-
 import pandas as pd
 import requests
-
-from dag_datalake_sirene.task_functions.get_and_put_minio_object import (
+from dag_datalake_sirene.utils.minio_helpers import (
     get_object_minio,
 )
-from dag_datalake_sirene.task_functions.global_variables import (
+from dag_datalake_sirene.config import (
     MINIO_BUCKET_DATA_PIPELINE,
+    URL_UNITE_LEGALE,
 )
 
 
 def download_stock(data_dir):
-    url = "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip"
-    r = requests.get(url, allow_redirects=True)
+    r = requests.get(URL_UNITE_LEGALE, allow_redirects=True)
     open(data_dir + "StockUniteLegale_utf8.zip", "wb").write(r.content)
     shutil.unpack_archive(data_dir + "StockUniteLegale_utf8.zip", data_dir)
     df_iterator = pd.read_csv(
