@@ -194,7 +194,7 @@ def create_elu_table():
 
 def create_ess_table():
     return create_and_fill_table_model(
-        table_name="ess",
+        table_name="ess_france",
         create_table_query=create_table_ess_query,
         create_index_func=create_index,
         index_name="index_ess",
