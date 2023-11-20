@@ -62,22 +62,50 @@ def get_latest_json_file(ti):
 
 
 def get_last_siren(ti):
+    """
+    Retrieve the last 'siren' value from the latest JSON file
+    associated with the RNE fluxg.
+
+    Parameters:
+    - ti (airflow.models.TaskInstance): The Airflow task instance
+    for which the latest JSON file needs to be retrieved.
+
+    Returns:
+    - str or None: The 'siren' value if found, or None if not present
+    in the JSON file.
+
+    Raises:
+    - Exception: If no valid JSON is found in the specified file.
+    """
     last_json_file_path = get_latest_json_file(ti)
+
     with open(last_json_file_path, "r") as file:
-        json_lines = file.read().splitlines()
-    if json_lines:
-        # Get the last line (last JSON object)
+        json_lines = file.readlines()
+
+    while json_lines:
         last_line = json_lines[-1]
-        latest_dict = json.loads(last_line)
-        # Extract the "siren" field
-        latest_company = latest_dict[-1]
-        last_siren = latest_company.get("company", {}).get("siren")
-        logging.info(
-            f"****Last siren in saved file {last_json_file_path}: {last_siren}"
-        )
-        return last_siren
-    else:
-        return None
+        try:
+            latest_dict = json.loads(last_line)
+            latest_company = latest_dict[-1]["company"]
+            last_siren = latest_company.get("siren")
+            if last_siren is not None:
+                logging.info(
+                    f"****Last siren in saved file {last_json_file_path}: {last_siren}"
+                )
+                break
+            else:
+                logging.info("No 'siren' key found in the decoded JSON.")
+        except json.JSONDecodeError:
+            logging.info("Error decoding JSON. Removing last line and trying again.")
+            json_lines.pop()
+            continue
+
+    if not json_lines:
+        raise Exception(f"No valid JSON found in the file: {last_json_file_path}")
+
+    with open(last_json_file_path, "w") as file:
+        file.writelines(json_lines)
+    return last_siren
 
 
 def compute_start_date():
@@ -119,6 +147,7 @@ def get_and_save_daily_flux_rne(
 
     if first_exec:
         last_siren = get_last_siren(ti)
+        logging.info(f"*********{last_siren}")
     else:
         last_siren = None  # Initialize last_siren
     page_data = True
