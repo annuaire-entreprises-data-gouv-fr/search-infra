@@ -275,6 +275,7 @@ class UniteLegaleMapping(InnerDoc):
     est_association = Boolean()
     est_finess = Boolean()
     est_bio = Boolean()
+    est_ess = Boolean()
     est_organisme_formation = Boolean()
     liste_id_organisme_formation = Text()
     est_qualiopi = Boolean()

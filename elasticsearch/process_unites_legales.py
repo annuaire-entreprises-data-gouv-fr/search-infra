@@ -151,6 +151,9 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["est_entrepreneur_spectacle"]
         )
 
+        # ESS
+        unite_legale_processed["est_ess"] = sqlite_str_to_bool(unite_legale["est_ess"])
+
         # Egapro
         unite_legale_processed["egapro_renseignee"] = sqlite_str_to_bool(
             unite_legale["egapro_renseignee"]
