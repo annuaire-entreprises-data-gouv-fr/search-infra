@@ -249,6 +249,7 @@ def check_db_count(ti, min_pp_table_count=12000000, min_pm_table_count=1000000):
     try:
         rne_db_path = ti.xcom_pull(key="rne_db_path", task_ids="create_db")
         count_pp, count_pm = get_tables_count(rne_db_path)
+        logging.info(f"*****Count pp : {count_pp}" f"*****Count pm : {count_pm}")
 
         if count_pp < min_pp_table_count or count_pm < min_pm_table_count:
             raise Exception(
