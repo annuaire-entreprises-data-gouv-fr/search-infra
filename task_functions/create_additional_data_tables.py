@@ -15,6 +15,9 @@ from dag_datalake_sirene.data_preprocessing.egapro import (
 from dag_datalake_sirene.data_preprocessing.entrepreneur_spectacle import (
     preprocess_spectacle_data,
 )
+from dag_datalake_sirene.data_preprocessing.ess_france import (
+    preprocess_ess_france_data,
+)
 from dag_datalake_sirene.data_preprocessing.finess import preprocess_finess_data
 from dag_datalake_sirene.data_preprocessing.organisme_formation import (
     preprocess_organisme_formation_data,
@@ -39,6 +42,9 @@ from dag_datalake_sirene.sqlite.queries.create_table_egapro import (
     create_table_egapro_query,
 )
 from dag_datalake_sirene.sqlite.queries.create_table_rge import create_table_rge_query
+from dag_datalake_sirene.sqlite.queries.create_table_ess_france import (
+    create_table_ess_query,
+)
 from dag_datalake_sirene.sqlite.queries.create_table_finess import (
     create_table_finess_query,
 )
@@ -183,4 +189,15 @@ def create_elu_table():
         index_name="index_elus",
         index_column="siren",
         preprocess_table_data=preprocess_elus_data,
+    )
+
+
+def create_ess_table():
+    return create_and_fill_table_model(
+        table_name="ess",
+        create_table_query=create_table_ess_query,
+        create_index_func=create_index,
+        index_name="index_ess",
+        index_column="siren",
+        preprocess_table_data=preprocess_ess_france_data,
     )
