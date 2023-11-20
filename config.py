@@ -63,10 +63,14 @@ ELASTIC_SHARDS = 1
 ELASTIC_REPLICAS = 0
 
 # Datasets
-URL_AGENCE_BIO = "https://object.files.data.gouv.fr/data-pipeline-open/prod/agence_bio/"
-"latest/agence_bio_certifications.csv"
-URL_BILANS_FINANCIERS = "https://object.files.data.gouv.fr/data-pipeline-open/"
-"prod/signaux_faibles/latest/synthese_bilans.csv"
+URL_AGENCE_BIO = (
+    "https://object.files.data.gouv.fr/data-pipeline-open/prod/agence_bio"
+    "/latest/agence_bio_certifications.csv"
+)
+URL_BILANS_FINANCIERS = (
+    "https://object.files.data.gouv.fr/data-pipeline-open/"
+    "prod/signaux_faibles/latest/synthese_bilans.csv"
+)
 URL_COLTER_REGIONS = (
     "https://www.data.gouv.fr/fr/datasets/r/619ee62e-8f9e-4c62-b166-abc6f2b86201"
 )
@@ -109,11 +113,15 @@ URL_FINESS = (
 )
 URL_ORGANISME_FORMATION = (
     "https://dgefp.opendatasoft.com/api/explore/v2.1/catalog/datasets/liste"
+    "-publique-des-of-v2/exports/csv?lang=fr&timezone=Europe%2FBerlin&use_labels"
+    "=true&delimiter=%3B"
 )
-"-publique-des-of-v2/exports/csv?lang=fr&timezone=Europe%2FBerlin&use_labels"
-"=true&delimiter=%3B"
-URL_RGE = "https://data.ademe.fr/data-fair/api/v1/datasets/liste-des-entreprises-rge-2/"
-"lines?size=10000&select=siret%2Ccode_qualification"
-URL_UAI = "https://object.files.data.gouv.fr/data-pipeline-open/"
-"prod/uai/latest/annuaire_uai.csv"
+URL_RGE = (
+    "https://data.ademe.fr/data-fair/api/v1/datasets/"
+    "liste-des-entreprises-rge-2/lines?size=10000&select=siret%2Ccode_qualification"
+)
+URL_UAI = (
+    "https://object.files.data.gouv.fr/data-pipeline-open/"
+    "prod/uai/latest/annuaire_uai.csv"
+)
 URL_UNITE_LEGALE = "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip"
