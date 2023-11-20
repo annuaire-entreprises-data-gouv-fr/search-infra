@@ -174,6 +174,8 @@ def get_and_save_daily_flux_rne(
             ],
         )
         logging.info(f"****** Sent file to MinIO: {json_file_name}")
+        logging.info(f"****** Deleting file: {json_file_path}")
+        os.remove(json_file_path)
 
 
 def get_every_day_flux(ti):
