@@ -209,7 +209,7 @@ def process_flux_json_files(**kwargs):
         date_match = re.search(r"rne_flux_(\d{4}-\d{2}-\d{2})", file_path)
         if date_match:
             file_date = date_match.group(1)
-            if file_date > start_date:
+            if file_date >= start_date:
                 logging.info(f"Processing file {file_path} with date {file_date}")
                 get_files(
                     MINIO_URL=MINIO_URL,
