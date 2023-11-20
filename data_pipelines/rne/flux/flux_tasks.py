@@ -105,7 +105,6 @@ def get_last_siren(ti):
 
     with open(last_json_file_path, "w") as file:
         file.writelines(json_lines)
-    logging.info(f"****Last siren in saved file {last_json_file_path}: {last_siren}")
     return last_siren
 
 
@@ -148,7 +147,7 @@ def get_and_save_daily_flux_rne(
 
     if first_exec:
         last_siren = get_last_siren(ti)
-        logging.info(f"^^^^^^^^^^{last_siren}")
+        logging.info(f"*********{last_siren}")
     else:
         last_siren = None  # Initialize last_siren
     page_data = True
