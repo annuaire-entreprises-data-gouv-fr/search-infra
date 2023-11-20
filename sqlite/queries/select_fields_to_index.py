@@ -330,8 +330,8 @@ select_fields_to_index_query = """SELECT
             colter_code_insee,
             (SELECT colter_code FROM colter WHERE siren = ul.siren) as colter_code,
             (SELECT colter_niveau FROM colter WHERE siren = ul.siren) as colter_niveau,
-            (SELECT est_ess FROM ess_france WHERE siren = ul.siren) as
-            est_ess,
+            (SELECT est_ess_france FROM ess_france WHERE siren = ul.siren) as
+            est_ess_france,
             (SELECT json_group_array(
                 json_object(
                     'siren', siren,
