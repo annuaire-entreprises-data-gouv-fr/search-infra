@@ -105,6 +105,12 @@ def is_entrepreneur_individuel(nature_juridique_unite_legale):
         return False
 
 
+# ESS
+def is_ess(est_ess_france, ess_insee):
+    est_ess_insee = ess_insee == "O" if ess_insee is not None else False
+    return est_ess_france or est_ess_insee
+
+
 # Service public
 def is_service_public(nature_juridique_unite_legale, siren):
     if (
