@@ -142,6 +142,8 @@ def get_latest_db(**kwargs):
                 }
             ],
         )
+    count_pp, count_pm = get_tables_count(TMP_FOLDER + f"rne_{start_date}.db")
+    logging.info(f"*****Count pp : {count_pp}" f"*****Count pm : {count_pm}")
 
 
 def process_stock_json_files(**kwargs):
