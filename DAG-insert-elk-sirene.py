@@ -15,6 +15,7 @@ from dag_datalake_sirene.task_functions.create_additional_data_tables import (
     create_agence_bio_table,
     create_bilan_financiers_table,
     create_colter_table,
+    create_ess_table,
     create_rge_table,
     create_finess_table,
     create_egapro_table,
@@ -219,6 +220,12 @@ with DAG(
         python_callable=create_convention_collective_table,
     )
 
+    create_ess_table = PythonOperator(
+        task_id="create_ess_table",
+        provide_context=True,
+        python_callable=create_ess_table,
+    )
+
     create_rge_table = PythonOperator(
         task_id="create_rge_table",
         provide_context=True,
@@ -376,7 +383,8 @@ with DAG(
 
     create_bilan_financiers_table.set_upstream(create_dirig_pm_table)
     create_convention_collective_table.set_upstream(create_bilan_financiers_table)
-    create_rge_table.set_upstream(create_convention_collective_table)
+    create_ess_table.set_upstream(create_convention_collective_table)
+    create_rge_table.set_upstream(create_ess_table)
     create_finess_table.set_upstream(create_rge_table)
     create_agence_bio_table.set_upstream(create_finess_table)
     create_organisme_formation_table.set_upstream(create_agence_bio_table)

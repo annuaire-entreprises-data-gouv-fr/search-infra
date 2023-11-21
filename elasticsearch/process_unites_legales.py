@@ -11,6 +11,7 @@ from dag_datalake_sirene.elasticsearch.data_enrichment import (
     format_siege_unite_legale,
     is_association,
     is_entrepreneur_individuel,
+    is_ess,
     is_service_public,
     label_section_from_activite,
 )
@@ -149,6 +150,13 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         # Entrepreneur de spectacle vivant
         unite_legale_processed["est_entrepreneur_spectacle"] = sqlite_str_to_bool(
             unite_legale["est_entrepreneur_spectacle"]
+        )
+
+        # ESS
+
+        unite_legale_processed["est_ess"] = is_ess(
+            sqlite_str_to_bool(unite_legale["est_ess_france"]),
+            unite_legale["economie_sociale_solidaire_unite_legale"],
         )
 
         # Egapro

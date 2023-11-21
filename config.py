@@ -125,3 +125,6 @@ URL_UAI = (
     "prod/uai/latest/annuaire_uai.csv"
 )
 URL_UNITE_LEGALE = "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip"
+URL_ESS_FRANCE = (
+    "https://www.data.gouv.fr/fr/datasets/r/57bc99ca-0432-4b46-8fcc-e76a35c9efaf"
+)
