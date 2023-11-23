@@ -24,6 +24,8 @@ RNE_STOCK_ZIP_FILE_PATH = f"{RNE_STOCK_TMP_FOLDER}stock_rne.zip"
 RNE_STOCK_EXTRACTED_FILES_PATH = f"{RNE_STOCK_TMP_FOLDER}extracted/"
 RNE_STOCK_DATADIR = f"{RNE_STOCK_TMP_FOLDER}data"
 RNE_DAG_FOLDER = "dag_datalake_sirene/data_pipelines/"
+METADATA_CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}metadata/cc/"
+METADATA_CC_MINIO_PATH = "metadata/cc/"
 
 # Notification
 TCHAP_ANNUAIRE_WEBHOOK = Variable.get("TCHAP_ANNUAIRE_WEBHOOK", "")
@@ -61,6 +63,7 @@ ELASTIC_USER = Variable.get("ELASTIC_USER")
 ELASTIC_BULK_SIZE = 1500
 ELASTIC_SHARDS = 1
 ELASTIC_REPLICAS = 0
+
 
 # Datasets
 URL_AGENCE_BIO = (
@@ -127,4 +130,11 @@ URL_UAI = (
 URL_UNITE_LEGALE = "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip"
 URL_ESS_FRANCE = (
     "https://www.data.gouv.fr/fr/datasets/r/57bc99ca-0432-4b46-8fcc-e76a35c9efaf"
+)
+URL_CC_DARES = (
+    "https://travail-emploi.gouv.fr/IMG/xlsx/"
+    "dares_donnes_identifiant_convention_collective_novembre23.xlsx"
+)
+URL_CC_KALI = (
+    "https://www.data.gouv.fr/fr/datasets/r/02b67492-5243-44e8-8dd1-0cb3f90f35ff"
 )
