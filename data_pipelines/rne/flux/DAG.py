@@ -26,7 +26,7 @@ with DAG(
     schedule_interval="0 0 * * *",  # Run every day at midnight
     catchup=False,
     max_active_runs=1,
-    dagrun_timeout=timedelta(minutes=(60 * 100)),
+    dagrun_timeout=timedelta(days=30),
     on_failure_callback=send_notification_failure_tchap,
     tags=["api", "rne", "flux"],
     params={},
