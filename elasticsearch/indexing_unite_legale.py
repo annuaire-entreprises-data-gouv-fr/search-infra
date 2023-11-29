@@ -42,7 +42,7 @@ def doc_unite_legale_generator(data):
         # as is
         else:
             yield StructureMapping(
-                meta={"id": "document['identifiant']-100"}, **document
+                meta={"id": f"{document['identifiant']}-100"}, **document
             ).to_dict(include_meta=True)
 
 
