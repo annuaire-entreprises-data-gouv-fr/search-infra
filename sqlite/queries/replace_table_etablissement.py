@@ -5,6 +5,7 @@ replace_table_etablissement_query = """
             siret,
             date_creation,
             tranche_effectif_salarie,
+            caractere_employeur,
             annee_tranche_effectif_salarie,
             date_mise_a_jour,
             activite_principale_registre_metier,
