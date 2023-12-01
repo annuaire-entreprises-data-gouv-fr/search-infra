@@ -160,7 +160,7 @@ def preprocess_elus_data(data_dir):
 
 
 def process_elus_files(url, colname):
-    df_elus = pd.read_csv(url, dtype=str, sep="\t")
+    df_elus = pd.read_csv(url, dtype=str)
 
     column_mapping = {
         "Nom de l'élu": "nom_elu",
