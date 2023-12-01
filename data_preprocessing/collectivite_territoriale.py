@@ -103,13 +103,13 @@ def preprocess_elus_data(data_dir):
     # Conseillers régionaux
     elus = process_elus_files(
         URL_CONSEILLERS_REGIONAUX,
-        "code_region",
+        "Code de la région",
     )
 
     # Conseillers départementaux
     df_elus_deps = process_elus_files(
         URL_CONSEILLERS_DEPARTEMENTAUX,
-        "code_departement",
+        "Code du département",
     )
     df_elus_deps["colter_code"] = df_elus_deps["colter_code"] + "D"
     df_elus_deps.loc[df_elus_deps["colter_code"] == "6AED", "colter_code"] = "6AE"
@@ -118,7 +118,7 @@ def preprocess_elus_data(data_dir):
     # membres des assemblées des collectivités à statut particulier
     df_elus_part = process_elus_files(
         URL_ASSEMBLEE_COL_STATUT_PARTICULIER,
-        "code_collectivite_statut_particulier",
+        "Code de la collectivité à statut particulier",
     )
     df_elus_part.loc[df_elus_part["colter_code"] == "972", "colter_code"] = "02"
     df_elus_part.loc[df_elus_part["colter_code"] == "973", "colter_code"] = "03"
@@ -126,13 +126,13 @@ def preprocess_elus_data(data_dir):
     # Conseillers communautaires
     df_elus_epci = process_elus_files(
         URL_ELUS_EPCI,
-        "numero_siren",
+        "N° SIREN",
     )
     elus = pd.concat([elus, df_elus_epci])
     # Conseillers municipaux
     df_elus_epci = process_elus_files(
         URL_CONSEILLERS_MUNICIPAUX,
-        "code_commune",
+        "Code de la commune",
     )
     df_elus_epci.loc[df_elus_epci["colter_code"] == "75056", "colter_code"] = "75C"
     elus = pd.concat([elus, df_elus_epci])
@@ -161,38 +161,27 @@ def preprocess_elus_data(data_dir):
 
 def process_elus_files(url, colname):
     df_elus = pd.read_csv(url, dtype=str, sep="\t")
-    if colname == "numero_siren":
-        df_elus = df_elus[
-            [
-                colname,
-                "nom_elu",
-                "prenom_elu",
-                "sexe_elu",
-                "date_naissance_elu",
-                "code_fonction",
-            ]
-        ]
-        df_elus = df_elus.rename(
-            columns={
-                colname: "colter_code",
-                "code_fonction": "fonction_elu",
-            }
-        )
-        return df_elus
-    df_elus = df_elus[
-        [
-            colname,
-            "nom_elu",
-            "prenom_elu",
-            "sexe_elu",
-            "date_naissance_elu",
-            "libelle_fonction",
-        ]
+
+    column_mapping = {
+        "Nom de l'élu": "nom_elu",
+        "Prénom de l'élu": "prenom_elu",
+        "Code sexe": "sexe_elu",
+        "Date de naissance": "date_naissance_elu",
+        "Libellé de la fonction": "libelle_fonction",
+    }
+
+    common_columns = [
+        colname,
+        "nom_elu",
+        "prenom_elu",
+        "sexe_elu",
+        "date_naissance_elu",
+        "libelle_fonction",
     ]
+
+    df_elus = df_elus.rename(columns=column_mapping)[common_columns]
     df_elus = df_elus.rename(
-        columns={
-            colname: "colter_code",
-            "libelle_fonction": "fonction_elu",
-        }
+        columns={colname: "colter_code", "libelle_fonction": "fonction_elu"}
     )
+
     return df_elus
