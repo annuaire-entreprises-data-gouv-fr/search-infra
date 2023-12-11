@@ -43,7 +43,8 @@ replace_table_siret_siege_query = """
             libelle_pays_etranger,
             libelle_commune_etranger_2,
             code_pays_etranger_2,
-            libelle_pays_etranger_2
+            libelle_pays_etranger_2,
+            caractere_employeur
         ) SELECT
             a.siren,
             a.siret,
@@ -87,7 +88,8 @@ replace_table_siret_siege_query = """
             a.libelle_pays_etranger,
             a.libelle_commune_etranger_2,
             a.code_pays_etranger_2,
-            a.libelle_pays_etranger_2
+            a.libelle_pays_etranger_2,
+            a.caractere_employeur
         FROM flux_siret a LEFT JOIN siretsiege b
         ON a.siret = b.siret
         WHERE a.est_siege = 'true'
