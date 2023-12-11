@@ -4,6 +4,7 @@ create_table_etablissements_query = """CREATE TABLE IF NOT EXISTS siret
             siret TEXT PRIMARY KEY,
             date_creation,
             tranche_effectif_salarie,
+            caractere_employeur,
             annee_tranche_effectif_salarie,
             date_mise_a_jour,
             activite_principale_registre_metier,

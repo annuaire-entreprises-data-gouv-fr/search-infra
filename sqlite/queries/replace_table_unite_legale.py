@@ -22,7 +22,8 @@ replace_table_unite_legale_query = """
             statut_diffusion_unite_legale,
             est_societe_mission,
             annee_categorie_entreprise,
-            annee_tranche_effectif_salarie
+            annee_tranche_effectif_salarie,
+            caractere_employeur
         ) SELECT
             a.siren,
             a.date_creation_unite_legale,
@@ -45,7 +46,8 @@ replace_table_unite_legale_query = """
             a.statut_diffusion_unite_legale,
             a.est_societe_mission,
             a.annee_categorie_entreprise,
-            a.annee_tranche_effectif_salarie
+            a.annee_tranche_effectif_salarie,
+            a.caractere_employeur
         FROM flux_unite_legale a LEFT JOIN unite_legale b
         ON a.siren = b.siren
     """

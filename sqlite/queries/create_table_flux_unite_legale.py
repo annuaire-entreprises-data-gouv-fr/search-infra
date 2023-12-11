@@ -22,6 +22,7 @@ create_table_flux_unite_legale_query = """
             statut_diffusion_unite_legale,
             est_societe_mission,
             annee_categorie_entreprise,
-            annee_tranche_effectif_salarie
+            annee_tranche_effectif_salarie,
+            caractere_employeur
         )
     """

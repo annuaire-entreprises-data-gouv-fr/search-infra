@@ -1,5 +1,6 @@
 select_fields_to_index_query = """SELECT
             ul.activite_principale_unite_legale as activite_principale_unite_legale,
+            ul.caractere_employeur as caractere_employeur,
             ul.categorie_entreprise as categorie_entreprise,
             ul.date_creation_unite_legale as date_creation_unite_legale,
             ul.date_mise_a_jour_unite_legale as date_mise_a_jour_unite_legale,
@@ -86,6 +87,7 @@ select_fields_to_index_query = """SELECT
                         'activite_principale',activite_principale,
                         'activite_principale_registre_metier',
                         activite_principale_registre_metier,
+                        'caractere_employeur',caractere_employeur,
                         'cedex',cedex,
                         'cedex_2',cedex_2,
                         'code_pays_etranger',code_pays_etranger,
@@ -142,6 +144,7 @@ select_fields_to_index_query = """SELECT
                         s.activite_principale as activite_principale,
                         s.activite_principale_registre_metier as
                         activite_principale_registre_metier,
+                        s.caractere_employeur as caractere_employeur,
                         s.cedex as cedex,
                         s.cedex_2 as cedex_2,
                         s.code_pays_etranger as code_pays_etranger,
@@ -205,6 +208,7 @@ select_fields_to_index_query = """SELECT
                         'activite_principale',activite_principale,
                         'activite_principale_registre_metier',
                         activite_principale_registre_metier,
+                        'caractere_employeur',caractere_employeur,
                         'cedex',cedex,
                         'cedex_2',cedex_2,
                         'code_pays_etranger',code_pays_etranger,
@@ -262,6 +266,7 @@ select_fields_to_index_query = """SELECT
                         s.activite_principale as activite_principale,
                         s.activite_principale_registre_metier as
                         activite_principale_registre_metier,
+                        s.caractere_employeur as caractere_employeur,
                         s.cedex as cedex,
                         s.cedex_2 as cedex_2,
                         s.code_pays_etranger as code_pays_etranger,
