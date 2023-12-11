@@ -4,6 +4,7 @@ create_table_flux_etablissements_query = """CREATE TABLE IF NOT EXISTS flux_sire
             siret TEXT PRIMARY KEY,
             date_creation,
             tranche_effectif_salarie,
+            caractere_employeur,
             annee_tranche_effectif_salarie,
             date_mise_a_jour,
             activite_principale_registre_metier,
@@ -42,5 +43,5 @@ create_table_flux_etablissements_query = """CREATE TABLE IF NOT EXISTS flux_sire
             libelle_commune_etranger_2,
             code_pays_etranger_2,
             libelle_pays_etranger_2,
-            caractere_employeur)
+            )
             """

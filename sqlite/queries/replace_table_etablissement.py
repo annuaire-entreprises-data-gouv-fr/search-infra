@@ -43,13 +43,13 @@ replace_table_etablissement_query = """
             libelle_pays_etranger,
             libelle_commune_etranger_2,
             code_pays_etranger_2,
-            libelle_pays_etranger_2,
-            caractere_employeur
+            libelle_pays_etranger_2
         ) SELECT
             a.siren,
             a.siret,
             a.date_creation,
             a.tranche_effectif_salarie,
+            a.caractere_employeur,
             a.annee_tranche_effectif_salarie,
             a.date_mise_a_jour,
             a.activite_principale_registre_metier,
@@ -87,8 +87,7 @@ replace_table_etablissement_query = """
             a.libelle_pays_etranger,
             a.libelle_commune_etranger_2,
             a.code_pays_etranger_2,
-            a.libelle_pays_etranger_2,
-            a.caractere_employeur
+            a.libelle_pays_etranger_2
         FROM flux_siret a LEFT JOIN siret b
         ON a.siret = b.siret
     """
