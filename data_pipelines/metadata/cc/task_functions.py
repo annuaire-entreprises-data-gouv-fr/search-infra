@@ -1,6 +1,8 @@
 import pandas as pd
 import requests
+import logging
 import json
+from datetime import datetime
 from dag_datalake_sirene.utils.tchap import send_message
 from dag_datalake_sirene.utils.minio_helpers import (
     send_files,
@@ -17,9 +19,38 @@ from dag_datalake_sirene.config import (
 )
 
 
+def get_month_year_french():
+    # Mapping of month numbers to French month names in lowercase
+    month_mapping = {
+        1: "janvier",
+        2: "fevrier",
+        3: "mars",
+        4: "avril",
+        5: "mai",
+        6: "juin",
+        7: "juillet",
+        8: "aout",
+        9: "septembre",
+        10: "octobre",
+        11: "novembre",
+        12: "decembre",
+    }
+
+    current_date = datetime.now()
+    month_number = current_date.month
+    month_name_french = month_mapping.get(month_number, "unknown")
+
+    year_last_two_digits = str(current_date.year)[-2:]
+    # Format the result as 'monthYear'
+    result = f"{month_name_french}{year_last_two_digits}"
+    return result
+
+
 def create_metadata_concollective_json():
-    # Get Draes list
-    r = requests.get(URL_CC_DARES, allow_redirects=True)
+    current_cc_dares_extension = f"{get_month_year_french()}.xlsx"
+    current_url_cc_dares = URL_CC_DARES + current_cc_dares_extension
+    logging.info(f"Current CC Dares URL: {current_url_cc_dares}")
+    r = requests.get(current_url_cc_dares, allow_redirects=True)
     with open(METADATA_CC_TMP_FOLDER + "dares-download.xlsx", "wb") as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)

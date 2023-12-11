@@ -133,7 +133,7 @@ URL_ESS_FRANCE = (
 )
 URL_CC_DARES = (
     "https://travail-emploi.gouv.fr/IMG/xlsx/"
-    "dares_donnes_identifiant_convention_collective_novembre23.xlsx"
+    "dares_donnes_identifiant_convention_collective_"
 )
 URL_CC_KALI = (
     "https://www.data.gouv.fr/fr/datasets/r/02b67492-5243-44e8-8dd1-0cb3f90f35ff"
