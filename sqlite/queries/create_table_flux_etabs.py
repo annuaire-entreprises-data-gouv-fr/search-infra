@@ -42,6 +42,6 @@ create_table_flux_etablissements_query = """CREATE TABLE IF NOT EXISTS flux_sire
             libelle_pays_etranger,
             libelle_commune_etranger_2,
             code_pays_etranger_2,
-            libelle_pays_etranger_2,
+            libelle_pays_etranger_2
             )
             """
