@@ -195,7 +195,6 @@ def insert_dirigeants_into_db(
                 file_path,
             ),
         )
-
     cursor.execute("SELECT COUNT(*) FROM dirigeants_pp")
     count_pp = cursor.fetchone()[0]
 
@@ -308,7 +307,9 @@ def extract_dirigeants_data(entity, file_type="flux"):
                 "code_insee_commune": adresse_entreprise.get("codeInseeCommune", None),
                 "voie": adresse_entreprise.get("voie", None),
             }
+
             list_dirigeants_pm.append(dirigeant_pm)
+
         elif is_personne_physique:
             entrepreneur = dirigeant.get("entrepreneur", {}).get(
                 "descriptionPersonne", {}
@@ -339,6 +340,7 @@ def extract_dirigeants_data(entity, file_type="flux"):
             # Check if dirigeant_pp["prenoms"] is a list
             if isinstance(dirigeant_pp["prenoms"], list):
                 dirigeant_pp["prenoms"] = " ".join(dirigeant_pp["prenoms"])
+
             list_dirigeants_pp.append(dirigeant_pp)
 
     return list_dirigeants_pp, list_dirigeants_pm
