@@ -123,6 +123,11 @@ def find_and_delete_same_siren(cursor, siren, file_path):
     count_already_existing_siren = cursor.fetchone()[0]
     # If existing rows are found, delete them as they are outdated
     if count_already_existing_siren is not None:
+        if siren == "980471080":
+            logging.info(
+                f"%%%%%%%%%%%%%%already exists: {count_already_existing_siren}:"
+                f"file path: {file_path}"
+            )
         cursor.execute(
             "DELETE FROM dirigeants_pp WHERE siren = ? AND file_name != ?",
             (siren, file_path),
@@ -195,6 +200,7 @@ def insert_dirigeants_into_db(
                 file_path,
             ),
         )
+
     cursor.execute("SELECT COUNT(*) FROM dirigeants_pp")
     count_pp = cursor.fetchone()[0]
 
@@ -219,30 +225,34 @@ def get_tables_count(db_path):
     return count_pp, count_pm
 
 
-def get_company_data_from_stock(entity):
-    siren = entity.get("siren")
-    date_maj = entity.get("updatedAt")
-    dirigeants = (
-        entity.get("formality", {})
-        .get("content", {})
-        .get("personneMorale", {})
-        .get("composition", {})
-        .get("pouvoirs", [])
-    )
-    return siren, date_maj, dirigeants
+def get_dirigeants_from_entity(entity, type_doc="flux"):
+    if type_doc == "flux":
+        company = entity.get("company", {})
+    elif type_doc == "stock":
+        company = entity
+    siren = company.get("siren")
+    date_maj = company.get("updatedAt")
 
-
-def get_company_data_from_flux(entity):
-    siren = entity.get("company", {}).get("siren")
-    date_maj = entity.get("company", {}).get("updatedAt")
-    dirigeants = (
-        entity.get("company", {})
-        .get("formality", {})
-        .get("content", {})
-        .get("exploitation", {})
-        .get("composition", {})
-        .get("pouvoirs", [])
+    bloc_exploitation = (
+        company.get("formality", {}).get("content", {}).get("exploitation", {})
     )
+
+    bloc_personne_morale = (
+        company.get("formality", {}).get("content", {}).get("personneMorale", {})
+    )
+
+    bloc_personne_physique = (
+        company.get("formality", {}).get("content", {}).get("personnePyhisqiue", {})
+    )
+
+    if bloc_exploitation:
+        dirigeants = bloc_exploitation.get("composition", {}).get("pouvoirs", [])
+    elif bloc_personne_morale:
+        dirigeants = bloc_personne_morale.get("composition", {}).get("pouvoirs", [])
+    elif bloc_personne_physique:
+        dirigeants = [bloc_personne_physique.get("identite", {})]
+    else:
+        dirigeants = []
     return siren, date_maj, dirigeants
 
 
@@ -251,16 +261,13 @@ def extract_dirigeants_data(entity, file_type="flux"):
     list_dirigeants_pp = []
     list_dirigeants_pm = []
 
-    if file_type == "flux":
-        siren, date_maj, dirigeants = get_company_data_from_flux(entity)
-
-    elif file_type == "stock":
-        siren, date_maj, dirigeants = get_company_data_from_stock(entity)
+    siren, date_maj, dirigeants = get_dirigeants_from_entity(entity, file_type)
 
     for dirigeant in dirigeants:
-        type_de_personne = dirigeant.get("typeDePersonne", None)
+        type_of_personne = dirigeant.get("typeDePersonne", None)
+        is_personne_physique = True if dirigeant.get("entrepreneur", {}) else False
 
-        if type_de_personne == "INDIVIDU":
+        if type_of_personne == "INDIVIDU":
             individu = dirigeant.get("individu", {}).get("descriptionPersonne", {})
             adresse_domicile = dirigeant.get("individu", {}).get("adresseDomicile", {})
 
@@ -288,7 +295,7 @@ def extract_dirigeants_data(entity, file_type="flux"):
 
             list_dirigeants_pp.append(dirigeant_pp)
 
-        elif type_de_personne == "ENTREPRISE":
+        elif type_of_personne == "ENTREPRISE":
             entreprise = dirigeant.get("entreprise", {})
             adresse_entreprise = dirigeant.get("adresseEntreprise", {})
 
@@ -306,7 +313,37 @@ def extract_dirigeants_data(entity, file_type="flux"):
                 "code_insee_commune": adresse_entreprise.get("codeInseeCommune", None),
                 "voie": adresse_entreprise.get("voie", None),
             }
-
             list_dirigeants_pm.append(dirigeant_pm)
+        elif is_personne_physique:
+            entrepreneur = dirigeant.get("entrepreneur", {}).get(
+                "descriptionPersonne", {}
+            )
+            adresse_domicile = dirigeant.get("entrepreneur", {}).get(
+                "adresseDomicile", {}
+            )
+            dirigeant_pp = {
+                "siren": siren,
+                "date_mise_a_jour": date_maj,
+                "date_de_naissance": entrepreneur.get("dateDeNaissance", None),
+                "role": entrepreneur.get("role", None),
+                "nom": entrepreneur.get("nom", None),
+                "nom_usage": entrepreneur.get("nomUsage", None),
+                "prenoms": entrepreneur.get("prenoms", None),
+                "genre": entrepreneur.get("genre", None),
+                "nationalite": entrepreneur.get("nationalite", None),
+                "situation_matrimoniale": entrepreneur.get(
+                    "situationMatrimoniale", None
+                ),
+                "pays": adresse_domicile.get("pays", None),
+                "code_pays": adresse_domicile.get("codePays", None),
+                "code_postal": adresse_domicile.get("codePostal", None),
+                "commune": adresse_domicile.get("commune", None),
+                "code_insee_commune": adresse_domicile.get("codeInseeCommune", None),
+                "voie": adresse_domicile.get("voie", None),
+            }
+            # Check if dirigeant_pp["prenoms"] is a list
+            if isinstance(dirigeant_pp["prenoms"], list):
+                dirigeant_pp["prenoms"] = " ".join(dirigeant_pp["prenoms"])
+            list_dirigeants_pp.append(dirigeant_pp)
 
     return list_dirigeants_pp, list_dirigeants_pm
