@@ -123,11 +123,6 @@ def find_and_delete_same_siren(cursor, siren, file_path):
     count_already_existing_siren = cursor.fetchone()[0]
     # If existing rows are found, delete them as they are outdated
     if count_already_existing_siren is not None:
-        if siren == "980471080":
-            logging.info(
-                f"%%%%%%%%%%%%%%already exists: {count_already_existing_siren}:"
-                f"file path: {file_path}"
-            )
         cursor.execute(
             "DELETE FROM dirigeants_pp WHERE siren = ? AND file_name != ?",
             (siren, file_path),
