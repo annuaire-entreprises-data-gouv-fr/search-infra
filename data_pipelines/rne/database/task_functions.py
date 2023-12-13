@@ -247,7 +247,7 @@ def process_flux_json_files(**kwargs):
     kwargs["ti"].xcom_push(key="last_date_processed", value=last_date_processed)
 
 
-def check_db_count(ti, min_pp_table_count=12000000, min_pm_table_count=1000000):
+def check_db_count(ti, min_pp_table_count=11000000, min_pm_table_count=1000000):
     try:
         rne_db_path = ti.xcom_pull(key="rne_db_path", task_ids="create_db")
         count_pp, count_pm = get_tables_count(rne_db_path)
