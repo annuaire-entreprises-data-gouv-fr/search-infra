@@ -219,11 +219,7 @@ def get_tables_count(db_path):
     return count_pp, count_pm
 
 
-def get_dirigeants_from_entity(entity, type_doc="flux"):
-    if type_doc == "flux":
-        company = entity.get("company", {})
-    elif type_doc == "stock":
-        company = entity
+def get_dirigeants_from_company(company):
     siren = company.get("siren")
     date_maj = company.get("updatedAt")
 
@@ -255,7 +251,12 @@ def extract_dirigeants_data(entity, file_type="flux"):
     list_dirigeants_pp = []
     list_dirigeants_pm = []
 
-    siren, date_maj, dirigeants = get_dirigeants_from_entity(entity, file_type)
+    if file_type == "flux":
+        company = entity.get("company", {})
+    elif file_type == "stock":
+        company = entity
+
+    siren, date_maj, dirigeants = get_dirigeants_from_company(company)
 
     for dirigeant in dirigeants:
         type_of_personne = dirigeant.get("typeDePersonne", None)
