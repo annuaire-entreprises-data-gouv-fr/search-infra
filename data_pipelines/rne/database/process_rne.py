@@ -251,10 +251,7 @@ def extract_dirigeants_data(entity, file_type="flux"):
     list_dirigeants_pp = []
     list_dirigeants_pm = []
 
-    if file_type == "flux":
-        company = entity.get("company", {})
-    elif file_type == "stock":
-        company = entity
+    company = entity.get("company", {}) if file_type == "flux" else entity
 
     siren, date_maj, dirigeants = get_dirigeants_from_company(company)
 
