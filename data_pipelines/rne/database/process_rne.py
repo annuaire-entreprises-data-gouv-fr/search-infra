@@ -3,6 +3,9 @@ import json
 from dag_datalake_sirene.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
 )
+from dag_datalake_sirene.data_pipelines.rne.database.rne_model import (
+    RNECompany,
+)
 
 
 def create_tables(cursor):
@@ -41,11 +44,6 @@ def create_tables(cursor):
             role TEXT,
             forme_juridique TEXT,
             pays TEXT,
-            code_pays TEXT,
-            code_postal TEXT,
-            commune TEXT,
-            code_insee_commune TEXT,
-            voie TEXT,
             file_name TEXT
         )
     """
@@ -175,9 +173,8 @@ def insert_dirigeants_into_db(
             """
             INSERT INTO dirigeants_pm
             (siren, date_mise_a_jour, denomination, siren_dirigeant, role,
-                                        forme_juridique, pays, code_pays, code_postal,
-                                        commune, code_insee_commune, voie, file_name)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                        forme_juridique, pays, file_name)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
                 dirigeant_pm["siren"],
@@ -187,11 +184,6 @@ def insert_dirigeants_into_db(
                 dirigeant_pm["role"],
                 dirigeant_pm["forme_juridique"],
                 dirigeant_pm["pays"],
-                dirigeant_pm["code_pays"],
-                dirigeant_pm["code_postal"],
-                dirigeant_pm["commune"],
-                dirigeant_pm["code_insee_commune"],
-                dirigeant_pm["voie"],
                 file_path,
             ),
         )
@@ -219,126 +211,73 @@ def get_tables_count(db_path):
     return count_pp, count_pm
 
 
-def get_dirigeants_from_company(company):
-    siren = company.get("siren")
-    date_maj = company.get("updatedAt")
-
-    bloc_exploitation = (
-        company.get("formality", {}).get("content", {}).get("exploitation", {})
-    )
-
-    bloc_personne_morale = (
-        company.get("formality", {}).get("content", {}).get("personneMorale", {})
-    )
-
-    bloc_personne_physique = (
-        company.get("formality", {}).get("content", {}).get("personnePyhisqiue", {})
-    )
-
-    if bloc_exploitation:
-        dirigeants = bloc_exploitation.get("composition", {}).get("pouvoirs", [])
-    elif bloc_personne_morale:
-        dirigeants = bloc_personne_morale.get("composition", {}).get("pouvoirs", [])
-    elif bloc_personne_physique:
-        dirigeants = [bloc_personne_physique.get("identite", {})]
-    else:
-        dirigeants = []
-    return siren, date_maj, dirigeants
-
-
 def extract_dirigeants_data(entity, file_type="flux"):
-    """Extract and categorize "dirigeants" by type."""
+    """Extract and format "dirigeants" by type."""
     list_dirigeants_pp = []
     list_dirigeants_pm = []
 
     company = entity.get("company", {}) if file_type == "flux" else entity
 
-    siren, date_maj, dirigeants = get_dirigeants_from_company(company)
+    rne_company = RNECompany.model_validate(company)
+    siren = rne_company.siren
+    date_maj = rne_company.updatedAt
+    dirigeants = rne_company.dirigeants
 
     for dirigeant in dirigeants:
-        type_of_personne = dirigeant.get("typeDePersonne", None)
-        is_personne_physique = True if dirigeant.get("entrepreneur", {}) else False
+        # Cas personne morale et exploitation
+        if hasattr(dirigeant, "typeDePersonne"):
+            if dirigeant.typeDePersonne == "INDIVIDU":
+                list_dirigeants_pp.append(
+                    format_dirigeant_pp_fields(dirigeant.individu, siren, date_maj)
+                )
 
-        if type_of_personne == "INDIVIDU":
-            individu = dirigeant.get("individu", {}).get("descriptionPersonne", {})
-            adresse_domicile = dirigeant.get("individu", {}).get("adresseDomicile", {})
-
-            dirigeant_pp = {
-                "siren": siren,
-                "date_mise_a_jour": date_maj,
-                "date_de_naissance": individu.get("dateDeNaissance", None),
-                "role": individu.get("role", None),
-                "nom": individu.get("nom", None),
-                "nom_usage": individu.get("nomUsage", None),
-                "prenoms": individu.get("prenoms", None),
-                "genre": individu.get("genre", None),
-                "nationalite": individu.get("nationalite", None),
-                "situation_matrimoniale": individu.get("situationMatrimoniale", None),
-                "pays": adresse_domicile.get("pays", None),
-                "code_pays": adresse_domicile.get("codePays", None),
-                "code_postal": adresse_domicile.get("codePostal", None),
-                "commune": adresse_domicile.get("commune", None),
-                "code_insee_commune": adresse_domicile.get("codeInseeCommune", None),
-                "voie": adresse_domicile.get("voie", None),
-            }
-            # Check if dirigeant_pp["prenoms"] is a list
-            if isinstance(dirigeant_pp["prenoms"], list):
-                dirigeant_pp["prenoms"] = " ".join(dirigeant_pp["prenoms"])
-
-            list_dirigeants_pp.append(dirigeant_pp)
-
-        elif type_of_personne == "ENTREPRISE":
-            entreprise = dirigeant.get("entreprise", {})
-            adresse_entreprise = dirigeant.get("adresseEntreprise", {})
-
-            dirigeant_pm = {
-                "siren": siren,
-                "date_mise_a_jour": date_maj,
-                "denomination": entreprise.get("denomination", None),
-                "siren_dirigeant": entreprise.get("siren", None),
-                "role": entreprise.get("roleEntreprise", None),
-                "forme_juridique": entreprise.get("formeJuridique", None),
-                "pays": adresse_entreprise.get("pays", None),
-                "code_pays": adresse_entreprise.get("codePays", None),
-                "code_postal": adresse_entreprise.get("codePostal", None),
-                "commune": adresse_entreprise.get("commune", None),
-                "code_insee_commune": adresse_entreprise.get("codeInseeCommune", None),
-                "voie": adresse_entreprise.get("voie", None),
-            }
-
-            list_dirigeants_pm.append(dirigeant_pm)
-
-        elif is_personne_physique:
-            entrepreneur = dirigeant.get("entrepreneur", {}).get(
-                "descriptionPersonne", {}
+            elif dirigeant.typeDePersonne == "ENTREPRISE":
+                list_dirigeants_pm.append(
+                    format_dirigeant_pm_fields(dirigeant.entreprise, siren, date_maj)
+                )
+        else:
+            # Cas personne physique
+            list_dirigeants_pp.append(
+                format_dirigeant_pp_fields(dirigeant, siren, date_maj)
             )
-            adresse_domicile = dirigeant.get("entrepreneur", {}).get(
-                "adresseDomicile", {}
-            )
-            dirigeant_pp = {
-                "siren": siren,
-                "date_mise_a_jour": date_maj,
-                "date_de_naissance": entrepreneur.get("dateDeNaissance", None),
-                "role": entrepreneur.get("role", None),
-                "nom": entrepreneur.get("nom", None),
-                "nom_usage": entrepreneur.get("nomUsage", None),
-                "prenoms": entrepreneur.get("prenoms", None),
-                "genre": entrepreneur.get("genre", None),
-                "nationalite": entrepreneur.get("nationalite", None),
-                "situation_matrimoniale": entrepreneur.get(
-                    "situationMatrimoniale", None
-                ),
-                "pays": adresse_domicile.get("pays", None),
-                "code_pays": adresse_domicile.get("codePays", None),
-                "code_postal": adresse_domicile.get("codePostal", None),
-                "commune": adresse_domicile.get("commune", None),
-                "code_insee_commune": adresse_domicile.get("codeInseeCommune", None),
-                "voie": adresse_domicile.get("voie", None),
-            }
-            # Check if dirigeant_pp["prenoms"] is a list
-            if isinstance(dirigeant_pp["prenoms"], list):
-                dirigeant_pp["prenoms"] = " ".join(dirigeant_pp["prenoms"])
-
-            list_dirigeants_pp.append(dirigeant_pp)
 
     return list_dirigeants_pp, list_dirigeants_pm
+
+
+def format_dirigeant_pp_fields(dirigeant, siren, date_maj):
+    individu = dirigeant.descriptionPersonne
+    adresse_domicile = dirigeant.adresseDomicile
+    dirigeant_formated = {
+        "siren": siren,
+        "date_mise_a_jour": date_maj,
+        "date_de_naissance": individu.dateDeNaissance,
+        "role": individu.role,
+        "nom": individu.nom,
+        "nom_usage": individu.nomUsage,
+        "prenoms": " ".join(individu.prenoms)
+        if isinstance(individu.prenoms, list)
+        else individu.prenoms,
+        "genre": individu.genre,
+        "nationalite": individu.nationalite,
+        "situation_matrimoniale": individu.situationMatrimoniale,
+        "pays": adresse_domicile.pays,
+        "code_pays": adresse_domicile.codePays,
+        "code_postal": adresse_domicile.codePostal,
+        "commune": adresse_domicile.commune,
+        "code_insee_commune": adresse_domicile.codeInseeCommune,
+        "voie": adresse_domicile.voie,
+    }
+    return dirigeant_formated
+
+
+def format_dirigeant_pm_fields(dirigeant, siren, date_maj):
+    dirigeant_formated = {
+        "siren": siren,
+        "date_mise_a_jour": date_maj,
+        "denomination": dirigeant.denomination,
+        "siren_dirigeant": dirigeant.siren,
+        "role": dirigeant.role,
+        "forme_juridique": dirigeant.formeJuridique,
+        "pays": dirigeant.pays,
+    }
+    return dirigeant_formated
