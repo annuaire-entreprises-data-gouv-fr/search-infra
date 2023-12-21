@@ -110,23 +110,11 @@ class RNECompany(BaseModel):
     @property
     def dirigeants(self):
         if self.is_personne_morale():
-            return (
-                self.formality.content.personneMorale.dirigeants
-                if hasattr(self.formality.content.personneMorale, "dirigeants")
-                else []
-            )
+            return self.formality.content.personneMorale.dirigeants
         elif self.is_exploitation():
-            return (
-                self.formality.content.exploitation.dirigeants
-                if hasattr(self.formality.content.exploitation, "dirigeants")
-                else []
-            )
+            return self.formality.content.exploitation.dirigeants
         elif self.is_personne_physique():
-            return (
-                self.formality.content.personnePhysique.dirigeants
-                if hasattr(self.formality.content.personnePhysique, "dirigeants")
-                else []
-            )
+            return self.formality.content.personnePhysique.dirigeants
         else:
             return []
 
