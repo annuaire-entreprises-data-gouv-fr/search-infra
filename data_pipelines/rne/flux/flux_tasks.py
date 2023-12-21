@@ -77,35 +77,41 @@ def get_last_siren(ti):
     Raises:
     - Exception: If no valid JSON is found in the specified file.
     """
-    last_json_file_path = get_latest_json_file(ti)
+    try:
+        last_json_file_path = get_latest_json_file(ti)
 
-    with open(last_json_file_path, "r") as file:
-        json_lines = file.readlines()
+        with open(last_json_file_path, "r") as file:
+            json_lines = file.readlines()
 
-    while json_lines:
-        last_line = json_lines[-1]
-        try:
-            latest_dict = json.loads(last_line)
-            latest_company = latest_dict[-1]["company"]
-            last_siren = latest_company.get("siren")
-            if last_siren is not None:
+        while json_lines:
+            last_line = json_lines[-1]
+            try:
+                latest_dict = json.loads(last_line)
+                latest_company = latest_dict[-1]["company"]
+                last_siren = latest_company.get("siren")
+                if last_siren is not None:
+                    logging.info(
+                        f"****Last siren in saved file "
+                        f"{last_json_file_path}: {last_siren}"
+                    )
+                    break
+                else:
+                    logging.info("No 'siren' key found in the decoded JSON.")
+            except json.JSONDecodeError:
                 logging.info(
-                    f"****Last siren in saved file {last_json_file_path}: {last_siren}"
+                    "Error decoding JSON. Removing last line and trying again."
                 )
-                break
-            else:
-                logging.info("No 'siren' key found in the decoded JSON.")
-        except json.JSONDecodeError:
-            logging.info("Error decoding JSON. Removing last line and trying again.")
-            json_lines.pop()
-            continue
+                json_lines.pop()
+                continue
 
-    if not json_lines:
-        raise Exception(f"No valid JSON found in the file: {last_json_file_path}")
+        if not json_lines:
+            raise Exception(f"No valid JSON found in the file: {last_json_file_path}")
 
-    with open(last_json_file_path, "w") as file:
-        file.writelines(json_lines)
-    return last_siren
+        with open(last_json_file_path, "w") as file:
+            file.writelines(json_lines)
+        return last_siren
+    except Exception:
+        return None
 
 
 def compute_start_date():
