@@ -78,5 +78,5 @@ def get_latest_database(**kwargs):
 
     else:
         raise Exception(
-            f"No dates in databse files were found : {SIRENE_MINIO_DATA_PATH}"
+            f"No dates in database files were found : {SIRENE_MINIO_DATA_PATH}"
         )
