@@ -22,5 +22,5 @@ def send_notification_preprocessing_failure_tchap(context):
     send_message("\U0001F534 Données :" "\nFail DAG de preprocessing sirene!!!!")
 
 
-def send_notification_indexation_failure_tchap(context):
+def send_notification_indexing_failure_tchap(context):
     send_message("\U0001F534 Données :" "\nFail DAG d'indexation!!!!")
