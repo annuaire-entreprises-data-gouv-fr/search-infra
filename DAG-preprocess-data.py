@@ -59,8 +59,8 @@ from dag_datalake_sirene.task_functions.replace_unite_legale_table import (
     replace_unite_legale_table,
 )
 from dag_datalake_sirene.task_functions.send_notification import (
-    send_notification_success_preprocessing_tchap,
-    send_notification_failure_preprocessing_tchap,
+    send_notification_preprocessing_success_tchap,
+    send_notification_preprocessing_failure_tchap,
 )
 from dag_datalake_sirene.task_functions.upload_db import upload_db_to_minio
 from operators.clean_folder import CleanFolderOperator
@@ -92,7 +92,7 @@ with DAG(
     dagrun_timeout=timedelta(minutes=60 * 5),
     tags=["preprocessing", "data"],
     catchup=False,  # False to ignore past runs
-    on_failure_callback=send_notification_failure_preprocessing_tchap,
+    on_failure_callback=send_notification_preprocessing_failure_tchap,
     max_active_runs=1,
 ) as dag:
     clean_previous_folder = CleanFolderOperator(
@@ -285,7 +285,7 @@ with DAG(
 
     send_notification_tchap = PythonOperator(
         task_id="send_notification_tchap",
-        python_callable=send_notification_success_preprocessing_tchap,
+        python_callable=send_notification_preprocessing_success_tchap,
     )
 
     create_sqlite_database.set_upstream(clean_previous_folder)

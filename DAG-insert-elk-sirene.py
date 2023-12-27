@@ -20,8 +20,8 @@ from dag_datalake_sirene.task_functions.upload_db import (
 )
 
 from dag_datalake_sirene.task_functions.send_notification import (
-    send_notification_success_indexation_tchap,
-    send_notification_failure_indexation_tchap,
+    send_notification_indexing_success_tchap,
+    send_notification_indexing_failure_tchap,
 )
 from dag_datalake_sirene.task_functions.update_color_file import update_color_file
 from dag_datalake_sirene.task_functions.update_sitemap import update_sitemap
@@ -58,7 +58,7 @@ with DAG(
     dagrun_timeout=timedelta(minutes=60 * 15),
     tags=["siren"],
     catchup=False,  # False to ignore past runs
-    on_failure_callback=send_notification_failure_indexation_tchap,
+    on_failure_callback=send_notification_indexing_failure_tchap,
     max_active_runs=1,
 ) as dag:
     get_colors = PythonOperator(
@@ -155,7 +155,7 @@ with DAG(
 
     send_notification_tchap = PythonOperator(
         task_id="send_notification_tchap",
-        python_callable=send_notification_success_indexation_tchap,
+        python_callable=send_notification_indexing_success_tchap,
     )
 
     clean_previous_folder.set_upstream(get_colors)
