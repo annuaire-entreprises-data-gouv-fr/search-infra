@@ -8,7 +8,7 @@ from dag_datalake_sirene.config import (
     MINIO_USER,
     MINIO_PASSWORD,
     SIRENE_MINIO_DATA_PATH,
-    SIRENE_DATABASE_LOCATION,
+    AIRFLOW_PREPROCESSING_DATA_DIR,
     AIRFLOW_INDEXING_DATA_DIR,
 )
 from dag_datalake_sirene.utils.minio_helpers import (
@@ -34,8 +34,8 @@ def upload_db_to_minio(**kwargs):
     send_to_minio(
         [
             {
-                "source_path": SIRENE_DATABASE_LOCATION,
-                "source_name": "",
+                "source_path": AIRFLOW_PREPROCESSING_DATA_DIR,
+                "source_name": "sirene.db",
                 "dest_path": SIRENE_MINIO_DATA_PATH,
                 "dest_name": f"sirene_{current_date}.db",
             }
