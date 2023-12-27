@@ -60,7 +60,7 @@ def get_latest_database(**kwargs):
 
     if dates:
         last_date = dates[-1]
-        logging.info(f"***** Last databse saved: {last_date}")
+        logging.info(f"***** Last database saved: {last_date}")
         get_files(
             MINIO_URL=MINIO_URL,
             MINIO_BUCKET=MINIO_BUCKET,
