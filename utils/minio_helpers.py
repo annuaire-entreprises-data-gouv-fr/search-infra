@@ -65,11 +65,10 @@ def send_files(
                 )
             else:
                 raise Exception(
-                    f"file {file['source_path']}{file['source_name']} "
-                    "does not exists"
+                    f"file {file['source_path']}{file['source_name']} " "does not exist"
                 )
     else:
-        raise Exception(f"Bucket {MINIO_BUCKET} does not exists")
+        raise Exception(f"Bucket {MINIO_BUCKET} does not exist")
 
 
 def get_files_from_prefix(
