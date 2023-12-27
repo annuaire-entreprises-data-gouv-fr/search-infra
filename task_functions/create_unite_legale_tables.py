@@ -16,7 +16,7 @@ from dag_datalake_sirene.sqlite.queries.create_table_unite_legale import (
 from dag_datalake_sirene.task_functions.create_and_fill_table_model import (
     create_table_model,
 )
-from dag_datalake_sirene.config import AIRFLOW_DATA_DIR
+from dag_datalake_sirene.config import AIRFLOW_PREPROCESSING_DATA_DIR
 
 
 def create_table(query, table_name, index, sirene_file_type):
@@ -28,7 +28,7 @@ def create_table(query, table_name, index, sirene_file_type):
         index_column="siren",
     )
     for df_unite_legale in preprocess_unite_legale_data(
-        AIRFLOW_DATA_DIR, sirene_file_type
+        AIRFLOW_PREPROCESSING_DATA_DIR, sirene_file_type
     ):
         df_unite_legale.to_sql(
             table_name, sqlite_client.db_conn, if_exists="append", index=False

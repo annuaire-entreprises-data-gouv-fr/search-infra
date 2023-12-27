@@ -8,7 +8,7 @@ from dag_datalake_sirene.sqlite.queries.helpers import (
 )
 
 from dag_datalake_sirene.config import (
-    AIRFLOW_DATA_DIR,
+    AIRFLOW_PREPROCESSING_DATA_DIR,
     SIRENE_DATABASE_LOCATION,
 )
 
@@ -25,7 +25,7 @@ def create_and_fill_table_model(
     sqlite_client.execute(drop_table(table_name))
     sqlite_client.execute(create_table_query)
     sqlite_client.execute(create_index_func(index_name, table_name, index_column))
-    df_table = preprocess_table_data(data_dir=AIRFLOW_DATA_DIR)
+    df_table = preprocess_table_data(data_dir=AIRFLOW_PREPROCESSING_DATA_DIR)
     df_table.to_sql(table_name, sqlite_client.db_conn, if_exists="append", index=False)
     del df_table
     for row in sqlite_client.execute(get_table_count(table_name)):

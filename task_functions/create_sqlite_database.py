@@ -6,15 +6,17 @@ import shutil
 from dag_datalake_sirene.sqlite.sqlite_client import SqliteClient
 
 from dag_datalake_sirene.config import (
-    AIRFLOW_DATA_DIR,
+    AIRFLOW_PREPROCESSING_DATA_DIR,
     SIRENE_DATABASE_LOCATION,
 )
 
 
 def create_sqlite_database():
-    if os.path.exists(AIRFLOW_DATA_DIR) and os.path.isdir(AIRFLOW_DATA_DIR):
-        shutil.rmtree(AIRFLOW_DATA_DIR)
-    os.makedirs(os.path.dirname(AIRFLOW_DATA_DIR), exist_ok=True)
+    if os.path.exists(AIRFLOW_PREPROCESSING_DATA_DIR) and os.path.isdir(
+        AIRFLOW_PREPROCESSING_DATA_DIR
+    ):
+        shutil.rmtree(AIRFLOW_PREPROCESSING_DATA_DIR)
+    os.makedirs(os.path.dirname(AIRFLOW_PREPROCESSING_DATA_DIR), exist_ok=True)
     if os.path.exists(SIRENE_DATABASE_LOCATION):
         os.remove(SIRENE_DATABASE_LOCATION)
         logging.info(
