@@ -4,7 +4,7 @@ import os
 import json
 import re
 import logging
-from dag_datalake_sirene.utils.minio_helpers import (
+from dag_datalake_sirene.helpers.minio_helpers import (
     get_files_from_prefix,
     send_files,
     get_files,
@@ -17,7 +17,7 @@ from dag_datalake_sirene.data_pipelines.rne.database.process_rne import (
 from dag_datalake_sirene.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
 )
-from dag_datalake_sirene.utils.tchap import send_message
+from dag_datalake_sirene.helpers.tchap import send_message
 from dag_datalake_sirene.config import (
     MINIO_BUCKET,
     MINIO_URL,

@@ -3,8 +3,8 @@ import json
 from datetime import datetime, timedelta
 import re
 import logging
-from dag_datalake_sirene.utils.tchap import send_message
-from dag_datalake_sirene.utils.minio_helpers import (
+from dag_datalake_sirene.helpers.tchap import send_message
+from dag_datalake_sirene.helpers.minio_helpers import (
     get_files_from_prefix,
     get_object_minio,
     send_files,

@@ -1,7 +1,7 @@
 import logging
 
 
-from dag_datalake_sirene.utils.sqlite_client import SqliteClient
+from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 
 
 from dag_datalake_sirene.config import (

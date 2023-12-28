@@ -3,8 +3,8 @@ import requests
 import logging
 import json
 from datetime import datetime
-from dag_datalake_sirene.utils.tchap import send_message
-from dag_datalake_sirene.utils.minio_helpers import (
+from dag_datalake_sirene.helpers.tchap import send_message
+from dag_datalake_sirene.helpers.minio_helpers import (
     send_files,
 )
 from dag_datalake_sirene.config import (

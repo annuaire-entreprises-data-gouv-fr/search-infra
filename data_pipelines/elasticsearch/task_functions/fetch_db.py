@@ -10,7 +10,7 @@ from dag_datalake_sirene.config import (
     SIRENE_MINIO_DATA_PATH,
     AIRFLOW_ELK_DATA_DIR,
 )
-from dag_datalake_sirene.utils.minio_helpers import (
+from dag_datalake_sirene.helpers.minio_helpers import (
     get_files_from_prefix,
     get_files,
 )

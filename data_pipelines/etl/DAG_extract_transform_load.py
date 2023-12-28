@@ -50,7 +50,7 @@ from dag_datalake_sirene.data_pipelines.etl.task_functions.create_unite_legale_t
     replace_unite_legale_table,
 )
 # fmt: on
-from dag_datalake_sirene.utils.minio_helpers import (
+from dag_datalake_sirene.helpers.minio_helpers import (
     get_latest_file_minio,
 )
 

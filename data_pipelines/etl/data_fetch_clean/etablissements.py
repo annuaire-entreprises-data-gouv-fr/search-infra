@@ -1,7 +1,7 @@
 import logging
 import pandas as pd
 from datetime import datetime, timedelta
-from dag_datalake_sirene.utils.minio_helpers import (
+from dag_datalake_sirene.helpers.minio_helpers import (
     get_object_minio,
 )
 from dag_datalake_sirene.config import (

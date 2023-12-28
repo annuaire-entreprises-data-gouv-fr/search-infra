@@ -1,5 +1,5 @@
 import pytest
-from helpers.clean_dirigeants import (
+from dag_datalake_sirene.utils.clean_dirigeants import (
     drop_duplicates_dirigeants_pm,
     drop_duplicates_dirigeants_pp,
 )

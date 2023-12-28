@@ -8,7 +8,7 @@ from dag_datalake_sirene.config import (
     SIRENE_MINIO_DATA_PATH,
     AIRFLOW_ETL_DATA_DIR,
 )
-from dag_datalake_sirene.utils.minio_helpers import send_files
+from dag_datalake_sirene.helpers.minio_helpers import send_files
 
 current_date = datetime.now().date()
 

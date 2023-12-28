@@ -1,4 +1,4 @@
-from dag_datalake_sirene.utils.tchap import send_message
+from dag_datalake_sirene.helpers.tchap import send_message
 
 
 def send_notification_success_tchap(**kwargs):

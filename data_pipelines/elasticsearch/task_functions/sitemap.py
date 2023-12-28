@@ -7,7 +7,7 @@ from dag_datalake_sirene.data_pipelines.elasticsearch.data_enrichment import (
     format_slug,
 )
 
-from dag_datalake_sirene.utils.sqlite_client import SqliteClient
+from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 from dag_datalake_sirene.data_pipelines.elasticsearch.sqlite.sitemap import (
     select_sitemap_fields_query,
 )

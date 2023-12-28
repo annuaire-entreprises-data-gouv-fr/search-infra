@@ -10,7 +10,7 @@ from dag_datalake_sirene.data_pipelines.elasticsearch.task_functions.index impor
     fill_elastic_siren_index,
 )
 
-from dag_datalake_sirene.utils.get_colors import get_colors
+from dag_datalake_sirene.helpers.get_colors import get_colors
 
 from dag_datalake_sirene.data_pipelines.elasticsearch.task_functions.sitemap import (
     create_sitemap,
@@ -20,7 +20,7 @@ from dag_datalake_sirene.data_pipelines.elasticsearch.task_functions.fetch_db im
     get_latest_database,
 )
 
-from dag_datalake_sirene.utils.flush_cache import flush_cache
+from dag_datalake_sirene.helpers.flush_cache import flush_cache
 
 # fmt: off
 from dag_datalake_sirene.data_pipelines.elasticsearch.task_functions.send_notification\
@@ -29,7 +29,7 @@ from dag_datalake_sirene.data_pipelines.elasticsearch.task_functions.send_notifi
     send_notification_failure_tchap,
 )
 # fmt: on
-from dag_datalake_sirene.utils.update_color_file import update_color_file
+from dag_datalake_sirene.helpers.update_color_file import update_color_file
 from dag_datalake_sirene.tests.e2e_tests.run_tests import run_e2e_tests
 from dag_datalake_sirene.config import (
     AIRFLOW_DAG_TMP,

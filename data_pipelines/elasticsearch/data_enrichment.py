@@ -2,12 +2,14 @@ import json
 import logging
 from slugify import slugify
 
-from dag_datalake_sirene.helpers.clean_dirigeants import (
+from dag_datalake_sirene.data_pipelines.elasticsearch.clean_data import (
     drop_duplicates_dirigeants_pm,
     drop_duplicates_dirigeants_pp,
     unique_qualites,
 )
-from dag_datalake_sirene.helpers.es_fields import get_elasticsearch_field_name
+from dag_datalake_sirene.data_pipelines.elasticsearch.es_fields import (
+    get_elasticsearch_field_name,
+)
 from dag_datalake_sirene.helpers.utils import (
     drop_exact_duplicates,
     get_empty_string_if_none,

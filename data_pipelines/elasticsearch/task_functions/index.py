@@ -4,7 +4,7 @@ from elasticsearch_dsl import connections
 from dag_datalake_sirene.data_pipelines.elasticsearch.create_index import (
     ElasticCreateIndex,
 )
-from dag_datalake_sirene.utils.sqlite_client import SqliteClient
+from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 from dag_datalake_sirene.data_pipelines.elasticsearch.sqlite.fields_to_index import (
     select_fields_to_index_query,
 )
