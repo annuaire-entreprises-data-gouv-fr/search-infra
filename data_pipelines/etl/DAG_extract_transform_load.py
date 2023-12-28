@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
+from operators.clean_folder import CleanFolderOperator
 
 # fmt: off
 from dag_datalake_sirene.data_pipelines.etl.task_functions.\
@@ -60,7 +61,6 @@ from dag_datalake_sirene.data_pipelines.etl.task_functions.send_notification imp
 from dag_datalake_sirene.data_pipelines.etl.task_functions.upload_db import (
     upload_db_to_minio,
 )
-from operators.clean_folder import CleanFolderOperator
 from dag_datalake_sirene.config import (
     AIRFLOW_DAG_TMP,
     AIRFLOW_ETL_DAG_NAME,

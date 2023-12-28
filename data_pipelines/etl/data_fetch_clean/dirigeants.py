@@ -1,5 +1,5 @@
 import pandas as pd
-from dag_datalake_sirene.elasticsearch.data_enrichment import map_roles
+from dag_datalake_sirene.data_pipelines.elasticsearch.data_enrichment import map_roles
 
 
 def preprocess_dirigeants_pp(query):
