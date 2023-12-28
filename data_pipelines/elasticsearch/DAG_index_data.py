@@ -10,7 +10,9 @@ from dag_datalake_sirene.data_pipelines.elasticsearch.task_functions.index impor
     fill_elastic_siren_index,
 )
 
-from dag_datalake_sirene.helpers.get_colors import get_colors
+from dag_datalake_sirene.helpers.get_colors import (
+    get_colors,
+)
 
 from dag_datalake_sirene.data_pipelines.elasticsearch.task_functions.sitemap import (
     create_sitemap,
