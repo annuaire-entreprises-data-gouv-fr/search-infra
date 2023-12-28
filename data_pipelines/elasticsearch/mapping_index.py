@@ -1,4 +1,4 @@
-from dag_datalake_sirene.colors import NEXT_COLOR
+from dag_datalake_sirene.helpers.colors import NEXT_COLOR
 from elasticsearch_dsl import (
     Boolean,
     Date,
