@@ -31,7 +31,7 @@ with DAG(
     default_args=default_args,
     schedule_interval="0 23 10 * *",
     start_date=days_ago(10),
-    dagrun_timeout=timedelta(minutes=60 * 8),
+    dagrun_timeout=timedelta(minutes=10),
     tags=["flush cache and execute queries"],
 ) as dag:
     flush_cache = PythonOperator(
