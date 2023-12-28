@@ -3,7 +3,7 @@ import os
 import shutil
 
 
-from dag_datalake_sirene.data_pipelines.etl.sqlite.sqlite_client import SqliteClient
+from dag_datalake_sirene.utils.sqlite_client import SqliteClient
 
 from dag_datalake_sirene.config import (
     AIRFLOW_ETL_DATA_DIR,

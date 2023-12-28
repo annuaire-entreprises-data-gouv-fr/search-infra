@@ -5,15 +5,15 @@ import json
 AIRFLOW_DAG_HOME = Variable.get("AIRFLOW_DAG_HOME", "/opt/airflow/dags/")
 AIRFLOW_DAG_TMP = Variable.get("AIRFLOW_DAG_TMP", "/tmp/")
 AIRFLOW_DAG_FOLDER = "dag_datalake_sirene/"
-AIRFLOW_ETL_DAG_NAME = "extract_transform_load"
-AIRFLOW_DAG_INDEXING_NAME = "insert-elk-sirene"
+AIRFLOW_ETL_DAG_NAME = "extract_transform_load_db"
+AIRFLOW_ELK_DAG_NAME = "index_elasticsearch"
 AIRFLOW_ENV = Variable.get("ENV", "dev")
 AIRFLOW_URL = Variable.get("AIRFLOW_URL", "")
 AIRFLOW_ETL_DATA_DIR = (
     AIRFLOW_DAG_TMP + AIRFLOW_DAG_FOLDER + AIRFLOW_ETL_DAG_NAME + "/data/"
 )
-AIRFLOW_INDEXING_DATA_DIR = (
-    AIRFLOW_DAG_TMP + AIRFLOW_DAG_FOLDER + AIRFLOW_DAG_INDEXING_NAME + "/data/"
+AIRFLOW_ELK_DATA_DIR = (
+    AIRFLOW_DAG_TMP + AIRFLOW_DAG_FOLDER + AIRFLOW_ELK_DAG_NAME + "/data/"
 )
 SIRENE_DATABASE_LOCATION = AIRFLOW_ETL_DATA_DIR + "sirene.db"
 SIRENE_MINIO_DATA_PATH = "sirene/database/"
