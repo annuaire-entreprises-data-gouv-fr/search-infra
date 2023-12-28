@@ -45,12 +45,10 @@ def delete_old_files(
 
         if i < keep_latest or age < timedelta(days=retention_days):
             continue
-        # Delete the file using the helper function
-        logging.info(f"*****Deleting file: {file_name}")
+        logging.info(f"***** Deleting file: {file_name}")
         delete_file(MINIO_URL, MINIO_BUCKET, MINIO_USER, MINIO_PASSWORD, file_name)
 
 
-# Define default arguments for the DAG
 default_args = {
     "depends_on_past": False,
     "retries": 1,
@@ -59,6 +57,8 @@ default_args = {
     "email_on_failure": True,
 }
 
+# This DAG delete outdated RNE and SIRENE databases from MinIO if they are older than
+# 3 days, while retaining a specified number of the most recent files.
 with DAG(
     "delete_old_minio_file",
     default_args=default_args,
