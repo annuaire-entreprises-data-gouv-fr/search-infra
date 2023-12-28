@@ -1,6 +1,6 @@
 from datetime import datetime
 import logging
-from minio import Minio
+from minio import Minio, S3Error
 from typing import List, TypedDict, Optional
 import os
 from dag_datalake_sirene.config import (
@@ -255,3 +255,72 @@ def get_latest_file_minio(
         )
     else:
         logging.warning("No .db files found in the specified path.")
+
+
+def delete_file(
+    MINIO_URL: str,
+    MINIO_BUCKET: str,
+    MINIO_USER: str,
+    MINIO_PASSWORD: str,
+    file_path: str,
+):
+    """
+    Delete a file from MinIO.
+    /!\ USE WITH CAUTION"""
+    client = Minio(
+        MINIO_URL,
+        access_key=MINIO_USER,
+        secret_key=MINIO_PASSWORD,
+        secure=True,
+    )
+    found = client.bucket_exists(MINIO_BUCKET)
+    if found:
+        try:
+            client.stat_object(MINIO_BUCKET, file_path)
+            client.remove_object(MINIO_BUCKET, f"{file_path}")
+            logging.info(f"File '{file_path}' deleted successfully.")
+        except S3Error as e:
+            logging.error(e)
+    else:
+        raise Exception(f"Bucket {MINIO_BUCKET} does not exists")
+
+
+def get_files_and_last_modified(
+    MINIO_URL: str,
+    MINIO_BUCKET: str,
+    MINIO_USER: str,
+    MINIO_PASSWORD: str,
+    prefix: str,
+):
+    """
+    Get a list of files and their last modified timestamps from MinIO.
+
+    Args:
+        MINIO_URL (str): MinIO server URL.
+        MINIO_BUCKET (str): MinIO bucket name.
+        MINIO_USER (str): MinIO access key.
+        MINIO_PASSWORD (str): MinIO secret key.
+        prefix (str): Prefix of the files to retrieve.
+
+    Returns:
+        list: List of tuples containing file name and last modified timestamp.
+    """
+    client = Minio(
+        MINIO_URL,
+        access_key=MINIO_USER,
+        secret_key=MINIO_PASSWORD,
+        secure=True,
+    )
+    found = client.bucket_exists(MINIO_BUCKET)
+    if found:
+        objects = client.list_objects(MINIO_BUCKET, prefix=prefix, recursive=True)
+        file_info_list = []
+
+        for obj in objects:
+            file_name = obj.object_name
+            last_modified = obj.last_modified
+            file_info_list.append((file_name, last_modified))
+        logging.info(f"*****List of files: {file_info_list}")
+        return file_info_list
+    else:
+        raise Exception(f"Bucket {MINIO_BUCKET} does not exist")
