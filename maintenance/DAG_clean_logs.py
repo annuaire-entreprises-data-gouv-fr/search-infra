@@ -14,7 +14,6 @@ from dag_datalake_sirene.config import (
 default_args = {
     "owner": "airflow",
     "depends_on_past": False,
-    "start_date": datetime.now() - timedelta(days=1),  # Set the start_date to yesterday
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
 }
@@ -52,7 +51,7 @@ with DAG(
     description="Delete Airflow logs older than 15 days",
     schedule_interval="0 16 * * 1",  # run every Monday at 4:00 PM (UTC)
     dagrun_timeout=timedelta(minutes=30),
-    start_date=datetime(2023, 9, 15),
+    start_date=datetime(2023, 12, 28),
     catchup=False,  # False to ignore past runs
     max_active_runs=1,  # Allow only one execution at a time
 ) as dag:
