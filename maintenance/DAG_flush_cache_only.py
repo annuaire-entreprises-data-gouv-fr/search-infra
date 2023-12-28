@@ -14,7 +14,7 @@ from dag_datalake_sirene.config import (
     REDIS_PASSWORD,
 )
 
-DAG_NAME = "flush-cache-only"
+DAG_NAME = "flush_cache_only"
 
 default_args = {
     "depends_on_past": False,

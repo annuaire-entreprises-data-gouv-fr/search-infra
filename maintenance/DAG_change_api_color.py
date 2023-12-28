@@ -13,7 +13,7 @@ from dag_datalake_sirene.config import (
     PATH_AIO,
 )
 
-DAG_NAME = "change-api-color"
+DAG_NAME = "change_api_color"
 
 default_args = {
     "depends_on_past": False,

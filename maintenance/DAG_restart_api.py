@@ -20,7 +20,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id="restart-api",
+    dag_id="restart_api",
     default_args=default_args,
     schedule_interval="0 23 10 * *",
     start_date=days_ago(10),
