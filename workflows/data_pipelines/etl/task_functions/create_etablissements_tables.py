@@ -1,6 +1,6 @@
 import logging
 
-from dag_datalake_sirene.labels.departements import all_deps
+from dag_datalake_sirene.helpers.labels.departements import all_deps
 
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.etablissements\

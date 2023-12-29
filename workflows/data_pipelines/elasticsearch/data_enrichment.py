@@ -17,7 +17,7 @@ from dag_datalake_sirene.helpers.utils import (
     str_to_list,
 )
 
-labels_file_path = "dags/dag_datalake_sirene/labels/"
+labels_file_path = "dags/dag_datalake_sirene/helpers/labels/"
 
 
 def load_file(file_name: str):
