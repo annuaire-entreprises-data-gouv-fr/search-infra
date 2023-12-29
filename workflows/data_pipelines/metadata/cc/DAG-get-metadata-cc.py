@@ -23,7 +23,7 @@ with DAG(
     dag_id="get_metadata_cc",
     default_args=default_args,
     start_date=datetime(2023, 11, 23),
-    schedule_interval="0 11 * * *",  # Run every day at 11 am
+    schedule_interval="0 11 2 * *",  # Run every 2nd day of the month at 11 am
     catchup=False,
     max_active_runs=1,
     dagrun_timeout=timedelta(minutes=(60 * 100)),
