@@ -19,7 +19,7 @@ from dag_datalake_sirene.sqlite.queries.create_table_etabs import (
 from dag_datalake_sirene.task_functions.create_and_fill_table_model import (
     create_table_model,
 )
-from dag_datalake_sirene.config import AIRFLOW_DATA_DIR
+from dag_datalake_sirene.config import AIRFLOW_PREPROCESSING_DATA_DIR
 
 
 def create_etablissements_table():
@@ -52,7 +52,9 @@ def create_flux_etablissements_table():
         index_column="siren",
     )
     # Upload flux data
-    df_siret = preprocess_etablissements_data("flux", None, AIRFLOW_DATA_DIR)
+    df_siret = preprocess_etablissements_data(
+        "flux", None, AIRFLOW_PREPROCESSING_DATA_DIR
+    )
     df_siret.to_sql(
         "flux_siret",
         sqlite_client.db_conn,

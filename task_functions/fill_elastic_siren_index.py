@@ -7,7 +7,7 @@ from dag_datalake_sirene.sqlite.queries.select_fields_to_index import (
     select_fields_to_index_query,
 )
 from dag_datalake_sirene.config import (
-    SIRENE_DATABASE_LOCATION,
+    AIRFLOW_INDEXING_DATA_DIR,
     ELASTIC_URL,
     ELASTIC_USER,
     ELASTIC_PASSWORD,
@@ -18,7 +18,7 @@ from dag_datalake_sirene.config import (
 def fill_elastic_siren_index(**kwargs):
     next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
     elastic_index = f"siren-{next_color}"
-    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
+    sqlite_client = SqliteClient(AIRFLOW_INDEXING_DATA_DIR + "sirene.db")
     sqlite_client.execute(select_fields_to_index_query)
 
     connections.create_connection(
