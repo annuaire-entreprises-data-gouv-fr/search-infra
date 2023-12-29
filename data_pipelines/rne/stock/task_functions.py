@@ -1,8 +1,8 @@
 import os
 import zipfile
 import logging
-from dag_datalake_sirene.utils.tchap import send_message
-from dag_datalake_sirene.utils.minio_helpers import send_files
+from dag_datalake_sirene.helpers.tchap import send_message
+from dag_datalake_sirene.helpers.minio_helpers import send_files
 from dag_datalake_sirene.config import (
     MINIO_URL,
     MINIO_BUCKET,
