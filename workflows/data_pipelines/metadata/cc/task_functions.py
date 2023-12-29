@@ -4,18 +4,12 @@ import logging
 import json
 from datetime import datetime
 from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.minio_helpers import (
-    send_files,
-)
+from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.config import (
     URL_CC_DARES,
     URL_CC_KALI,
     METADATA_CC_MINIO_PATH,
     METADATA_CC_TMP_FOLDER,
-    MINIO_URL,
-    MINIO_BUCKET,
-    MINIO_USER,
-    MINIO_PASSWORD,
 )
 
 
@@ -105,11 +99,7 @@ def create_metadata_concollective_json():
 
 
 def upload_json_file_to_minio():
-    send_files(
-        MINIO_URL=MINIO_URL,
-        MINIO_BUCKET=MINIO_BUCKET,
-        MINIO_USER=MINIO_USER,
-        MINIO_PASSWORD=MINIO_PASSWORD,
+    minio_client.send_files(
         list_files=[
             {
                 "source_path": METADATA_CC_TMP_FOLDER,
@@ -125,7 +115,7 @@ def send_notification_success_tchap():
     send_message(
         f"\U0001F7E2 Données :"
         f"\nMetadata Conventions Collectives mise à jour sur Minio "
-        f"- Bucket {MINIO_BUCKET}."
+        f"- Bucket {minio_client.bucket}."
     )
 
 

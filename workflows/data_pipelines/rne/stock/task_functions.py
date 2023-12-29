@@ -2,12 +2,8 @@ import os
 import zipfile
 import logging
 from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.minio_helpers import send_files
+from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.config import (
-    MINIO_URL,
-    MINIO_BUCKET,
-    MINIO_USER,
-    MINIO_PASSWORD,
     RNE_STOCK_ZIP_FILE_PATH,
     RNE_STOCK_EXTRACTED_FILES_PATH,
 )
@@ -21,11 +17,7 @@ def unzip_files_and_upload_minio(**kwargs):
             z.extract(file_info, path=RNE_STOCK_EXTRACTED_FILES_PATH)
 
             logging.info(f"Saving file {file_info.filename} in MinIO.....")
-            send_files(
-                MINIO_URL=MINIO_URL,
-                MINIO_BUCKET=MINIO_BUCKET,
-                MINIO_USER=MINIO_USER,
-                MINIO_PASSWORD=MINIO_PASSWORD,
+            minio_client.send_files(
                 list_files=[
                     {
                         "source_path": RNE_STOCK_EXTRACTED_FILES_PATH,
@@ -52,7 +44,7 @@ def send_notification_success_tchap(**kwargs):
     send_message(
         f"\U0001F7E2 Données :"
         f"\nDonnées stock RNE mise à jour sur Minio "
-        f"- Bucket {MINIO_BUCKET}."
+        f"- Bucket {minio_client.bucket}."
         f"\n - Nombre de fichiers stock : {count_files_rne_stock}"
     )
 

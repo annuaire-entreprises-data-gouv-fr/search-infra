@@ -55,9 +55,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.send_notifi
     send_notification_failure_tchap,
 )
 # fmt: on
-from dag_datalake_sirene.helpers.minio_helpers import (
-    get_latest_file_minio,
-)
+from dag_datalake_sirene.helpers.minio_helpers import minio_client
 
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.upload_db import (
     upload_db_to_minio,
@@ -69,7 +67,6 @@ from dag_datalake_sirene.config import (
     AIRFLOW_ENV,
     DIRIG_DATABASE_LOCATION,
     EMAIL_LIST,
-    MINIO_BUCKET,
 )
 
 
@@ -167,11 +164,10 @@ with DAG(
     get_latest_dirigeants_database = PythonOperator(
         task_id="get_dirig_database",
         provide_context=True,
-        python_callable=get_latest_file_minio,
+        python_callable=minio_client.get_latest_file_minio,
         op_args=(
             f"ae/{AIRFLOW_ENV}/rne/database/",
             DIRIG_DATABASE_LOCATION,
-            MINIO_BUCKET,
         ),
     )
 
