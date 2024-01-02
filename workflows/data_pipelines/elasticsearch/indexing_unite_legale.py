@@ -52,7 +52,9 @@ def index_unites_legales_by_chunk(
     cursor, elastic_connection, elastic_bulk_size, elastic_index
 ):
     # Indexing performance : do not refresh the index while indexing
-    elastic_connection.indices.put_settings(index=elastic_index, body={"index.refresh_interval": -1})
+    elastic_connection.indices.put_settings(
+        index=elastic_index, body={"index.refresh_interval": -1}
+    )
 
     logger = 0
     chunk_unites_legales_sqlite = 1
@@ -101,7 +103,9 @@ def index_unites_legales_by_chunk(
         logging.info(f"Number of documents indexed: {doc_count}")
 
     # rollback to the original value
-    elastic_connection.indices.put_settings(index=elastic_index, body={"index.refresh_interval": None})
+    elastic_connection.indices.put_settings(
+        index=elastic_index, body={"index.refresh_interval": None}
+    )
 
     doc_count = elastic_connection.cat.count(
         index=elastic_index, params={"format": "json"}
