@@ -4,11 +4,7 @@ import os
 import json
 import re
 import logging
-from dag_datalake_sirene.helpers.minio_helpers import (
-    get_files_from_prefix,
-    send_files,
-    get_files,
-)
+from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.process_rne import (
     create_tables,
     get_tables_count,
@@ -19,10 +15,6 @@ from dag_datalake_sirene.workflows.data_pipelines.rne.database.db_connexion impo
 )
 from dag_datalake_sirene.helpers.tchap import send_message
 from dag_datalake_sirene.config import (
-    MINIO_BUCKET,
-    MINIO_URL,
-    MINIO_USER,
-    MINIO_PASSWORD,
     RNE_MINIO_DATA_PATH,
     RNE_LATEST_DATE_FILE,
     RNE_DB_TMP_FOLDER,
@@ -33,11 +25,7 @@ from dag_datalake_sirene.config import (
 
 def get_start_date_minio(**kwargs):
     try:
-        get_files(
-            MINIO_URL=MINIO_URL,
-            MINIO_BUCKET=MINIO_BUCKET,
-            MINIO_USER=MINIO_USER,
-            MINIO_PASSWORD=MINIO_PASSWORD,
+        minio_client.get_files(
             list_files=[
                 {
                     "source_path": RNE_MINIO_DATA_PATH,
@@ -59,7 +47,7 @@ def get_start_date_minio(**kwargs):
         if e.code == "NoSuchKey":
             logging.info(
                 f"The file {RNE_MINIO_STOCK_DATA_PATH + RNE_LATEST_DATE_FILE} "
-                f"does not exist in the bucket {MINIO_BUCKET}."
+                f"does not exist in the bucket {minio_client.bucket}."
             )
             kwargs["ti"].xcom_push(key="start_date", value=None)
         else:
@@ -128,11 +116,7 @@ def get_latest_db(**kwargs):
         previous_start_date = datetime.strftime(
             (previous_latest_date - timedelta(days=1)), "%Y-%m-%d"
         )
-        get_files(
-            MINIO_URL=MINIO_URL,
-            MINIO_BUCKET=MINIO_BUCKET,
-            MINIO_USER=MINIO_USER,
-            MINIO_PASSWORD=MINIO_PASSWORD,
+        minio_client.get_files(
             list_files=[
                 {
                     "source_path": RNE_MINIO_DATA_PATH,
@@ -154,11 +138,7 @@ def process_stock_json_files(**kwargs):
     if start_date is not None:
         return None
 
-    json_stock_rne_files = get_files_from_prefix(
-        MINIO_URL=MINIO_URL,
-        MINIO_BUCKET=MINIO_BUCKET,
-        MINIO_USER=MINIO_USER,
-        MINIO_PASSWORD=MINIO_PASSWORD,
+    json_stock_rne_files = minio_client.get_files_from_prefix(
         prefix=RNE_MINIO_STOCK_DATA_PATH,
     )
 
@@ -167,11 +147,7 @@ def process_stock_json_files(**kwargs):
 
     for file_path in json_stock_rne_files:
         logging.info(f"*******Processing stock file: {file_path}...")
-        get_files(
-            MINIO_URL=MINIO_URL,
-            MINIO_BUCKET=MINIO_BUCKET,
-            MINIO_USER=MINIO_USER,
-            MINIO_PASSWORD=MINIO_PASSWORD,
+        minio_client.get_files(
             list_files=[
                 {
                     "source_path": "",
@@ -193,11 +169,7 @@ def process_flux_json_files(**kwargs):
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
     rne_db_path = kwargs["ti"].xcom_pull(key="rne_db_path", task_ids="create_db")
 
-    json_daily_flux_files = get_files_from_prefix(
-        MINIO_URL=MINIO_URL,
-        MINIO_BUCKET=MINIO_BUCKET,
-        MINIO_USER=MINIO_USER,
-        MINIO_PASSWORD=MINIO_PASSWORD,
+    json_daily_flux_files = minio_client.get_files_from_prefix(
         prefix=RNE_MINIO_FLUX_DATA_PATH,
     )
 
@@ -213,11 +185,7 @@ def process_flux_json_files(**kwargs):
             file_date = date_match.group(1)
             if file_date >= start_date:
                 logging.info(f"Processing file {file_path} with date {file_date}")
-                get_files(
-                    MINIO_URL=MINIO_URL,
-                    MINIO_BUCKET=MINIO_BUCKET,
-                    MINIO_USER=MINIO_USER,
-                    MINIO_PASSWORD=MINIO_PASSWORD,
+                minio_client.get_files(
                     list_files=[
                         {
                             "source_path": RNE_MINIO_FLUX_DATA_PATH,
@@ -265,11 +233,7 @@ def check_db_count(ti, min_pp_table_count=11000000, min_pm_table_count=1000000):
 
 
 def send_to_minio(list_files):
-    send_files(
-        MINIO_URL=MINIO_URL,
-        MINIO_BUCKET=MINIO_BUCKET,
-        MINIO_USER=MINIO_USER,
-        MINIO_PASSWORD=MINIO_PASSWORD,
+    minio_client.send_files(
         list_files=list_files,
     )
 
@@ -324,5 +288,5 @@ def notification_tchap(ti):
     send_message(
         f"Données RNE traitées de {start_date} à {last_date_processed} "
         "et stockées sur la base de données sur Minio "
-        f"- Bucket {MINIO_BUCKET}",
+        f"- Bucket {minio_client.bucket}",
     )

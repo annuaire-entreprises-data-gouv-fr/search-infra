@@ -4,18 +4,10 @@ from datetime import datetime, timedelta
 import re
 import logging
 from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.minio_helpers import (
-    get_files_from_prefix,
-    get_object_minio,
-    send_files,
-)
+from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.workflows.data_pipelines.rne.flux.rne_api import ApiRNEClient
 from dag_datalake_sirene.config import (
     AIRFLOW_ENV,
-    MINIO_URL,
-    MINIO_BUCKET,
-    MINIO_USER,
-    MINIO_PASSWORD,
     RNE_FLUX_DATADIR,
     RNE_MINIO_FLUX_DATA_PATH,
     RNE_DEFAULT_START_DATE,
@@ -23,11 +15,7 @@ from dag_datalake_sirene.config import (
 
 
 def get_last_json_file_date():
-    json_daily_flux_files = get_files_from_prefix(
-        MINIO_URL=MINIO_URL,
-        MINIO_BUCKET=MINIO_BUCKET,
-        MINIO_USER=MINIO_USER,
-        MINIO_PASSWORD=MINIO_PASSWORD,
+    json_daily_flux_files = minio_client.get_files_from_prefix(
         prefix=RNE_MINIO_FLUX_DATA_PATH,
     )
 
@@ -50,11 +38,10 @@ def get_last_json_file_date():
 def get_latest_json_file(ti):
     start_date = compute_start_date()
     last_json_file_path = f"{RNE_FLUX_DATADIR}/rne_flux_{start_date}.json"
-    get_object_minio(
-        f"rne_flux_{start_date}.json",
+    minio_client.get_object_minio(
         f"ae/{AIRFLOW_ENV}/{RNE_MINIO_FLUX_DATA_PATH}",
+        f"rne_flux_{start_date}.json",
         last_json_file_path,
-        MINIO_BUCKET,
     )
     logging.info(f"***** Got file: {last_json_file_path}")
     ti.xcom_push(key="last_json_file_path", value=last_json_file_path)
@@ -173,11 +160,7 @@ def get_and_save_daily_flux_rne(
             except Exception as e:
                 # If exception accures, save uncompleted file
                 if os.path.exists(json_file_path):
-                    send_files(
-                        MINIO_URL=MINIO_URL,
-                        MINIO_BUCKET=MINIO_BUCKET,
-                        MINIO_USER=MINIO_USER,
-                        MINIO_PASSWORD=MINIO_PASSWORD,
+                    minio_client.send_files(
                         list_files=[
                             {
                                 "source_path": f"{RNE_FLUX_DATADIR}/",
@@ -194,11 +177,7 @@ def get_and_save_daily_flux_rne(
                 raise Exception(f"Error occurred during the API request: {e}")
 
     if os.path.exists(json_file_path):
-        send_files(
-            MINIO_URL=MINIO_URL,
-            MINIO_BUCKET=MINIO_BUCKET,
-            MINIO_USER=MINIO_USER,
-            MINIO_PASSWORD=MINIO_PASSWORD,
+        minio_client.send_files(
             list_files=[
                 {
                     "source_path": f"{RNE_FLUX_DATADIR}/",
@@ -252,7 +231,7 @@ def send_notification_success_tchap(**kwargs):
     send_message(
         f"\U0001F7E2 Données :"
         f"\nDonnées flux RNE mise à jour sur Minio "
-        f"- Bucket {MINIO_BUCKET}."
+        f"- Bucket {minio_client.bucket}."
         f"\n - Date début flux : {rne_flux_start_date} "
         f"\n - Date fin flux : {rne_flux_end_date} "
     )

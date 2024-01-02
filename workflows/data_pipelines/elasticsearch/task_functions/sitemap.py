@@ -1,12 +1,11 @@
 import os
-from minio import Minio
 
 
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
     format_nom_complet,
     format_slug,
 )
-
+from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.sqlite.sitemap import (
     select_sitemap_fields_query,
@@ -15,10 +14,6 @@ from dag_datalake_sirene.config import (
     AIRFLOW_ELK_DATA_DIR,
     AIRFLOW_ENV,
     SIRENE_DATABASE_LOCATION,
-    MINIO_URL,
-    MINIO_BUCKET,
-    MINIO_USER,
-    MINIO_PASSWORD,
 )
 
 
@@ -80,26 +75,10 @@ def create_sitemap():
 
 
 def update_sitemap():
-    minio_filepath = "ae/sitemap-" + AIRFLOW_ENV + ".csv"
-    minio_url = MINIO_URL
-    minio_bucket = MINIO_BUCKET
-    minio_user = MINIO_USER
-    minio_password = MINIO_PASSWORD
-
-    # Start client
-    client = Minio(
-        minio_url,
-        access_key=minio_user,
-        secret_key=minio_password,
-        secure=True,
+    minio_filepath = f"ae/sitemap-{AIRFLOW_ENV}.csv"
+    minio_client.client.fput_object(
+        bucket_name=minio_client.bucket,
+        object_name=minio_filepath,
+        file_path=f"{AIRFLOW_ELK_DATA_DIR}sitemap-{AIRFLOW_ENV}.csv",
+        content_type="text/csv",
     )
-
-    # Check if bucket exists
-    found = client.bucket_exists(minio_bucket)
-    if found:
-        client.fput_object(
-            bucket_name=minio_bucket,
-            object_name=minio_filepath,
-            file_path=AIRFLOW_ELK_DATA_DIR + "sitemap-" + AIRFLOW_ENV + ".csv",
-            content_type="text/csv",
-        )

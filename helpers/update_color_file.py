@@ -1,14 +1,7 @@
 import json
 import logging
 
-from minio import Minio
-from dag_datalake_sirene.config import (
-    AIRFLOW_ENV,
-    MINIO_URL,
-    MINIO_BUCKET,
-    MINIO_USER,
-    MINIO_PASSWORD,
-)
+from dag_datalake_sirene.helpers.minio_helpers import minio_client
 
 
 def update_color_file(**kwargs):
@@ -19,26 +12,15 @@ def update_color_file(**kwargs):
 
     with open("colors.json", "w") as write_file:
         json.dump(colors, write_file)
-    minio_filepath = f"ae/colors-{AIRFLOW_ENV}.json"
-    minio_url = MINIO_URL
-    minio_bucket = MINIO_BUCKET
-    minio_user = MINIO_USER
-    minio_password = MINIO_PASSWORD
 
-    # Start client
-    client = Minio(
-        minio_url,
-        access_key=minio_user,
-        secret_key=minio_password,
-        secure=True,
+    minio_client.send_files(
+        list_files=[
+            {
+                "source_path": "",
+                "source_name": "colors.json",
+                "dest_path": "",
+                "dest_name": "colors.json",
+                "content_type": "application/json",
+            }
+        ],
     )
-
-    # Check if bucket exists
-    found = client.bucket_exists(minio_bucket)
-    if found:
-        client.fput_object(
-            bucket_name=minio_bucket,
-            object_name=minio_filepath,
-            file_path="colors.json",
-            content_type="application/json",
-        )

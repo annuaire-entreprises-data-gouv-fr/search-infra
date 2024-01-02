@@ -1,24 +1,16 @@
 from datetime import datetime
 
 from dag_datalake_sirene.config import (
-    MINIO_BUCKET,
-    MINIO_URL,
-    MINIO_USER,
-    MINIO_PASSWORD,
     SIRENE_MINIO_DATA_PATH,
     AIRFLOW_ETL_DATA_DIR,
 )
-from dag_datalake_sirene.helpers.minio_helpers import send_files
+from dag_datalake_sirene.helpers.minio_helpers import minio_client
 
 current_date = datetime.now().date()
 
 
 def send_to_minio(list_files):
-    send_files(
-        MINIO_URL=MINIO_URL,
-        MINIO_BUCKET=MINIO_BUCKET,
-        MINIO_USER=MINIO_USER,
-        MINIO_PASSWORD=MINIO_PASSWORD,
+    minio_client.send_files(
         list_files=list_files,
     )
 

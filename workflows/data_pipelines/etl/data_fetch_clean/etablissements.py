@@ -1,11 +1,8 @@
 import logging
 import pandas as pd
 from datetime import datetime, timedelta
-from dag_datalake_sirene.helpers.minio_helpers import (
-    get_object_minio,
-)
+from dag_datalake_sirene.helpers.minio_helpers import minio_client_restricted
 from dag_datalake_sirene.config import (
-    MINIO_BUCKET_DATA_PIPELINE,
     URL_ETABLISSEMENTS,
 )
 
@@ -80,11 +77,10 @@ def download_flux(data_dir):
     else:
         year_month = datetime.today().strftime("%Y-%m")
     logging.info(f"Downloading flux for : {year_month}")
-    get_object_minio(
-        f"flux_etablissement_{year_month}.csv.gz",
+    minio_client_restricted.get_object_minio(
         "prod/insee/sirene/sirene_flux/",
+        f"flux_etablissement_{year_month}.csv.gz",
         f"{data_dir}flux_etablissement_{year_month}.csv.gz",
-        MINIO_BUCKET_DATA_PIPELINE,
     )
     df_flux = pd.read_csv(
         f"{data_dir}flux_etablissement_{year_month}.csv.gz",

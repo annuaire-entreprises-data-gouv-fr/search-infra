@@ -5,6 +5,8 @@ from typing import List, TypedDict, Optional
 import os
 from dag_datalake_sirene.config import (
     AIRFLOW_ENV,
+    MINIO_BUCKET,
+    MINIO_BUCKET_DATA_PIPELINE,
     MINIO_URL,
     MINIO_USER,
     MINIO_PASSWORD,
@@ -19,44 +21,45 @@ class File(TypedDict):
     content_type: Optional[str]
 
 
-def send_files(
-    MINIO_URL: str,
-    MINIO_BUCKET: str,
-    MINIO_USER: str,
-    MINIO_PASSWORD: str,
-    list_files: List[File],
-):
-    """Send list of file to Minio bucket
+class MinIOClient:
+    def __init__(self, open_data=True):
+        self.url = MINIO_URL
+        self.user = MINIO_USER
+        self.password = MINIO_PASSWORD
+        self.bucket = MINIO_BUCKET if open_data else MINIO_BUCKET_DATA_PIPELINE
+        self.client = Minio(
+            self.url,
+            access_key=self.user,
+            secret_key=self.password,
+            secure=True,
+        )
+        self.bucket_exists = self.client.bucket_exists(self.bucket)
+        if not self.bucket_exists:
+            raise ValueError(f"Bucket '{self.bucket}' does not exist.")
 
-    Args:
-        MINIO_URL (str): Minio endpoint
-        MINIO_BUCKET (str): bucket
-        MINIO_USER (str): user
-        MINIO_PASSWORD (str): password
-        list_files (List[File]): List of Dictionnaries containing for each
-        `source_path` and `source_name` : local file location ;
-        `dest_path` and `dest_name` : minio location (inside bucket specified) ;
+    def send_files(
+        self,
+        list_files: List[File],
+    ):
+        """Send list of file to Minio bucket
 
-    Raises:
-        Exception: when specified local file does not exists
-        Exception: when specified bucket does not exist
-    """
-    client = Minio(
-        MINIO_URL,
-        access_key=MINIO_USER,
-        secret_key=MINIO_PASSWORD,
-        secure=True,
-    )
-    found = client.bucket_exists(MINIO_BUCKET)
-    if found:
+        Args:
+            list_files (List[File]): List of Dictionnaries containing for each
+            `source_path` and `source_name` : local file location ;
+            `dest_path` and `dest_name` : minio location (inside bucket specified) ;
+
+        Raises:
+            Exception: when specified local file does not exists
+            Exception: when specified bucket does not exist
+        """
         for file in list_files:
             is_file = os.path.isfile(
                 os.path.join(file["source_path"], file["source_name"])
             )
-            print("Sending ", file["source_name"])
+            logging.info("Sending ", file["source_name"])
             if is_file:
-                client.fput_object(
-                    MINIO_BUCKET,
+                self.client.fput_object(
+                    self.bucket,
                     f"ae/{AIRFLOW_ENV}/{file['dest_path']}{file['dest_name']}",
                     os.path.join(file["source_path"], file["source_name"]),
                     content_type=file["content_type"]
@@ -67,253 +70,127 @@ def send_files(
                 raise Exception(
                     f"file {file['source_path']}{file['source_name']} " "does not exist"
                 )
-    else:
-        raise Exception(f"Bucket {MINIO_BUCKET} does not exist")
 
+    def get_files_from_prefix(self, prefix: str):
+        """Retrieve only the list of files in a Minio pattern
 
-def get_files_from_prefix(
-    MINIO_URL: str,
-    MINIO_BUCKET: str,
-    MINIO_USER: str,
-    MINIO_PASSWORD: str,
-    prefix: str,
-):
-    """Retrieve only the list of files in a Minio pattern
-
-    Args:
-        MINIO_URL (str): Minio endpoint
-        MINIO_BUCKET (str): bucket
-        MINIO_USER (str): user
-        MINIO_PASSWORD (str): password
-        prefix: (str): prefix to search files
-
-    Raises:
-        Exception: _description_
-    """
-    client = Minio(
-        MINIO_URL,
-        access_key=MINIO_USER,
-        secret_key=MINIO_PASSWORD,
-        secure=True,
-    )
-    found = client.bucket_exists(MINIO_BUCKET)
-    if found:
+        Args:
+            prefix: (str): prefix to search files
+        """
         list_objects = []
-        objects = client.list_objects(MINIO_BUCKET, prefix=f"ae/{AIRFLOW_ENV}/{prefix}")
+        objects = self.client.list_objects(
+            self.bucket, prefix=f"ae/{AIRFLOW_ENV}/{prefix}"
+        )
         for obj in objects:
-            print(obj.object_name)
+            logging.info(obj.object_name)
             list_objects.append(obj.object_name.replace(f"ae/{AIRFLOW_ENV}/", ""))
         return list_objects
-    else:
-        raise Exception(f"Bucket {MINIO_BUCKET} does not exists")
 
+    def get_files(self, list_files: List[File]):
+        """Retrieve list of files from Minio
 
-def get_files(
-    MINIO_URL: str,
-    MINIO_BUCKET: str,
-    MINIO_USER: str,
-    MINIO_PASSWORD: str,
-    list_files: List[File],
-):
-    """Retrieve list of files from Minio
-
-    Args:
-        MINIO_URL (str): Minio endpoint
-        MINIO_BUCKET (str): bucket
-        MINIO_USER (str): user
-        MINIO_PASSWORD (str): password
-        list_files (List[File]): List of Dictionnaries containing for each
-        `source_path` and `source_name` : Minio location inside specified bucket ;
-        `dest_path` and `dest_name` : local file destination ;
-
-    Raises:
-        Exception: _description_
-    """
-    client = Minio(
-        MINIO_URL,
-        access_key=MINIO_USER,
-        secret_key=MINIO_PASSWORD,
-        secure=True,
-    )
-    found = client.bucket_exists(MINIO_BUCKET)
-    if found:
+        Args:
+            list_files (List[File]): List of Dictionnaries containing for each
+            `source_path` and `source_name` : Minio location inside specified bucket ;
+            `dest_path` and `dest_name` : local file destination ;
+        """
         for file in list_files:
-            client.fget_object(
-                MINIO_BUCKET,
+            self.client.fget_object(
+                self.bucket,
                 f"ae/{AIRFLOW_ENV}/{file['source_path']}{file['source_name']}",
                 f"{file['dest_path']}{file['dest_name']}",
             )
-    else:
-        raise Exception(f"Bucket {MINIO_BUCKET} does not exists")
 
+    def get_object_minio(
+        self,
+        minio_path: str,
+        filename: str,
+        local_path: str,
+    ) -> None:
+        self.client.fget_object(
+            self.bucket,
+            f"{minio_path}{filename}",
+            local_path,
+        )
 
-def get_object_minio(
-    filename: str,
-    minio_path: str,
-    local_path: str,
-    minio_bucket: str,
-) -> None:
-    minio_url = MINIO_URL
-    minio_bucket = minio_bucket
-    minio_user = MINIO_USER
-    minio_password = MINIO_PASSWORD
-
-    client = Minio(
-        minio_url,
-        access_key=minio_user,
-        secret_key=minio_password,
-        secure=True,
-    )
-    client.fget_object(
-        minio_bucket,
-        f"{minio_path}{filename}",
-        local_path,
-    )
-
-
-def put_object_minio(
-    filename: str,
-    minio_path: str,
-    local_path: str,
-    minio_bucket: str,
-):
-    minio_url = MINIO_URL
-    minio_bucket = minio_bucket
-    minio_user = MINIO_USER
-    minio_password = MINIO_PASSWORD
-
-    # Start client
-    client = Minio(
-        minio_url,
-        access_key=minio_user,
-        secret_key=minio_password,
-        secure=True,
-    )
-
-    # Check if bucket exists
-    found = client.bucket_exists(minio_bucket)
-    if found:
-        client.fput_object(
-            bucket_name=minio_bucket,
+    def put_object_minio(
+        self,
+        filename: str,
+        minio_path: str,
+        local_path: str,
+    ) -> None:
+        self.client.fput_object(
+            bucket_name=self.bucket,
             object_name=minio_path,
             file_path=local_path + filename,
         )
 
+    def get_latest_file_minio(
+        self,
+        minio_path: str,
+        local_path: str,
+    ) -> None:
+        """
+        Download the latest .db file from Minio to the local file system.
 
-def get_latest_file_minio(
-    minio_path: str,
-    local_path: str,
-    minio_bucket: str,
-):
-    """
-    Download the latest .db file from Minio to the local file system.
+        Args:
+            minio_path (str): The path within the Minio bucket where .db files
+            are located.
+            local_path (str): The local directory where the downloaded file
+            will be saved.
+        Note:
+            This function assumes that the .db files in Minio have filenames
+            in the format:
+            'filename_YYYY-MM-DD.db', where YYYY-MM-DD represents the date.
+        """
 
-    Args:
-        minio_path (str): The path within the Minio bucket where .db files are located.
-        local_path (str): The local directory where the downloaded file will be saved.
-        minio_bucket (str): The name of the Minio bucket.
-
-    Returns:
-        None: The function downloads the latest .db file and does not return any value.
-
-    Note:
-        This function assumes that the .db files in Minio have filenames in the format:
-        'filename_YYYY-MM-DD.db', where YYYY-MM-DD represents the date.
-    """
-    minio_url = MINIO_URL
-    minio_bucket = minio_bucket
-    minio_user = MINIO_USER
-    minio_password = MINIO_PASSWORD
-
-    logging.info("Connecting to Minio...")
-    client = Minio(
-        minio_url,
-        access_key=minio_user,
-        secret_key=minio_password,
-        secure=True,
-    )
-
-    objects = client.list_objects(minio_bucket, prefix=minio_path, recursive=True)
-
-    # Filter and sort .db files based on their names and the date in the filename
-    db_files = [obj.object_name for obj in objects if obj.object_name.endswith(".db")]
-
-    sorted_db_files = sorted(
-        db_files,
-        key=lambda x: datetime.strptime(x.split("_")[-1].split(".")[0], "%Y-%m-%d"),
-        reverse=True,
-    )
-
-    if sorted_db_files:
-        latest_db_file = sorted_db_files[0]
-        logging.info(f"Latest dirigeants database: {latest_db_file}")
-
-        client.fget_object(
-            minio_bucket,
-            latest_db_file,
-            local_path,
+        objects = self.client.list_objects(
+            self.bucket, prefix=minio_path, recursive=True
         )
-    else:
-        logging.warning("No .db files found in the specified path.")
 
+        # Filter and sort .db files based on their names and the date in the filename
+        db_files = [
+            obj.object_name for obj in objects if obj.object_name.endswith(".db")
+        ]
 
-def delete_file(
-    MINIO_URL: str,
-    MINIO_BUCKET: str,
-    MINIO_USER: str,
-    MINIO_PASSWORD: str,
-    file_path: str,
-):
-    """
-    Delete a file from MinIO.
-    /!\ USE WITH CAUTION"""
-    client = Minio(
-        MINIO_URL,
-        access_key=MINIO_USER,
-        secret_key=MINIO_PASSWORD,
-        secure=True,
-    )
-    found = client.bucket_exists(MINIO_BUCKET)
-    if found:
+        sorted_db_files = sorted(
+            db_files,
+            key=lambda x: datetime.strptime(x.split("_")[-1].split(".")[0], "%Y-%m-%d"),
+            reverse=True,
+        )
+
+        if sorted_db_files:
+            latest_db_file = sorted_db_files[0]
+            logging.info(f"Latest dirigeants database: {latest_db_file}")
+
+            self.client.fget_object(
+                self.bucket,
+                latest_db_file,
+                local_path,
+            )
+        else:
+            logging.warning("No .db files found in the specified path.")
+
+    def delete_file(self, file_path: str):
+        """/!\ USE WITH CAUTION"""
         try:
-            client.stat_object(MINIO_BUCKET, file_path)
-            client.remove_object(MINIO_BUCKET, f"{file_path}")
+            self.client.stat_object(self.bucket, file_path)
+            self.client.remove_object(self.bucket, f"{file_path}")
             logging.info(f"File '{file_path}' deleted successfully.")
         except S3Error as e:
             logging.error(e)
-    else:
-        raise Exception(f"Bucket {MINIO_BUCKET} does not exists")
 
+    def get_files_and_last_modified(self, prefix: str):
+        """
+        Get a list of files and their last modified timestamps from MinIO.
 
-def get_files_and_last_modified(
-    MINIO_URL: str,
-    MINIO_BUCKET: str,
-    MINIO_USER: str,
-    MINIO_PASSWORD: str,
-    prefix: str,
-):
-    """
-    Get a list of files and their last modified timestamps from MinIO.
+        Args:
+            prefix (str): Prefix of the files to retrieve.
 
-    Args:
-        MINIO_URL (str): MinIO server URL.
-        MINIO_BUCKET (str): MinIO bucket name.
-        MINIO_USER (str): MinIO access key.
-        MINIO_PASSWORD (str): MinIO secret key.
-        prefix (str): Prefix of the files to retrieve.
-
-    Returns:
-        list: List of tuples containing file name and last modified timestamp.
-    """
-    client = Minio(
-        MINIO_URL,
-        access_key=MINIO_USER,
-        secret_key=MINIO_PASSWORD,
-        secure=True,
-    )
-    found = client.bucket_exists(MINIO_BUCKET)
-    if found:
-        objects = client.list_objects(MINIO_BUCKET, prefix=prefix, recursive=True)
+        Returns:
+            list: List of tuples containing file name and last modified timestamp.
+        """
+        objects = self.client.list_objects(self.bucket, prefix=prefix, recursive=True)
         file_info_list = []
 
         for obj in objects:
@@ -322,5 +199,7 @@ def get_files_and_last_modified(
             file_info_list.append((file_name, last_modified))
         logging.info(f"*****List of files: {file_info_list}")
         return file_info_list
-    else:
-        raise Exception(f"Bucket {MINIO_BUCKET} does not exist")
+
+
+minio_client = MinIOClient()
+minio_client_restricted = MinIOClient(open_data=False)
