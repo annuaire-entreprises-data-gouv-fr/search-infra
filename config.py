@@ -33,6 +33,11 @@ RNE_STOCK_DATADIR = f"{RNE_STOCK_TMP_FOLDER}data"
 RNE_DAG_FOLDER = "dag_datalake_sirene/data_pipelines/"
 METADATA_CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}metadata/cc/"
 METADATA_CC_MINIO_PATH = "metadata/cc/"
+INSEE_FLUX_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/flux/"
+
+# Insee
+INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE")
+INSEE_API_URL = "https://api.insee.fr/entreprises/sirene/V3/"
 
 # Notification
 TCHAP_ANNUAIRE_WEBHOOK = Variable.get("TCHAP_ANNUAIRE_WEBHOOK", "")
