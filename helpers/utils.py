@@ -2,9 +2,8 @@ import filecmp
 import logging
 import requests
 from ast import literal_eval
-from datetime import datetime
+from datetime import datetime, date
 from unicodedata import normalize
-from datetime import date
 from dag_datalake_sirene.config import AIRFLOW_ENV
 
 
