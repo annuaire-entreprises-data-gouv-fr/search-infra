@@ -110,7 +110,4 @@ def compare_versions_file(
 
 
 def check_if_monday():
-    if date.today().weekday() == 0:
-        return True
-    else:
-        return False
+    return date.today().weekday() == 0
