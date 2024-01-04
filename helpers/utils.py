@@ -4,6 +4,7 @@ import requests
 from ast import literal_eval
 from datetime import datetime
 from unicodedata import normalize
+from datetime import date
 from dag_datalake_sirene.config import AIRFLOW_ENV
 
 
@@ -107,3 +108,10 @@ def compare_versions_file(
 ):
     should_continue = not filecmp.cmp(original_file, new_file)
     return should_continue
+
+
+def check_if_monday():
+    if date.today().weekday() == 0:
+        return True
+    else:
+        return False
