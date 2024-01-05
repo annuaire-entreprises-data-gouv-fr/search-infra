@@ -64,12 +64,7 @@ def create_db_path(start_date):
         start_date (str): The start date for the RNE data.
 
     Returns:
-        str or None: The database path if it doesn't already exist, otherwise None.
-    """
-    # Only return path if start_date does not already exist
-    """
-    if start_date:
-        return None
+        str: The database path.
     """
     rne_database_location = RNE_DB_TMP_FOLDER + f"rne_{start_date}.db"
     return rne_database_location
@@ -126,8 +121,14 @@ def get_latest_db(**kwargs):
                 }
             ],
         )
-    count_pp, count_pm = get_tables_count(RNE_DB_TMP_FOLDER + f"rne_{start_date}.db")
-    logging.info(f"*****Count pp : {count_pp}" f"*****Count pm : {count_pm}")
+    count_ul, count_pp, count_pm = get_tables_count(
+        RNE_DB_TMP_FOLDER + f"rne_{start_date}.db"
+    )
+    logging.info(
+        f"*****Count ul : {count_ul}, "
+        f"Count pp : {count_pp}"
+        f"*****Count pm : {count_pm}"
+    )
 
 
 def process_stock_json_files(**kwargs):
@@ -215,15 +216,28 @@ def process_flux_json_files(**kwargs):
     kwargs["ti"].xcom_push(key="last_date_processed", value=last_date_processed)
 
 
-def check_db_count(ti, min_pp_table_count=11000000, min_pm_table_count=1000000):
+def check_db_count(
+    ti,
+    min_ul_table_count=20000000,
+    min_pp_table_count=11000000,
+    min_pm_table_count=1000000,
+):
     try:
         rne_db_path = ti.xcom_pull(key="rne_db_path", task_ids="create_db")
-        count_pp, count_pm = get_tables_count(rne_db_path)
-        logging.info(f"*****Count pp : {count_pp}" f"*****Count pm : {count_pm}")
+        count_ul, count_pp, count_pm = get_tables_count(rne_db_path)
+        logging.info(
+            f"*****Count ul:: {count_pp}, Count pp : {count_pp} "
+            f"Count pm : {count_pm}"
+        )
 
-        if count_pp < min_pp_table_count or count_pm < min_pm_table_count:
+        if (
+            count_ul < min_ul_table_count
+            or count_pp < min_pp_table_count
+            or count_pm < min_pm_table_count
+        ):
             raise Exception(
                 f"Counts below the minimum threshold: "
+                f"count ul : {count_ul}"
                 f"count pp : {count_pp}"
                 f"count pm : {count_pm}"
             )
