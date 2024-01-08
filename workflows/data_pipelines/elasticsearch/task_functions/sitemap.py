@@ -75,7 +75,7 @@ def create_sitemap():
 
 
 def update_sitemap():
-    minio_filepath = f"ae/sitemap-{AIRFLOW_ENV}.csv"
+    minio_filepath = f"ae/{AIRFLOW_ENV}/sitemap.csv"
     minio_client.client.fput_object(
         bucket_name=minio_client.bucket,
         object_name=minio_filepath,
