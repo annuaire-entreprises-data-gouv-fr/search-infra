@@ -6,7 +6,6 @@ import os
 from dag_datalake_sirene.config import (
     AIRFLOW_ENV,
     MINIO_BUCKET,
-    MINIO_BUCKET_DATA_PIPELINE,
     MINIO_URL,
     MINIO_USER,
     MINIO_PASSWORD,
@@ -22,11 +21,11 @@ class File(TypedDict):
 
 
 class MinIOClient:
-    def __init__(self, open_data=True):
+    def __init__(self):
         self.url = MINIO_URL
         self.user = MINIO_USER
         self.password = MINIO_PASSWORD
-        self.bucket = MINIO_BUCKET if open_data else MINIO_BUCKET_DATA_PIPELINE
+        self.bucket = MINIO_BUCKET
         self.client = Minio(
             self.url,
             access_key=self.user,
@@ -202,4 +201,3 @@ class MinIOClient:
 
 
 minio_client = MinIOClient()
-minio_client_restricted = MinIOClient(open_data=False)
