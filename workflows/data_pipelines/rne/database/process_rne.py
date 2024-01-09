@@ -6,6 +6,12 @@ from dag_datalake_sirene.workflows.data_pipelines.rne.database.db_connexion impo
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.rne_model import (
     RNECompany,
 )
+from dag_datalake_sirene.workflows.data_pipelines.rne.database.company_model import (
+    UniteLegale,
+)
+from dag_datalake_sirene.workflows.data_pipelines.rne.database.map_rne import (
+    map_rne_company_to_ul,
+)
 
 
 def create_tables(cursor):
@@ -14,12 +20,16 @@ def create_tables(cursor):
         CREATE TABLE IF NOT EXISTS unites_legales
         (
             siren TEXT,
-            nom_complet TEXT,
-            date_mise_a_jour_unite_legale TEXT,
-            adresse_complete TEXT,
-            forme_juridique TEXT,
-            statut_diffusion_unite_legale TEXT,
-            nature_juridique_unite_legale TEXT,
+            denomination TEXT,
+            nom_commercial TEXT,
+            date_creation TEXT,
+            date_mise_a_jour TEXT,
+            date_immatriculation TEXT,
+            tranche_effectif_salarie TEXT,
+            nature_juridique TEXT,
+            etat_administratif TEXT,
+            statut_diffusion TEXT,
+            adresse TEXT,
             file_name TEXT
         )
     """
@@ -30,20 +40,14 @@ def create_tables(cursor):
         (
             siren TEXT,
             date_mise_a_jour TEXT,
-            date_de_naissance TEXT,
-            role TEXT,
             nom TEXT,
             nom_usage TEXT,
             prenoms TEXT,
             genre TEXT,
+            date_de_naissance TEXT,
+            role TEXT,
             nationalite TEXT,
             situation_matrimoniale TEXT,
-            pays TEXT,
-            code_pays TEXT,
-            code_postal TEXT,
-            commune TEXT,
-            code_insee_commune TEXT,
-            voie TEXT,
             file_name TEXT
         )
     """
@@ -53,12 +57,12 @@ def create_tables(cursor):
         CREATE TABLE IF NOT EXISTS dirigeants_pm
         (
             siren TEXT,
+            siren_dirigeant TEXT,
             date_mise_a_jour TEXT,
             denomination TEXT,
-            siren_dirigeant TEXT,
             role TEXT,
-            forme_juridique TEXT,
             pays TEXT,
+            forme_juridique TEXT,
             file_name TEXT
         )
     """
@@ -87,7 +91,6 @@ def create_index_db(cursor):
 
 
 def inject_records_into_db(file_path, db_path, file_type):
-    dirigeants_pp, dirigeants_pm = [], []
     unites_legales = []
 
     with open(file_path, "r") as file:
@@ -96,40 +99,26 @@ def inject_records_into_db(file_path, db_path, file_type):
             if file_type == "stock":
                 json_data = file.read()
                 data = json.loads(json_data)
-                (
-                    unites_legales,
-                    dirigeants_pp,
-                    dirigeants_pm,
-                ) = process_records_to_extract_rne_data(data, file_type)
+                unites_legales = process_records_to_extract_rne_data(data, file_type)
             elif file_type == "flux":
                 for line in file:
                     data = json.loads(line)
-                    (
-                        unites_legales_temp,
-                        dirigeants_pp_temp,
-                        dirigeants_pm_temp,
-                    ) = process_records_to_extract_rne_data(data, file_type)
-                    dirigeants_pp += dirigeants_pp_temp
-                    dirigeants_pm += dirigeants_pm_temp
+                    unites_legales_temp = process_records_to_extract_rne_data(
+                        data, file_type
+                    )
                     unites_legales += unites_legales_temp
         except json.JSONDecodeError as e:
             raise Exception(f"JSONDecodeError: {e} in file {file_path}")
-        insert_dirigeants_into_db(
-            unites_legales, dirigeants_pp, dirigeants_pm, file_path, db_path
-        )
+
+        insert_unites_legales_into_db(unites_legales, file_path, db_path)
 
 
 def process_records_to_extract_rne_data(data, file_type):
-    dirigeants_pp, dirigeants_pm = [], []
     unites_legales = []
     for record in data:
-        unite_legale, list_dirigeants_pp, list_dirigeants_pm = extract_rne_data(
-            record, file_type
-        )
+        unite_legale = extract_rne_data(record, file_type)
         unites_legales.append(unite_legale)
-        dirigeants_pp = dirigeants_pp + list_dirigeants_pp
-        dirigeants_pm = dirigeants_pm + list_dirigeants_pm
-    return unites_legales, dirigeants_pp, dirigeants_pm
+    return unites_legales
 
 
 def find_and_delete_same_siren_dirig(cursor, siren, file_path):
@@ -178,90 +167,102 @@ def find_and_delete_same_siren(cursor, siren, file_path):
         )
 
 
-def insert_dirigeants_into_db(
-    list_unites_legales, list_dirigeants_pp, list_dirigeants_pm, file_path, db_path
-):
+def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
     connection, cursor = connect_to_db(db_path)
 
     for unite_legale in list_unites_legales:
-        find_and_delete_same_siren(cursor, unite_legale["siren"], file_path)
+        find_and_delete_same_siren(cursor, unite_legale.siren, file_path)
 
         cursor.execute(
             """
             INSERT INTO unites_legales (siren,
-            nom_complet, date_mise_a_jour_unite_legale,
-            adresse_complete, forme_juridique,
-            statut_diffusion_unite_legale,
-            nature_juridique_unite_legale, file_name)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            denomination, nom_commercial,
+            date_creation, date_mise_a_jour,
+            date_immatriculation,
+            tranche_effectif_salarie,
+            nature_juridique,
+            etat_administratif,
+            statut_diffusion,
+            adresse,
+            file_name)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
-                unite_legale["siren"],
-                unite_legale["nom_complet"],
-                unite_legale["date_mise_a_jour_unite_legale"],
-                unite_legale["adresse_complete"],
-                unite_legale["forme_juridique"],
-                unite_legale["statut_diffusion_unite_legale"],
-                unite_legale["nature_juridique_unite_legale"],
+                unite_legale.siren,
+                unite_legale.denomination,
+                unite_legale.nom_commercial,
+                unite_legale.date_creation,
+                unite_legale.date_mise_a_jour,
+                unite_legale.date_immatriculation,
+                unite_legale.tranche_effectif_salarie,
+                unite_legale.nature_juridique,
+                unite_legale.etat_administratif,
+                unite_legale.statut_diffusion,
+                unite_legale.format_address(),
                 file_path,
             ),
         )
 
-    for dirigeant_pp in list_dirigeants_pp:
-        find_and_delete_same_siren_dirig(cursor, dirigeant_pp["siren"], file_path)
-        cursor.execute(
-            """
-            INSERT INTO dirigeants_pp (siren,
-            date_mise_a_jour, date_de_naissance,
-            role, nom,
-                                        nom_usage,
-                                        prenoms, genre, nationalite,
-                                        situation_matrimoniale,
-                                        pays, code_pays, code_postal,
-                                        commune, code_insee_commune, voie, file_name)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-            (
-                dirigeant_pp["siren"],
-                dirigeant_pp["date_mise_a_jour"],
-                dirigeant_pp["date_de_naissance"],
-                dirigeant_pp["role"],
-                dirigeant_pp["nom"],
-                dirigeant_pp["nom_usage"],
-                dirigeant_pp["prenoms"],
-                dirigeant_pp["genre"],
-                dirigeant_pp["nationalite"],
-                dirigeant_pp["situation_matrimoniale"],
-                dirigeant_pp["pays"],
-                dirigeant_pp["code_pays"],
-                dirigeant_pp["code_postal"],
-                dirigeant_pp["commune"],
-                dirigeant_pp["code_insee_commune"],
-                dirigeant_pp["voie"],
-                file_path,
-            ),
-        )
+        list_dirigeants_pp, list_dirigeants_pm = unite_legale.get_dirigeants_list()
 
-    for dirigeant_pm in list_dirigeants_pm:
-        find_and_delete_same_siren_dirig(cursor, dirigeant_pm["siren"], file_path)
-        cursor.execute(
-            """
-            INSERT INTO dirigeants_pm
-            (siren, date_mise_a_jour, denomination, siren_dirigeant, role,
-                                        forme_juridique, pays, file_name)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-            (
-                dirigeant_pm["siren"],
-                dirigeant_pm["date_mise_a_jour"],
-                dirigeant_pm["denomination"],
-                dirigeant_pm["siren_dirigeant"],
-                dirigeant_pm["role"],
-                dirigeant_pm["forme_juridique"],
-                dirigeant_pm["pays"],
-                file_path,
-            ),
-        )
+        for dirigeant_pp in list_dirigeants_pp:
+            find_and_delete_same_siren_dirig(cursor, unite_legale.siren, file_path)
+            cursor.execute(
+                """
+                INSERT INTO dirigeants_pp (siren,
+                date_mise_a_jour,
+                nom,
+                nom_usage,
+                prenoms,
+                genre,
+                date_de_naissance,
+                role,
+                nationalite,
+                situation_matrimoniale,
+                file_name)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+                (
+                    unite_legale.siren,
+                    unite_legale.date_mise_a_jour,
+                    dirigeant_pp.nom,
+                    dirigeant_pp.nom_usage,
+                    dirigeant_pp.prenoms,
+                    dirigeant_pp.genre,
+                    dirigeant_pp.date_de_naissance,
+                    dirigeant_pp.role,
+                    dirigeant_pp.nationalite,
+                    dirigeant_pp.situation_matrimoniale,
+                    file_path,
+                ),
+            )
+
+        for dirigeant_pm in list_dirigeants_pm:
+            find_and_delete_same_siren_dirig(cursor, unite_legale.siren, file_path)
+            cursor.execute(
+                """
+                INSERT INTO dirigeants_pm
+                (siren,
+                siren_dirigeant,
+                date_mise_a_jour,
+                denomination,
+                role,
+                pays,
+                forme_juridique,
+                file_name)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+                (
+                    unite_legale.siren,
+                    dirigeant_pm.siren,
+                    unite_legale.date_mise_a_jour,
+                    dirigeant_pm.denomination,
+                    dirigeant_pm.role,
+                    dirigeant_pm.pays,
+                    dirigeant_pm.forme_juridique,
+                    file_path,
+                ),
+            )
     cursor.execute("SELECT COUNT(*) FROM dirigeants_pp")
     count_pp = cursor.fetchone()[0]
 
@@ -303,101 +304,12 @@ def get_tables_count(db_path):
 
 
 def extract_rne_data(entity, file_type="flux"):
-    """Extract and format "dirigeants" and "unites legales"
-    data from RNE json object."""
-    list_dirigeants_pp = []
-    list_dirigeants_pm = []
+    """Extract "unites legales" data from RNE json object."""
 
     company = entity.get("company", {}) if file_type == "flux" else entity
 
     rne_company = RNECompany.model_validate(company)
+    unite_legale = UniteLegale()
+    unite_legale_formatted = map_rne_company_to_ul(rne_company, unite_legale)
 
-    rne_company_dict = format_rne_company_dict(rne_company)
-
-    for dirigeant in rne_company_dict["dirigeants"]:
-        # Cas personne morale et exploitation
-        if hasattr(dirigeant, "typeDePersonne"):
-            if dirigeant.typeDePersonne == "INDIVIDU":
-                list_dirigeants_pp.append(
-                    format_dirigeant_pp_fields(
-                        dirigeant.individu,
-                        rne_company_dict["siren"],
-                        rne_company_dict["date_mise_a_jour_unite_legale"],
-                    )
-                )
-
-            elif dirigeant.typeDePersonne == "ENTREPRISE":
-                list_dirigeants_pm.append(
-                    format_dirigeant_pm_fields(
-                        dirigeant.entreprise,
-                        rne_company_dict["siren"],
-                        rne_company_dict["date_mise_a_jour_unite_legale"],
-                    )
-                )
-        else:
-            # Cas personne physique
-            list_dirigeants_pp.append(
-                format_dirigeant_pp_fields(
-                    dirigeant,
-                    rne_company_dict["siren"],
-                    rne_company_dict["date_mise_a_jour_unite_legale"],
-                )
-            )
-    rne_company_dict.pop("dirigeants", None)
-
-    if rne_company_dict["siren"] == "817883150":
-        logging.info(f"%%%%%%%%%%%%%%%%%%%%%%******* Ganymede : {rne_company_dict}")
-    return rne_company_dict, list_dirigeants_pp, list_dirigeants_pm
-
-
-def format_rne_company_dict(rne_company):
-    """Format RNECompany data into a dictionary."""
-    return {
-        "siren": rne_company.siren,
-        "dirigeants": rne_company.dirigeants,
-        "nom_complet": rne_company.formality.companyName,
-        "date_mise_a_jour_unite_legale": rne_company.updatedAt,
-        "adresse_complete": rne_company.adresse,
-        "forme_juridique": rne_company.formality.formeJuridique,
-        "statut_diffusion_unite_legale": rne_company.formality.diffusionINSEE,
-        "nature_juridique_unite_legale": rne_company.formality.codeAPE,
-    }
-
-
-def format_dirigeant_pp_fields(dirigeant, siren, date_maj):
-    individu = dirigeant.descriptionPersonne
-    adresse_domicile = dirigeant.adresseDomicile
-    dirigeant_formated = {
-        "siren": siren,
-        "date_mise_a_jour": date_maj,
-        "date_de_naissance": individu.dateDeNaissance,
-        "role": individu.role,
-        "nom": individu.nom,
-        "nom_usage": individu.nomUsage,
-        "prenoms": " ".join(individu.prenoms)
-        if isinstance(individu.prenoms, list)
-        else individu.prenoms,
-        "genre": individu.genre,
-        "nationalite": individu.nationalite,
-        "situation_matrimoniale": individu.situationMatrimoniale,
-        "pays": adresse_domicile.pays,
-        "code_pays": adresse_domicile.codePays,
-        "code_postal": adresse_domicile.codePostal,
-        "commune": adresse_domicile.commune,
-        "code_insee_commune": adresse_domicile.codeInseeCommune,
-        "voie": adresse_domicile.voie,
-    }
-    return dirigeant_formated
-
-
-def format_dirigeant_pm_fields(dirigeant, siren, date_maj):
-    dirigeant_formated = {
-        "siren": siren,
-        "date_mise_a_jour": date_maj,
-        "denomination": dirigeant.denomination,
-        "siren_dirigeant": dirigeant.siren,
-        "role": dirigeant.role,
-        "forme_juridique": dirigeant.formeJuridique,
-        "pays": dirigeant.pays,
-    }
-    return dirigeant_formated
+    return unite_legale_formatted
