@@ -1,8 +1,5 @@
 from datetime import datetime
 from pydantic import BaseModel
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
-    format_adresse_complete,
-)
 
 
 class Adresse(BaseModel):
@@ -60,11 +57,19 @@ class Pouvoir(BaseModel):
 
 
 class Composition(BaseModel):
-    pouvoirs: list[Pouvoir] | None = None
+    pouvoirs: list[Pouvoir] | None = Pouvoir()
+
+
+class Entrerpise(BaseModel):
+    denomination: str | None = None
+    formeJuridique: str | None = None
+    nomCommercial: str | None = None
+    effectifSalarie: str | None = None
+    dateImmat: datetime | None = None
 
 
 class Identite(BaseModel):
-    entreprise: dict | None = None
+    entreprise: Entrerpise | None = Entrerpise()
     entrepreneur: Entrepreneur | None = Entrepreneur()
 
 
@@ -75,96 +80,21 @@ class AdresseEntreprise(BaseModel):
 
 
 class Exploitation(BaseModel):
-    identite: dict | None = None
+    identite: Identite | None = Identite()
     composition: Composition | None = None
-    adresseEntreprise: AdresseEntreprise | None = None
-
-    @property
-    def dirigeants(self):
-        return self.composition.pouvoirs if self.composition else []
-
-    @property
-    def formatted_address(self):
-        if self.adresseEntreprise and self.adresseEntreprise.adresse:
-            addr = self.adresseEntreprise.adresse
-            return format_adresse_complete(
-                addr.complementLocalisation,
-                addr.numVoie,
-                addr.indiceRepetition,
-                addr.typeVoie,
-                addr.voie,
-                addr.commune,
-                None,  # No libelle_cedex in the provided Adresse class
-                addr.distributionSpeciale,
-                addr.codePostal,
-                None,  # No cedex in the provided Adresse class
-                addr.commune,
-                None,  # No libelle_commune_etranger in the provided Adresse class
-                None,  # No libelle_pays_etranger in the provided Adresse class
-            )
-        return ""
+    adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
 
 
 class PersonneMorale(BaseModel):
-    identite: dict | None = None
+    identite: Identite | None = Identite()
     composition: Composition | None = None
-    adresseEntreprise: AdresseEntreprise | None = None
-
-    @property
-    def dirigeants(self):
-        return self.composition.pouvoirs if self.composition else []
-
-    @property
-    def formatted_address(self):
-        if self.adresseEntreprise and self.adresseEntreprise.adresse:
-            addr = self.adresseEntreprise.adresse
-            return format_adresse_complete(
-                addr.complementLocalisation,
-                addr.numVoie,
-                addr.indiceRepetition,
-                addr.typeVoie,
-                addr.voie,
-                addr.commune,
-                None,  # No libelle_cedex in the provided Adresse class
-                addr.distributionSpeciale,
-                addr.codePostal,
-                None,  # No cedex in the provided Adresse class
-                addr.commune,
-                None,  # No libelle_commune_etranger in the provided Adresse class
-                None,  # No libelle_pays_etranger in the provided Adresse class
-            )
-        return ""
+    adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
 
 
 class PersonnePhysique(BaseModel):
     identite: Identite | None = None
     composition: Composition | None = None
-    adresseEntreprise: AdresseEntreprise | None = None
-
-    @property
-    def dirigeants(self):
-        return [self.identite.entrepreneur if self.identite else None]
-
-    @property
-    def formatted_address(self):
-        if self.adresseEntreprise and self.adresseEntreprise.adresse:
-            addr = self.adresseEntreprise.adresse
-            return format_adresse_complete(
-                addr.complementLocalisation,
-                addr.numVoie,
-                addr.indiceRepetition,
-                addr.typeVoie,
-                addr.voie,
-                addr.commune,
-                None,  # No libelle_cedex in the provided Adresse class
-                addr.distributionSpeciale,
-                addr.codePostal,
-                None,  # No cedex in the provided Adresse class
-                addr.commune,
-                None,  # No libelle_commune_etranger in the provided Adresse class
-                None,  # No libelle_pays_etranger in the provided Adresse class
-            )
-        return ""
+    adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
 
 
 class Content(BaseModel):
@@ -191,28 +121,6 @@ class RNECompany(BaseModel):
     formality: Formality
     siren: str
     origin: str | None = None
-
-    @property
-    def dirigeants(self):
-        if self.is_personne_morale():
-            return self.formality.content.personneMorale.dirigeants
-        elif self.is_exploitation():
-            return self.formality.content.exploitation.dirigeants
-        elif self.is_personne_physique():
-            return self.formality.content.personnePhysique.dirigeants
-        else:
-            return []
-
-    @property
-    def adresse(self):
-        if self.is_personne_morale():
-            return self.formality.content.personneMorale.formatted_address
-        elif self.is_exploitation():
-            return self.formality.content.exploitation.formatted_address
-        elif self.is_personne_physique():
-            return self.formality.content.personnePhysique.formatted_address
-        else:
-            return ""
 
     def is_personne_morale(self) -> bool:
         return isinstance(self.formality.content.personneMorale, PersonneMorale)
