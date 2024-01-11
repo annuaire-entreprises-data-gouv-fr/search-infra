@@ -6,6 +6,7 @@ from dag_datalake_sirene.workflows.data_pipelines.rne.database.company_model imp
     DirigeantsPP,
     DirigeantsPM,
     UniteLegale,
+    Siege,
 )
 
 
@@ -14,7 +15,15 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     unite_legale.date_creation = rne_company.createdAt
     unite_legale.date_mise_a_jour = rne_company.updatedAt
     unite_legale.statut_diffusion = rne_company.formality.diffusionINSEE
-
+    unite_legale.forme_exercice_activite_principale = (
+        rne_company.formality.content.formeExerciceActivitePrincipale
+    )
+    unite_legale.etat_administratif = (
+        rne_company.formality.content.natureCessationEntreprise.etatAdministratifInsee
+    )
+    cessation = get_detail_cessation(rne_company)
+    if cessation:
+        unite_legale.date_radiation = cessation.dateRadiation
     identite = get_identite(rne_company)
     if identite:
         unite_legale.denomination = identite.denomination
@@ -29,6 +38,10 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     company_dirigeants = get_dirigeants(rne_company)
     unite_legale.dirigeants = map_dirigeants_rne_to_dirigeant_ul(company_dirigeants)
 
+    siege = get_siege(rne_company)
+    if siege:
+        unite_legale.siege = map_rne_siege_to_ul(siege)
+
     return unite_legale
 
 
@@ -41,6 +54,17 @@ def get_identite(rne_company: RNECompany):
         return None
 
 
+def get_detail_cessation(rne_company: RNECompany):
+    if rne_company.is_personne_morale():
+        return rne_company.formality.content.personneMorale.detailCessationEntreprise
+    elif rne_company.is_exploitation():
+        return rne_company.formality.content.exploitation.detailCessationEntreprise
+    elif rne_company.is_personne_physique():
+        return rne_company.formality.content.personnePhysique.detailCessationEntreprise
+    else:
+        return None
+
+
 def get_adresse(rne_company: RNECompany):
     if rne_company.is_personne_morale():
         return rne_company.formality.content.personneMorale.adresseEntreprise.adresse
@@ -48,6 +72,17 @@ def get_adresse(rne_company: RNECompany):
         return rne_company.formality.content.exploitation.adresseEntreprise.adresse
     elif rne_company.is_personne_physique():
         return rne_company.formality.content.personnePhysique.adresseEntreprise.adresse
+    else:
+        return {}
+
+
+def get_siege(rne_company: RNECompany):
+    if rne_company.is_personne_morale():
+        return rne_company.formality.content.personneMorale.etablissementPrincipal
+    elif rne_company.is_exploitation():
+        return rne_company.formality.content.exploitation.etablissementPrincipal
+    elif rne_company.is_personne_physique():
+        return rne_company.formality.content.personnePhysique.etablissementPrincipal
     else:
         return {}
 
@@ -97,7 +132,7 @@ def map_rne_dirigeant_pp_to_ul(dirigeant_pp_rne):
     else:
         dirigeant_pp_ul.prenoms = dirigeant_pp_rne.prenoms
     dirigeant_pp_ul.genre = dirigeant_pp_rne.genre
-    dirigeant_pp_ul.role = dirigeant_pp_rne.titre
+    dirigeant_pp_ul.role = dirigeant_pp_rne.role
     dirigeant_pp_ul.nationalite = dirigeant_pp_rne.nationalite
     dirigeant_pp_ul.situation_matrimoniale = dirigeant_pp_rne.situationMatrimoniale
     return dirigeant_pp_ul
@@ -111,6 +146,30 @@ def map_rne_dirigeant_pm_to_ul(dirigeant_pm_rne):
     dirigeant_pm_ul.pays = dirigeant_pm_rne.pays
     dirigeant_pm_ul.forme_juridique = dirigeant_pm_rne.formeJuridique
     return dirigeant_pm_ul
+
+
+def map_rne_siege_to_ul(siege_rne):
+    siege = Siege()
+    description_siege = siege_rne.descriptionEtablissement
+    adresse_siege = siege_rne.adresse
+
+    siege.siret = description_siege.siret
+    siege.nom_commercial = description_siege.nomCommercial
+    siege.enseigne = description_siege.enseigne
+
+    siege.adresse.pays = adresse_siege.pays
+    siege.adresse.code_pays = adresse_siege.codePays
+    siege.adresse.commune = adresse_siege.commune
+    siege.adresse.code_postal = adresse_siege.codePostal
+    siege.adresse.voie = siege_rne.adresse.voie
+    siege.adresse.num_voie = adresse_siege.numVoie
+    siege.adresse.type_voie = adresse_siege.typeVoie
+    siege.adresse.indice_repetition = adresse_siege.indiceRepetition
+    siege.adresse.complement_localisation = adresse_siege.complementLocalisation
+    siege.adresse.distribution_speciale = adresse_siege.distributionSpeciale
+    siege.adresse.pays = adresse_siege.pays
+
+    return siege
 
 
 def map_dirigeants_rne_to_dirigeant_ul(dirigeants_rne):
