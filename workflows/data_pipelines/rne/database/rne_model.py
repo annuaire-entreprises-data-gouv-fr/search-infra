@@ -66,6 +66,7 @@ class Entrerpise(BaseModel):
     nomCommercial: str | None = None
     effectifSalarie: str | None = None
     dateImmat: datetime | None = None
+    codeApe: str | None = None
 
 
 class Identite(BaseModel):
@@ -79,28 +80,56 @@ class AdresseEntreprise(BaseModel):
     entrepriseDomiciliataire: dict | None = None
 
 
+class DescriptionEtablissement(BaseModel):
+    siret: str | None = None
+    enseigne: str | None = None
+    nomCommercial: str | None = None
+
+
+class EtablissementPrincipal(BaseModel):
+    descriptionEtablissement: DescriptionEtablissement | None = (
+        DescriptionEtablissement()
+    )
+
+
+class DetailCessationEntreprise(BaseModel):
+    dateRadiation: datetime | None = None
+
+
+class NatureCessationEntreprise(BaseModel):
+    etatAdministratifInsee: str | None = None
+
+
 class Exploitation(BaseModel):
     identite: Identite | None = Identite()
     composition: Composition | None = None
     adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
+    etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
+    detailCessationEntreprise: DetailCessationEntreprise | None = None
 
 
 class PersonneMorale(BaseModel):
     identite: Identite | None = Identite()
     composition: Composition | None = None
     adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
+    etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
+    detailCessationEntreprise: DetailCessationEntreprise | None = None
 
 
 class PersonnePhysique(BaseModel):
     identite: Identite | None = None
     composition: Composition | None = None
     adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
+    etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
+    detailCessationEntreprise: DetailCessationEntreprise | None = None
 
 
 class Content(BaseModel):
+    formeExerciceActivitePrincipale: str | None = None
     personnePhysique: PersonnePhysique | None = None
     personneMorale: PersonneMorale | None = None
     exploitation: Exploitation | None = None
+    natureCessationEntreprise: NatureCessationEntreprise | None = None
 
 
 class Formality(BaseModel):
