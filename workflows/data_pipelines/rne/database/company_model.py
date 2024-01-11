@@ -41,6 +41,13 @@ class DirigeantsPM(BaseModel):
     type_dirigeant: Literal["personne morale"] = "personne morale"
 
 
+class Siege(BaseModel):
+    siret: str | None = None
+    adresse: Adresse | None = Adresse()
+    enseigne: str | None = None
+    nom_commercial: str | None = None
+
+
 class UniteLegale(BaseModel):
     siren: str | None = None
     denomination: str | None = None
@@ -48,12 +55,16 @@ class UniteLegale(BaseModel):
     date_creation: datetime | None = None
     date_mise_a_jour: datetime | None = None
     date_immatriculation: datetime | None = None
+    date_radiation: datetime | None = None
+    activite_principale: str | None = None
     tranche_effectif_salarie: str | None = None
     nature_juridique: str | None = None
     etat_administratif: str | None = None
+    forme_exercice_activite_principale: str | None = None
     statut_diffusion: str | None = None
     adresse: Adresse | None = Adresse()
     dirigeants: (list[DirigeantsPP | DirigeantsPM] | None) = None
+    siege: Siege | None = Siege()
 
     def get_dirigeants_list(self):
         dirigeants_pp_list = []
