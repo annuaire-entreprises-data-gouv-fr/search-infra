@@ -25,11 +25,37 @@ def create_tables(cursor):
             date_creation TEXT,
             date_mise_a_jour TEXT,
             date_immatriculation TEXT,
+            date_radiation TEXT,
+            activite_principale TEXT,
             tranche_effectif_salarie TEXT,
             nature_juridique TEXT,
             etat_administratif TEXT,
+            forme_exercice_activite_principale TEXT,
             statut_diffusion TEXT,
             adresse TEXT,
+            file_name TEXT
+        )
+    """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS sieges
+        (
+            siren TEXT,
+            siret TEXT,
+            enseigne TEXT,
+            nom_commercial TEXT,
+            pays TEXT,
+            code_pays TEXT,
+            commune TEXT,
+            code_postal TEXT,
+            code_commune TEXT,
+            voie TEXT,
+            num_voie TEXT,
+            type_voie TEXT,
+            indice_repetition TEXT,
+            complement_localisation TEXT,
+            distribution_speciale TEXT,
             file_name TEXT
         )
     """
@@ -73,13 +99,20 @@ def create_tables(cursor):
 def create_index_db(cursor):
     index_statements = [
         "CREATE INDEX IF NOT EXISTS idx_siren_ul ON unites_legales (siren);",
+        "CREATE INDEX IF NOT EXISTS idx_siren_etab ON sieges (siren);",
+        "CREATE INDEX IF NOT EXISTS idx_siret_etab ON sieges (siret);",
         "CREATE INDEX IF NOT EXISTS idx_siren_pp ON dirigeants_pp (siren);",
         "CREATE INDEX IF NOT EXISTS idx_siren_pm ON dirigeants_pm (siren);",
         "CREATE INDEX IF NOT EXISTS file_ul ON unites_legales (file_name);",
+        "CREATE INDEX IF NOT EXISTS file_etab ON sieges (file_name);",
         "CREATE INDEX IF NOT EXISTS file_pp ON dirigeants_pp (file_name);",
         "CREATE INDEX IF NOT EXISTS file_pm ON dirigeants_pm (file_name);",
         """CREATE INDEX IF NOT EXISTS idx_ul_siren_file_name
         ON unites_legales (siren, file_name);""",
+        """CREATE INDEX IF NOT EXISTS idx_etab_siren_file_name
+        ON sieges (siren, file_name);""",
+        """CREATE INDEX IF NOT EXISTS idx_etab_siret_file_name
+        ON sieges (siret, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_pp_siren_file_name
         ON dirigeants_pp (siren, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_pm_siren_file_name
@@ -144,13 +177,14 @@ def find_and_delete_same_siren_dirig(cursor, siren, file_path):
         )
 
 
-def find_and_delete_same_siren(cursor, siren, file_path):
+def find_and_delete_same_siren_and_siret(cursor, siren, siret, file_path):
     """
     Find and delete older rows with the same SIREN as they are outdated.
 
     Args:
         cursor: The database cursor.
-        siren (str): The SIREN to search for and delete.
+        siren (str): The SIREN to search for and delete (table unites_legales).
+        siret (str): The SIRET to search for and delete (table sieges).
         file_path (str): The file path to filter the rows.
 
     """
@@ -165,13 +199,25 @@ def find_and_delete_same_siren(cursor, siren, file_path):
             "DELETE FROM unites_legales WHERE siren = ? AND file_name != ?",
             (siren, file_path),
         )
+    cursor.execute(
+        "SELECT COUNT(*) FROM sieges WHERE siret = ? AND file_name != ?",
+        (siret, file_path),
+    )
+    count_already_existing_siret = cursor.fetchone()[0]
+    if count_already_existing_siret is not None:
+        cursor.execute(
+            "DELETE FROM sieges WHERE siret = ? AND file_name != ?",
+            (siret, file_path),
+        )
 
 
 def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
     connection, cursor = connect_to_db(db_path)
 
     for unite_legale in list_unites_legales:
-        find_and_delete_same_siren(cursor, unite_legale.siren, file_path)
+        find_and_delete_same_siren_and_siret(
+            cursor, unite_legale.siren, unite_legale.siege.siret, file_path
+        )
 
         cursor.execute(
             """
@@ -179,13 +225,16 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             denomination, nom_commercial,
             date_creation, date_mise_a_jour,
             date_immatriculation,
+            date_radiation,
+            activite_principale,
             tranche_effectif_salarie,
             nature_juridique,
             etat_administratif,
+            forme_exercice_activite_principale,
             statut_diffusion,
             adresse,
             file_name)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
                 unite_legale.siren,
@@ -194,11 +243,52 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 unite_legale.date_creation,
                 unite_legale.date_mise_a_jour,
                 unite_legale.date_immatriculation,
+                unite_legale.date_radiation,
+                unite_legale.activite_principale,
                 unite_legale.tranche_effectif_salarie,
                 unite_legale.nature_juridique,
                 unite_legale.etat_administratif,
+                unite_legale.forme_exercice_activite_principale,
                 unite_legale.statut_diffusion,
                 unite_legale.format_address(),
+                file_path,
+            ),
+        )
+        siege = unite_legale.siege
+        cursor.execute(
+            """
+            INSERT INTO sieges (siren,
+            siret, enseigne, nom_commercial,
+            pays,
+            code_pays,
+            commune,
+            code_postal,
+            code_commune,
+            voie,
+            num_voie,
+            type_voie,
+            indice_repetition,
+            complement_localisation,
+            distribution_speciale,
+            file_name)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+            (
+                unite_legale.siren,
+                siege.siret,
+                siege.enseigne,
+                siege.nom_commercial,
+                siege.adresse.pays,
+                siege.adresse.code_pays,
+                siege.adresse.commune,
+                siege.adresse.code_postal,
+                siege.adresse.code_commune,
+                siege.adresse.voie,
+                siege.adresse.num_voie,
+                siege.adresse.type_voie,
+                siege.adresse.indice_repetition,
+                siege.adresse.complement_localisation,
+                siege.adresse.distribution_speciale,
                 file_path,
             ),
         )
@@ -272,17 +362,21 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
     cursor.execute("SELECT COUNT(*) FROM unites_legales")
     count_ul = cursor.fetchone()[0]
 
+    cursor.execute("SELECT COUNT(*) FROM sieges")
+    count_sieges = cursor.fetchone()[0]
+
     logging.info(
-        f"************Count UL: {count_ul}, "
+        f"************Count UL: {count_ul}, Count sieges: {count_sieges}, "
         f"Count pp: {count_pp}, Count pm: {count_pm}"
     )
 
     cursor.execute("SELECT * FROM unites_legales ORDER BY rowid DESC LIMIT 1")
-    first_record = cursor.fetchone()
-
+    cursor.fetchone()
+    """
     # Print the first record
     if first_record:
         logging.info(f"///////First Record: {first_record}")
+    """
     connection.commit()
     connection.close()
 
@@ -293,6 +387,9 @@ def get_tables_count(db_path):
     cursor.execute("SELECT COUNT(*) FROM unites_legales")
     count_ul = cursor.fetchone()[0]
 
+    cursor.execute("SELECT COUNT(*) FROM sieges")
+    count_sieges = cursor.fetchone()[0]
+
     cursor.execute("SELECT COUNT(*) FROM dirigeants_pp")
     count_pp = cursor.fetchone()[0]
 
@@ -300,7 +397,7 @@ def get_tables_count(db_path):
     count_pm = cursor.fetchone()[0]
 
     connection.close()
-    return count_ul, count_pp, count_pm
+    return count_ul, count_sieges, count_pp, count_pm
 
 
 def extract_rne_data(entity, file_type="flux"):
