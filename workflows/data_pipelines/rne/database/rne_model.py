@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from pydantic import BaseModel
 
 
@@ -90,10 +90,11 @@ class EtablissementPrincipal(BaseModel):
     descriptionEtablissement: DescriptionEtablissement | None = (
         DescriptionEtablissement()
     )
+    adresse: Adresse | None = Adresse()
 
 
 class DetailCessationEntreprise(BaseModel):
-    dateRadiation: datetime | None = None
+    dateRadiation: date | None = None
 
 
 class NatureCessationEntreprise(BaseModel):
@@ -129,7 +130,9 @@ class Content(BaseModel):
     personnePhysique: PersonnePhysique | None = None
     personneMorale: PersonneMorale | None = None
     exploitation: Exploitation | None = None
-    natureCessationEntreprise: NatureCessationEntreprise | None = None
+    natureCessationEntreprise: NatureCessationEntreprise | None = (
+        NatureCessationEntreprise()
+    )
 
 
 class Formality(BaseModel):
