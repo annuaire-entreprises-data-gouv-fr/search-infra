@@ -1,7 +1,7 @@
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.rne_model import (
     RNECompany,
 )
-from dag_datalake_sirene.workflows.data_pipelines.rne.database.company_model import (
+from dag_datalake_sirene.workflows.data_pipelines.rne.database.ul_model import (
     Adresse,
     DirigeantsPP,
     DirigeantsPM,
@@ -24,6 +24,7 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     cessation = get_detail_cessation(rne_company)
     if cessation:
         unite_legale.date_radiation = cessation.dateRadiation
+
     identite = get_identite(rne_company)
     if identite:
         unite_legale.denomination = identite.denomination
@@ -36,7 +37,9 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     unite_legale.adresse = map_address_rne_to_ul(company_address)
 
     company_dirigeants = get_dirigeants(rne_company)
-    unite_legale.dirigeants = map_dirigeants_rne_to_dirigeant_ul(company_dirigeants)
+    unite_legale.dirigeants = map_dirigeants_rne_to_dirigeants_list_ul(
+        company_dirigeants
+    )
 
     siege = get_siege(rne_company)
     if siege:
@@ -45,46 +48,53 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     return unite_legale
 
 
-def get_identite(rne_company: RNECompany):
+def get_value(rne_company: RNECompany, key: str, default=None):
+    content = rne_company.formality.content
+
     if rne_company.is_personne_morale():
-        return rne_company.formality.content.personneMorale.identite.entreprise
+        return getattr(content.personneMorale, key, default)
     elif rne_company.is_exploitation():
-        return rne_company.formality.content.exploitation.identite.entreprise
+        return getattr(content.exploitation, key, default)
+    elif rne_company.is_personne_physique():
+        return getattr(content.personnePhysique, key, default)
+    else:
+        return default
+
+
+def get_identite(rne_company: RNECompany):
+    identite = get_value(rne_company, "identite")
+
+    if identite and hasattr(identite, "entreprise"):
+        return identite.entreprise
     else:
         return None
 
 
 def get_detail_cessation(rne_company: RNECompany):
-    if rne_company.is_personne_morale():
-        return rne_company.formality.content.personneMorale.detailCessationEntreprise
-    elif rne_company.is_exploitation():
-        return rne_company.formality.content.exploitation.detailCessationEntreprise
-    elif rne_company.is_personne_physique():
-        return rne_company.formality.content.personnePhysique.detailCessationEntreprise
-    else:
-        return None
+    return get_value(rne_company, "detailCessationEntreprise")
 
 
 def get_adresse(rne_company: RNECompany):
-    if rne_company.is_personne_morale():
-        return rne_company.formality.content.personneMorale.adresseEntreprise.adresse
-    elif rne_company.is_exploitation():
-        return rne_company.formality.content.exploitation.adresseEntreprise.adresse
-    elif rne_company.is_personne_physique():
-        return rne_company.formality.content.personnePhysique.adresseEntreprise.adresse
+    adresse_entreprise = get_value(rne_company, "adresseEntreprise")
+    if adresse_entreprise and hasattr(adresse_entreprise, "adresse"):
+        return adresse_entreprise.adresse
     else:
         return {}
 
 
 def get_siege(rne_company: RNECompany):
-    if rne_company.is_personne_morale():
-        return rne_company.formality.content.personneMorale.etablissementPrincipal
-    elif rne_company.is_exploitation():
-        return rne_company.formality.content.exploitation.etablissementPrincipal
-    elif rne_company.is_personne_physique():
-        return rne_company.formality.content.personnePhysique.etablissementPrincipal
-    else:
-        return {}
+    return get_value(rne_company, "etablissementPrincipal", default={})
+
+
+def get_dirigeants(rne_company: RNECompany):
+    # Method to map dirigeants based on the logic in RNECompany
+    composition = get_value(rne_company, "composition")
+
+    if rne_company.is_personne_physique():
+        identite = get_value(rne_company, "identite")
+        return [identite.entrepreneur] if identite and identite.entrepreneur else []
+
+    return composition.pouvoirs if composition else []
 
 
 def map_address_rne_to_ul(address_rne):
@@ -101,25 +111,6 @@ def map_address_rne_to_ul(address_rne):
     address_ul.distribution_speciale = address_rne.distributionSpeciale
     address_ul.complement_localisation = address_rne.complementLocalisation
     return address_ul
-
-
-def get_dirigeants(rne_company: RNECompany):
-    # Method to map dirigeants based on the logic in RNECompany
-    if rne_company.is_personne_morale():
-        if rne_company.formality.content.personneMorale.composition:
-            return rne_company.formality.content.personneMorale.composition.pouvoirs
-    elif rne_company.is_exploitation():
-        if rne_company.formality.content.exploitation.composition:
-            return rne_company.formality.content.exploitation.composition.pouvoirs
-    elif rne_company.is_personne_physique():
-        if (
-            rne_company.formality.content.personnePhysique
-            and rne_company.formality.content.personnePhysique.identite
-        ):
-            return [
-                rne_company.formality.content.personnePhysique.identite.entrepreneur
-            ]
-    return []
 
 
 def map_rne_dirigeant_pp_to_ul(dirigeant_pp_rne):
@@ -172,21 +163,21 @@ def map_rne_siege_to_ul(siege_rne):
     return siege
 
 
-def map_dirigeants_rne_to_dirigeant_ul(dirigeants_rne):
+def map_dirigeants_rne_to_dirigeants_list_ul(dirigeants_rne):
     list_dirigeants = []
+    # Cas personne morale et exploitation
     for dirigeant in dirigeants_rne:
-        # Cas personne morale et exploitation
         if hasattr(dirigeant, "typeDePersonne"):
             if dirigeant.typeDePersonne == "INDIVIDU":
                 list_dirigeants.append(
                     map_rne_dirigeant_pp_to_ul(dirigeant.individu.descriptionPersonne)
                 )
-
             elif dirigeant.typeDePersonne == "ENTREPRISE":
                 list_dirigeants.append(map_rne_dirigeant_pm_to_ul(dirigeant.entreprise))
+        # Cas personne physique
         else:
-            # Cas personne physique
             list_dirigeants.append(
                 map_rne_dirigeant_pp_to_ul(dirigeant.descriptionPersonne)
             )
+
     return list_dirigeants
