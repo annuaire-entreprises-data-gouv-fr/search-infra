@@ -177,7 +177,7 @@ def find_and_delete_same_siren_dirig(cursor, siren, file_path):
         )
 
 
-def find_and_delete_same_siren_and_siret(cursor, siren, siret, file_path):
+def find_and_delete_same_siren_and_siret(cursor, siren, file_path):
     """
     Find and delete older rows with the same SIREN as they are outdated.
 
@@ -200,14 +200,14 @@ def find_and_delete_same_siren_and_siret(cursor, siren, siret, file_path):
             (siren, file_path),
         )
     cursor.execute(
-        "SELECT COUNT(*) FROM sieges WHERE siret = ? AND file_name != ?",
-        (siret, file_path),
+        "SELECT COUNT(*) FROM sieges WHERE siren = ? AND file_name != ?",
+        (siren, file_path),
     )
     count_already_existing_siret = cursor.fetchone()[0]
     if count_already_existing_siret is not None:
         cursor.execute(
-            "DELETE FROM sieges WHERE siret = ? AND file_name != ?",
-            (siret, file_path),
+            "DELETE FROM sieges WHERE siren = ? AND file_name != ?",
+            (siren, file_path),
         )
 
 
