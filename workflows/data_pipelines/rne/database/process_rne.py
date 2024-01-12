@@ -6,7 +6,7 @@ from dag_datalake_sirene.workflows.data_pipelines.rne.database.db_connexion impo
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.rne_model import (
     RNECompany,
 )
-from dag_datalake_sirene.workflows.data_pipelines.rne.database.company_model import (
+from dag_datalake_sirene.workflows.data_pipelines.rne.database.ul_model import (
     UniteLegale,
 )
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.map_rne import (
