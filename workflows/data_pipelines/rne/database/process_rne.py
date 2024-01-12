@@ -177,7 +177,7 @@ def find_and_delete_same_siren_dirig(cursor, siren, file_path):
         )
 
 
-def find_and_delete_same_siren_and_siret(cursor, siren, file_path):
+def find_and_delete_same_siren(cursor, siren, file_path):
     """
     Find and delete older rows with the same SIREN as they are outdated.
 
@@ -215,9 +215,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
     connection, cursor = connect_to_db(db_path)
 
     for unite_legale in list_unites_legales:
-        find_and_delete_same_siren_and_siret(
-            cursor, unite_legale.siren, unite_legale.siege.siret, file_path
-        )
+        find_and_delete_same_siren(cursor, unite_legale.siren, file_path)
 
         cursor.execute(
             """
