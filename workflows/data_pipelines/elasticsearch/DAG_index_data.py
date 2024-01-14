@@ -4,6 +4,7 @@ from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.models import DAG
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 from dag_datalake_sirene.helpers.get_colors import (
     get_colors,
@@ -16,6 +17,7 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
     check_elastic_index,
     create_elastic_index,
     fill_elastic_siren_index,
+    delete_previous_elastic_indices,
 )
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
     sitemap import (
@@ -36,6 +38,7 @@ from dag_datalake_sirene.tests.e2e_tests.run_tests import run_e2e_tests
 from dag_datalake_sirene.config import (
     AIRFLOW_DAG_TMP,
     AIRFLOW_ELK_DAG_NAME,
+    AIRFLOW_SNAPSHOT_DAG_NAME,
     AIRFLOW_DAG_FOLDER,
     AIRFLOW_ENV,
     EMAIL_LIST,
@@ -44,6 +47,7 @@ from dag_datalake_sirene.config import (
     REDIS_PORT,
     REDIS_DB,
     REDIS_PASSWORD,
+    API_IS_REMOTE,
 )
 from operators.clean_folder import CleanFolderOperator
 
@@ -83,6 +87,12 @@ with DAG(
         python_callable=get_latest_database,
     )
 
+    delete_previous_elastic_indices = PythonOperator(
+        task_id="delete_previous_elastic_indices",
+        provide_context=True,
+        python_callable=delete_previous_elastic_indices,
+    )
+
     create_elastic_index = PythonOperator(
         task_id="create_elastic_index",
         provide_context=True,
@@ -119,31 +129,10 @@ with DAG(
         python_callable=update_color_file,
     )
 
-    execute_aio_container = SSHOperator(
-        ssh_conn_id="SERVER",
-        task_id="execute_aio_container",
-        command=f"cd {PATH_AIO} "
-        f"&& docker-compose -f docker-compose-aio.yml up --build -d --force",
-        cmd_timeout=60,
-        dag=dag,
-    )
-
     test_api = PythonOperator(
         task_id="test_api",
         provide_context=True,
         python_callable=run_e2e_tests,
-    )
-
-    flush_cache = PythonOperator(
-        task_id="flush_cache",
-        provide_context=True,
-        python_callable=flush_cache,
-        op_args=(
-            REDIS_HOST,
-            REDIS_PORT,
-            REDIS_DB,
-            REDIS_PASSWORD,
-        ),
     )
 
     success_email_body = f"""
@@ -177,10 +166,42 @@ with DAG(
 
     update_color_file.set_upstream(check_elastic_index)
 
-    execute_aio_container.set_upstream(update_color_file)
-    test_api.set_upstream(execute_aio_container)
-    flush_cache.set_upstream(test_api)
+    if API_IS_REMOTE:
+        trigger_snapshot_dag = TriggerDagRunOperator(
+            task_id="trigger_snapshot_dag",
+            trigger_dag_id=AIRFLOW_SNAPSHOT_DAG_NAME,
+            wait_for_completion=True,
+            deferrable=False,
+        )
 
-    send_email.set_upstream(flush_cache)
+        trigger_snapshot_dag.set_upstream(check_elastic_index)
+        test_api.set_upstream(trigger_snapshot_dag)
+    else:
+        execute_aio_container = SSHOperator(
+            ssh_conn_id="SERVER",
+            task_id="execute_aio_container",
+            command=f"cd {PATH_AIO} "
+            f"&& docker-compose -f docker-compose-aio.yml up --build -d --force",
+            cmd_timeout=60,
+            dag=dag,
+        )
+
+        flush_cache = PythonOperator(
+            task_id="flush_cache",
+            provide_context=True,
+            python_callable=flush_cache,
+            op_args=(
+                REDIS_HOST,
+                REDIS_PORT,
+                REDIS_DB,
+                REDIS_PASSWORD,
+            ),
+        )
+
+        execute_aio_container.set_upstream(update_color_file)
+        test_api.set_upstream(execute_aio_container)
+        flush_cache.set_upstream(test_api)
+        send_email.set_upstream(flush_cache)
+
     send_email.set_upstream(update_sitemap)
     send_notification_tchap.set_upstream(send_email)

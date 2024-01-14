@@ -2,9 +2,13 @@ import json
 import logging
 
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.config import COLOR_IS_DAILY
 
 
 def update_color_file(**kwargs):
+    if COLOR_IS_DAILY:
+        return
+
     next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
     current_color = kwargs["ti"].xcom_pull(key="current_color", task_ids="get_colors")
     colors = {"CURRENT_COLOR": next_color, "NEXT_COLOR": current_color}
