@@ -176,6 +176,8 @@ with DAG(
 
         trigger_snapshot_dag.set_upstream(check_elastic_index)
         test_api.set_upstream(trigger_snapshot_dag)
+
+        send_email.set_upstream([test_api, update_sitemap])
     else:
         execute_aio_container = SSHOperator(
             ssh_conn_id="SERVER",
@@ -201,7 +203,6 @@ with DAG(
         execute_aio_container.set_upstream(update_color_file)
         test_api.set_upstream(execute_aio_container)
         flush_cache.set_upstream(test_api)
-        send_email.set_upstream(flush_cache)
+        send_email.set_upstream([flush_cache, update_sitemap])
 
-    send_email.set_upstream(update_sitemap)
     send_notification_tchap.set_upstream(send_email)
