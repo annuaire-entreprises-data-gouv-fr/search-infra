@@ -22,6 +22,7 @@ from dag_datalake_sirene.config import (
     ELASTIC_USER,
     ELASTIC_PASSWORD,
     ELASTIC_BULK_SIZE,
+    ELASTIC_MAX_LIVE_COLORS,
 )
 
 
@@ -73,3 +74,27 @@ def check_elastic_index(**kwargs):
             f"*******The data has not been correctly indexed: "
             f"{doc_count} documents indexed."
         )
+
+
+def delete_previous_elastic_indices(**kwargs):
+    connections.create_connection(
+        hosts=[ELASTIC_URL],
+        http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        retry_on_timeout=True,
+    )
+
+    elastic_connection = connections.get_connection()
+
+    indices = elastic_connection.cat.indices(index="siren-*", format="json")
+    indices = [
+        index
+        for index in indices
+        if index["index"] not in ["siren-green", "siren-blue"]
+    ]
+    indices = list(sorted(indices, key=lambda index: index["index"]))
+
+    to_remove = indices[:-ELASTIC_MAX_LIVE_COLORS]
+
+    for index in to_remove:
+        logging.info(f'Removing index {index["index"]}')
+        elastic_connection.indices.delete(index=index["index"])
