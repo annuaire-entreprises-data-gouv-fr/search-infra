@@ -60,7 +60,7 @@ class Composition(BaseModel):
     pouvoirs: list[Pouvoir] | None = Pouvoir()
 
 
-class Entrerpise(BaseModel):
+class Entreprise(BaseModel):
     denomination: str | None = None
     formeJuridique: str | None = None
     nomCommercial: str | None = None
@@ -70,7 +70,7 @@ class Entrerpise(BaseModel):
 
 
 class Identite(BaseModel):
-    entreprise: Entrerpise | None = Entrerpise()
+    entreprise: Entreprise | None = Entreprise()
     entrepreneur: Entrepreneur | None = Entrepreneur()
 
 
