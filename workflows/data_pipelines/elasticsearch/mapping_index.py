@@ -1,4 +1,3 @@
-from dag_datalake_sirene.helpers.get_colors import NEXT_COLOR
 from elasticsearch_dsl import (
     Boolean,
     Date,
@@ -315,7 +314,6 @@ class StructureMapping(Document):
     unite_legale = Object(UniteLegaleMapping)
 
     class Index:
-        name = f"siren-{NEXT_COLOR}"
         settings = {
             "number_of_shards": ELASTIC_SHARDS,
             "number_of_replicas": ELASTIC_REPLICAS,

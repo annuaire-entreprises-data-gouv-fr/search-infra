@@ -5,6 +5,7 @@ from elasticsearch_dsl import connections
 
 # fmt: on
 from dag_datalake_sirene.config import (
+    AIRFLOW_ETL_DAG_NAME,
     ELASTIC_URL,
     ELASTIC_USER,
     ELASTIC_PASSWORD,
@@ -14,8 +15,9 @@ from dag_datalake_sirene.config import (
 
 
 def snapshot_elastic_index(**kwargs):
-    next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
-    elastic_index = f"siren-{next_color}"
+    elastic_index = kwargs["ti"].xcom_pull(
+        key="elastic_index", task_ids="get_next_index", dag_id=AIRFLOW_ETL_DAG_NAME
+    )
 
     current_date = datetime.today().strftime("%Y%m%d%H%M%S")
     snapshot_name = f"siren-{current_date}"

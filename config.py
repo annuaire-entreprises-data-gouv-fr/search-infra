@@ -61,8 +61,6 @@ RNE_API_DIFF_URL = "https://registre-national-entreprises.inpi.fr/api/companies/
 
 # AIO
 AIO_URL = Variable.get("AIO_URL")
-COLOR_URL = Variable.get("COLOR_URL")
-COLOR_IS_DAILY = bool(Variable.get("COLOR_IS_DAILY", "False"))
 PATH_AIO = Variable.get("PATH_AIO")
 
 # Redis
@@ -79,7 +77,7 @@ ELASTIC_BULK_SIZE = 1500
 ELASTIC_SHARDS = 2
 ELASTIC_REPLICAS = 0
 
-ELASTIC_MAX_LIVE_COLORS = 2
+ELASTIC_MAX_LIVE_VERSIONS = int(Variable.get("ELASTIC_MAX_LIVE_VERSIONS", 2))
 
 ELASTIC_SNAPSHOT_REPOSITORY = Variable.get("ELASTIC_SNAPSHOT_REPOSITORY", "data-prod")
 ELASTIC_SNAPSHOT_MAX_REVISIONS = 5
