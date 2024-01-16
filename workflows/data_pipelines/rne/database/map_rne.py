@@ -1,3 +1,4 @@
+import logging
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.rne_model import (
     RNECompany,
 )
@@ -32,6 +33,8 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         unite_legale.nature_juridique = identite.formeJuridique
         unite_legale.date_immatriculation = identite.dateImmat
         unite_legale.tranche_effectif_salarie = identite.effectifSalarie
+    else:
+        logging.warning(f"++++++++ Unite legale has no identite : {unite_legale.siren}")
 
     company_address = get_adresse(rne_company)
     unite_legale.adresse = map_address_rne_to_ul(company_address)
@@ -44,6 +47,8 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     siege = get_siege(rne_company)
     if siege:
         unite_legale.siege = map_rne_siege_to_ul(siege)
+    else:
+        logging.warning(f"+++++++++++ Unite legale has no siege : {unite_legale.siren}")
 
     return unite_legale
 
