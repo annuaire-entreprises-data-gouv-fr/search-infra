@@ -11,7 +11,7 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch\
 # fmt: on
 
 
-def doc_unite_legale_generator(data, index):
+def doc_unite_legale_generator(data, elastic_index):
     # Serialize the instance into a dictionary so that it can be saved in elasticsearch.
     for index, document in enumerate(data):
         etablissements_count = len(document["unite_legale"]["etablissements"])
@@ -35,7 +35,7 @@ def doc_unite_legale_generator(data, index):
                 etablissements_indexed += 100
                 yield StructureMapping(
                     meta={
-                        "index": index,
+                        "index": elastic_index,
                         "id": f"{smaller_document['identifiant']}-"
                         f"{etablissements_indexed}",
                     },
@@ -45,7 +45,10 @@ def doc_unite_legale_generator(data, index):
         # as is
         else:
             yield StructureMapping(
-                meta={"index": index, "id": f"{document['identifiant']}-100"},
+                meta={
+                    "index": elastic_index,
+                    "id": f"{document['identifiant']}-100",
+                },
                 **document,
             ).to_dict(include_meta=True)
 
