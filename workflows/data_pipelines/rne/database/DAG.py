@@ -25,14 +25,14 @@ default_args = {
 }
 
 with DAG(
-    dag_id="fill_rne_dirigeants_database",
+    dag_id="fill_rne_database",
     default_args=default_args,
     start_date=datetime(2023, 10, 11),
     schedule_interval="0 2 * * *",  # Run daily at 2 am
     max_active_runs=1,
     catchup=False,
     dagrun_timeout=timedelta(minutes=(60 * 20)),
-    tags=["data_processing", "rne", "dirigeants"],
+    tags=["data_processing", "rne", "dirigeants", "database"],
     params={},
 ) as dag:
     clean_previous_outputs = BashOperator(

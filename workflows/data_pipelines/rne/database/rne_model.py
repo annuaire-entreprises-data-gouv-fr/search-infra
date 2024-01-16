@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from pydantic import BaseModel
 
 
@@ -9,6 +9,11 @@ class Adresse(BaseModel):
     codePostal: str | None = None
     codeInseeCommune: str | None = None
     voie: str | None = None
+    numVoie: str | None = None
+    typeVoie: str | None = None
+    indiceRepetition: str | None = None
+    complementLocalisation: str | None = None
+    distributionSpeciale: str | None = None
 
 
 class DescriptionPersonne(BaseModel):
@@ -52,71 +57,102 @@ class Pouvoir(BaseModel):
 
 
 class Composition(BaseModel):
-    pouvoirs: list[Pouvoir] | None = None
+    pouvoirs: list[Pouvoir] | None = Pouvoir()
+
+
+class Entreprise(BaseModel):
+    denomination: str | None = None
+    formeJuridique: str | None = None
+    nomCommercial: str | None = None
+    effectifSalarie: str | None = None
+    dateImmat: datetime | None = None
+    codeApe: str | None = None
 
 
 class Identite(BaseModel):
-    entreprise: dict | None = None
+    entreprise: Entreprise | None = Entreprise()
     entrepreneur: Entrepreneur | None = Entrepreneur()
 
 
-class Exploitation(BaseModel):
-    identite: dict | None = None
-    composition: Composition | None = None
+class AdresseEntreprise(BaseModel):
+    caracteristiques: dict | None = None
+    adresse: Adresse | None = Adresse()
+    entrepriseDomiciliataire: dict | None = None
 
-    @property
-    def dirigeants(self):
-        return self.composition.pouvoirs if self.composition else []
+
+class DescriptionEtablissement(BaseModel):
+    siret: str | None = None
+    enseigne: str | None = None
+    nomCommercial: str | None = None
+
+
+class EtablissementPrincipal(BaseModel):
+    descriptionEtablissement: DescriptionEtablissement | None = (
+        DescriptionEtablissement()
+    )
+    adresse: Adresse | None = Adresse()
+
+
+class DetailCessationEntreprise(BaseModel):
+    dateRadiation: date | None = None
+
+
+class NatureCessationEntreprise(BaseModel):
+    etatAdministratifInsee: str | None = None
+
+
+class Exploitation(BaseModel):
+    identite: Identite | None = Identite()
+    composition: Composition | None = None
+    adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
+    etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
+    detailCessationEntreprise: DetailCessationEntreprise | None = None
 
 
 class PersonneMorale(BaseModel):
-    identite: dict | None = None
+    identite: Identite | None = Identite()
     composition: Composition | None = None
-
-    @property
-    def dirigeants(self):
-        return self.composition.pouvoirs if self.composition else []
+    adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
+    etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
+    detailCessationEntreprise: DetailCessationEntreprise | None = None
 
 
 class PersonnePhysique(BaseModel):
     identite: Identite | None = None
     composition: Composition | None = None
-
-    @property
-    def dirigeants(self):
-        return [self.identite.entrepreneur if self.identite else None]
+    adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
+    etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
+    detailCessationEntreprise: DetailCessationEntreprise | None = None
 
 
 class Content(BaseModel):
+    formeExerciceActivitePrincipale: str | None = None
     personnePhysique: PersonnePhysique | None = None
     personneMorale: PersonneMorale | None = None
     exploitation: Exploitation | None = None
+    natureCessationEntreprise: NatureCessationEntreprise | None = (
+        NatureCessationEntreprise()
+    )
 
 
 class Formality(BaseModel):
     siren: str
+    companyName: str | None = None
     content: Content
     typePersonne: str | None = None
     formeJuridique: str | None = None
+    diffusionINSEE: str | None = None
+    codeAPE: str | None = None
     created: datetime | None = None
     updated: datetime | None = None
 
 
 class RNECompany(BaseModel):
-    updatedAt: datetime
+    updatedAt: datetime | None = None
+    createdAt: datetime | None = None
     formality: Formality
     siren: str
-
-    @property
-    def dirigeants(self):
-        if self.is_personne_morale():
-            return self.formality.content.personneMorale.dirigeants
-        elif self.is_exploitation():
-            return self.formality.content.exploitation.dirigeants
-        elif self.is_personne_physique():
-            return self.formality.content.personnePhysique.dirigeants
-        else:
-            return []
+    origin: str | None = None
 
     def is_personne_morale(self) -> bool:
         return isinstance(self.formality.content.personneMorale, PersonneMorale)
