@@ -11,7 +11,7 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch\
 # fmt: on
 
 
-def doc_unite_legale_generator(data):
+def doc_unite_legale_generator(data, index):
     # Serialize the instance into a dictionary so that it can be saved in elasticsearch.
     for index, document in enumerate(data):
         etablissements_count = len(document["unite_legale"]["etablissements"])
@@ -35,8 +35,9 @@ def doc_unite_legale_generator(data):
                 etablissements_indexed += 100
                 yield StructureMapping(
                     meta={
+                        "index": index,
                         "id": f"{smaller_document['identifiant']}-"
-                        f"{etablissements_indexed}"
+                        f"{etablissements_indexed}",
                     },
                     **smaller_document,
                 ).to_dict(include_meta=True)
@@ -44,7 +45,8 @@ def doc_unite_legale_generator(data):
         # as is
         else:
             yield StructureMapping(
-                meta={"id": f"{document['identifiant']}-100"}, **document
+                meta={"index": index, "id": f"{document['identifiant']}-100"},
+                **document,
             ).to_dict(include_meta=True)
 
 
@@ -84,7 +86,7 @@ def index_unites_legales_by_chunk(
             logging.info(f"logger={logger}")
         try:
             chunk_doc_generator = doc_unite_legale_generator(
-                chunk_unites_legales_processed
+                chunk_unites_legales_processed, elastic_index
             )
             # Bulk index documents into elasticsearch using the parallel version of the
             # bulk helper that runs in multiple threads
