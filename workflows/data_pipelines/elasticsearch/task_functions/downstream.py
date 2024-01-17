@@ -3,7 +3,7 @@ import time
 import logging
 
 from dag_datalake_sirene.config import (
-    AIRFLOW_ETL_DAG_NAME,
+    AIRFLOW_ELK_DAG_NAME,
     ELASTIC_DOWNSTREAM_URLS,
     ELASTIC_DOWNSTREAM_USER,
     ELASTIC_DOWNSTREAM_PASSWORD,
@@ -13,7 +13,7 @@ from dag_datalake_sirene.config import (
 
 def wait_for_downstream_import(**kwargs):
     elastic_index = kwargs["ti"].xcom_pull(
-        key="elastic_index", task_ids="get_next_index", dag_id=AIRFLOW_ETL_DAG_NAME
+        key="elastic_index", task_ids="get_next_index", dag_id=AIRFLOW_ELK_DAG_NAME
     )
     downstream_urls = ELASTIC_DOWNSTREAM_URLS.split(",")
 

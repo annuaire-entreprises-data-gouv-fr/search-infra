@@ -5,7 +5,7 @@ from elasticsearch_dsl import connections
 
 # fmt: on
 from dag_datalake_sirene.config import (
-    AIRFLOW_ETL_DAG_NAME,
+    AIRFLOW_ELK_DAG_NAME,
     ELASTIC_URL,
     ELASTIC_USER,
     ELASTIC_PASSWORD,
@@ -16,7 +16,7 @@ from dag_datalake_sirene.config import (
 
 def snapshot_elastic_index(**kwargs):
     elastic_index = kwargs["ti"].xcom_pull(
-        key="elastic_index", task_ids="get_next_index", dag_id=AIRFLOW_ETL_DAG_NAME
+        key="elastic_index", task_ids="get_next_index", dag_id=AIRFLOW_ELK_DAG_NAME
     )
 
     current_date = datetime.today().strftime("%Y%m%d%H%M%S")
@@ -94,5 +94,5 @@ def delete_old_snapshots(**kwargs):
             elastic_connection.options(ignore_status=404).snapshot.delete(
                 repository=ELASTIC_SNAPSHOT_REPOSITORY, snapshot=snapshot["snapshot"]
             )
-        except:
-            pass
+        except Exception as e:
+            logging.error(f"Failed to delete the snapshot {snapshot['snapshot']}: {e}")
