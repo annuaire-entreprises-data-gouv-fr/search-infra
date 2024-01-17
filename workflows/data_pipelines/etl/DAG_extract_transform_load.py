@@ -65,7 +65,7 @@ from dag_datalake_sirene.config import (
     AIRFLOW_ETL_DAG_NAME,
     AIRFLOW_DAG_FOLDER,
     AIRFLOW_ENV,
-    DIRIG_DATABASE_LOCATION,
+    RNE_DATABASE_LOCATION,
     EMAIL_LIST,
 )
 
@@ -167,7 +167,7 @@ with DAG(
         python_callable=minio_client.get_latest_file_minio,
         op_args=(
             f"ae/{AIRFLOW_ENV}/rne/database/",
-            DIRIG_DATABASE_LOCATION,
+            RNE_DATABASE_LOCATION,
         ),
     )
 
