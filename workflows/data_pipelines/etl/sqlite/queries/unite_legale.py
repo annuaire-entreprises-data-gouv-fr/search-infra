@@ -23,7 +23,8 @@ create_table_unite_legale_query = """
             est_societe_mission,
             annee_categorie_entreprise,
             annee_tranche_effectif_salarie,
-            caractere_employeur
+            caractere_employeur,
+            from_insee
         )
     """
 
@@ -53,7 +54,8 @@ create_table_flux_unite_legale_query = """
             est_societe_mission,
             annee_categorie_entreprise,
             annee_tranche_effectif_salarie,
-            caractere_employeur
+            caractere_employeur,
+            from_insee
         )
     """
 
@@ -82,7 +84,8 @@ replace_table_unite_legale_query = """
             est_societe_mission,
             annee_categorie_entreprise,
             annee_tranche_effectif_salarie,
-            caractere_employeur
+            caractere_employeur,
+            from_insee
         ) SELECT
             a.siren,
             a.date_creation_unite_legale,
@@ -106,7 +109,8 @@ replace_table_unite_legale_query = """
             a.est_societe_mission,
             a.annee_categorie_entreprise,
             a.annee_tranche_effectif_salarie,
-            a.caractere_employeur
+            a.caractere_employeur,
+            a.from_insee
         FROM flux_unite_legale a LEFT JOIN unite_legale b
         ON a.siren = b.siren
     """

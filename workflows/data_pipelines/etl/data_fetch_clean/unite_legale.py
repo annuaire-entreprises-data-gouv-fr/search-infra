@@ -112,4 +112,5 @@ def preprocess_unite_legale_data(data_dir, sirene_file_type):
                 "caractereEmployeurUniteLegale": "caractere_employeur",
             }
         )
+        df_unite_legale["from_insee"] = True
         yield df_unite_legale
