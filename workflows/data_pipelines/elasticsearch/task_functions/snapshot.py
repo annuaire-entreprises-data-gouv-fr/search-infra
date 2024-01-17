@@ -16,7 +16,10 @@ from dag_datalake_sirene.config import (
 
 def snapshot_elastic_index(**kwargs):
     elastic_index = kwargs["ti"].xcom_pull(
-        key="elastic_index", task_ids="get_next_index", dag_id=AIRFLOW_ELK_DAG_NAME
+        key="elastic_index",
+        task_ids="get_next_index",
+        dag_id=AIRFLOW_ELK_DAG_NAME,
+        include_prior_dates=True,
     )
 
     current_date = datetime.today().strftime("%Y%m%d%H%M%S")
