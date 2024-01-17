@@ -91,7 +91,7 @@ def delete_old_snapshots(**kwargs):
         )
 
         try:
-            elastic_connection.options(ignore_status=404).snapshot.delete(
+            elastic_connection.snapshot.delete(
                 repository=ELASTIC_SNAPSHOT_REPOSITORY, snapshot=snapshot["snapshot"]
             )
         except Exception as e:
