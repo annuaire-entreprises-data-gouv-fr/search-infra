@@ -15,9 +15,9 @@ from dag_datalake_sirene.config import (
 
 
 def snapshot_elastic_index(**kwargs):
-    elastic_index_name = kwargs["ti"].xcom_pull(
-        key="elastic_index_name",
-        task_ids="get_next_index_name",
+    elastic_index = kwargs["ti"].xcom_pull(
+        key="elastic_index",
+        task_ids="get_next_index",
         dag_id=AIRFLOW_ELK_DAG_NAME,
         include_prior_dates=True,
     )
@@ -26,7 +26,7 @@ def snapshot_elastic_index(**kwargs):
     snapshot_name = f"siren-{current_date}"
 
     logging.info(
-        f"Snapshot {elastic_index_name} into {ELASTIC_SNAPSHOT_REPOSITORY}/{snapshot_name}"
+        f"Snapshot {elastic_index} into {ELASTIC_SNAPSHOT_REPOSITORY}/{snapshot_name}"
     )
 
     connections.create_connection(
@@ -40,7 +40,7 @@ def snapshot_elastic_index(**kwargs):
     elastic_connection.snapshot.create(
         repository=ELASTIC_SNAPSHOT_REPOSITORY,
         snapshot=snapshot_name,
-        body={"indices": [elastic_index_name], "include_global_state": False},
+        body={"indices": [elastic_index], "include_global_state": False},
         wait_for_completion=False,
     )
 

@@ -12,10 +12,10 @@ class ElasticCreateIndex:
     Create elasticsearch Index
     :param elastic_url: endpoint url of elasticsearch
     :type elastic_url: str
-    :param elastic_index_name: index to create
-    :type elastic_index_name: str
-    :param elastic_index_name_shards: number of shards for index
-    :type elastic_index_name_shards: int
+    :param elastic_index: index to create
+    :type elastic_index: str
+    :param elastic_index_shards: number of shards for index
+    :type elastic_index_shards: int
     :param elastic_user: user for elasticsearch
     :type elastic_user: str
     :param elastic_password: password for elasticsearch
@@ -26,14 +26,14 @@ class ElasticCreateIndex:
         self,
         *,
         elastic_url: Optional[str] = None,
-        elastic_index_name: Optional[str] = None,
+        elastic_index: Optional[str] = None,
         elastic_user: Optional[str] = None,
         elastic_password: Optional[str] = None,
         elastic_bulk_size: Optional[int] = 1500,
         **kwargs,
     ) -> None:
         self.elastic_url = elastic_url
-        self.elastic_index_name = elastic_index_name
+        self.elastic_index = elastic_index
         self.elastic_user = elastic_user
         self.elastic_password = elastic_password
         self.elastic_bulk_size = elastic_bulk_size
@@ -66,13 +66,11 @@ class ElasticCreateIndex:
         if not self.elastic_url:
             raise ValueError("Please provide elasticsearch url endpoint")
 
-        # if self.elastic_index_name_shards is not None:
-        if Index(self.elastic_index_name).exists():
-            logging.info(
-                f"Index  {self.elastic_index_name} already exists! Deleting..."
-            )
-            Index(self.elastic_index_name).delete()
-            logging.info(f"Index {self.elastic_index_name} deleted!")
-        logging.info(f"Creating {self.elastic_index_name} index!")
+        # if self.elastic_index_shards is not None:
+        if Index(self.elastic_index).exists():
+            logging.info(f"Index  {self.elastic_index} already exists! Deleting...")
+            Index(self.elastic_index).delete()
+            logging.info(f"Index {self.elastic_index} deleted!")
+        logging.info(f"Creating {self.elastic_index} index!")
         # Create the mapping in elasticsearch
-        StructureMapping.init(index=self.elastic_index_name)
+        StructureMapping.init(index=self.elastic_index)
