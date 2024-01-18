@@ -12,9 +12,9 @@ from dag_datalake_sirene.config import (
 
 
 def wait_for_downstream_import(**kwargs):
-    elastic_index = kwargs["ti"].xcom_pull(
-        key="elastic_index",
-        task_ids="get_next_index",
+    elastic_index_name = kwargs["ti"].xcom_pull(
+        key="elastic_index_name",
+        task_ids="get_next_index_name",
         dag_id=AIRFLOW_ELK_DAG_NAME,
         include_prior_dates=True,
     )
@@ -23,7 +23,9 @@ def wait_for_downstream_import(**kwargs):
     if len(downstream_urls) == 0:
         return
 
-    logging.info(f"Waiting for {elastic_index} to be imported on {downstream_urls}")
+    logging.info(
+        f"Waiting for {elastic_index_name} to be imported on {downstream_urls}"
+    )
 
     pending = downstream_urls
     completed = []
@@ -43,7 +45,7 @@ def wait_for_downstream_import(**kwargs):
 
             indices = list(response.json().keys())
 
-            if elastic_index in indices:
+            if elastic_index_name in indices:
                 logging.info(f"Index available on {url}")
                 completed.append(url)
 

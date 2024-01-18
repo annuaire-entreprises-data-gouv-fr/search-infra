@@ -11,7 +11,7 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch\
 # fmt: on
 
 
-def doc_unite_legale_generator(data, elastic_index):
+def doc_unite_legale_generator(data, elastic_index_name):
     # Serialize the instance into a dictionary so that it can be saved in elasticsearch.
     for index, document in enumerate(data):
         etablissements_count = len(document["unite_legale"]["etablissements"])
@@ -35,7 +35,7 @@ def doc_unite_legale_generator(data, elastic_index):
                 etablissements_indexed += 100
                 yield StructureMapping(
                     meta={
-                        "index": elastic_index,
+                        "index": elastic_index_name,
                         "id": f"{smaller_document['identifiant']}-"
                         f"{etablissements_indexed}",
                     },
@@ -46,7 +46,7 @@ def doc_unite_legale_generator(data, elastic_index):
         else:
             yield StructureMapping(
                 meta={
-                    "index": elastic_index,
+                    "index": elastic_index_name,
                     "id": f"{document['identifiant']}-100",
                 },
                 **document,
@@ -54,11 +54,11 @@ def doc_unite_legale_generator(data, elastic_index):
 
 
 def index_unites_legales_by_chunk(
-    cursor, elastic_connection, elastic_bulk_size, elastic_index
+    cursor, elastic_connection, elastic_bulk_size, elastic_index_name
 ):
     # Indexing performance : do not refresh the index while indexing
     elastic_connection.indices.put_settings(
-        index=elastic_index, body={"index.refresh_interval": -1}
+        index=elastic_index_name, body={"index.refresh_interval": -1}
     )
 
     logger = 0
@@ -89,7 +89,7 @@ def index_unites_legales_by_chunk(
             logging.info(f"logger={logger}")
         try:
             chunk_doc_generator = doc_unite_legale_generator(
-                chunk_unites_legales_processed, elastic_index
+                chunk_unites_legales_processed, elastic_index_name
             )
             # Bulk index documents into elasticsearch using the parallel version of the
             # bulk helper that runs in multiple threads
@@ -108,11 +108,11 @@ def index_unites_legales_by_chunk(
 
     # rollback to the original value
     elastic_connection.indices.put_settings(
-        index=elastic_index, body={"index.refresh_interval": None}
+        index=elastic_index_name, body={"index.refresh_interval": None}
     )
 
     doc_count = elastic_connection.cat.count(
-        index=elastic_index, params={"format": "json"}
+        index=elastic_index_name, params={"format": "json"}
     )[0]["count"]
 
     return doc_count
