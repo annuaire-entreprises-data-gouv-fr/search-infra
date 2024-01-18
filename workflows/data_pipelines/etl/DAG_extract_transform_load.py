@@ -48,6 +48,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_flux_unite_legale_table,
     create_unite_legale_table,
     replace_unite_legale_table,
+    add_rne_siren_data_to_unite_legale_table,
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.send_notification\
     import (
@@ -147,6 +148,12 @@ with DAG(
         task_id="count_nombre_etablissements_ouverts",
         provide_context=True,
         python_callable=count_nombre_etablissements_ouverts,
+    )
+
+    inject_rne_siren_data = PythonOperator(
+        task_id="add_rne_siren_data_to_unite_legale_table",
+        provide_context=True,
+        python_callable=add_rne_siren_data_to_unite_legale_table,
     )
 
     create_siege_only_table = PythonOperator(
@@ -299,7 +306,8 @@ with DAG(
     replace_siege_only_table.set_upstream(create_siege_only_table)
 
     get_latest_dirigeants_database.set_upstream(replace_siege_only_table)
-    create_dirig_pp_table.set_upstream(get_latest_dirigeants_database)
+    inject_rne_siren_data.set_upstream(get_latest_dirigeants_database)
+    create_dirig_pp_table.set_upstream(inject_rne_siren_data)
     create_dirig_pm_table.set_upstream(create_dirig_pp_table)
 
     create_bilan_financiers_table.set_upstream(create_dirig_pm_table)
