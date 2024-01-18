@@ -15,9 +15,15 @@ from dag_datalake_sirene.config import (
 
 
 def snapshot_elastic_index(**kwargs):
+    """
+    Create and save Elastic index snapshot in MinIO
+
+    https://www.elastic.co/guide/en/elasticsearch/reference/7.17/snapshot-restore.html
+    """
+
     elastic_index = kwargs["ti"].xcom_pull(
         key="elastic_index",
-        task_ids="get_next_index",
+        task_ids="get_next_index_name",
         dag_id=AIRFLOW_ELK_DAG_NAME,
         include_prior_dates=True,
     )

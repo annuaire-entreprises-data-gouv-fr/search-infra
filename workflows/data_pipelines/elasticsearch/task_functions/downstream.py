@@ -14,7 +14,7 @@ from dag_datalake_sirene.config import (
 def wait_for_downstream_import(**kwargs):
     elastic_index = kwargs["ti"].xcom_pull(
         key="elastic_index",
-        task_ids="get_next_index",
+        task_ids="get_next_index_name",
         dag_id=AIRFLOW_ELK_DAG_NAME,
         include_prior_dates=True,
     )

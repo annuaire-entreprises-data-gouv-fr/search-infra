@@ -27,7 +27,7 @@ from dag_datalake_sirene.config import (
 )
 
 
-def get_next_index(**kwargs):
+def get_next_index_name(**kwargs):
     current_date = datetime.today().strftime("%Y%m%d")
     elastic_index = f"siren-{current_date}"
     kwargs["ti"].xcom_push(key="elastic_index", value=elastic_index)
@@ -35,7 +35,7 @@ def get_next_index(**kwargs):
 
 def create_elastic_index(**kwargs):
     elastic_index = kwargs["ti"].xcom_pull(
-        key="elastic_index", task_ids="get_next_index"
+        key="elastic_index", task_ids="get_next_index_name"
     )
     logging.info(f"******************** Index to create: {elastic_index}")
     create_index = ElasticCreateIndex(
@@ -50,7 +50,7 @@ def create_elastic_index(**kwargs):
 
 def fill_elastic_siren_index(**kwargs):
     elastic_index = kwargs["ti"].xcom_pull(
-        key="elastic_index", task_ids="get_next_index"
+        key="elastic_index", task_ids="get_next_index_name"
     )
     sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db")
     sqlite_client.execute(select_fields_to_index_query)

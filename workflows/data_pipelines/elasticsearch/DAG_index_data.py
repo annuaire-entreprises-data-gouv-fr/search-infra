@@ -11,7 +11,7 @@ from dag_datalake_sirene.helpers.flush_cache import flush_cache
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
     index import (
-    get_next_index,
+    get_next_index_name,
     check_elastic_index,
     create_elastic_index,
     fill_elastic_siren_index,
@@ -69,8 +69,10 @@ with DAG(
     on_failure_callback=send_notification_failure_tchap,
     max_active_runs=1,
 ) as dag:
-    get_next_index = PythonOperator(
-        task_id="get_next_index", provide_context=True, python_callable=get_next_index
+    get_next_index_name = PythonOperator(
+        task_id="get_next_index_name",
+        provide_context=True,
+        python_callable=get_next_index_name,
     )
 
     clean_previous_folder = CleanFolderOperator(
@@ -145,7 +147,7 @@ with DAG(
         python_callable=send_notification_success_tchap,
     )
 
-    clean_previous_folder.set_upstream(get_next_index)
+    clean_previous_folder.set_upstream(get_next_index_name)
     get_latest_sqlite_database.set_upstream(clean_previous_folder)
 
     create_elastic_index.set_upstream(get_latest_sqlite_database)
