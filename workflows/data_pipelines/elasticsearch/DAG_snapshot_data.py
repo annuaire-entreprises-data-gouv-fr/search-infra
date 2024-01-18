@@ -3,8 +3,6 @@ from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 
-from dag_datalake_sirene.helpers.get_colors import get_colors
-
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.snapshot import (
     snapshot_elastic_index,
     delete_old_snapshots,
@@ -38,10 +36,6 @@ with DAG(
     catchup=False,  # False to ignore past runs
     max_active_runs=1,
 ) as dag:
-    get_colors = PythonOperator(
-        task_id="get_colors", provide_context=True, python_callable=get_colors
-    )
-
     snapshot_elastic_index = PythonOperator(
         task_id="snapshot_elastic_index",
         provide_context=True,
@@ -61,5 +55,4 @@ with DAG(
     )
 
     snapshot_elastic_index.set_upstream(delete_old_snapshots)
-    snapshot_elastic_index.set_upstream(get_colors)
     wait_for_downstream_import.set_upstream(snapshot_elastic_index)

@@ -6,14 +6,12 @@ from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
-from dag_datalake_sirene.helpers.get_colors import (
-    get_colors,
-)
 from dag_datalake_sirene.helpers.flush_cache import flush_cache
 
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
     index import (
+    get_next_index_name,
     check_elastic_index,
     create_elastic_index,
     fill_elastic_siren_index,
@@ -33,7 +31,6 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
     send_notification_failure_tchap,
 )
 # fmt: on
-from dag_datalake_sirene.helpers.update_color_file import update_color_file
 from dag_datalake_sirene.tests.e2e_tests.run_tests import run_e2e_tests
 from dag_datalake_sirene.config import (
     AIRFLOW_DAG_TMP,
@@ -72,8 +69,10 @@ with DAG(
     on_failure_callback=send_notification_failure_tchap,
     max_active_runs=1,
 ) as dag:
-    get_colors = PythonOperator(
-        task_id="get_colors", provide_context=True, python_callable=get_colors
+    get_next_index_name = PythonOperator(
+        task_id="get_next_index_name",
+        provide_context=True,
+        python_callable=get_next_index_name,
     )
 
     clean_previous_folder = CleanFolderOperator(
@@ -123,12 +122,6 @@ with DAG(
         python_callable=update_sitemap,
     )
 
-    update_color_file = PythonOperator(
-        task_id="update_color_file",
-        provide_context=True,
-        python_callable=update_color_file,
-    )
-
     test_api = PythonOperator(
         task_id="test_api",
         provide_context=True,
@@ -154,7 +147,7 @@ with DAG(
         python_callable=send_notification_success_tchap,
     )
 
-    clean_previous_folder.set_upstream(get_colors)
+    clean_previous_folder.set_upstream(get_next_index_name)
     get_latest_sqlite_database.set_upstream(clean_previous_folder)
 
     create_elastic_index.set_upstream(get_latest_sqlite_database)
@@ -163,8 +156,6 @@ with DAG(
 
     create_sitemap.set_upstream(check_elastic_index)
     update_sitemap.set_upstream(create_sitemap)
-
-    update_color_file.set_upstream(check_elastic_index)
 
     if API_IS_REMOTE:
         trigger_snapshot_dag = TriggerDagRunOperator(
@@ -200,7 +191,7 @@ with DAG(
             ),
         )
 
-        execute_aio_container.set_upstream(update_color_file)
+        execute_aio_container.set_upstream(check_elastic_index)
         test_api.set_upstream(execute_aio_container)
         flush_cache.set_upstream(test_api)
         send_email.set_upstream([flush_cache, update_sitemap])
