@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from elasticsearch_dsl import connections
 
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.create_index import (
@@ -22,13 +23,20 @@ from dag_datalake_sirene.config import (
     ELASTIC_USER,
     ELASTIC_PASSWORD,
     ELASTIC_BULK_SIZE,
-    ELASTIC_MAX_LIVE_COLORS,
+    ELASTIC_MAX_LIVE_VERSIONS,
 )
 
 
+def get_next_index_name(**kwargs):
+    current_date = datetime.today().strftime("%Y%m%d")
+    elastic_index = f"siren-{current_date}"
+    kwargs["ti"].xcom_push(key="elastic_index", value=elastic_index)
+
+
 def create_elastic_index(**kwargs):
-    next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
-    elastic_index = f"siren-{next_color}"
+    elastic_index = kwargs["ti"].xcom_pull(
+        key="elastic_index", task_ids="get_next_index_name"
+    )
     logging.info(f"******************** Index to create: {elastic_index}")
     create_index = ElasticCreateIndex(
         elastic_url=ELASTIC_URL,
@@ -41,8 +49,9 @@ def create_elastic_index(**kwargs):
 
 
 def fill_elastic_siren_index(**kwargs):
-    next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
-    elastic_index = f"siren-{next_color}"
+    elastic_index = kwargs["ti"].xcom_pull(
+        key="elastic_index", task_ids="get_next_index_name"
+    )
     sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db")
     sqlite_client.execute(select_fields_to_index_query)
 
@@ -93,7 +102,7 @@ def delete_previous_elastic_indices(**kwargs):
     ]
     indices = list(sorted(indices, key=lambda index: index["index"]))
 
-    to_remove = indices[:-ELASTIC_MAX_LIVE_COLORS]
+    to_remove = indices[:-ELASTIC_MAX_LIVE_VERSIONS]
 
     for index in to_remove:
         logging.info(f'Removing index {index["index"]}')

@@ -5,6 +5,7 @@ from elasticsearch_dsl import connections
 
 # fmt: on
 from dag_datalake_sirene.config import (
+    AIRFLOW_ELK_DAG_NAME,
     ELASTIC_URL,
     ELASTIC_USER,
     ELASTIC_PASSWORD,
@@ -14,8 +15,18 @@ from dag_datalake_sirene.config import (
 
 
 def snapshot_elastic_index(**kwargs):
-    next_color = kwargs["ti"].xcom_pull(key="next_color", task_ids="get_colors")
-    elastic_index = f"siren-{next_color}"
+    """
+    Create and save Elastic index snapshot in MinIO
+
+    https://www.elastic.co/guide/en/elasticsearch/reference/7.17/snapshot-restore.html
+    """
+
+    elastic_index = kwargs["ti"].xcom_pull(
+        key="elastic_index",
+        task_ids="get_next_index_name",
+        dag_id=AIRFLOW_ELK_DAG_NAME,
+        include_prior_dates=True,
+    )
 
     current_date = datetime.today().strftime("%Y%m%d%H%M%S")
     snapshot_name = f"siren-{current_date}"
@@ -89,8 +100,8 @@ def delete_old_snapshots(**kwargs):
         )
 
         try:
-            elastic_connection.options(ignore_status=404).snapshot.delete(
+            elastic_connection.snapshot.delete(
                 repository=ELASTIC_SNAPSHOT_REPOSITORY, snapshot=snapshot["snapshot"]
             )
-        except:
-            pass
+        except Exception as e:
+            logging.error(f"Failed to delete the snapshot {snapshot['snapshot']}: {e}")
