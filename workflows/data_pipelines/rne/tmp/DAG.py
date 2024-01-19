@@ -4,7 +4,7 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from dag_datalake_sirene.config import EMAIL_LIST, RNE_DB_TMP_FOLDER
 from dag_datalake_sirene.workflows.data_pipelines.rne.tmp.task_functions import (
-    process_flux_json_files,
+    clean_flux_json_files,
 )
 
 default_args = {
@@ -32,7 +32,7 @@ with DAG(
         bash_command=f"rm -rf {RNE_DB_TMP_FOLDER} && mkdir -p {RNE_DB_TMP_FOLDER}",
     )
 
-    process_flux_json_files = PythonOperator(
-        task_id="process_flux_json_files", python_callable=process_flux_json_files
+    clean_flux_json_files = PythonOperator(
+        task_id="process_flux_json_files", python_callable=clean_flux_json_files
     )
-    process_flux_json_files.set_upstream(clean_previous_outputs)
+    clean_flux_json_files.set_upstream(clean_previous_outputs)

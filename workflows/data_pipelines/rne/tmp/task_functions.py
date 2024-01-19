@@ -9,7 +9,7 @@ from dag_datalake_sirene.config import (
 )
 
 
-def process_flux_json_files(**kwargs):
+def clean_flux_json_files(**kwargs):
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
 
     json_daily_flux_files = minio_client.get_files_from_prefix(
@@ -40,16 +40,15 @@ def process_flux_json_files(**kwargs):
                 )
                 json_path = f"{RNE_DB_TMP_FOLDER}{file_date}_rne_flux.json"
                 new_json_path = f"{RNE_DB_TMP_FOLDER}rne_flux_{file_date}.json"
+
                 with open(json_path, "r") as file:
-                    input_data = file.readlines()
-                output_data = []
-                for line in input_data:
-                    array = json.loads(line)
-                    output_data.extend(array)
-
-                with open(new_json_path, "w") as output_file:
-                    json.dump(output_data, output_file)
-
+                    for obj in file:
+                        array = json.loads(obj)
+                        for company in array:
+                            if company:
+                                with open(new_json_path, "a+") as output_file:
+                                    json.dump(company, output_file)
+                                    output_file.write("\n")
                 if os.path.exists(new_json_path):
                     minio_client.send_files(
                         list_files=[
@@ -61,6 +60,6 @@ def process_flux_json_files(**kwargs):
                             },
                         ],
                     )
-                logging.info(f"File {file_date} processed and" " sent to minio.")
+                logging.info(f"File {file_date} processed and sent to minio.")
                 os.remove(json_path)
                 os.remove(new_json_path)
