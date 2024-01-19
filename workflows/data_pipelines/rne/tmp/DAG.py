@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from dag_datalake_sirene.config import EMAIL_LIST, RNE_DB_TMP_FOLDER
-from dag_datalake_sirene.workflows.data_pipelines.rne.temp.task_functions import (
+from dag_datalake_sirene.workflows.data_pipelines.rne.tmp.task_functions import (
     process_flux_json_files,
 )
 
