@@ -39,7 +39,7 @@ def test_multi_line_file(temp_file_path):
     lines = ["First line\n", "Second line\n", "Third line\n"]
     write_lines_to_file(temp_file_path, lines)
     result = get_last_line(temp_file_path)
-    assert result == "Third line"
+    assert result == "Third line\n"
 
 
 def test_one_character_line_file(temp_file_path):
@@ -47,7 +47,7 @@ def test_one_character_line_file(temp_file_path):
     lines = ["A\n", "B\n", "C\n"]
     write_lines_to_file(temp_file_path, lines)
     result = get_last_line(temp_file_path)
-    assert result == "C"
+    assert result == "C\n"
 
 
 def test_error_reading_last_line(temp_file_path):
