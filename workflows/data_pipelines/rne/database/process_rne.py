@@ -154,13 +154,16 @@ def inject_records_into_db(file_path, db_path, file_type):
 
 def process_records_to_extract_rne_data(data, file_type):
     unites_legales = []
+
+    def process_record(record):
+        return extract_rne_data(record, file_type)
+
     if file_type == "stock":
-        for record in data:
-            unite_legale = extract_rne_data(record, file_type)
-            unites_legales.append(unite_legale)
+        unites_legales = [process_record(record) for record in data]
     elif file_type == "flux":
-        unite_legale = extract_rne_data(data, file_type)
-        unites_legales.append(unite_legale)
+        unites_legale = process_record(data)
+        unites_legales.append(unites_legale)
+
     return unites_legales
 
 
