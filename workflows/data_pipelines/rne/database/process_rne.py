@@ -148,8 +148,12 @@ def inject_records_into_db(file_path, db_path, file_type):
 
 def process_records_to_extract_rne_data(data, file_type):
     unites_legales = []
-    for record in data:
-        unite_legale = extract_rne_data(record, file_type)
+    if file_type == "stock":
+        for record in data:
+            unite_legale = extract_rne_data(record, file_type)
+            unites_legales.append(unite_legale)
+    elif file_type == "flux":
+        unite_legale = extract_rne_data(data, file_type)
         unites_legales.append(unite_legale)
     return unites_legales
 
@@ -370,11 +374,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
 
     cursor.execute("SELECT * FROM unites_legales ORDER BY rowid DESC LIMIT 1")
     cursor.fetchone()
-    """
-    # Print the first record
-    if first_record:
-        logging.info(f"///////First Record: {first_record}")
-    """
+
     connection.commit()
     connection.close()
 
