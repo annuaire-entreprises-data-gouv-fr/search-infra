@@ -5,6 +5,7 @@ import re
 import logging
 from dag_datalake_sirene.helpers.tchap import send_message
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.utils import get_last_line
 from dag_datalake_sirene.workflows.data_pipelines.rne.flux.rne_api import ApiRNEClient
 from dag_datalake_sirene.config import (
     AIRFLOW_ENV,
@@ -51,7 +52,7 @@ def get_latest_json_file(ti):
 def get_last_siren(ti):
     """
     Retrieve the last 'siren' value from the latest JSON file
-    associated with the RNE fluxg.
+    associated with the RNE flux.
 
     Parameters:
     - ti (airflow.models.TaskInstance): The Airflow task instance
@@ -67,33 +68,22 @@ def get_last_siren(ti):
     try:
         last_json_file_path = get_latest_json_file(ti)
 
-        with open(last_json_file_path, "rb") as f:
-            try:  # catch OSError in case of a one line file
-                f.seek(-2, os.SEEK_END)
-                while f.read(1) != b"\n":
-                    f.seek(-2, os.SEEK_CUR)
-            except OSError as error:
-                logging.error(f"{error}")
-                f.seek(0)
-            last_line = f.readline().decode()
-            logging.info(f"+++++++++++Last line: {last_line}")
+        last_line = get_last_line(last_json_file_path)
 
         try:
-            latest_dict = json.loads(last_line)
-            latest_company = latest_dict["company"]
-            last_siren = latest_company.get("siren")
-            if last_siren is not None:
-                logging.info(
-                    f"****Last siren in saved file "
-                    f"{last_json_file_path}: {last_siren}"
-                )
-            else:
-                logging.info("No 'siren' key found in the decoded JSON.")
+            if last_line:
+                latest_dict = json.loads(last_line)
+                latest_company = latest_dict["company"]
+                last_siren = latest_company.get("siren")
+                if last_siren is not None:
+                    logging.info(
+                        f"****Last siren in saved file "
+                        f"{last_json_file_path}: {last_siren}"
+                    )
+                else:
+                    logging.info("No 'siren' key found in the decoded JSON.")
         except json.JSONDecodeError:
             logging.error("Error decoding JSON. Removing last line and trying again.")
-
-        if not last_line:
-            raise Exception(f"No valid JSON found in the file: {last_json_file_path}")
 
         return last_siren
     except Exception:
