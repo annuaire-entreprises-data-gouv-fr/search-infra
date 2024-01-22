@@ -1,4 +1,5 @@
 import logging
+import sqlite3
 from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 
 # fmt: off
@@ -91,55 +92,74 @@ def add_rne_siren_data_to_unite_legale_table(**kwargs):
     # Attach the second database
     sqlite_client_siren.execute(f"ATTACH DATABASE '{RNE_DATABASE_LOCATION}' AS db_rne")
 
-    # Add a new column 'from_rne' to table1 if not exists
-    sqlite_client_siren.execute("PRAGMA foreign_keys=off")
-    sqlite_client_siren.execute("BEGIN TRANSACTION")
-    sqlite_client_siren.execute(
-        "ALTER TABLE unite_legale ADD COLUMN from_rne BOOLEAN DEFAULT FALSE"
-    )
-    sqlite_client_siren.execute("COMMIT")
-    sqlite_client_siren.execute("PRAGMA foreign_keys=on")
-
-    # Update existing rows in table1 based on siren from table2
-    update_query = """
-        UPDATE unite_legale
-        SET from_rne = TRUE
-        WHERE siren IN (SELECT siren FROM db_rne.unites_legales)
+    # Check if the column 'from_rne' already exists
+    check_column_query = """
+        PRAGMA table_info(unite_legale);
     """
-    sqlite_client_siren.execute(update_query)
+    columns = sqlite_client_siren.execute(check_column_query).fetchall()
+    column_exists = any(column[1] == "from_rne" for column in columns)
 
-    # Insert new rows from table2 into table1
-    insert_query = """
-        INSERT INTO unite_legale
-        SELECT DISTINCT
-            siren,
-            date_creation AS date_creation_unite_legale,
-            NULL AS sigle,
-            NULL AS prenom,
-            NULL AS identifiant_association_unite_legale,
-            tranche_effectif_salarie AS tranche_effectif_salarie_unite_legale,
-            date_mise_a_jour AS date_mise_a_jour_unite_legale,
-            NULL AS categorie_entreprise,
-            etat_administratif AS etat_administratif_unite_legale,
-            NULL AS nom,
-            NULL AS nom_usage,
-            NULL AS nom_raison_sociale,
-            NULL AS denomination_usuelle_1,
-            NULL AS denomination_usuelle_2,
-            NULL AS denomination_usuelle_3,
-            nature_juridique AS nature_juridique_unite_legale,
-            activite_principale AS activite_principale_unite_legale,
-            NULL AS economie_sociale_solidaire_unite_legale,
-            statut_diffusion AS statut_diffusion_unite_legale,
-            NULL AS est_societe_mission,
-            NULL AS annee_categorie_entreprise,
-            NULL AS annee_tranche_effectif_salarie,
-            NULL AS caractere_employeur,
-            FALSE AS from_insee,
-            TRUE AS from_rne
-        FROM db_rne.unites_legales
-        WHERE siren NOT IN (SELECT siren FROM unite_legale)
-    """
-    sqlite_client_siren.execute(insert_query)
+    # Add the column 'from_rne' only if it does not exist
+    if not column_exists:
+        sqlite_client_siren.execute("PRAGMA foreign_keys=off")
+        sqlite_client_siren.execute("BEGIN TRANSACTION")
+        sqlite_client_siren.execute(
+            "ALTER TABLE unite_legale ADD COLUMN from_rne BOOLEAN DEFAULT FALSE"
+        )
+        sqlite_client_siren.execute("COMMIT")
+        sqlite_client_siren.execute("PRAGMA foreign_keys=on")
 
-    sqlite_client_siren.commit_and_close_conn()
+    try:
+        # Update existing rows in table1 based on siren from table2
+        update_query = """
+            UPDATE unite_legale
+            SET from_rne = TRUE
+            WHERE siren IN (SELECT siren FROM db_rne.unites_legales)
+        """
+        sqlite_client_siren.execute(update_query)
+
+        # Insert new rows from table2 into table1
+        # (handling duplicates with INSERT OR IGNORE)
+        insert_query = """
+            INSERT INTO unite_legale
+            SELECT DISTINCT
+                siren,
+                date_creation AS date_creation_unite_legale,
+                NULL AS sigle,
+                NULL AS prenom,
+                NULL AS identifiant_association_unite_legale,
+                tranche_effectif_salarie AS tranche_effectif_salarie_unite_legale,
+                date_mise_a_jour AS date_mise_a_jour_unite_legale,
+                NULL AS categorie_entreprise,
+                etat_administratif AS etat_administratif_unite_legale,
+                NULL AS nom,
+                NULL AS nom_usage,
+                NULL AS nom_raison_sociale,
+                NULL AS denomination_usuelle_1,
+                NULL AS denomination_usuelle_2,
+                NULL AS denomination_usuelle_3,
+                nature_juridique AS nature_juridique_unite_legale,
+                activite_principale AS activite_principale_unite_legale,
+                NULL AS economie_sociale_solidaire_unite_legale,
+                statut_diffusion AS statut_diffusion_unite_legale,
+                NULL AS est_societe_mission,
+                NULL AS annee_categorie_entreprise,
+                NULL AS annee_tranche_effectif_salarie,
+                NULL AS caractere_employeur,
+                FALSE AS from_insee,
+                TRUE AS from_rne
+            FROM db_rne.unites_legales
+        """
+        sqlite_client_siren.execute(insert_query)
+
+        sqlite_client_siren.commit_and_close_conn()
+
+    except sqlite3.IntegrityError as e:
+        # Log the error and problematic siren values
+        logging.error(f"IntegrityError: {e}")
+        problematic_sirens = e.args[0].split(": ")[1].split(", ")
+        logging.error(f"Problematic Sirens: {problematic_sirens}")
+
+    except Exception as e:
+        # Handle other exceptions if needed
+        logging.error(f"An unexpected error occurred: {e}")
