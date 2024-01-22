@@ -1,7 +1,35 @@
 import os
 import tempfile
 import pytest
-from helpers.utils import get_last_line
+import logging
+
+
+def get_last_line(file_path):
+    """
+    Retrieve the last line from a given file.
+
+    Parameters:
+    - file_path (str): The path to the file.
+
+    Returns:
+    - str or None: The last line if found, or None if the file is empty.
+    """
+    try:
+        with open(file_path, "rb") as f:
+            try:  # catch OSError in case of a one line file
+                f.seek(-2, os.SEEK_END)
+                while f.read(1) != b"\n":
+                    f.seek(-2, os.SEEK_CUR)
+            except OSError as error:
+                logging.error(f"{error}")
+                f.seek(0)
+            last_line = f.readline().decode()
+            logging.info(f"Last line: {last_line}")
+
+        return last_line if last_line else None
+    except Exception as e:
+        logging.error(f"Error while reading last line: {e}")
+        return None
 
 
 @pytest.fixture
