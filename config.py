@@ -36,7 +36,7 @@ METADATA_CC_MINIO_PATH = "metadata/cc/"
 INSEE_FLUX_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/flux/"
 
 # Insee
-INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE")
+INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
 INSEE_API_URL = "https://api.insee.fr/entreprises/sirene/V3/"
 
 # Notification
@@ -47,7 +47,7 @@ EMAIL_LIST = Variable.get("EMAIl_LIST", "")
 # Minio
 MINIO_URL = Variable.get("MINIO_URL", "object.files.data.gouv.fr")
 MINIO_BUCKET = Variable.get("MINIO_BUCKET", "")
-MINIO_BUCKET_DATA_PIPELINE = Variable.get("MINIO_BUCKET_DATA_PIPELINE")
+MINIO_BUCKET_DATA_PIPELINE = Variable.get("MINIO_BUCKET_DATA_PIPELINE", None)
 MINIO_USER = Variable.get("MINIO_USER", "")
 MINIO_PASSWORD = Variable.get("MINIO_PASSWORD", "")
 
@@ -58,20 +58,20 @@ RNE_API_TOKEN_URL = "https://registre-national-entreprises.inpi.fr/api/sso/login
 RNE_API_DIFF_URL = "https://registre-national-entreprises.inpi.fr/api/companies/diff?"
 
 # AIO
-AIO_URL = Variable.get("AIO_URL")
-COLOR_URL = Variable.get("COLOR_URL")
-PATH_AIO = Variable.get("PATH_AIO")
+AIO_URL = Variable.get("AIO_URL", None)
+COLOR_URL = Variable.get("COLOR_URL", None)
+PATH_AIO = Variable.get("PATH_AIO", None)
 
 # Redis
 REDIS_HOST = "redis"
 REDIS_PORT = "6379"
 REDIS_DB = "0"
-REDIS_PASSWORD = Variable.get("REDIS_PASSWORD")
+REDIS_PASSWORD = Variable.get("REDIS_PASSWORD", None)
 
 # ElasticSearch
-ELASTIC_PASSWORD = Variable.get("ELASTIC_PASSWORD")
-ELASTIC_URL = Variable.get("ELASTIC_URL")
-ELASTIC_USER = Variable.get("ELASTIC_USER")
+ELASTIC_PASSWORD = Variable.get("ELASTIC_PASSWORD", None)
+ELASTIC_URL = Variable.get("ELASTIC_URL", None)
+ELASTIC_USER = Variable.get("ELASTIC_USER", None)
 ELASTIC_BULK_SIZE = 1500
 ELASTIC_SHARDS = 1
 ELASTIC_REPLICAS = 0
