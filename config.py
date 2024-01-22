@@ -51,7 +51,6 @@ MINIO_BUCKET = Variable.get("MINIO_BUCKET", "")
 MINIO_BUCKET_DATA_PIPELINE = Variable.get("MINIO_BUCKET_DATA_PIPELINE")
 MINIO_USER = Variable.get("MINIO_USER", "")
 MINIO_PASSWORD = Variable.get("MINIO_PASSWORD", "")
-MINIO_IS_WRITABLE = bool(Variable.get("MINIO_IS_WRITABLE", "True"))
 
 # RNE
 RNE_FTP_URL = Variable.get("RNE_FTP_URL", "")

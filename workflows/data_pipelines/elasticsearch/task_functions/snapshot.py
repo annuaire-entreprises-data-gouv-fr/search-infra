@@ -3,7 +3,6 @@ import time
 from datetime import datetime
 from elasticsearch_dsl import connections
 
-# fmt: on
 from dag_datalake_sirene.config import (
     AIRFLOW_ELK_DAG_NAME,
     ELASTIC_URL,
