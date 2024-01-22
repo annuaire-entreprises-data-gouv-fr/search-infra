@@ -1,7 +1,7 @@
 import os
 import tempfile
 import pytest
-from dag_datalake_sirene.helpers.utils import get_last_line
+from helpers.utils import get_last_line
 
 
 @pytest.fixture
