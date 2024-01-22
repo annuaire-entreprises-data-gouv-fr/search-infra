@@ -140,9 +140,15 @@ def inject_records_into_db(file_path, db_path, file_type):
                         data, file_type
                     )
                     unites_legales += unites_legales_temp
+
+                    if len(unites_legales) > 100000:
+                        insert_unites_legales_into_db(
+                            unites_legales, file_path, db_path
+                        )
+                        unites_legales = []
+
         except json.JSONDecodeError as e:
             raise Exception(f"JSONDecodeError: {e} in file {file_path}")
-
         insert_unites_legales_into_db(unites_legales, file_path, db_path)
 
 
