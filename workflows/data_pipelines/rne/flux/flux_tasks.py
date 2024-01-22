@@ -67,35 +67,34 @@ def get_last_siren(ti):
     try:
         last_json_file_path = get_latest_json_file(ti)
 
-        with open(last_json_file_path, "r") as file:
-            json_lines = file.readlines()
+        with open(last_json_file_path, "rb") as f:
+            try:  # catch OSError in case of a one line file
+                f.seek(-2, os.SEEK_END)
+                while f.read(1) != b"\n":
+                    f.seek(-2, os.SEEK_CUR)
+            except OSError as error:
+                logging.error(f"{error}")
+                f.seek(0)
+            last_line = f.readline().decode()
+            logging.info(f"+++++++++++Last line: {last_line}")
 
-        while json_lines:
-            last_line = json_lines[-1]
-            try:
-                latest_dict = json.loads(last_line)
-                latest_company = latest_dict[-1]["company"]
-                last_siren = latest_company.get("siren")
-                if last_siren is not None:
-                    logging.info(
-                        f"****Last siren in saved file "
-                        f"{last_json_file_path}: {last_siren}"
-                    )
-                    break
-                else:
-                    logging.info("No 'siren' key found in the decoded JSON.")
-            except json.JSONDecodeError:
+        try:
+            latest_dict = json.loads(last_line)
+            latest_company = latest_dict["company"]
+            last_siren = latest_company.get("siren")
+            if last_siren is not None:
                 logging.info(
-                    "Error decoding JSON. Removing last line and trying again."
+                    f"****Last siren in saved file "
+                    f"{last_json_file_path}: {last_siren}"
                 )
-                json_lines.pop()
-                continue
+            else:
+                logging.info("No 'siren' key found in the decoded JSON.")
+        except json.JSONDecodeError:
+            logging.error("Error decoding JSON. Removing last line and trying again.")
 
-        if not json_lines:
+        if not last_line:
             raise Exception(f"No valid JSON found in the file: {last_json_file_path}")
 
-        with open(last_json_file_path, "w") as file:
-            file.writelines(json_lines)
         return last_siren
     except Exception:
         return None
@@ -155,8 +154,9 @@ def get_and_save_daily_flux_rne(
                     start_date, end_date, last_siren
                 )
                 if page_data:
-                    json.dump(page_data, json_file)
-                    json_file.write("\n")  # Add a newline for multiple JSON objects
+                    for company in page_data:  # type: ignore
+                        json.dump(company, json_file)
+                        json_file.write("\n")
             except Exception as e:
                 # If exception accures, save uncompleted file
                 if os.path.exists(json_file_path):
