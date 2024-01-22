@@ -9,7 +9,6 @@ from dag_datalake_sirene.config import (
     MINIO_URL,
     MINIO_USER,
     MINIO_PASSWORD,
-    MINIO_IS_WRITABLE,
 )
 
 
@@ -201,23 +200,4 @@ class MinIOClient:
         return file_info_list
 
 
-class MinIOReadOnlyClient(MinIOClient):
-    def send_files(
-        self,
-        list_files: List[File],
-    ):
-        pass
-
-    def put_object_minio(
-        self,
-        filename: str,
-        minio_path: str,
-        local_path: str,
-    ) -> None:
-        pass
-
-    def delete_file(self, file_path: str):
-        pass
-
-
-minio_client = MinIOClient() if MINIO_IS_WRITABLE else MinIOReadOnlyClient()
+minio_client = MinIOClient()
