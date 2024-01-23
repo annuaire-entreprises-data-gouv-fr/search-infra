@@ -22,7 +22,7 @@ def upload_db_to_minio(**kwargs):
                 "source_path": AIRFLOW_ETL_DATA_DIR,
                 "source_name": "sirene.db",
                 "dest_path": SIRENE_MINIO_DATA_PATH,
-                "dest_name": f"sirene_{current_date}.db",
+                "dest_name": f"test_sirene_{current_date}.db",
             }
         ]
     )

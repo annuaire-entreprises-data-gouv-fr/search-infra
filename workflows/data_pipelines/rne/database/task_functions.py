@@ -266,7 +266,7 @@ def upload_db_to_minio(**kwargs):
                 "source_path": RNE_DB_TMP_FOLDER,
                 "source_name": f"rne_{start_date}.db",
                 "dest_path": RNE_MINIO_DATA_PATH,
-                "dest_name": f"rne_{last_date_processed}.db",
+                "dest_name": f"test_rne_{last_date_processed}.db",
             }
         ]
     )
@@ -290,7 +290,7 @@ def upload_latest_date_rne_minio(ti):
                 "source_path": RNE_DB_TMP_FOLDER,
                 "source_name": RNE_LATEST_DATE_FILE,
                 "dest_path": RNE_MINIO_DATA_PATH,
-                "dest_name": RNE_LATEST_DATE_FILE,
+                "dest_name": f"TEST_{RNE_LATEST_DATE_FILE}",
             }
         ]
     )
