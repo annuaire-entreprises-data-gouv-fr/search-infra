@@ -140,17 +140,31 @@ def inject_records_into_db(file_path, db_path, file_type):
                         data, file_type
                     )
                     unites_legales += unites_legales_temp
+                    # If the pending queue exceeds 100,000, we insert it directly;
+                    # otherwise, it is inserted at the end of the loop.
+                    if len(unites_legales) > 100000:
+                        insert_unites_legales_into_db(
+                            unites_legales, file_path, db_path
+                        )
+                        unites_legales = []
+
         except json.JSONDecodeError as e:
             raise Exception(f"JSONDecodeError: {e} in file {file_path}")
-
         insert_unites_legales_into_db(unites_legales, file_path, db_path)
 
 
 def process_records_to_extract_rne_data(data, file_type):
     unites_legales = []
-    for record in data:
-        unite_legale = extract_rne_data(record, file_type)
-        unites_legales.append(unite_legale)
+
+    def process_record(record):
+        return extract_rne_data(record, file_type)
+
+    if file_type == "stock":
+        unites_legales = [process_record(record) for record in data]
+    elif file_type == "flux":
+        unites_legale = process_record(data)
+        unites_legales.append(unites_legale)
+
     return unites_legales
 
 
@@ -370,11 +384,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
 
     cursor.execute("SELECT * FROM unites_legales ORDER BY rowid DESC LIMIT 1")
     cursor.fetchone()
-    """
-    # Print the first record
-    if first_record:
-        logging.info(f"///////First Record: {first_record}")
-    """
+
     connection.commit()
     connection.close()
 
