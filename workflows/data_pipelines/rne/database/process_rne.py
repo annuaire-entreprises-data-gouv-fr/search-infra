@@ -140,7 +140,8 @@ def inject_records_into_db(file_path, db_path, file_type):
                         data, file_type
                     )
                     unites_legales += unites_legales_temp
-
+                    # If the pending queue exceeds 100,000, we insert it directly;
+                    # otherwise, it is inserted at the end of the loop.
                     if len(unites_legales) > 100000:
                         insert_unites_legales_into_db(
                             unites_legales, file_path, db_path
