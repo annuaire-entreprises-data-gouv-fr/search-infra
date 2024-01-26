@@ -270,6 +270,12 @@ def upload_db_to_minio(**kwargs):
             }
         ]
     )
+    # Delete the local file after uploading to Minio
+    database_file_path = os.path.join(RNE_DB_TMP_FOLDER, f"rne_{start_date}.db")
+    if os.path.exists(database_file_path):
+        os.remove(database_file_path)
+    else:
+        logging.warning(f"Warning: Database file '{database_file_path}' not found.")
 
 
 def upload_latest_date_rne_minio(ti):
