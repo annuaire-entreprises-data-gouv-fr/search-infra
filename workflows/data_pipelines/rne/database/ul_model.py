@@ -63,7 +63,7 @@ class UniteLegale(BaseModel):
     forme_exercice_activite_principale: str | None = None
     statut_diffusion: str | None = None
     adresse: Adresse | None = Adresse()
-    dirigeants: (list[DirigeantsPP | DirigeantsPM] | None) = None
+    dirigeants: list[DirigeantsPP | DirigeantsPM] | None = None
     siege: Siege | None = Siege()
 
     def get_dirigeants_list(self):
