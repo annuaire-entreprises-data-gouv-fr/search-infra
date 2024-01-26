@@ -261,6 +261,11 @@ with DAG(
         python_callable=upload_db_to_minio,
     )
 
+    clean_folder = CleanFolderOperator(
+        task_id="clean_folder",
+        folder_path=(f"{AIRFLOW_DAG_TMP}+{AIRFLOW_DAG_FOLDER}+{AIRFLOW_ETL_DAG_NAME}"),
+    )
+
     success_email_body = f"""
     Hi, <br><br>
     preprocess-data-sirene-{AIRFLOW_ENV} DAG has been executed
@@ -312,5 +317,6 @@ with DAG(
 
     send_database_to_minio.set_upstream(create_elu_table)
 
-    send_email.set_upstream(send_database_to_minio)
+    clean_folder.set_upstream(send_database_to_minio)
+    send_email.set_upstream(clean_folder)
     send_notification_tchap.set_upstream(send_email)

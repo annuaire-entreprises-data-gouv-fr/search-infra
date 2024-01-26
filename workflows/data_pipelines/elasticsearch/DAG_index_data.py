@@ -146,6 +146,11 @@ with DAG(
         ),
     )
 
+    clean_folder = CleanFolderOperator(
+        task_id="clean_folder",
+        folder_path=f"{AIRFLOW_DAG_TMP}+{AIRFLOW_DAG_FOLDER}+{AIRFLOW_ELK_DAG_NAME}",
+    )
+
     success_email_body = f"""
     Hi, <br><br>
     insert-elk-sirene-{AIRFLOW_ENV} DAG has been executed
@@ -181,6 +186,7 @@ with DAG(
     test_api.set_upstream(execute_aio_container)
     flush_cache.set_upstream(test_api)
 
-    send_email.set_upstream(flush_cache)
-    send_email.set_upstream(update_sitemap)
+    clean_folder.set_upstream(flush_cache)
+    clean_folder.set_upstream(update_sitemap)
+    send_email.set_upstream(clean_folder)
     send_notification_tchap.set_upstream(send_email)
