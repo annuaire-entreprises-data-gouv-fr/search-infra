@@ -63,6 +63,12 @@ with DAG(
         task_id="upload_latest_date_rne_minio",
         python_callable=upload_latest_date_rne_minio,
     )
+
+    clean_outputs = BashOperator(
+        task_id="clean_outputs",
+        bash_command=f"rm -rf {RNE_DB_TMP_FOLDER}",
+    )
+
     notification_tchap = PythonOperator(
         task_id="notification_tchap", python_callable=notification_tchap
     )
@@ -75,4 +81,5 @@ with DAG(
     check_db_count.set_upstream(process_flux_json_files)
     upload_db_to_minio.set_upstream(check_db_count)
     upload_latest_date_rne_minio.set_upstream(upload_db_to_minio)
-    notification_tchap.set_upstream(upload_latest_date_rne_minio)
+    clean_outputs.set_upstream(upload_latest_date_rne_minio)
+    notification_tchap.set_upstream(clean_outputs)
