@@ -43,7 +43,7 @@ with DAG(
 
     clean_outputs = BashOperator(
         task_id="clean_outputs",
-        bash_command=f"rm -rf {RNE_FLUX_TMP_FOLDER} && mkdir -p {RNE_FLUX_TMP_FOLDER}",
+        bash_command=f"rm -rf {RNE_FLUX_TMP_FOLDER}",
     )
 
     send_notification_success_tchap = PythonOperator(

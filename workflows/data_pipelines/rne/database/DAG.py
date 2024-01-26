@@ -66,7 +66,7 @@ with DAG(
 
     clean_outputs = BashOperator(
         task_id="clean_outputs",
-        bash_command=f"rm -rf {RNE_DB_TMP_FOLDER} && mkdir -p {RNE_DB_TMP_FOLDER}",
+        bash_command=f"rm -rf {RNE_DB_TMP_FOLDER}",
     )
 
     notification_tchap = PythonOperator(
