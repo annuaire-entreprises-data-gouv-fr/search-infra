@@ -294,6 +294,13 @@ def upload_latest_date_rne_minio(ti):
             }
         ]
     )
+    # Delete the local file after uploading to Minio
+    file_path = os.path.join(RNE_DB_TMP_FOLDER, RNE_LATEST_DATE_FILE)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    else:
+        logging.warning(f"Warning: Database file '{file_path}' not found.")
+
     ti.xcom_push(key="latest_date", value=latest_date)
 
 
