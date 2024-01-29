@@ -1,6 +1,8 @@
 from datetime import datetime
+import json
 import logging
 from minio import Minio, S3Error
+import tempfile
 from typing import List, TypedDict, Optional
 import os
 from dag_datalake_sirene.config import (
@@ -198,6 +200,35 @@ class MinIOClient:
             file_info_list.append((file_name, last_modified))
         logging.info(f"*****List of files: {file_info_list}")
         return file_info_list
+
+    def read_json_file(self, dest_path, dest_name):
+        dest_fullpath = f"ae/{AIRFLOW_ENV}/{dest_path}{dest_name}"
+        content = None
+
+        try:
+            response = self.client.get_object(self.bucket, dest_fullpath)
+            content = response.json()
+        finally:
+            response.close()
+            response.release_conn()
+
+        return content
+
+    def write_json_file(self, dest_path, dest_name, data):
+        with tempfile.NamedTemporaryFile(mode="w+") as tmp_file:
+            json.dump(data, tmp_file)
+            tmp_file.flush()
+
+            dest_fullpath = f"ae/{AIRFLOW_ENV}/{dest_path}{dest_name}"
+
+            logging.info(f"Uploading '{tmp_file.name}' to {dest_fullpath}")
+
+            self.client.fput_object(
+                self.bucket,
+                dest_fullpath,
+                tmp_file.name,
+                content_type="application/json",
+            )
 
 
 minio_client = MinIOClient()
