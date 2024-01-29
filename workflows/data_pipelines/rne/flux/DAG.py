@@ -41,10 +41,16 @@ with DAG(
         python_callable=get_every_day_flux,
     )
 
+    clean_outputs = BashOperator(
+        task_id="clean_outputs",
+        bash_command=f"rm -rf {RNE_FLUX_TMP_FOLDER}",
+    )
+
     send_notification_success_tchap = PythonOperator(
         task_id="send_notification_success_tchap",
         python_callable=send_notification_success_tchap,
     )
 
     get_daily_flux_rne.set_upstream(clean_previous_outputs)
-    send_notification_success_tchap.set_upstream(get_daily_flux_rne)
+    clean_outputs.set_upstream(get_daily_flux_rne)
+    send_notification_success_tchap.set_upstream(clean_outputs)
