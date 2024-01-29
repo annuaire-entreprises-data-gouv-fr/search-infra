@@ -1,4 +1,6 @@
 from datetime import datetime
+import logging
+import os
 
 from dag_datalake_sirene.config import (
     SIRENE_MINIO_DATA_PATH,
@@ -26,3 +28,10 @@ def upload_db_to_minio(**kwargs):
             }
         ]
     )
+    # Delete the local database file after uploading to Minio
+    database_file_path = os.path.join(AIRFLOW_ETL_DATA_DIR, "sirene.db")
+    if os.path.exists(database_file_path):
+        os.remove(database_file_path)
+        logging.info(f"Database deleted! {database_file_path}")
+    else:
+        logging.warning(f"Warning: Database file '{database_file_path}' not found.")

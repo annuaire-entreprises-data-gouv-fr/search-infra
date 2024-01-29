@@ -61,9 +61,9 @@ class MinIOClient:
                     self.bucket,
                     f"ae/{AIRFLOW_ENV}/{file['dest_path']}{file['dest_name']}",
                     os.path.join(file["source_path"], file["source_name"]),
-                    content_type=file["content_type"]
-                    if "content_type" in file
-                    else None,
+                    content_type=(
+                        file["content_type"] if "content_type" in file else None
+                    ),
                 )
             else:
                 raise Exception(

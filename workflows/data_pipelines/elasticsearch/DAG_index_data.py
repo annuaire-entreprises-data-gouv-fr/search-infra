@@ -128,6 +128,11 @@ with DAG(
         python_callable=run_e2e_tests,
     )
 
+    clean_folder = CleanFolderOperator(
+        task_id="clean_folder",
+        folder_path=f"{AIRFLOW_DAG_TMP}+{AIRFLOW_DAG_FOLDER}+{AIRFLOW_ELK_DAG_NAME}",
+    )
+
     success_email_body = f"""
     Hi, <br><br>
     insert-elk-sirene-{AIRFLOW_ENV} DAG has been executed
@@ -168,7 +173,7 @@ with DAG(
         trigger_snapshot_dag.set_upstream(check_elastic_index)
         test_api.set_upstream(trigger_snapshot_dag)
 
-        send_email.set_upstream([test_api, update_sitemap])
+        clean_folder.set_upstream([test_api, update_sitemap])
     else:
         execute_aio_container = SSHOperator(
             ssh_conn_id="SERVER",
@@ -194,6 +199,7 @@ with DAG(
         execute_aio_container.set_upstream(check_elastic_index)
         test_api.set_upstream(execute_aio_container)
         flush_cache.set_upstream(test_api)
-        send_email.set_upstream([flush_cache, update_sitemap])
+        clean_folder.set_upstream([flush_cache, update_sitemap])
 
+    send_email.set_upstream(clean_folder)
     send_notification_tchap.set_upstream(send_email)
