@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 
-from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.models import DAG
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
@@ -14,6 +13,7 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
     get_next_index_name,
     check_elastic_index,
     create_elastic_index,
+    update_elastic_alias,
     fill_elastic_siren_index,
     delete_previous_elastic_indices,
 )
@@ -39,7 +39,6 @@ from dag_datalake_sirene.config import (
     AIRFLOW_DAG_FOLDER,
     AIRFLOW_ENV,
     EMAIL_LIST,
-    PATH_AIO,
     REDIS_HOST,
     REDIS_PORT,
     REDIS_DB,
@@ -110,6 +109,12 @@ with DAG(
         python_callable=check_elastic_index,
     )
 
+    update_elastic_alias = PythonOperator(
+        task_id="update_elastic_alias",
+        provide_context=True,
+        python_callable=update_elastic_alias,
+    )
+
     create_sitemap = PythonOperator(
         task_id="create_sitemap",
         provide_context=True,
@@ -153,8 +158,9 @@ with DAG(
     create_elastic_index.set_upstream(get_latest_sqlite_database)
     fill_elastic_siren_index.set_upstream(create_elastic_index)
     check_elastic_index.set_upstream(fill_elastic_siren_index)
+    update_elastic_alias.set_upstream(check_elastic_index)
 
-    create_sitemap.set_upstream(check_elastic_index)
+    create_sitemap.set_upstream(update_elastic_alias)
     update_sitemap.set_upstream(create_sitemap)
 
     if API_IS_REMOTE:
@@ -165,20 +171,11 @@ with DAG(
             deferrable=False,
         )
 
-        trigger_snapshot_dag.set_upstream(check_elastic_index)
+        trigger_snapshot_dag.set_upstream(update_elastic_alias)
         test_api.set_upstream(trigger_snapshot_dag)
 
         send_email.set_upstream([test_api, update_sitemap])
     else:
-        execute_aio_container = SSHOperator(
-            ssh_conn_id="SERVER",
-            task_id="execute_aio_container",
-            command=f"cd {PATH_AIO} "
-            f"&& docker-compose -f docker-compose-aio.yml up --build -d --force",
-            cmd_timeout=60,
-            dag=dag,
-        )
-
         flush_cache = PythonOperator(
             task_id="flush_cache",
             provide_context=True,
@@ -191,8 +188,7 @@ with DAG(
             ),
         )
 
-        execute_aio_container.set_upstream(check_elastic_index)
-        test_api.set_upstream(execute_aio_container)
+        test_api.set_upstream(update_elastic_alias)
         flush_cache.set_upstream(test_api)
         send_email.set_upstream([flush_cache, update_sitemap])
 
