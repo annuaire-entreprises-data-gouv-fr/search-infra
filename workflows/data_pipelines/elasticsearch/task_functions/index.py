@@ -107,3 +107,33 @@ def delete_previous_elastic_indices(**kwargs):
     for index in to_remove:
         logging.info(f'Removing index {index["index"]}')
         elastic_connection.indices.delete(index=index["index"])
+
+
+def update_elastic_alias(**kwargs):
+    alias = "siren-reader"
+    elastic_index = kwargs["ti"].xcom_pull(
+        key="elastic_index", task_ids="get_next_index_name"
+    )
+
+    elastic_connection = connections.get_connection()
+
+    config = elastic_connection.indices.get_alias(name=alias)
+    indices = config.keys() if config is not None else []
+
+    actions = [
+        {
+            "remove": {
+                "index": index,
+                "alias": alias,
+            }
+        }
+        for index in indices
+    ]
+
+    actions.append({"add": {"index": elastic_index, "alias": alias}})
+
+    logging.info(
+        f"Updating alias siren-reader : add {elastic_index}, remove {', '.join(indices)}"
+    )
+
+    elastic_connection.indices.put_alias(name=alias, body=actions)

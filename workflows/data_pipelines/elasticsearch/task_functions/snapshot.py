@@ -10,7 +10,77 @@ from dag_datalake_sirene.config import (
     ELASTIC_PASSWORD,
     ELASTIC_SNAPSHOT_REPOSITORY,
     ELASTIC_SNAPSHOT_MAX_REVISIONS,
+    ELASTIC_SNAPSHOT_MINIO_STATE_PATH,
 )
+from dag_datalake_sirene.helpers.minio_helpers import minio_client
+
+
+def update_minio_current_index_version(**kwargs):
+    current_date = datetime.today().strftime("%Y%m%d%H%M%S")
+    content = minio_client.read_json_file(
+        ELASTIC_SNAPSHOT_MINIO_STATE_PATH, "current.json"
+    )
+
+    if content is None:
+        content = {}
+
+    if "current" in content:
+        content["previous"] = content["current"]
+
+    content["current"] = {
+        "file": f"daily/{current_date}.json",
+        "index": kwargs["ti"].xcom_pull(
+            key="elastic_index",
+            task_ids="get_next_index_name",
+            dag_id=AIRFLOW_ELK_DAG_NAME,
+            include_prior_dates=True,
+        ),
+        "snapshot": kwargs["ti"].xcom_pull(
+            key="snapshot_name",
+            task_ids="snapshot_elastic_index",
+        ),
+    }
+
+    minio_client.write_json_file(
+        ELASTIC_SNAPSHOT_MINIO_STATE_PATH, f"daily/{current_date}.json", content
+    )
+    minio_client.write_json_file(
+        ELASTIC_SNAPSHOT_MINIO_STATE_PATH, "current.json", content
+    )
+
+
+def rollback_minio_current_index_version(**kwargs):
+    content = minio_client.read_json_file(
+        ELASTIC_SNAPSHOT_MINIO_STATE_PATH, "current.json"
+    )
+
+    if content is None:
+        raise Exception("No previous version found")
+
+    previous = minio_client.read_json_file(
+        ELASTIC_SNAPSHOT_MINIO_STATE_PATH, content["current"]["file"]
+    )
+
+    if previous is None:
+        raise Exception("No previous version found")
+
+    snapshots = elastic_connection.snapshot.get(
+        repository=ELASTIC_SNAPSHOT_REPOSITORY,
+        snapshot=previous["current"]["snapshot"],
+        ignore_unavailable=True,
+    )
+
+    if len(snapshots) == 0:
+        raise Exception(
+            f"The snapshot {previous['current']['snapshot']} no longer exists on Elasticsearch"
+        )
+
+    logging.info(f"Rolling back to {content['current']['file']}")
+    minio_client.write_json_file(
+        ELASTIC_SNAPSHOT_MINIO_STATE_PATH, "current.json", previous
+    )
+
+    kwargs["ti"].xcom_push(key="elastic_index", value=previous["current"]["index"])
 
 
 def snapshot_elastic_index(**kwargs):
@@ -65,6 +135,8 @@ def snapshot_elastic_index(**kwargs):
 
         if len(snapshots["snapshots"]) > 0:
             if snapshots["snapshots"][0]["state"] == "SUCCESS":
+                kwargs["ti"].xcom_push(key="snapshot_name", value=snapshot_name)
+
                 return
 
             if snapshots["snapshots"][0]["state"] != "IN_PROGRESS":

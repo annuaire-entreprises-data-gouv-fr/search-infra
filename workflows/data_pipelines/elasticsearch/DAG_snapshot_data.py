@@ -5,6 +5,7 @@ from airflow.operators.python import PythonOperator
 
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.snapshot import (
     snapshot_elastic_index,
+    update_minio_current_index_version,
     delete_old_snapshots,
 )
 
@@ -42,6 +43,12 @@ with DAG(
         python_callable=snapshot_elastic_index,
     )
 
+    update_minio_current_index_version = PythonOperator(
+        task_id="update_minio_current_index_version",
+        provide_context=True,
+        python_callable=update_minio_current_index_version,
+    )
+
     wait_for_downstream_import = PythonOperator(
         task_id="wait_for_downstream_import",
         provide_context=True,
@@ -55,4 +62,5 @@ with DAG(
     )
 
     snapshot_elastic_index.set_upstream(delete_old_snapshots)
-    wait_for_downstream_import.set_upstream(snapshot_elastic_index)
+    update_minio_current_index_version.set_upstream(snapshot_elastic_index)
+    wait_for_downstream_import.set_upstream(update_minio_current_index_version)

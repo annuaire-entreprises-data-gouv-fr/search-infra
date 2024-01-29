@@ -8,6 +8,7 @@ AIRFLOW_DAG_FOLDER = "dag_datalake_sirene/"
 AIRFLOW_ETL_DAG_NAME = "extract_transform_load_db"
 AIRFLOW_ELK_DAG_NAME = "index_elasticsearch"
 AIRFLOW_SNAPSHOT_DAG_NAME = "snapshot_index"
+AIRFLOW_SNAPSHOT_ROLLBACK_DAG_NAME = "snapshot_index_rollback"
 AIRFLOW_ENV = Variable.get("ENV", "dev")
 AIRFLOW_URL = Variable.get("AIRFLOW_URL", "")
 AIRFLOW_ETL_DATA_DIR = (
@@ -80,6 +81,9 @@ ELASTIC_MAX_LIVE_VERSIONS = int(Variable.get("ELASTIC_MAX_LIVE_VERSIONS", 2))
 
 ELASTIC_SNAPSHOT_REPOSITORY = Variable.get("ELASTIC_SNAPSHOT_REPOSITORY", "data-prod")
 ELASTIC_SNAPSHOT_MAX_REVISIONS = 5
+ELASTIC_SNAPSHOT_MINIO_STATE_PATH = Variable.get(
+    "ELASTIC_SNAPSHOT_MINIO_STATE_PATH", "elastic_index_version"
+)
 
 ELASTIC_DOWNSTREAM_ALIAS = Variable.get("ELASTIC_DOWNSTREAM_ALIAS", "siren-reader")
 # comma separated URL

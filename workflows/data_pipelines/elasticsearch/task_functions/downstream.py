@@ -18,6 +18,20 @@ def wait_for_downstream_import(**kwargs):
         dag_id=AIRFLOW_ELK_DAG_NAME,
         include_prior_dates=True,
     )
+
+    wait_for_downstream_index_import(elastic_index)
+
+
+def wait_for_downstream_rollback_import(**kwargs):
+    elastic_index = kwargs["ti"].xcom_pull(
+        key="elastic_index",
+        task_ids="rollback_elastic_index",
+    )
+
+    wait_for_downstream_index_import(elastic_index)
+
+
+def wait_for_downstream_index_import(elastic_index):
     downstream_urls = ELASTIC_DOWNSTREAM_URLS.split(",")
 
     if len(downstream_urls) == 0:
