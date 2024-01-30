@@ -202,7 +202,7 @@ class MinIOClient:
         return file_info_list
 
     def read_json_file(self, dest_path, dest_name):
-        dest_fullpath = f"ae/{AIRFLOW_ENV}/{dest_path}{dest_name}"
+        dest_fullpath = f"ae/{AIRFLOW_ENV}/{dest_path}/{dest_name}"
         content = None
 
         try:
@@ -218,7 +218,7 @@ class MinIOClient:
             json.dump(data, tmp_file)
             tmp_file.flush()
 
-            dest_fullpath = f"ae/{AIRFLOW_ENV}/{dest_path}{dest_name}"
+            dest_fullpath = f"ae/{AIRFLOW_ENV}/{dest_path}/{dest_name}"
 
             logging.info(f"Uploading '{tmp_file.name}' to {dest_fullpath}")
 
