@@ -202,15 +202,14 @@ class MinIOClient:
         return file_info_list
 
     def read_json_file(self, dest_path, dest_name):
-        dest_fullpath = f"ae/{AIRFLOW_ENV}/{dest_path}{dest_name}"
+        dest_fullpath = f"ae/{AIRFLOW_ENV}/{dest_path}/{dest_name}"
         content = None
 
         try:
             response = self.client.get_object(self.bucket, dest_fullpath)
             content = response.json()
-        finally:
-            response.close()
-            response.release_conn()
+        except S3Error as e:
+            logging.error(e)
 
         return content
 
@@ -219,7 +218,7 @@ class MinIOClient:
             json.dump(data, tmp_file)
             tmp_file.flush()
 
-            dest_fullpath = f"ae/{AIRFLOW_ENV}/{dest_path}{dest_name}"
+            dest_fullpath = f"ae/{AIRFLOW_ENV}/{dest_path}/{dest_name}"
 
             logging.info(f"Uploading '{tmp_file.name}' to {dest_fullpath}")
 
