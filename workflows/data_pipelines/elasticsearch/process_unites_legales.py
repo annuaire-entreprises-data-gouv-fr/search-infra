@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
     create_list_names_elus,
@@ -197,6 +198,17 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         unite_legale_processed["siege"] = format_siege_unite_legale(
             unite_legale["siege"], is_non_diffusible
         )
+
+        # Source de données
+        unite_legale_processed["from_insee"] = sqlite_str_to_bool(
+            unite_legale["from_insee"]
+        )
+        unite_legale_processed["from_rne"] = sqlite_str_to_bool(
+            unite_legale["from_rne"]
+        )
+
+        # Get the current date and time in ISO 8601 format
+        unite_legale_processed["date_mise_a_jour"] = datetime.now().isoformat()
 
         # Create unité légale (structure) to be indexed
         unite_legale_to_index = {}

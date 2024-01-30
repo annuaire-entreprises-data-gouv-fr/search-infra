@@ -90,7 +90,7 @@ def preprocess_unite_legale_data(data_dir, sirene_file_type):
                 "sigleUniteLegale": "sigle",
                 "prenomUsuelUniteLegale": "prenom",
                 "trancheEffectifsUniteLegale": "tranche_effectif_salarie_unite_legale",
-                "dateDernierTraitementUniteLegale": "date_mise_a_jour_unite_legale",
+                "dateDernierTraitementUniteLegale": "date_mise_a_jour_insee",
                 "categorieEntreprise": "categorie_entreprise",
                 "etatAdministratifUniteLegale": "etat_administratif_unite_legale",
                 "nomUniteLegale": "nom",
