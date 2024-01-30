@@ -23,9 +23,9 @@ def create_tables(cursor):
             denomination TEXT,
             nom_commercial TEXT,
             date_creation TEXT,
-            date_mise_a_jour TEXT,
-            date_immatriculation TEXT,
-            date_radiation TEXT,
+            date_mise_a_jour DATE,
+            date_immatriculation DATE,
+            date_radiation DATE,
             activite_principale TEXT,
             tranche_effectif_salarie TEXT,
             nature_juridique TEXT,
@@ -56,6 +56,7 @@ def create_tables(cursor):
             indice_repetition TEXT,
             complement_localisation TEXT,
             distribution_speciale TEXT,
+            date_mise_a_jour DATE,
             file_name TEXT
         )
     """
@@ -65,7 +66,7 @@ def create_tables(cursor):
         CREATE TABLE IF NOT EXISTS dirigeants_pp
         (
             siren TEXT,
-            date_mise_a_jour TEXT,
+            date_mise_a_jour DATE,
             nom TEXT,
             nom_usage TEXT,
             prenoms TEXT,
@@ -84,7 +85,7 @@ def create_tables(cursor):
         (
             siren TEXT,
             siren_dirigeant TEXT,
-            date_mise_a_jour TEXT,
+            date_mise_a_jour DATE,
             denomination TEXT,
             role TEXT,
             pays TEXT,
@@ -282,8 +283,9 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             indice_repetition,
             complement_localisation,
             distribution_speciale,
+            date_mise_a_jour,
             file_name)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?)
         """,
             (
                 unite_legale.siren,
@@ -301,6 +303,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 siege.adresse.indice_repetition,
                 siege.adresse.complement_localisation,
                 siege.adresse.distribution_speciale,
+                unite_legale.date_mise_a_jour,
                 file_path,
             ),
         )
