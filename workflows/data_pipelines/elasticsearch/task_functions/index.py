@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from elasticsearch_dsl import connections
+from elasticsearch import NotFoundError
 
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.create_index import (
     ElasticCreateIndex,
@@ -123,8 +124,13 @@ def update_elastic_alias(**kwargs):
         key="elastic_index", task_ids="get_next_index_name"
     )
 
-    config = elastic_connection.indices.get_alias(name=alias)
-    indices = config.keys() if config is not None else []
+    indices = []
+
+    try:
+        config = elastic_connection.indices.get_alias(name=alias)
+        indices = config.keys() if config is not None else []
+    except NotFoundError:
+        pass
 
     actions = [
         {
