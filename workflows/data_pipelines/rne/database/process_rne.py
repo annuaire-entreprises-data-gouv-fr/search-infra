@@ -232,23 +232,29 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
     for unite_legale in list_unites_legales:
         find_and_delete_same_siren(cursor, unite_legale.siren, file_path)
 
+        unite_legale_columns = [
+            "siren",
+            "denomination",
+            "nom_commercial",
+            "date_creation",
+            "date_mise_a_jour",
+            "date_immatriculation",
+            "date_radiation",
+            "activite_principale",
+            "tranche_effectif_salarie",
+            "nature_juridique",
+            "etat_administratif",
+            "forme_exercice_activite_principale",
+            "statut_diffusion",
+            "adresse",
+            "file_name",
+        ]
+
         cursor.execute(
-            """
-            INSERT INTO unites_legales (siren,
-            denomination, nom_commercial,
-            date_creation, date_mise_a_jour,
-            date_immatriculation,
-            date_radiation,
-            activite_principale,
-            tranche_effectif_salarie,
-            nature_juridique,
-            etat_administratif,
-            forme_exercice_activite_principale,
-            statut_diffusion,
-            adresse,
-            file_name)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
+            f"""
+                INSERT INTO unites_legales ({', '.join(unite_legale_columns)})
+                VALUES ({', '.join(['?'] * len(unite_legale_columns))})
+            """,
             (
                 unite_legale.siren,
                 unite_legale.denomination,
