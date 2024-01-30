@@ -110,12 +110,18 @@ def delete_previous_elastic_indices(**kwargs):
 
 
 def update_elastic_alias(**kwargs):
+    connections.create_connection(
+        hosts=[ELASTIC_URL],
+        http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        retry_on_timeout=True,
+    )
+
+    elastic_connection = connections.get_connection()
+
     alias = "siren-reader"
     elastic_index = kwargs["ti"].xcom_pull(
         key="elastic_index", task_ids="get_next_index_name"
     )
-
-    elastic_connection = connections.get_connection()
 
     config = elastic_connection.indices.get_alias(name=alias)
     indices = config.keys() if config is not None else []
