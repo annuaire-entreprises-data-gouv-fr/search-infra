@@ -366,9 +366,9 @@ select_fields_to_index_query = """SELECT
             (SELECT liste_id_organisme_formation FROM organisme_formation
             WHERE siren = ul.siren)  as liste_id_organisme_formation
             FROM
-                siretsiege st
-            LEFT JOIN
                 unite_legale ul
+            LEFT JOIN
+                siretsiege st
             ON
                 ul.siren = st.siren
             WHERE ul.siren IS NOT NULL;"""
