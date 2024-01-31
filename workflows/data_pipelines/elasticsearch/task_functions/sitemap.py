@@ -13,12 +13,11 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.sqlite.sitemap i
 from dag_datalake_sirene.config import (
     AIRFLOW_ELK_DATA_DIR,
     AIRFLOW_ENV,
-    SIRENE_DATABASE_LOCATION,
 )
 
 
 def create_sitemap():
-    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
+    sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db")
     sqlite_client.execute(select_sitemap_fields_query)
 
     if os.path.exists(AIRFLOW_ELK_DATA_DIR + "sitemap-" + AIRFLOW_ENV + ".csv"):
