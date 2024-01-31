@@ -207,7 +207,7 @@ class MinIOClient:
 
         try:
             response = self.client.get_object(self.bucket, dest_fullpath)
-            content = response.json()
+            content  = json.loads(response.data)
         except S3Error as e:
             logging.error(e)
 
