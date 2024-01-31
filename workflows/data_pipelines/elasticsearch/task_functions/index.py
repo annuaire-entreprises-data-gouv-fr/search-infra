@@ -142,4 +142,4 @@ def update_elastic_alias(**kwargs):
         f"Updating alias siren-reader : add {elastic_index}, remove {', '.join(indices)}"
     )
 
-    elastic_connection.indices.put_alias(name=alias, body=actions)
+    elastic_connection.indices.update_aliases({"actions": actions})
