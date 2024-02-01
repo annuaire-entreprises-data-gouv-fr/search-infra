@@ -140,3 +140,22 @@ def get_last_line(file_path):
     except Exception as e:
         logging.error(f"Error while reading last line: {e}")
         return None
+
+
+def convert_date_format(original_date_string):
+    try:
+        if original_date_string is None:
+            return None
+        # Convert to datetime object
+        original_datetime = datetime.strptime(
+            original_date_string, "%Y-%m-%d %H:%M:%S%z"
+        )
+
+        # Format
+        converted_date_string = original_datetime.strftime("%Y-%m-%dT%H:%M:%S")
+
+        return converted_date_string
+    except Exception as e:
+        # Handle invalid date string
+        logging.error(f"Error: {e}")
+        return None

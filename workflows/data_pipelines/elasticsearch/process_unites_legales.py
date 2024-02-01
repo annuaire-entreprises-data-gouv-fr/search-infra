@@ -16,7 +16,11 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
     is_service_public,
     label_section_from_activite,
 )
-from dag_datalake_sirene.helpers.utils import sqlite_str_to_bool, str_to_list
+from dag_datalake_sirene.helpers.utils import (
+    convert_date_format,
+    sqlite_str_to_bool,
+    str_to_list,
+)
 
 
 def process_unites_legales(chunk_unites_legales_sqlite):
@@ -209,6 +213,9 @@ def process_unites_legales(chunk_unites_legales_sqlite):
 
         # Get the current date and time in ISO 8601 format
         unite_legale_processed["date_mise_a_jour"] = datetime.now().isoformat()
+        unite_legale_processed["date_mise_a_jour_rne"] = convert_date_format(
+            unite_legale["date_mise_a_jour_rne"]
+        )
 
         # Create unité légale (structure) to be indexed
         unite_legale_to_index = {}
