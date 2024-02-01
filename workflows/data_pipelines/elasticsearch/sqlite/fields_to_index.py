@@ -30,9 +30,9 @@ select_fields_to_index_query = """SELECT
             ul.est_societe_mission as est_societe_mission,
             ul.annee_categorie_entreprise as annee_categorie_entreprise,
             ul.annee_tranche_effectif_salarie as annee_tranche_effectif_salarie,
-            (SELECT count FROM count_etab ce WHERE ce.siren = st.siren) as
+            (SELECT count FROM count_etab ce WHERE ce.siren = ul.siren) as
             nombre_etablissements,
-            (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = st.siren) as
+            (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = ul.siren) as
             nombre_etablissements_ouverts,
             (
                 SELECT json_object(
@@ -46,7 +46,7 @@ select_fields_to_index_query = """SELECT
                     SELECT ca, resultat_net,
                     date_cloture_exercice, annee_cloture_exercice
                     FROM bilan_financier
-                    WHERE siren = st.siren
+                    WHERE siren = ul.siren
                 )
             ) as bilan_financier,
             (SELECT json_group_array(
@@ -65,7 +65,7 @@ select_fields_to_index_query = """SELECT
                     SELECT siren, date_mise_a_jour, date_de_naissance, nom,
                     nom_usage, prenoms, nationalite, role_description
                     FROM dirigeants_pp
-                    WHERE siren = st.siren
+                    WHERE siren = ul.siren
                 )
             ) as dirigeants_pp,
             (SELECT json_group_array(
@@ -82,7 +82,7 @@ select_fields_to_index_query = """SELECT
                         SELECT siren, date_mise_a_jour, denomination, siren_dirigeant,
                         role_description, forme_juridique
                         FROM dirigeants_pm
-                        WHERE siren = st.siren
+                        WHERE siren = ul.siren
                     )
                 ) as dirigeants_pm,
             (SELECT json_group_array(
