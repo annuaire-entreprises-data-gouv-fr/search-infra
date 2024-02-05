@@ -116,11 +116,15 @@ def is_ess(est_ess_france, ess_insee):
 # Service public
 def is_service_public(nature_juridique_unite_legale, siren):
     if (
-        nature_juridique_unite_legale
-        and nature_juridique_unite_legale.startswith(
-            ("3210", "3110", "4", "71", "72", "73", "74")
+        (
+            nature_juridique_unite_legale
+            and nature_juridique_unite_legale.startswith(
+                ("3210", "3110", "4", "71", "72", "73", "74")
+            )
         )
-    ) or siren.startswith("1", "2") or siren == "320252489":
+        or siren.startswith("1", "2")
+        or siren == "320252489"
+    ):
         return True
     else:
         return False
