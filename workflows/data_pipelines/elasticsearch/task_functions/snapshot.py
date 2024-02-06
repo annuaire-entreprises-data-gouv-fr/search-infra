@@ -21,7 +21,7 @@ from dag_datalake_sirene.helpers.filesystem import (
 
 filesystem = Filesystem(
     minio_client,
-    f"{minio_client.get_root_dirpath()}/{ELASTIC_SNAPSHOT_MINIO_STATE_PATH}",
+    f"{minio_client.get_root_dirpath()}/{ELASTIC_SNAPSHOT_MINIO_STATE_PATH}/",
     JsonSerializer(),
 )
 
