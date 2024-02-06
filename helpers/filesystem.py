@@ -26,7 +26,7 @@ class Filesystem:
 
         try:
             self.client.get_object_minio(self.dirpath, filename, local_path)
-        except S3Error as e:
+        except Exception as e:
             logging.error(e)
             return None
 
