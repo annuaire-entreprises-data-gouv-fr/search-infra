@@ -1,6 +1,6 @@
 import json
 import tempfile
-
+import logging
 
 class JsonSerializer:
     def get_content_type(self):
