@@ -211,8 +211,10 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["from_rne"]
         )
 
-        # Get the current date and time in ISO 8601 format
-        unite_legale_processed["date_mise_a_jour"] = datetime.now().isoformat()
+        # Get the current date and time
+        unite_legale_processed["date_mise_a_jour"] = datetime.now().strftime(
+            "%Y-%m-%dT%H:%M:%S"
+        )
         unite_legale_processed["date_mise_a_jour_rne"] = convert_date_format(
             unite_legale["date_mise_a_jour_rne"]
         )
