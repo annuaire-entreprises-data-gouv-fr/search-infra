@@ -156,6 +156,7 @@ def get_current_flux_etablissement(ti):
         "libelleCommuneEtrangerEtablissement,codePaysEtrangerEtablissement,"
         "libellePaysEtrangerEtablissement,libelleCommuneEtranger2Etablissement,"
         "codePaysEtranger2Etablissement,libellePaysEtranger2Etablissement,"
+        "statutDiffusionEtablissement,"
         "caractereEmployeurEtablissement&nombre=1000&curseur="
     )
     endpoint = f"{INSEE_API_URL}{query_params}"
