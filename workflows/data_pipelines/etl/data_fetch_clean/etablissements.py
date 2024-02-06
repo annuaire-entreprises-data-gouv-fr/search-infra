@@ -156,7 +156,7 @@ def preprocess_etablissements_data(siret_file_type, departement=None, data_dir=N
             "trancheEffectifsEtablissement": "tranche_effectif_salarie",
             "caractereEmployeurEtablissement": "caractere_employeur",
             "anneeEffectifsEtablissement": "annee_tranche_effectif_salarie",
-            "dateDernierTraitementEtablissement": "date_mise_a_jour",
+            "dateDernierTraitementEtablissement": "date_mise_a_jour_insee",
             "activitePrincipaleRegistreMetiersEtablissement": "activite_principale"
             "_registre_metier",
             "etablissementSiege": "est_siege",

@@ -13,9 +13,9 @@ from dag_datalake_sirene.workflows.data_pipelines.rne.database.ul_model import (
 
 def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     unite_legale.siren = rne_company.siren
-    unite_legale.date_creation = rne_company.createdAt
     unite_legale.date_mise_a_jour = rne_company.updatedAt
     unite_legale.statut_diffusion = rne_company.formality.diffusionINSEE
+    unite_legale.date_creation = get_date_creation(rne_company)
     unite_legale.forme_exercice_activite_principale = (
         rne_company.formality.content.formeExerciceActivitePrincipale
     )
@@ -51,6 +51,14 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         logging.warning(f"+++++++++++ Unite legale has no siege : {unite_legale.siren}")
 
     return unite_legale
+
+
+def get_date_creation(rne_company: RNECompany):
+    return (
+        rne_company.createdAt
+        if rne_company.createdAt
+        else rne_company.formality.content.natureCreation.dateCreation
+    )
 
 
 def get_value(rne_company: RNECompany, key: str, default=None):
