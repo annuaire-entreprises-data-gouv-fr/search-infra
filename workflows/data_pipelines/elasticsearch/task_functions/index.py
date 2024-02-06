@@ -28,7 +28,7 @@ from dag_datalake_sirene.config import (
 
 
 def get_next_index_name(**kwargs):
-    current_date = datetime.today().strftime("%Y%m%d")
+    current_date = datetime.today().strftime("%Y%m%d%H%M%S")
     elastic_index = f"siren-{current_date}"
     kwargs["ti"].xcom_push(key="elastic_index", value=elastic_index)
 
