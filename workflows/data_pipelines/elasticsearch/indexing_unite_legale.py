@@ -111,6 +111,12 @@ def index_unites_legales_by_chunk(
         index=elastic_index, body={"index.refresh_interval": None}
     )
 
+    # Indexing performance :
+    #
+    # The _/cat/count/{index} is called only once at the end of the indexing process and not after each pushed bulk
+    #
+    # i.e. the _cat/count/{index} produce a query that may force Lucene to refresh the last bulk into a segment
+    # meaning that it would amplify the amount of segment merge and slowdown the indexing process
     doc_count = elastic_connection.cat.count(
         index=elastic_index, params={"format": "json"}
     )[0]["count"]
