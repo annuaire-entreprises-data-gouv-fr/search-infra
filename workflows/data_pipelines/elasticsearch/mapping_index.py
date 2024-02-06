@@ -156,6 +156,7 @@ class EtablissementMapping(InnerDoc):
     region = Keyword()
     siren = Keyword(required=True)
     siret = Keyword(required=True)
+    statut_diffusion_etablissement = Keyword()
     tranche_effectif_salarie = Keyword()
     type_voie = Text()
     type_voie_2 = Text()
