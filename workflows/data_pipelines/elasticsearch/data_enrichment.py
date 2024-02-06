@@ -429,6 +429,8 @@ def format_etablissements_and_complements(
 
 # Siege
 def format_siege_unite_legale(siege, is_non_diffusible=False):
+    if not siege:
+        return None
     siege = json.loads(siege)
     siege["adresse"] = format_adresse_complete(
         siege["complement_adresse"],

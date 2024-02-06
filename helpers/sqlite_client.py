@@ -18,3 +18,6 @@ class SqliteClient:
 
     def execute(self, query):
         return self.db_cursor.execute(query)
+
+    def connect_to_another_db(self, db_to_connect, db_alias):
+        self.execute(f"ATTACH DATABASE '{db_to_connect}' AS '{db_alias}'")

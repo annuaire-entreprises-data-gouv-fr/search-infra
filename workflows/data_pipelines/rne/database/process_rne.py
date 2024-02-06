@@ -23,9 +23,9 @@ def create_tables(cursor):
             denomination TEXT,
             nom_commercial TEXT,
             date_creation TEXT,
-            date_mise_a_jour TEXT,
-            date_immatriculation TEXT,
-            date_radiation TEXT,
+            date_mise_a_jour DATE,
+            date_immatriculation DATE,
+            date_radiation DATE,
             activite_principale TEXT,
             tranche_effectif_salarie TEXT,
             nature_juridique TEXT,
@@ -56,6 +56,7 @@ def create_tables(cursor):
             indice_repetition TEXT,
             complement_localisation TEXT,
             distribution_speciale TEXT,
+            date_mise_a_jour DATE,
             file_name TEXT
         )
     """
@@ -65,7 +66,7 @@ def create_tables(cursor):
         CREATE TABLE IF NOT EXISTS dirigeants_pp
         (
             siren TEXT,
-            date_mise_a_jour TEXT,
+            date_mise_a_jour DATE,
             nom TEXT,
             nom_usage TEXT,
             prenoms TEXT,
@@ -84,7 +85,7 @@ def create_tables(cursor):
         (
             siren TEXT,
             siren_dirigeant TEXT,
-            date_mise_a_jour TEXT,
+            date_mise_a_jour DATE,
             denomination TEXT,
             role TEXT,
             pays TEXT,
@@ -231,23 +232,29 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
     for unite_legale in list_unites_legales:
         find_and_delete_same_siren(cursor, unite_legale.siren, file_path)
 
+        unite_legale_columns = [
+            "siren",
+            "denomination",
+            "nom_commercial",
+            "date_creation",
+            "date_mise_a_jour",
+            "date_immatriculation",
+            "date_radiation",
+            "activite_principale",
+            "tranche_effectif_salarie",
+            "nature_juridique",
+            "etat_administratif",
+            "forme_exercice_activite_principale",
+            "statut_diffusion",
+            "adresse",
+            "file_name",
+        ]
+
         cursor.execute(
-            """
-            INSERT INTO unites_legales (siren,
-            denomination, nom_commercial,
-            date_creation, date_mise_a_jour,
-            date_immatriculation,
-            date_radiation,
-            activite_principale,
-            tranche_effectif_salarie,
-            nature_juridique,
-            etat_administratif,
-            forme_exercice_activite_principale,
-            statut_diffusion,
-            adresse,
-            file_name)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
+            f"""
+                INSERT INTO unites_legales ({', '.join(unite_legale_columns)})
+                VALUES ({', '.join(['?'] * len(unite_legale_columns))})
+            """,
             (
                 unite_legale.siren,
                 unite_legale.denomination,
@@ -267,24 +274,33 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             ),
         )
         siege = unite_legale.siege
+
+        # Define the columns for the sieges table
+        sieges_columns = [
+            "siren",
+            "siret",
+            "enseigne",
+            "nom_commercial",
+            "pays",
+            "code_pays",
+            "commune",
+            "code_postal",
+            "code_commune",
+            "voie",
+            "num_voie",
+            "type_voie",
+            "indice_repetition",
+            "complement_localisation",
+            "distribution_speciale",
+            "date_mise_a_jour",
+            "file_name",
+        ]
+
         cursor.execute(
-            """
-            INSERT INTO sieges (siren,
-            siret, enseigne, nom_commercial,
-            pays,
-            code_pays,
-            commune,
-            code_postal,
-            code_commune,
-            voie,
-            num_voie,
-            type_voie,
-            indice_repetition,
-            complement_localisation,
-            distribution_speciale,
-            file_name)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
+            f"""
+                INSERT INTO sieges ({', '.join(sieges_columns)})
+                VALUES ({', '.join(['?'] * len(sieges_columns))})
+            """,
             (
                 unite_legale.siren,
                 siege.siret,
@@ -301,6 +317,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 siege.adresse.indice_repetition,
                 siege.adresse.complement_localisation,
                 siege.adresse.distribution_speciale,
+                unite_legale.date_mise_a_jour,
                 file_path,
             ),
         )
@@ -309,20 +326,24 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
 
         for dirigeant_pp in list_dirigeants_pp:
             find_and_delete_same_siren_dirig(cursor, unite_legale.siren, file_path)
+            # Define the columns for the dirigeants_pp table
+            dirigeants_pp_columns = [
+                "siren",
+                "date_mise_a_jour",
+                "nom",
+                "nom_usage",
+                "prenoms",
+                "genre",
+                "date_de_naissance",
+                "role",
+                "nationalite",
+                "situation_matrimoniale",
+                "file_name",
+            ]
             cursor.execute(
-                """
-                INSERT INTO dirigeants_pp (siren,
-                date_mise_a_jour,
-                nom,
-                nom_usage,
-                prenoms,
-                genre,
-                date_de_naissance,
-                role,
-                nationalite,
-                situation_matrimoniale,
-                file_name)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                f"""
+                INSERT INTO dirigeants_pp ({', '.join(dirigeants_pp_columns)})
+                VALUES ({', '.join(['?'] * len(dirigeants_pp_columns))})
             """,
                 (
                     unite_legale.siren,
@@ -341,18 +362,21 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
 
         for dirigeant_pm in list_dirigeants_pm:
             find_and_delete_same_siren_dirig(cursor, unite_legale.siren, file_path)
+            # Define the columns for the dirigeants_pm table
+            dirigeants_pm_columns = [
+                "siren",
+                "siren_dirigeant",
+                "date_mise_a_jour",
+                "denomination",
+                "role",
+                "pays",
+                "forme_juridique",
+                "file_name",
+            ]
             cursor.execute(
-                """
-                INSERT INTO dirigeants_pm
-                (siren,
-                siren_dirigeant,
-                date_mise_a_jour,
-                denomination,
-                role,
-                pays,
-                forme_juridique,
-                file_name)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                f"""
+                INSERT INTO dirigeants_pm ({', '.join(dirigeants_pm_columns)})
+                VALUES ({', '.join(['?'] * len(dirigeants_pm_columns))})
             """,
                 (
                     unite_legale.siren,
@@ -365,6 +389,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                     file_path,
                 ),
             )
+
     cursor.execute("SELECT COUNT(*) FROM dirigeants_pp")
     count_pp = cursor.fetchone()[0]
 

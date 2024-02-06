@@ -8,6 +8,7 @@ from operators.clean_folder import CleanFolderOperator
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_etablissements_tables import (
+    add_rne_data_to_siege_table,
     count_nombre_etablissements,
     count_nombre_etablissements_ouverts,
     create_etablissements_table,
@@ -48,6 +49,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_flux_unite_legale_table,
     create_unite_legale_table,
     replace_unite_legale_table,
+    add_rne_data_to_unite_legale_table,
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.send_notification\
     import (
@@ -65,7 +67,7 @@ from dag_datalake_sirene.config import (
     AIRFLOW_ETL_DAG_NAME,
     AIRFLOW_DAG_FOLDER,
     AIRFLOW_ENV,
-    DIRIG_DATABASE_LOCATION,
+    RNE_DATABASE_LOCATION,
     EMAIL_LIST,
 )
 
@@ -76,7 +78,7 @@ default_args = {
     "email_on_failure": True,
     "email_on_retry": True,
     "retries": 1,
-    "retry_delay": timedelta(minutes=2),
+    "retry_delay": timedelta(minutes=10),
 }
 
 with DAG(
@@ -149,6 +151,12 @@ with DAG(
         python_callable=count_nombre_etablissements_ouverts,
     )
 
+    inject_rne_unite_legale_data = PythonOperator(
+        task_id="add_rne_siren_data_to_unite_legale_table",
+        provide_context=True,
+        python_callable=add_rne_data_to_unite_legale_table,
+    )
+
     create_siege_only_table = PythonOperator(
         task_id="create_siege_only_table",
         provide_context=True,
@@ -161,13 +169,19 @@ with DAG(
         python_callable=replace_siege_only_table,
     )
 
+    inject_rne_siege_data = PythonOperator(
+        task_id="add_rne_data_to_siege_table",
+        provide_context=True,
+        python_callable=add_rne_data_to_siege_table,
+    )
+
     get_latest_dirigeants_database = PythonOperator(
         task_id="get_dirig_database",
         provide_context=True,
         python_callable=minio_client.get_latest_file_minio,
         op_args=(
             f"ae/{AIRFLOW_ENV}/rne/database/",
-            DIRIG_DATABASE_LOCATION,
+            RNE_DATABASE_LOCATION,
         ),
     )
 
@@ -299,7 +313,9 @@ with DAG(
     replace_siege_only_table.set_upstream(create_siege_only_table)
 
     get_latest_dirigeants_database.set_upstream(replace_siege_only_table)
-    create_dirig_pp_table.set_upstream(get_latest_dirigeants_database)
+    inject_rne_unite_legale_data.set_upstream(get_latest_dirigeants_database)
+    inject_rne_siege_data.set_upstream(inject_rne_unite_legale_data)
+    create_dirig_pp_table.set_upstream(inject_rne_siege_data)
     create_dirig_pm_table.set_upstream(create_dirig_pp_table)
 
     create_bilan_financiers_table.set_upstream(create_dirig_pm_table)
