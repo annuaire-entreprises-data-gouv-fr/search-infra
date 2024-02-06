@@ -1,4 +1,6 @@
 import logging
+import sqlite3
+from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.unite_legale\
@@ -10,6 +12,8 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.unite_legal
     create_table_flux_unite_legale_query,
     create_table_unite_legale_query,
     replace_table_unite_legale_query,
+    insert_remaining_rne_data_into_main_table_query,
+    update_main_table_fields_with_rne_data_query,
 )
 # fmt: on
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
@@ -19,6 +23,10 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
     replace_table_model,
 )
 from dag_datalake_sirene.config import AIRFLOW_ETL_DATA_DIR
+from dag_datalake_sirene.config import (
+    SIRENE_DATABASE_LOCATION,
+    RNE_DATABASE_LOCATION,
+)
 
 
 def create_table(query, table_name, index, sirene_file_type):
@@ -77,3 +85,30 @@ def replace_unite_legale_table():
         replace_table_query=replace_table_unite_legale_query,
     )
     sqlite_client.commit_and_close_conn()
+
+
+def add_rne_data_to_unite_legale_table(**kwargs):
+    # Connect to the main database (SIRENE)
+    sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
+
+    # Attach the RNE database
+    sqlite_client_siren.connect_to_another_db(RNE_DATABASE_LOCATION, "db_rne")
+
+    try:
+        sqlite_client_siren.execute(update_main_table_fields_with_rne_data_query)
+        # (handling duplicates with INSERT OR IGNORE)
+        sqlite_client_siren.execute(insert_remaining_rne_data_into_main_table_query)
+
+        sqlite_client_siren.commit_and_close_conn()
+
+    except sqlite3.IntegrityError as e:
+        # Log the error and problematic siren values
+        logging.error(f"IntegrityError: {e}")
+        problematic_sirens = e.args[0].split(": ")[1].split(", ")
+        logging.error(f"Problematic Sirens: {problematic_sirens}")
+        raise e
+
+    except Exception as e:
+        # Handle other exceptions if needed
+        logging.error(f"An unexpected error occurred: {e}")
+        raise e

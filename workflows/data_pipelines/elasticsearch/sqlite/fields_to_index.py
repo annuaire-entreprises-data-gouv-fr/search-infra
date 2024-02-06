@@ -3,13 +3,16 @@ select_fields_to_index_query = """SELECT
             ul.caractere_employeur as caractere_employeur,
             ul.categorie_entreprise as categorie_entreprise,
             ul.date_creation_unite_legale as date_creation_unite_legale,
-            ul.date_mise_a_jour_unite_legale as date_mise_a_jour_unite_legale,
+            ul.date_mise_a_jour_insee as date_mise_a_jour_insee,
+            ul.date_mise_a_jour_rne as date_mise_a_jour_rne,
             ul.denomination_usuelle_1 as denomination_usuelle_1_unite_legale,
             ul.denomination_usuelle_2 as denomination_usuelle_2_unite_legale,
             ul.denomination_usuelle_3 as denomination_usuelle_3_unite_legale,
             ul.economie_sociale_solidaire_unite_legale as
             economie_sociale_solidaire_unite_legale,
             ul.etat_administratif_unite_legale as etat_administratif_unite_legale,
+            ul.from_insee as from_insee,
+            ul.from_rne as from_rne,
             ul.identifiant_association_unite_legale as
             identifiant_association_unite_legale,
             ul.nature_juridique_unite_legale as nature_juridique_unite_legale,
@@ -27,9 +30,9 @@ select_fields_to_index_query = """SELECT
             ul.est_societe_mission as est_societe_mission,
             ul.annee_categorie_entreprise as annee_categorie_entreprise,
             ul.annee_tranche_effectif_salarie as annee_tranche_effectif_salarie,
-            (SELECT count FROM count_etab ce WHERE ce.siren = st.siren) as
+            (SELECT count FROM count_etab ce WHERE ce.siren = ul.siren) as
             nombre_etablissements,
-            (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = st.siren) as
+            (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = ul.siren) as
             nombre_etablissements_ouverts,
             (
                 SELECT json_object(
@@ -43,7 +46,7 @@ select_fields_to_index_query = """SELECT
                     SELECT ca, resultat_net,
                     date_cloture_exercice, annee_cloture_exercice
                     FROM bilan_financier
-                    WHERE siren = st.siren
+                    WHERE siren = ul.siren
                 )
             ) as bilan_financier,
             (SELECT json_group_array(
@@ -62,7 +65,7 @@ select_fields_to_index_query = """SELECT
                     SELECT siren, date_mise_a_jour, date_de_naissance, nom,
                     nom_usage, prenoms, nationalite, role_description
                     FROM dirigeants_pp
-                    WHERE siren = st.siren
+                    WHERE siren = ul.siren
                 )
             ) as dirigeants_pp,
             (SELECT json_group_array(
@@ -79,7 +82,7 @@ select_fields_to_index_query = """SELECT
                         SELECT siren, date_mise_a_jour, denomination, siren_dirigeant,
                         role_description, forme_juridique
                         FROM dirigeants_pm
-                        WHERE siren = st.siren
+                        WHERE siren = ul.siren
                     )
                 ) as dirigeants_pm,
             (SELECT json_group_array(
@@ -134,7 +137,7 @@ select_fields_to_index_query = """SELECT
                         'siret', siret,
                         'tranche_effectif_salarie',tranche_effectif_salarie,
                         'annee_tranche_effectif_salarie',annee_tranche_effectif_salarie,
-                        'date_mise_a_jour', date_mise_a_jour,
+                        'date_mise_a_jour_insee', date_mise_a_jour_insee,
                         'type_voie',type_voie,
                         'type_voie_2',type_voie_2
                         )
@@ -197,7 +200,7 @@ select_fields_to_index_query = """SELECT
                         tranche_effectif_salarie,
                         s.annee_tranche_effectif_salarie as
                         annee_tranche_effectif_salarie,
-                        s.date_mise_a_jour as date_mise_a_jour,
+                        s.date_mise_a_jour_insee as date_mise_a_jour_insee,
                         s.type_voie as type_voie,
                         s.type_voie_2 as type_voie_2
                         FROM siret s
@@ -227,6 +230,8 @@ select_fields_to_index_query = """SELECT
                         'enseigne_3',enseigne_3,
                         'est_siege',est_siege,
                         'etat_administratif',etat_administratif_etablissement,
+                        'from_insee',from_insee,
+                        'from_rne',from_rne,
                         'geo_adresse',geo_adresse,
                         'geo_id',geo_id,
                         'indice_repetition',indice_repetition,
@@ -256,9 +261,10 @@ select_fields_to_index_query = """SELECT
                         'tranche_effectif_salarie',tranche_effectif_salarie,
                         'annee_tranche_effectif_salarie',
                         annee_tranche_effectif_salarie,
-                        'date_mise_a_jour', date_mise_a_jour,
                         'type_voie',type_voie,
-                        'type_voie_2',type_voie_2
+                        'type_voie_2',type_voie_2,
+                        'date_mise_a_jour_insee',date_mise_a_jour_insee,
+                        'date_mise_a_jour_rne',date_mise_a_jour_rne
                         )
                     FROM
                     (
@@ -318,9 +324,10 @@ select_fields_to_index_query = """SELECT
                         s.tranche_effectif_salarie as tranche_effectif_salarie,
                         s.annee_tranche_effectif_salarie as
                         annee_tranche_effectif_salarie,
-                        s.date_mise_a_jour as date_mise_a_jour,
                         s.type_voie as type_voie,
-                        s.type_voie_2 as type_voie_2
+                        s.type_voie_2 as type_voie_2,
+                        s.date_mise_a_jour_insee as date_mise_a_jour_insee,
+                        s.date_mise_a_jour_rne as date_mise_a_jour_rne
                         FROM siretsiege as s
                         WHERE s.siren = st.siren
                     )
@@ -359,9 +366,9 @@ select_fields_to_index_query = """SELECT
             (SELECT liste_id_organisme_formation FROM organisme_formation
             WHERE siren = ul.siren)  as liste_id_organisme_formation
             FROM
-                siretsiege st
-            LEFT JOIN
                 unite_legale ul
+            LEFT JOIN
+                siretsiege st
             ON
                 ul.siren = st.siren
             WHERE ul.siren IS NOT NULL;"""

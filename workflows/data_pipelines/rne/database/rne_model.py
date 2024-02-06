@@ -125,6 +125,14 @@ class PersonnePhysique(BaseModel):
     detailCessationEntreprise: DetailCessationEntreprise | None = None
 
 
+class NatureCreation(BaseModel):
+    dateCreation: str | None = None
+    formeJuridique: str | None = None
+    formeJuridiqueInsee: str | None = None
+    societeEtrangere: bool | None = None
+    entrepriseAgricole: bool | None = None
+
+
 class Content(BaseModel):
     formeExerciceActivitePrincipale: str | None = None
     personnePhysique: PersonnePhysique | None = None
@@ -133,6 +141,7 @@ class Content(BaseModel):
     natureCessationEntreprise: NatureCessationEntreprise | None = (
         NatureCessationEntreprise()
     )
+    natureCreation: NatureCreation | None = NatureCreation()
 
 
 class Formality(BaseModel):
