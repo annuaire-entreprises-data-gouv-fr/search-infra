@@ -29,7 +29,7 @@ from dag_datalake_sirene.config import (
 
 
 def get_next_index_name(**kwargs):
-    current_date = datetime.today().strftime("%Y%m%d")
+    current_date = datetime.today().strftime("%Y%m%d%H%M%S")
     elastic_index = f"siren-{current_date}"
     kwargs["ti"].xcom_push(key="elastic_index", value=elastic_index)
 
@@ -111,6 +111,21 @@ def delete_previous_elastic_indices(**kwargs):
 
 
 def update_elastic_alias(**kwargs):
+    """
+    The annuaire-entreprises-search-api queries the "siren-reader" index alias to process user requests.
+    The "siren-reader" index alias acts as a symbolic link to the current live index and should be associated to one and only one siren index at any given time.
+
+    This function performs an atomic update of the alias to attach the new live index and detach any other index without any downtime.
+
+    Example:
+        Given that the siren-reader is associated to the index "siren-20240206011523"
+        And that the new siren index is "siren-20240208001729"
+        When called, this function detach the "siren-20240206011523" index from the alias "siren-reader"
+        And attach the "siren-20240208001729" index to the alias "siren-reader"
+
+    @see: https://www.elastic.co/guide/en/elasticsearch/reference/7.17/aliases.html
+    """
+
     connections.create_connection(
         hosts=[ELASTIC_URL],
         http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),

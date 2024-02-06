@@ -14,12 +14,45 @@ from dag_datalake_sirene.config import (
 )
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 
+from dag_datalake_sirene.helpers.filesystem import (
+    Filesystem,
+    JsonSerializer,
+)
+
+filesystem = Filesystem(
+    minio_client,
+    f"{minio_client.get_root_dirpath()}/{ELASTIC_SNAPSHOT_MINIO_STATE_PATH}",
+    JsonSerializer(),
+)
+
 
 def update_minio_current_index_version(**kwargs):
+    """
+    An history of any new successfully indexed siren index is kept on a MinIO bucket and stored inside a "daily" folder.
+
+    The file structure is as follow:
+        current:
+            file: reference the daily MinIO file containing the current state
+            index: the index name that should be restored by each downstream server
+            snapshot: the name of the Elasticsearch snapshot where the index to restore can be found
+
+        previous:
+            file: reference the daily MinIO file containing the previous state that can be used to rollback the live index
+            index: name of the previous live index
+            snapshot: the name of the Elasticsearch snapshot containing the previous index
+
+    A "current.json" file is also uploaded and can be used by any downstream server to restore the new live index.
+
+    The snapshot/restore process of the new index is as follow :
+        1. Airflow : create and index a date-versioned siren index
+        2. Airflow : create a date-versioned Elasticsearch snapshot containing the new date-versioned siren index
+        3. this function : upload a daily MinIO file containing the new state
+        4. this function : upload the current.json MinIO file
+        5. Any downstream server : read the current.json file and import the indicated current['index'] using the indicated['snapshot']
+    """
+
     current_date = datetime.today().strftime("%Y%m%d%H%M%S")
-    content = minio_client.read_json_file(
-        ELASTIC_SNAPSHOT_MINIO_STATE_PATH, "current.json"
-    )
+    content = filesystem.read("current.json")
 
     if content is None:
         content = {}
@@ -41,25 +74,17 @@ def update_minio_current_index_version(**kwargs):
         ),
     }
 
-    minio_client.write_json_file(
-        ELASTIC_SNAPSHOT_MINIO_STATE_PATH, f"daily/{current_date}.json", content
-    )
-    minio_client.write_json_file(
-        ELASTIC_SNAPSHOT_MINIO_STATE_PATH, "current.json", content
-    )
+    filesystem.write(f"daily/{current_date}.json", content)
+    filesystem.write("current.json", content)
 
 
 def rollback_minio_current_index_version(**kwargs):
-    content = minio_client.read_json_file(
-        ELASTIC_SNAPSHOT_MINIO_STATE_PATH, "current.json"
-    )
+    content = filesystem.read("current.json")
 
     if content is None:
         raise Exception("No previous version found")
 
-    previous = minio_client.read_json_file(
-        ELASTIC_SNAPSHOT_MINIO_STATE_PATH, content["current"]["file"]
-    )
+    previous = filesystem.read(content["current"]["file"])
 
     if previous is None:
         raise Exception("No previous version found")
@@ -76,9 +101,7 @@ def rollback_minio_current_index_version(**kwargs):
         )
 
     logging.info(f"Rolling back to {content['current']['file']}")
-    minio_client.write_json_file(
-        ELASTIC_SNAPSHOT_MINIO_STATE_PATH, "current.json", previous
-    )
+    filesystem.write("current.json", previous)
 
     kwargs["ti"].xcom_push(key="elastic_index", value=previous["current"]["index"])
 

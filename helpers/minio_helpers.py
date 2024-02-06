@@ -38,6 +38,9 @@ class MinIOClient:
         if not self.bucket_exists:
             raise ValueError(f"Bucket '{self.bucket}' does not exist.")
 
+    def get_root_dirpath(self) -> str:
+        return f"ae/{AIRFLOW_ENV}"
+
     def send_files(
         self,
         list_files: List[File],
@@ -119,11 +122,13 @@ class MinIOClient:
         filename: str,
         minio_path: str,
         local_path: str,
+        content_type: str = "application/octet-stream",
     ) -> None:
         self.client.fput_object(
             bucket_name=self.bucket,
             object_name=minio_path,
             file_path=local_path + filename,
+            content_type=content_type,
         )
 
     def get_latest_file_minio(
@@ -200,34 +205,6 @@ class MinIOClient:
             file_info_list.append((file_name, last_modified))
         logging.info(f"*****List of files: {file_info_list}")
         return file_info_list
-
-    def read_json_file(self, dest_path, dest_name):
-        dest_fullpath = f"ae/{AIRFLOW_ENV}/{dest_path}/{dest_name}"
-        content = None
-
-        try:
-            response = self.client.get_object(self.bucket, dest_fullpath)
-            content  = json.loads(response.data)
-        except S3Error as e:
-            logging.error(e)
-
-        return content
-
-    def write_json_file(self, dest_path, dest_name, data):
-        with tempfile.NamedTemporaryFile(mode="w+") as tmp_file:
-            json.dump(data, tmp_file)
-            tmp_file.flush()
-
-            dest_fullpath = f"ae/{AIRFLOW_ENV}/{dest_path}/{dest_name}"
-
-            logging.info(f"Uploading '{tmp_file.name}' to {dest_fullpath}")
-
-            self.client.fput_object(
-                self.bucket,
-                dest_fullpath,
-                tmp_file.name,
-                content_type="application/json",
-            )
 
 
 minio_client = MinIOClient()
