@@ -63,6 +63,7 @@ def download_stock(departement):
             "libelleCommuneEtranger2Etablissement",
             "codePaysEtranger2Etablissement",
             "libellePaysEtranger2Etablissement",
+            "statutDiffusionEtablissement",
         ],
     )
     return df_dep
@@ -136,6 +137,7 @@ def download_flux(data_dir):
             "libelleCommuneEtranger2Etablissement",
             "codePaysEtranger2Etablissement",
             "libellePaysEtranger2Etablissement",
+            "statutDiffusionEtablissement",
         ],
     )
     df_flux["etablissementSiege"] = df_flux["etablissementSiege"].apply(
@@ -194,6 +196,7 @@ def preprocess_etablissements_data(siret_file_type, departement=None, data_dir=N
             "libelleCommuneEtranger2Etablissement": "libelle_commune_etranger_2",
             "codePaysEtranger2Etablissement": "code_pays_etranger_2",
             "libellePaysEtranger2Etablissement": "libelle_pays_etranger_2",
+            "statutDiffusionEtablissement": "statut_diffusion_etablissement",
         }
     )
     return df_siret

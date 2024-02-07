@@ -46,6 +46,7 @@ create_table_etablissements_query = """CREATE TABLE IF NOT EXISTS siret
             latitude TEXT,
             geo_adresse TEXT,
             geo_id TEXT,
+            statut_diffusion_etablissement TEXT,
             date_mise_a_jour_insee DATE,
             date_mise_a_jour_rne DATE
             )
@@ -99,6 +100,7 @@ create_table_siret_siege_query = """CREATE TABLE IF NOT EXISTS siretsiege
             latitude TEXT,
             geo_adresse TEXT,
             geo_id TEXT,
+            statut_diffusion_etablissement TEXT,
             date_mise_a_jour_insee DATE,
             date_mise_a_jour_rne DATE
             )
@@ -148,6 +150,7 @@ create_table_flux_etablissements_query = """CREATE TABLE IF NOT EXISTS flux_sire
             libelle_commune_etranger_2 TEXT,
             code_pays_etranger_2 TEXT,
             libelle_pays_etranger_2 TEXT,
+            statut_diffusion_etablissement TEXT,
             date_mise_a_jour_insee DATE,
             date_mise_a_jour_rne DATE
             )
@@ -228,6 +231,7 @@ populate_table_siret_siege_query = """INSERT INTO siretsiege (
             latitude,
             geo_adresse,
             geo_id,
+            statut_diffusion_etablissement,
             date_mise_a_jour_insee,
             date_mise_a_jour_rne
             )
@@ -278,6 +282,7 @@ populate_table_siret_siege_query = """INSERT INTO siretsiege (
             latitude,
             geo_adresse,
             geo_id,
+            statut_diffusion_etablissement,
             date_mise_a_jour_insee,
             date_mise_a_jour_rne
         FROM siret
@@ -330,6 +335,7 @@ replace_table_siret_siege_query = """
             code_pays_etranger_2,
             libelle_pays_etranger_2,
             caractere_employeur,
+            statut_diffusion_etablissement,
             date_mise_a_jour_insee,
             date_mise_a_jour_rne
         ) SELECT
@@ -376,6 +382,7 @@ replace_table_siret_siege_query = """
             a.code_pays_etranger_2,
             a.libelle_pays_etranger_2,
             a.caractere_employeur,
+            a.statut_diffusion_etablissement,
             a.date_mise_a_jour_insee,
             a.date_mise_a_jour_rne
         FROM flux_siret a LEFT JOIN siretsiege b
@@ -428,6 +435,7 @@ replace_table_etablissement_query = """
             libelle_commune_etranger_2,
             code_pays_etranger_2,
             libelle_pays_etranger_2,
+            statut_diffusion_etablissement,
             date_mise_a_jour_insee,
             date_mise_a_jour_rne
         ) SELECT
@@ -473,6 +481,7 @@ replace_table_etablissement_query = """
             a.libelle_commune_etranger_2,
             a.code_pays_etranger_2,
             a.libelle_pays_etranger_2,
+            a.statut_diffusion_etablissement,
             a.date_mise_a_jour_insee,
             a.date_mise_a_jour_rne
         FROM flux_siret a LEFT JOIN siret b
@@ -557,6 +566,7 @@ insert_remaining_rne_sieges_data_into_main_table_query = """
                 NULL AS latitude,
                 NULL AS geo_adresse,
                 NULL AS geo_id,
+                NULL AS statut_diffusion_etablissement,
                 NULL as date_mise_a_jour_insee,
                 date_mise_a_jour_rne
                 FROM db_rne.sieges
