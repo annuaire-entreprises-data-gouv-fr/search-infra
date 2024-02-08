@@ -182,7 +182,9 @@ def process_flux_json_files(**kwargs):
         start_date = "0000-00-00"
 
     # Do not process last flux file because it might not be completed
-    for file_path in sorted(json_daily_flux_files[:-1], reverse=False):
+    json_daily_flux_files = json_daily_flux_files[:-1]
+
+    for file_path in sorted(json_daily_flux_files, reverse=False):
         date_match = re.search(r"rne_flux_(\d{4}-\d{2}-\d{2})", file_path)
         if date_match:
             file_date = date_match.group(1)
