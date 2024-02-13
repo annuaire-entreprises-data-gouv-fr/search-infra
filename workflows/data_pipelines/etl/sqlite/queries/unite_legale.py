@@ -61,7 +61,7 @@ create_table_flux_unite_legale_query = """
             from_rne BOOLEAN DEFAULT FALSE,
             date_mise_a_jour_insee DATE,
             date_mise_a_jour_rne DATE,
-            date_fermeture_unite_legale DATE,
+            date_fermeture_unite_legale DATE
         )
     """
 
@@ -199,7 +199,7 @@ create_table_date_fermeture_unite_legale_query = """
 
 insert_date_fermeture_unite_legale_query = """
         INSERT INTO unite_legale (date_fermeture_unite_legale)
-            SELECT date_fermeture_untie_legale
+            SELECT date_fermeture_unite_legale
             FROM date_fermeture_unite_legale
             WHERE siren IN (
             SELECT siren
