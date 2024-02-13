@@ -3,6 +3,7 @@ select_fields_to_index_query = """SELECT
             ul.caractere_employeur as caractere_employeur,
             ul.categorie_entreprise as categorie_entreprise,
             ul.date_creation_unite_legale as date_creation_unite_legale,
+            ul.date_fermeture_unite_legale as date_fermeture,
             ul.date_mise_a_jour_insee as date_mise_a_jour_insee,
             ul.date_mise_a_jour_rne as date_mise_a_jour_rne,
             ul.denomination_usuelle_1 as denomination_usuelle_1_unite_legale,
