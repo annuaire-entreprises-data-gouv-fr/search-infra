@@ -150,3 +150,6 @@ URL_CC_DARES = (
 URL_CC_KALI = (
     "https://www.data.gouv.fr/fr/datasets/r/02b67492-5243-44e8-8dd1-0cb3f90f35ff"
 )
+URL_UNITE_LEGALE_HISTORIQUE = (
+    "https://www.data.gouv.fr/fr/datasets/r/0835cd60-2c2a-497b-bc64-404de704ce89"
+)
