@@ -123,6 +123,9 @@ URL_ENTREPRENEUR_SPECTACLE = (
     "https://www.data.gouv.fr/fr/datasets/r/fb6c3b2e-da8c-4e69-a719-6a96329e4cb2"
 )
 URL_ETABLISSEMENTS = "https://files.data.gouv.fr/geo-sirene/last/dep/geo_siret"
+URL_ETABLISSEMENTS_HISTORIQUE = (
+    "https://www.data.gouv.fr/fr/datasets/r/88fbb6b4-0320-443e-b739-b4376a012c32"
+)
 URL_FINESS = (
     "https://www.data.gouv.fr/fr/datasets/r/2ce43ade-8d2c-4d1d-81da-ca06c82abc68"
 )
@@ -140,6 +143,10 @@ URL_UAI = (
     "prod/uai/latest/annuaire_uai.csv"
 )
 URL_UNITE_LEGALE = "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip"
+URL_UNITE_LEGALE_HISTORIQUE = (
+    "https://www.data.gouv.fr/fr/datasets/r/0835cd60-2c2a-497b-bc64-404de704ce89"
+)
+
 URL_ESS_FRANCE = (
     "https://www.data.gouv.fr/fr/datasets/r/57bc99ca-0432-4b46-8fcc-e76a35c9efaf"
 )
@@ -149,7 +156,4 @@ URL_CC_DARES = (
 )
 URL_CC_KALI = (
     "https://www.data.gouv.fr/fr/datasets/r/02b67492-5243-44e8-8dd1-0cb3f90f35ff"
-)
-URL_UNITE_LEGALE_HISTORIQUE = (
-    "https://www.data.gouv.fr/fr/datasets/r/0835cd60-2c2a-497b-bc64-404de704ce89"
 )
