@@ -1,8 +1,6 @@
 from datetime import datetime
-import json
 import logging
 from minio import Minio, S3Error
-import tempfile
 from typing import List, TypedDict, Optional
 import os
 from dag_datalake_sirene.config import (
