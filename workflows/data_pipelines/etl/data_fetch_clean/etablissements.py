@@ -1,9 +1,12 @@
 import logging
 import pandas as pd
+import requests
+import shutil
 from datetime import datetime, timedelta
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.config import (
     URL_ETABLISSEMENTS,
+    URL_ETABLISSEMENTS_HISTORIQUE,
 )
 
 
@@ -146,7 +149,17 @@ def download_flux(data_dir):
     return df_flux
 
 
-def preprocess_etablissements_data(siret_file_type, departement=None, data_dir=None):
+def download_historique(data_dir):
+    r = requests.get(URL_ETABLISSEMENTS_HISTORIQUE, allow_redirects=True)
+    open(data_dir + "StockEtablissementHistorique_utf8.zip", "wb").write(r.content)
+    shutil.unpack_archive(data_dir + "StockEtablissementHistorique_utf8.zip", data_dir)
+    df_iterator = pd.read_csv(
+        f"{data_dir}StockEtablissementHistorique_utf8.csv", chunksize=100000, dtype=str
+    )
+    return df_iterator
+
+
+def preprocess_etablissement_data(siret_file_type, departement=None, data_dir=None):
     if siret_file_type == "stock":
         df_siret = download_stock(departement)
     if siret_file_type == "flux":
@@ -200,3 +213,31 @@ def preprocess_etablissements_data(siret_file_type, departement=None, data_dir=N
         }
     )
     return df_siret
+
+
+def preprocess_historique_etablissement_data(data_dir):
+    df_iterator = download_historique(data_dir)
+
+    # Insert rows in database by chunk
+    for i, df_etablissement in enumerate(df_iterator):
+        df_etablissement = df_etablissement[
+            [
+                "siren",
+                "siret",
+                "dateFin",
+                "dateDebut",
+                "etatAdministratifEtablissement",
+                "changementEtatAdministratifEtablissement",
+            ]
+        ]
+        # Rename columns
+        df_etablissement = df_etablissement.rename(
+            columns={
+                "dateFin": "date_fin_periode",
+                "dateDebut": "date_debut_periode",
+                "changementEtatAdministratifEtablissement": "changement_etat"
+                "_administratif_etablissement",
+                "etatAdministratifEtablissement": "etat_administratif_etablissement",
+            }
+        )
+        yield df_etablissement
