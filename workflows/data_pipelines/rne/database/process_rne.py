@@ -135,12 +135,27 @@ def inject_records_into_db(file_path, db_path, file_type):
                 data = json.loads(json_data)
                 unites_legales = process_records_to_extract_rne_data(data, file_type)
             elif file_type == "flux":
+                error_count = 0
                 for line in file:
-                    data = json.loads(line)
-                    unites_legales_temp = process_records_to_extract_rne_data(
-                        data, file_type
-                    )
-                    unites_legales += unites_legales_temp
+                    try:
+                        data = json.loads(line)
+                        unites_legales_temp = process_records_to_extract_rne_data(
+                            data, file_type
+                        )
+                        unites_legales += unites_legales_temp
+                    except json.JSONDecodeError as e:
+                        if error_count < 3:
+                            logging.error(
+                                f"JSONDecodeError: {e} in file "
+                                f"{file_path} at line {line}"
+                            )
+                            error_count += 1
+                        else:
+                            logging.error(
+                                "More JSONDecodeErrors occurred but logging is limited."
+                            )
+                        # Skip the problematic line and continue with the next line
+                        continue
                     # If the pending queue exceeds 100,000, we insert it directly;
                     # otherwise, it is inserted at the end of the loop.
                     if len(unites_legales) > 100000:
@@ -149,8 +164,8 @@ def inject_records_into_db(file_path, db_path, file_type):
                         )
                         unites_legales = []
 
-        except json.JSONDecodeError as e:
-            raise Exception(f"JSONDecodeError: {e} in file {file_path}")
+        except Exception as e:
+            raise Exception(f"Exception: {e} in file {file_path}")
         insert_unites_legales_into_db(unites_legales, file_path, db_path)
 
 
