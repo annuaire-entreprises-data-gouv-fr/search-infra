@@ -135,6 +135,8 @@ select_fields_to_index_query = """SELECT
                         'numero_voie_2',numero_voie_2,
                         'siren', siren,
                         'siret', siret,
+                        'statut_diffusion_etablissement',
+                        statut_diffusion_etablissement,
                         'tranche_effectif_salarie',tranche_effectif_salarie,
                         'annee_tranche_effectif_salarie',annee_tranche_effectif_salarie,
                         'date_mise_a_jour_insee', date_mise_a_jour_insee,
@@ -196,6 +198,8 @@ select_fields_to_index_query = """SELECT
                         s.numero_voie_2 as numero_voie_2,
                         s.siren as siren,
                         s.siret as siret,
+                        s.statut_diffusion_etablissement as
+                        statut_diffusion_etablissement,
                         s.tranche_effectif_salarie as
                         tranche_effectif_salarie,
                         s.annee_tranche_effectif_salarie as
@@ -258,6 +262,8 @@ select_fields_to_index_query = """SELECT
                         'numero_voie_2',numero_voie_2,
                         'siren', siren,
                         'siret', siret,
+                        'statut_diffusion_etablissement',
+                        statut_diffusion_etablissement,
                         'tranche_effectif_salarie',tranche_effectif_salarie,
                         'annee_tranche_effectif_salarie',
                         annee_tranche_effectif_salarie,
@@ -321,6 +327,8 @@ select_fields_to_index_query = """SELECT
                         s.numero_voie_2 as numero_voie_2,
                         s.siren as siren,
                         s.siret as siret,
+                        s.statut_diffusion_etablissement as
+                        statut_diffusion_etablissement,
                         s.tranche_effectif_salarie as tranche_effectif_salarie,
                         s.annee_tranche_effectif_salarie as
                         annee_tranche_effectif_salarie,
