@@ -48,7 +48,8 @@ create_table_etablissements_query = """CREATE TABLE IF NOT EXISTS siret
             geo_id TEXT,
             statut_diffusion_etablissement TEXT,
             date_mise_a_jour_insee DATE,
-            date_mise_a_jour_rne DATE
+            date_mise_a_jour_rne DATE,
+            date_fermeture_etablissement DATE
             )
             """
 
@@ -102,7 +103,8 @@ create_table_siret_siege_query = """CREATE TABLE IF NOT EXISTS siretsiege
             geo_id TEXT,
             statut_diffusion_etablissement TEXT,
             date_mise_a_jour_insee DATE,
-            date_mise_a_jour_rne DATE
+            date_mise_a_jour_rne DATE,
+            date_fermeture_etablissement DATE
             )
     """
 
@@ -152,7 +154,8 @@ create_table_flux_etablissements_query = """CREATE TABLE IF NOT EXISTS flux_sire
             libelle_pays_etranger_2 TEXT,
             statut_diffusion_etablissement TEXT,
             date_mise_a_jour_insee DATE,
-            date_mise_a_jour_rne DATE
+            date_mise_a_jour_rne DATE,
+            date_fermeture_etablissement DATE
             )
             """
 
@@ -233,7 +236,8 @@ populate_table_siret_siege_query = """INSERT INTO siretsiege (
             geo_id,
             statut_diffusion_etablissement,
             date_mise_a_jour_insee,
-            date_mise_a_jour_rne
+            date_mise_a_jour_rne,
+            date_fermeture_etablissement
             )
         SELECT
             siren,
@@ -284,7 +288,8 @@ populate_table_siret_siege_query = """INSERT INTO siretsiege (
             geo_id,
             statut_diffusion_etablissement,
             date_mise_a_jour_insee,
-            date_mise_a_jour_rne
+            date_mise_a_jour_rne,
+            date_fermeture_etablissement
         FROM siret
         WHERE est_siege = 'true';
     """
@@ -337,7 +342,8 @@ replace_table_siret_siege_query = """
             caractere_employeur,
             statut_diffusion_etablissement,
             date_mise_a_jour_insee,
-            date_mise_a_jour_rne
+            date_mise_a_jour_rne,
+            date_fermeture_etablissement
         ) SELECT
             a.siren,
             a.siret,
@@ -384,7 +390,8 @@ replace_table_siret_siege_query = """
             a.caractere_employeur,
             a.statut_diffusion_etablissement,
             a.date_mise_a_jour_insee,
-            a.date_mise_a_jour_rne
+            a.date_mise_a_jour_rne,
+            a.date_fermeture_etablissement
         FROM flux_siret a LEFT JOIN siretsiege b
         ON a.siret = b.siret
         WHERE a.est_siege = 'true'
@@ -437,7 +444,8 @@ replace_table_etablissement_query = """
             libelle_pays_etranger_2,
             statut_diffusion_etablissement,
             date_mise_a_jour_insee,
-            date_mise_a_jour_rne
+            date_mise_a_jour_rne,
+            date_fermeture_etablissement
         ) SELECT
             a.siren,
             a.siret,
@@ -483,7 +491,8 @@ replace_table_etablissement_query = """
             a.libelle_pays_etranger_2,
             a.statut_diffusion_etablissement,
             a.date_mise_a_jour_insee,
-            a.date_mise_a_jour_rne
+            a.date_mise_a_jour_rne,
+            a.date_fermeture_etablissement
         FROM flux_siret a LEFT JOIN siret b
         ON a.siret = b.siret
     """
@@ -497,25 +506,6 @@ update_sieges_table_fields_with_rne_data_query = """
                     )
             WHERE siren IN (SELECT siren FROM db_rne.sieges)
         """
-
-[
-    "siren",
-    "siret",
-    "enseigne",
-    "nom_commercial",
-    "pays",
-    "code_pays",
-    "commune",
-    "code_postal",
-    "code_commune",
-    "voie",
-    "num_voie",
-    "type_voie",
-    "indice_repetition",
-    "complement_localisation",
-    "distribution_speciale",
-    "file_name",
-]
 
 insert_remaining_rne_sieges_data_into_main_table_query = """
             INSERT OR IGNORE INTO siretsiege
@@ -568,7 +558,52 @@ insert_remaining_rne_sieges_data_into_main_table_query = """
                 NULL AS geo_id,
                 NULL AS statut_diffusion_etablissement,
                 NULL as date_mise_a_jour_insee,
-                date_mise_a_jour_rne
+                date_mise_a_jour_rne,
+                NULL as date_fermeture_etablissement
                 FROM db_rne.sieges
                 WHERE siren NOT IN (SELECT siren FROM siretsiege)
         """
+
+create_table_historique_etablissement_query = """
+        CREATE TABLE IF NOT EXISTS historique_etablissement
+        (
+            siren TEXT,
+            siret TEXT,
+            date_fin_periode DATE,
+            date_debut_periode DATE,
+            etat_administratif_etablissement TEXT,
+            changement_etat_administratif_etablissement TEXT
+        )
+    """
+
+create_table_date_fermeture_etablissement_query = """
+        CREATE TABLE IF NOT EXISTS date_fermeture_etablissement AS
+            SELECT siret, MAX(date_debut_periode) AS date_fermeture_etablissement
+            FROM historique_etablissement
+            WHERE etat_administratif_etablissement = 'F'
+            AND changement_etat_administratif_etablissement = 'true'
+            GROUP BY siret;
+    """
+
+
+insert_date_fermeture_etablissement_query = """
+        INSERT INTO siret (date_fermeture_etablissement)
+            SELECT date_fermeture_etablissement
+            FROM date_fermeture_etablissement
+            WHERE siret IN (
+            SELECT siret
+            FROM siret
+            WHERE etat_administratif_etablissement = 'F'
+        );
+"""
+
+insert_date_fermeture_siege_query = """
+        INSERT INTO siretsiege (date_fermeture_etablissement)
+            SELECT date_fermeture_etablissement
+            FROM date_fermeture_etablissement
+            WHERE siret IN (
+            SELECT siret
+            FROM siretsiege
+            WHERE etat_administratif_etablissement = 'F'
+        );
+"""
