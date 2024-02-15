@@ -31,7 +31,7 @@ with DAG(
     schedule_interval="0 2 * * *",  # Run daily at 2 am
     max_active_runs=1,
     catchup=False,
-    dagrun_timeout=timedelta(minutes=(60 * 20)),
+    dagrun_timeout=timedelta(minutes=(60 * 30)),
     tags=["data_processing", "rne", "dirigeants", "database"],
     params={},
 ) as dag:
