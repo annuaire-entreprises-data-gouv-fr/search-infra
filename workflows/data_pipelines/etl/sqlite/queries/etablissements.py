@@ -558,7 +558,7 @@ insert_remaining_rne_sieges_data_into_main_table_query = """
                 NULL AS geo_id,
                 NULL AS statut_diffusion_etablissement,
                 NULL as date_mise_a_jour_insee,
-                date_mise_a_jour_rne,
+                date_mise_a_jour AS date_mise_a_jour_rne,
                 NULL as date_fermeture_etablissement
                 FROM db_rne.sieges
                 WHERE siren NOT IN (SELECT siren FROM siretsiege)
