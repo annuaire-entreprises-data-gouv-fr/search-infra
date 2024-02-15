@@ -51,6 +51,9 @@ class Siege(BaseModel):
 class UniteLegale(BaseModel):
     siren: str | None = None
     denomination: str | None = None
+    nom: str | None = None
+    nom_usage: str | None = None
+    prenom: str | None = None
     nom_commercial: str | None = None
     date_creation: datetime | None = None
     date_mise_a_jour: datetime | None = None

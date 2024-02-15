@@ -44,6 +44,8 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         company_dirigeants
     )
 
+    unite_legale = get_denomination_personne_physique(rne_company, unite_legale)
+
     siege = get_siege(rne_company)
     if siege:
         unite_legale.siege = map_rne_siege_to_ul(siege)
@@ -59,6 +61,18 @@ def get_date_creation(rne_company: RNECompany):
         if rne_company.createdAt
         else rne_company.formality.content.natureCreation.dateCreation
     )
+
+
+def get_denomination_personne_physique(
+    rne_company: RNECompany, unite_legale: UniteLegale
+):
+    if rne_company.is_personne_physique():
+        dirigeant = unite_legale.dirigeants[0] if unite_legale.dirigeants else None
+        if dirigeant:
+            unite_legale.nom = dirigeant.nom
+            unite_legale.nom_usage = dirigeant.nom_usage
+            unite_legale.prenom = dirigeant.prenoms
+    return unite_legale
 
 
 def get_value(rne_company: RNECompany, key: str, default=None):

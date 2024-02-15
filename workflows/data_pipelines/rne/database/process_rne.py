@@ -21,6 +21,9 @@ def create_tables(cursor):
         (
             siren TEXT,
             denomination TEXT,
+            nom TEXT,
+            nom_usage TEXT,
+            prenom TEXT,
             nom_commercial TEXT,
             date_creation TEXT,
             date_mise_a_jour DATE,
@@ -250,6 +253,9 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
         unite_legale_columns = [
             "siren",
             "denomination",
+            "nom",
+            "nom_usage",
+            "prenom",
             "nom_commercial",
             "date_creation",
             "date_mise_a_jour",
@@ -273,6 +279,9 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             (
                 unite_legale.siren,
                 unite_legale.denomination,
+                unite_legale.nom,
+                unite_legale.nom_usage,
+                unite_legale.prenom,
                 unite_legale.nom_commercial,
                 unite_legale.date_creation,
                 unite_legale.date_mise_a_jour,
