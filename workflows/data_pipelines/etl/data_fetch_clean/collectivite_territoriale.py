@@ -62,7 +62,6 @@ def preprocess_colter_data(data_dir, **kwargs):
     # Process EPCI
     df_epci = pd.read_excel(URL_COLTER_EPCI, dtype=str, engine="openpyxl")
     df_epci["colter_code_insee"] = None
-    df_epci["siren"] = df_epci["siren_epci"]
     df_epci["colter_code"] = df_epci["siren"]
     df_epci["colter_niveau"] = "epci"
     df_epci = df_epci[["colter_code_insee", "siren", "colter_code", "colter_niveau"]]
