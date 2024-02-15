@@ -198,12 +198,11 @@ create_table_date_fermeture_unite_legale_query = """
 
 
 insert_date_fermeture_unite_legale_query = """
-        INSERT INTO unite_legale (date_fermeture_unite_legale)
-            SELECT date_fermeture_unite_legale
-            FROM date_fermeture_unite_legale
-            WHERE siren IN (
-            SELECT siren
-            FROM unite_legale
-            WHERE etat_administratif_unite_legale = 'C'
-        );
+    UPDATE unite_legale
+    SET date_fermeture_unite_legale = (
+        SELECT date_fermeture_unite_legale
+        FROM date_fermeture_unite_legale
+        WHERE unite_legale.siren = date_fermeture_unite_legale.siren
+    )
+    WHERE unite_legale.etat_administratif_unite_legale = 'C'
 """

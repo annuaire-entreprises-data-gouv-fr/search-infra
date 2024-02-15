@@ -587,23 +587,21 @@ create_table_date_fermeture_etablissement_query = """
 
 
 insert_date_fermeture_etablissement_query = """
-        INSERT INTO siret (date_fermeture_etablissement)
-            SELECT date_fermeture_etablissement
-            FROM date_fermeture_etablissement
-            WHERE siret IN (
-            SELECT siret
-            FROM siret
-            WHERE etat_administratif_etablissement = 'F'
-        );
+    UPDATE siret
+    SET date_fermeture_etablissement = (
+        SELECT date_fermeture_etablissement
+        FROM date_fermeture_etablissement
+        WHERE siret.siret = date_fermeture_etablissement.siret
+    )
+    WHERE siret.etat_administratif_etablissement = 'F'
 """
 
 insert_date_fermeture_siege_query = """
-        INSERT INTO siretsiege (date_fermeture_etablissement)
-            SELECT date_fermeture_etablissement
-            FROM date_fermeture_etablissement
-            WHERE siret IN (
-            SELECT siret
-            FROM siretsiege
-            WHERE etat_administratif_etablissement = 'F'
-        );
+    UPDATE siretsiege
+    SET date_fermeture_etablissement = (
+        SELECT date_fermeture_etablissement
+        FROM date_fermeture_etablissement
+        WHERE siretsiege.siret = date_fermeture_etablissement.siret
+    )
+    WHERE siretsiege.etat_administratif_etablissement = 'F'
 """
