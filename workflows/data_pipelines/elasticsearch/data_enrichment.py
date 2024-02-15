@@ -1,6 +1,7 @@
 import json
 import logging
 from slugify import slugify
+import pandas as pd
 
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.clean_data import (
     drop_duplicates_dirigeants_pm,
@@ -15,6 +16,9 @@ from dag_datalake_sirene.helpers.utils import (
     get_empty_string_if_none,
     str_to_bool,
     str_to_list,
+)
+from dag_datalake_sirene.config import (
+    URL_COLTER_EPCI,
 )
 
 labels_file_path = "dags/dag_datalake_sirene/helpers/labels/"
@@ -163,6 +167,33 @@ def label_region_from_departement(departement):
         )
         return region
     return None
+
+
+# EPCI
+def label_epci_from_commune(commune):
+    df_epci = pd.read_excel(URL_COLTER_EPCI, dtype=str, engine="openpyxl")
+
+    # Les arrondissements are not included in dataset
+    commune_prefix_mapping = {
+        "751": "75056",  # Paris
+        "132": "13055",  # Marseille
+        "693": "69123",  # Lyon
+    }
+
+    # Modify commune if it starts with one of the prefixes
+    for prefix, new_commune in commune_prefix_mapping.items():
+        if commune.startswith(prefix):
+            commune = new_commune
+            break
+
+    # Search for the commune in the 'insee' column
+    epci_row = df_epci[df_epci["insee"] == commune]
+
+    # If commune is found, return the corresponding value of the 'siren' column
+    if not epci_row.empty:
+        return epci_row["siren"].iloc[0]
+    else:
+        return None
 
 
 # Adresse complète
@@ -405,6 +436,7 @@ def format_etablissements_and_complements(
         etablissement["region"] = label_region_from_departement(
             etablissement["departement"]
         )
+        etablissement["epci"] = label_epci_from_commune(etablissement["commune"])
         etablissement["est_siege"] = str_to_bool(etablissement["est_siege"])
         etablissement["liste_idcc"] = str_to_list(etablissement["liste_idcc"])
         etablissement["liste_rge"] = str_to_list(etablissement["liste_rge"])
@@ -451,6 +483,7 @@ def format_siege_unite_legale(siege, is_non_diffusible=False):
     siege["coordonnees"] = format_coordonnees(siege["longitude"], siege["latitude"])
     siege["departement"] = format_departement(siege["commune"])
     siege["region"] = label_region_from_departement(siege["departement"])
+    siege["epci"] = label_epci_from_commune(siege["commune"])
     siege["est_siege"] = str_to_bool(siege["est_siege"])
     siege["liste_idcc"] = str_to_list(siege["liste_idcc"])
     siege["liste_rge"] = str_to_list(siege["liste_rge"])
