@@ -171,9 +171,10 @@ def add_rne_data_to_siege_table(**kwargs):
         problematic_sirens = e.args[0].split(": ")[1].split(", ")
         logging.error(f"Problematic Sirens: {problematic_sirens}")
 
-    except Exception as e:
+    except Exception as error:
         # Handle other exceptions if needed
-        logging.error(f"An unexpected error occurred: {e}")
+        logging.error(f"An unexpected error occurred: {error}")
+        raise error
 
 
 def create_historique_etablissement_table(**kwargs):
