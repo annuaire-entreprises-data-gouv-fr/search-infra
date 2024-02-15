@@ -148,7 +148,7 @@ insert_remaining_rne_data_into_main_table_query = """
                 etat_administratif AS etat_administratif_unite_legale,
                 NULL AS nom,
                 NULL AS nom_usage,
-                nom_commercial AS nom_raison_sociale,
+                denomination AS nom_raison_sociale,
                 NULL AS denomination_usuelle_1,
                 NULL AS denomination_usuelle_2,
                 NULL AS denomination_usuelle_3,
