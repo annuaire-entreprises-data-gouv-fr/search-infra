@@ -1,5 +1,6 @@
 import pandas as pd
 import requests
+import logging
 import zipfile
 from dag_datalake_sirene.helpers.utils import get_current_year
 from dag_datalake_sirene.config import (
@@ -202,7 +203,9 @@ def get_epci_url():
         if response.status_code == 200:
             return url
         else:
+            logging.error(f"url: {url} returns error!!! ")
             previous_year = current_year - 1
+
             return generate_epci_url(previous_year)
     except requests.RequestException as e:
         raise e
