@@ -26,7 +26,8 @@ create_table_unite_legale_query = """
             from_insee BOOLEAN,
             from_rne BOOLEAN DEFAULT FALSE,
             date_mise_a_jour_insee DATE,
-            date_mise_a_jour_rne DATE
+            date_mise_a_jour_rne DATE,
+            date_fermeture_unite_legale DATE
         )
     """
 
@@ -59,7 +60,8 @@ create_table_flux_unite_legale_query = """
             from_insee BOOLEAN,
             from_rne BOOLEAN DEFAULT FALSE,
             date_mise_a_jour_insee DATE,
-            date_mise_a_jour_rne DATE
+            date_mise_a_jour_rne DATE,
+            date_fermeture_unite_legale DATE
         )
     """
 
@@ -91,7 +93,8 @@ replace_table_unite_legale_query = """
             from_insee,
             from_rne,
             date_mise_a_jour_insee,
-            date_mise_a_jour_rne
+            date_mise_a_jour_rne,
+            date_fermeture_unite_legale
         ) SELECT
             a.siren,
             a.date_creation_unite_legale,
@@ -118,7 +121,8 @@ replace_table_unite_legale_query = """
             a.from_insee,
             a.from_rne,
             a.date_mise_a_jour_insee,
-            a.date_mise_a_jour_rne
+            a.date_mise_a_jour_rne,
+            a.date_fermeture_unite_legale
         FROM flux_unite_legale a LEFT JOIN unite_legale b
         ON a.siren = b.siren
     """
@@ -163,7 +167,42 @@ insert_remaining_rne_data_into_main_table_query = """
                 FALSE AS from_insee,
                 TRUE AS from_rne,
                 NULL AS date_mise_a_jour_insee,
-                date_mise_a_jour AS date_mise_a_jour_rne
+                date_mise_a_jour AS date_mise_a_jour_rne,
+                NULL AS date_fermeture_unite_legale
             FROM db_rne.unites_legales
             WHERE siren NOT IN (SELECT siren FROM unite_legale)
         """
+
+
+create_table_historique_unite_legale_query = """
+        CREATE TABLE IF NOT EXISTS historique_unite_legale
+        (
+            siren TEXT,
+            date_fin_periode DATE,
+            date_debut_periode DATE,
+            etat_administratif_unite_legale TEXT,
+            changement_etat_administratif_unite_legale TEXT,
+            nic_siege_unite_legale TEXT,
+            changement_nic_siege_unite_legale TEXT
+        )
+    """
+
+create_table_date_fermeture_unite_legale_query = """
+        CREATE TABLE IF NOT EXISTS date_fermeture_unite_legale AS
+            SELECT siren, MAX(date_debut_periode) AS date_fermeture_unite_legale
+            FROM historique_unite_legale
+            WHERE etat_administratif_unite_legale = 'C'
+            AND changement_etat_administratif_unite_legale = 'true'
+            GROUP BY siren;
+    """
+
+
+insert_date_fermeture_unite_legale_query = """
+    UPDATE unite_legale
+    SET date_fermeture_unite_legale = (
+        SELECT date_fermeture_unite_legale
+        FROM date_fermeture_unite_legale
+        WHERE unite_legale.siren = date_fermeture_unite_legale.siren
+    )
+    WHERE unite_legale.etat_administratif_unite_legale = 'C'
+"""

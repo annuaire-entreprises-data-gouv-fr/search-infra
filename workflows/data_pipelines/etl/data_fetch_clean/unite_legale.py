@@ -6,7 +6,18 @@ import requests
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.config import (
     URL_UNITE_LEGALE,
+    URL_UNITE_LEGALE_HISTORIQUE,
 )
+
+
+def download_historique(data_dir):
+    r = requests.get(URL_UNITE_LEGALE_HISTORIQUE, allow_redirects=True)
+    open(data_dir + "StockUniteLegaleHistorique_utf8.zip", "wb").write(r.content)
+    shutil.unpack_archive(data_dir + "StockUniteLegaleHistorique_utf8.zip", data_dir)
+    df_iterator = pd.read_csv(
+        f"{data_dir}StockUniteLegaleHistorique_utf8.csv", chunksize=100000, dtype=str
+    )
+    return df_iterator
 
 
 def download_stock(data_dir):
@@ -113,4 +124,35 @@ def preprocess_unite_legale_data(data_dir, sirene_file_type):
             }
         )
         df_unite_legale["from_insee"] = True
+        yield df_unite_legale
+
+
+def preprocess_historique_unite_legale_data(data_dir):
+    df_iterator = download_historique(data_dir)
+
+    # Insert rows in database by chunk
+    for i, df_unite_legale in enumerate(df_iterator):
+        df_unite_legale = df_unite_legale[
+            [
+                "siren",
+                "dateFin",
+                "dateDebut",
+                "etatAdministratifUniteLegale",
+                "changementEtatAdministratifUniteLegale",
+                "nicSiegeUniteLegale",
+                "changementNicSiegeUniteLegale",
+            ]
+        ]
+        # Rename columns
+        df_unite_legale = df_unite_legale.rename(
+            columns={
+                "dateFin": "date_fin_periode",
+                "dateDebut": "date_debut_periode",
+                "changementEtatAdministratifUniteLegale": "changement_etat"
+                "_administratif_unite_legale",
+                "etatAdministratifUniteLegale": "etat_administratif_unite_legale",
+                "nicSiegeUniteLegale": "nic_siege_unite_legale",
+                "changementNicSiegeUniteLegale": "changement_nic_siege_unite_legale",
+            }
+        )
         yield df_unite_legale

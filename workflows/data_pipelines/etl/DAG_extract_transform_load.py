@@ -12,8 +12,11 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     count_nombre_etablissements,
     count_nombre_etablissements_ouverts,
     create_etablissements_table,
+    create_date_fermeture_etablissement_table,
     create_flux_etablissements_table,
+    create_historique_etablissement_table,
     create_siege_only_table,
+    insert_date_fermeture_etablissement,
     replace_etablissements_table,
     replace_siege_only_table,
 )
@@ -46,8 +49,11 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_unite_legale_tables import (
+    create_date_fermeture_unite_legale_table,
     create_flux_unite_legale_table,
+    create_historique_unite_legale_table,
     create_unite_legale_table,
+    insert_date_fermeture_unite_legale,
     replace_unite_legale_table,
     add_rne_data_to_unite_legale_table,
 )
@@ -151,6 +157,24 @@ with DAG(
         python_callable=count_nombre_etablissements_ouverts,
     )
 
+    create_historique_unite_legale_table = PythonOperator(
+        task_id="create_historique_unite_legale_table",
+        provide_context=True,
+        python_callable=create_historique_unite_legale_table,
+    )
+
+    create_date_fermeture_unite_legale_table = PythonOperator(
+        task_id="create_date_fermeture_unite_legale_table",
+        provide_context=True,
+        python_callable=create_date_fermeture_unite_legale_table,
+    )
+
+    insert_date_fermeture_unite_legale = PythonOperator(
+        task_id="insert_date_fermeture_unite_legale",
+        provide_context=True,
+        python_callable=insert_date_fermeture_unite_legale,
+    )
+
     inject_rne_unite_legale_data = PythonOperator(
         task_id="add_rne_siren_data_to_unite_legale_table",
         provide_context=True,
@@ -173,6 +197,24 @@ with DAG(
         task_id="add_rne_data_to_siege_table",
         provide_context=True,
         python_callable=add_rne_data_to_siege_table,
+    )
+
+    create_historique_etablissement_table = PythonOperator(
+        task_id="create_historique_etablissement_table",
+        provide_context=True,
+        python_callable=create_historique_etablissement_table,
+    )
+
+    create_date_fermeture_etablissement_table = PythonOperator(
+        task_id="create_date_fermeture_etablissement_table",
+        provide_context=True,
+        python_callable=create_date_fermeture_etablissement_table,
+    )
+
+    insert_date_fermeture_etablissement = PythonOperator(
+        task_id="insert_date_fermeture_etablissement",
+        provide_context=True,
+        python_callable=insert_date_fermeture_etablissement,
     )
 
     get_latest_dirigeants_database = PythonOperator(
@@ -302,17 +344,29 @@ with DAG(
     create_sqlite_database.set_upstream(clean_previous_folder)
 
     create_unite_legale_table.set_upstream(create_sqlite_database)
-    create_etablissements_table.set_upstream(create_unite_legale_table)
+    create_historique_unite_legale_table.set_upstream(create_unite_legale_table)
+    create_date_fermeture_unite_legale_table.set_upstream(
+        create_historique_unite_legale_table
+    )
+    create_etablissements_table.set_upstream(create_date_fermeture_unite_legale_table)
     create_flux_unite_legale_table.set_upstream(create_etablissements_table)
     create_flux_etablissements_table.set_upstream(create_flux_unite_legale_table)
     replace_unite_legale_table.set_upstream(create_flux_etablissements_table)
-    replace_etablissements_table.set_upstream(replace_unite_legale_table)
+    insert_date_fermeture_unite_legale.set_upstream(replace_unite_legale_table)
+    replace_etablissements_table.set_upstream(insert_date_fermeture_unite_legale)
     count_nombre_etablissements.set_upstream(replace_etablissements_table)
     count_nombre_etablissements_ouverts.set_upstream(count_nombre_etablissements)
     create_siege_only_table.set_upstream(count_nombre_etablissements_ouverts)
     replace_siege_only_table.set_upstream(create_siege_only_table)
+    create_historique_etablissement_table.set_upstream(replace_siege_only_table)
+    create_date_fermeture_etablissement_table.set_upstream(
+        create_historique_etablissement_table
+    )
+    insert_date_fermeture_etablissement.set_upstream(
+        create_date_fermeture_etablissement_table
+    )
 
-    get_latest_dirigeants_database.set_upstream(replace_siege_only_table)
+    get_latest_dirigeants_database.set_upstream(insert_date_fermeture_etablissement)
     inject_rne_unite_legale_data.set_upstream(get_latest_dirigeants_database)
     inject_rne_siege_data.set_upstream(inject_rne_unite_legale_data)
     create_dirig_pp_table.set_upstream(inject_rne_siege_data)

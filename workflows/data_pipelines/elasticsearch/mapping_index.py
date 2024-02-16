@@ -119,6 +119,7 @@ class EtablissementMapping(InnerDoc):
     complement_adresse_2 = Text()
     date_creation = Date()
     date_debut_activite = Date()
+    date_fermeture = Date()
     date_mise_a_jour_insee = Date()
     departement = Keyword()
     distribution_speciale = Text()
@@ -180,6 +181,7 @@ class SiegeMapping(InnerDoc):
     complement_adresse_2 = Text()
     date_creation = Date()
     date_debut_activite = Date()
+    date_fermeture = Date()
     date_mise_a_jour = Date()
     date_mise_a_jour_insee = Date()
     date_mise_a_jour_rne = Date()
@@ -262,6 +264,7 @@ class UniteLegaleMapping(InnerDoc):
     colter_elus = Nested(EluMapping)
     colter_niveau = Keyword()
     date_creation_unite_legale = Date()
+    date_fermeture = Date()
     date_mise_a_jour_insee = Date()
     date_mise_a_jour_rne = Date()
     denomination_usuelle_1_unite_legale = Text(
