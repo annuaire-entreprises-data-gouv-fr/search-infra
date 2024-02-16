@@ -92,9 +92,6 @@ URL_COLTER_REGIONS = (
 URL_COLTER_DEP = (
     "https://www.data.gouv.fr/fr/datasets/r/2f4f901d-e3ce-4760-b122-56a311340fc4"
 )
-URL_COLTER_EPCI = (
-    "https://www.collectivites-locales.gouv.fr/files/Accueil/DESL/2024/epcicom2024.xlsx"
-)
 URL_COLTER_COMMUNES = (
     "https://www.data.gouv.fr/fr/datasets/r/42b16d68-958e-4518-8551-93e095fe8fda"
 )
