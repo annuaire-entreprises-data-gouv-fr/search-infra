@@ -159,3 +159,7 @@ def convert_date_format(original_date_string):
         # Handle invalid date string
         logging.error(f"Error: {e}")
         return None
+
+
+def get_current_year():
+    return datetime.datetime.now().year
