@@ -1,7 +1,6 @@
 import json
 import logging
 from slugify import slugify
-import pandas as pd
 
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.clean_data import (
     drop_duplicates_dirigeants_pm,
@@ -17,9 +16,6 @@ from dag_datalake_sirene.helpers.utils import (
     str_to_bool,
     str_to_list,
 )
-from dag_datalake_sirene.config import (
-    URL_COLTER_EPCI,
-)
 
 labels_file_path = "dags/dag_datalake_sirene/helpers/labels/"
 
@@ -33,6 +29,7 @@ def load_file(file_name: str):
 sections_NAF = load_file("sections_codes_naf.json")
 mapping_dep_to_reg = load_file("dep_to_reg.json")
 mapping_role_dirigeants = load_file("roles_dirigeants.json")
+mapping_commune_to_epci = load_file("epci.json")
 
 
 # Nom complet
@@ -171,29 +168,20 @@ def label_region_from_departement(departement):
 
 # EPCI
 def label_epci_from_commune(commune):
-    df_epci = pd.read_excel(URL_COLTER_EPCI, dtype=str, engine="openpyxl")
-
-    # Les arrondissements are not included in dataset
-    commune_prefix_mapping = {
+    if not commune:
+        return None
+    # Modify commune if it's an arrondissement
+    commune_arrondissement_mapping = {
         "751": "75056",  # Paris
         "132": "13055",  # Marseille
         "693": "69123",  # Lyon
     }
-
-    # Modify commune if it starts with one of the prefixes
-    for prefix, new_commune in commune_prefix_mapping.items():
+    for prefix, corresponding_commune in commune_arrondissement_mapping.items():
         if commune.startswith(prefix):
-            commune = new_commune
+            commune = corresponding_commune
             break
 
-    # Search for the commune in the 'insee' column
-    epci_row = df_epci[df_epci["insee"] == commune]
-
-    # If commune is found, return the corresponding value of the 'siren' column
-    if not epci_row.empty:
-        return epci_row["siren"].iloc[0]
-    else:
-        return None
+    return mapping_commune_to_epci.get(commune)
 
 
 # Adresse complète
