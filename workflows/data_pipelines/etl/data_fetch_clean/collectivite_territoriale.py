@@ -1,10 +1,11 @@
 import pandas as pd
 import requests
+import logging
 import zipfile
+from dag_datalake_sirene.helpers.utils import get_current_year
 from dag_datalake_sirene.config import (
     URL_COLTER_REGIONS,
     URL_COLTER_DEP,
-    URL_COLTER_EPCI,
     URL_COLTER_COMMUNES,
     URL_ELUS_EPCI,
     URL_CONSEILLERS_REGIONAUX,
@@ -60,9 +61,9 @@ def preprocess_colter_data(data_dir, **kwargs):
     df_colter = pd.concat([df_colter, df_deps])
 
     # Process EPCI
+    URL_COLTER_EPCI = get_epci_url()
     df_epci = pd.read_excel(URL_COLTER_EPCI, dtype=str, engine="openpyxl")
     df_epci["colter_code_insee"] = None
-    df_epci["siren"] = df_epci["siren_epci"]
     df_epci["colter_code"] = df_epci["siren"]
     df_epci["colter_niveau"] = "epci"
     df_epci = df_epci[["colter_code_insee", "siren", "colter_code", "colter_niveau"]]
@@ -185,3 +186,26 @@ def process_elus_files(url, colname):
     )
 
     return df_elus
+
+
+def generate_epci_url(year):
+    return (
+        "https://www.collectivites-locales.gouv.fr/"
+        f"files/Accueil/DESL/{year}/epcicom{year}.xlsx"
+    )
+
+
+def get_epci_url():
+    current_year = get_current_year()
+    url = generate_epci_url(current_year)
+    try:
+        response = requests.head(url)
+        if response.status_code == 200:
+            return url
+        else:
+            logging.error(f"url: {url} returns error!!! ")
+            previous_year = current_year - 1
+
+            return generate_epci_url(previous_year)
+    except requests.RequestException as e:
+        raise e

@@ -29,6 +29,7 @@ def load_file(file_name: str):
 sections_NAF = load_file("sections_codes_naf.json")
 mapping_dep_to_reg = load_file("dep_to_reg.json")
 mapping_role_dirigeants = load_file("roles_dirigeants.json")
+mapping_commune_to_epci = load_file("epci.json")
 
 
 # Nom complet
@@ -163,6 +164,24 @@ def label_region_from_departement(departement):
         )
         return region
     return None
+
+
+# EPCI
+def label_epci_from_commune(commune):
+    if not commune:
+        return None
+    # Modify commune if it's an arrondissement
+    commune_arrondissement_mapping = {
+        "751": "75056",  # Paris
+        "132": "13055",  # Marseille
+        "693": "69123",  # Lyon
+    }
+    for prefix, corresponding_commune in commune_arrondissement_mapping.items():
+        if commune.startswith(prefix):
+            commune = corresponding_commune
+            break
+
+    return mapping_commune_to_epci.get(commune)
 
 
 # Adresse complète
@@ -405,6 +424,7 @@ def format_etablissements_and_complements(
         etablissement["region"] = label_region_from_departement(
             etablissement["departement"]
         )
+        etablissement["epci"] = label_epci_from_commune(etablissement["commune"])
         etablissement["est_siege"] = str_to_bool(etablissement["est_siege"])
         etablissement["liste_idcc"] = str_to_list(etablissement["liste_idcc"])
         etablissement["liste_rge"] = str_to_list(etablissement["liste_rge"])
@@ -451,6 +471,7 @@ def format_siege_unite_legale(siege, is_non_diffusible=False):
     siege["coordonnees"] = format_coordonnees(siege["longitude"], siege["latitude"])
     siege["departement"] = format_departement(siege["commune"])
     siege["region"] = label_region_from_departement(siege["departement"])
+    siege["epci"] = label_epci_from_commune(siege["commune"])
     siege["est_siege"] = str_to_bool(siege["est_siege"])
     siege["liste_idcc"] = str_to_list(siege["liste_idcc"])
     siege["liste_rge"] = str_to_list(siege["liste_rge"])
