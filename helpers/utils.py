@@ -162,4 +162,4 @@ def convert_date_format(original_date_string):
 
 
 def get_current_year():
-    return datetime.datetime.now().year
+    return datetime.now().year
