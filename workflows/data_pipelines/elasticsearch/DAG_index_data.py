@@ -60,7 +60,7 @@ default_args = {
 with DAG(
     dag_id=AIRFLOW_ELK_DAG_NAME,
     default_args=default_args,
-    schedule_interval="0 0 * * 1,3,5",
+    schedule_interval="0 0 * * *",  # Run every day at midnight
     start_date=datetime(2023, 9, 4),
     dagrun_timeout=timedelta(minutes=60 * 12),
     tags=["siren"],
