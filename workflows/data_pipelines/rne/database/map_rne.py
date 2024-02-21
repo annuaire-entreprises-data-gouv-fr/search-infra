@@ -15,6 +15,7 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     unite_legale.siren = rne_company.siren
     unite_legale.date_mise_a_jour = rne_company.updatedAt
     unite_legale.statut_diffusion = rne_company.formality.diffusionINSEE
+    unite_legale.nature_juridique = get_forme_juridique(rne_company)
     unite_legale.date_creation = get_date_creation(rne_company)
     unite_legale.forme_exercice_activite_principale = (
         rne_company.formality.content.formeExerciceActivitePrincipale
@@ -30,7 +31,6 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     if identite:
         unite_legale.denomination = identite.denomination
         unite_legale.nom_commercial = identite.nomCommercial
-        unite_legale.nature_juridique = identite.formeJuridique
         unite_legale.date_immatriculation = identite.dateImmat
         unite_legale.tranche_effectif_salarie = identite.effectifSalarie
     else:
@@ -44,6 +44,8 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         company_dirigeants
     )
 
+    unite_legale = get_denomination_personne_physique(rne_company, unite_legale)
+
     siege = get_siege(rne_company)
     if siege:
         unite_legale.siege = map_rne_siege_to_ul(siege)
@@ -53,12 +55,43 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     return unite_legale
 
 
+def get_forme_juridique(rne_company: "RNECompany") -> str | None:
+    forme_juridique = rne_company.formality.formeJuridique
+    if forme_juridique:
+        return forme_juridique
+
+    content = rne_company.formality.content
+    if content.natureCreation:
+        return content.natureCreation.formeJuridique
+
+    identite = get_identite(rne_company)
+    if identite:
+        if identite.formeJuridique:
+            return identite.formeJuridique
+        else:
+            return identite.formeJuridiqueInsee
+
+    return None
+
+
 def get_date_creation(rne_company: RNECompany):
     return (
         rne_company.createdAt
         if rne_company.createdAt
         else rne_company.formality.content.natureCreation.dateCreation
     )
+
+
+def get_denomination_personne_physique(
+    rne_company: RNECompany, unite_legale: UniteLegale
+):
+    if rne_company.is_personne_physique():
+        dirigeant = unite_legale.dirigeants[0] if unite_legale.dirigeants else None
+        if dirigeant:
+            unite_legale.nom = dirigeant.nom
+            unite_legale.nom_usage = dirigeant.nom_usage
+            unite_legale.prenom = dirigeant.prenoms
+    return unite_legale
 
 
 def get_value(rne_company: RNECompany, key: str, default=None):
