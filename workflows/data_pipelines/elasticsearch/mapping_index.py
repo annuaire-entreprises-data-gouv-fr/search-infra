@@ -259,6 +259,7 @@ class UniteLegaleMapping(InnerDoc):
     annee_tranche_effectif_salarie = Date()
     bilan_financier = Nested(BilanFinancierMapping)
     caractere_employeur = Keyword()
+    code_categorie_entreprise = Integer()
     categorie_entreprise = Keyword()
     convention_collective_renseignee = Boolean()
     colter_code = Keyword()
