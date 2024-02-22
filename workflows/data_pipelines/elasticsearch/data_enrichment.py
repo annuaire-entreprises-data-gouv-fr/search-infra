@@ -184,6 +184,18 @@ def label_epci_from_commune(commune):
     return mapping_commune_to_epci.get(commune)
 
 
+# Categorie entreprise
+def map_categorie_to_number(categorie):
+    if categorie == "GE":
+        return 3
+    elif categorie == "ETI":
+        return 2
+    elif categorie == "PMI":
+        return 1
+    else:
+        return 0
+
+
 # Adresse complète
 def format_adresse_complete(
     complement_adresse,
