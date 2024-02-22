@@ -15,6 +15,7 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
     is_ess,
     is_service_public,
     label_section_from_activite,
+    map_categorie_to_number,
 )
 from dag_datalake_sirene.helpers.utils import (
     convert_date_format,
@@ -81,6 +82,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         # Entrepreneur individuel
         unite_legale_processed["est_entrepreneur_individuel"] = (
             is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
+        )
+
+        # Categorie entreprise
+        unite_legale_processed["code_categorie_entreprise"] = map_categorie_to_number(
+            unite_legale["categorie_entreprise"]
         )
 
         # Dirigeants
