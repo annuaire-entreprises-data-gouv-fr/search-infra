@@ -44,6 +44,10 @@ def create_and_fill_table_model(
     sqlite_client.execute(drop_table(table_name))
     sqlite_client.execute(create_table_query)
     sqlite_client.execute(create_index_func(index_name, table_name, index_column))
+    if table_name == "convention_collective":
+        sqlite_client.execute(
+            create_index("index_siren_convention_collective", table_name, "siren")
+        )
     df_table = preprocess_table_data(data_dir=AIRFLOW_ETL_DATA_DIR)
     df_table.to_sql(table_name, sqlite_client.db_conn, if_exists="append", index=False)
     del df_table
