@@ -19,3 +19,13 @@ create_table_elus_query = """
          fonction
      )
     """
+
+delete_duplicates_elus_query = """
+    DELETE FROM elus
+    WHERE ROWID NOT IN
+    (
+        SELECT MIN(ROWID)
+        FROM elus
+        GROUP BY siren, nom, prenom, date_naissance, sexe, fonction
+    )
+    """
