@@ -24,8 +24,8 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
     create_index,
     create_table_model,
     create_unique_index,
+    execute_query,
     get_table_count,
-    replace_table_model,
 )
 from dag_datalake_sirene.config import AIRFLOW_ETL_DATA_DIR
 from dag_datalake_sirene.config import (
@@ -86,10 +86,9 @@ def create_flux_unite_legale_table(**kwargs):
 
 
 def replace_unite_legale_table():
-    sqlite_client = replace_table_model(
-        replace_table_query=replace_table_unite_legale_query,
+    return execute_query(
+        query=replace_table_unite_legale_query,
     )
-    sqlite_client.commit_and_close_conn()
 
 
 def add_rne_data_to_unite_legale_table(**kwargs):

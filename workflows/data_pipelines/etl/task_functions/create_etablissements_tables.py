@@ -13,9 +13,9 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.etablisse
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
     get_table_count,
     create_index,
-    replace_table_model,
     create_table_model,
     create_unique_index,
+    execute_query,
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.etablissements\
     import (
@@ -109,17 +109,15 @@ def create_siege_only_table(**kwargs):
 
 
 def replace_etablissements_table():
-    sqlite_client = replace_table_model(
-        replace_table_query=replace_table_etablissement_query,
+    return execute_query(
+        query=replace_table_etablissement_query,
     )
-    sqlite_client.commit_and_close_conn()
 
 
 def replace_siege_only_table():
-    sqlite_client = replace_table_model(
-        replace_table_query=replace_table_siret_siege_query,
+    return execute_query(
+        query=replace_table_siret_siege_query,
     )
-    sqlite_client.commit_and_close_conn()
 
 
 def count_nombre_etablissements():

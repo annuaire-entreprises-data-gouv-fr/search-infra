@@ -17,6 +17,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
     create_index,
     create_and_fill_table_model,
     create_only_index,
+    execute_query,
 )
 
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries import (
@@ -151,7 +152,7 @@ def create_colter_table():
 
 
 def create_elu_table():
-    return create_and_fill_table_model(
+    create_and_fill_table_model(
         table_name="elus",
         create_table_query=q_ct.create_table_elus_query,
         create_index_func=create_index,
@@ -159,6 +160,7 @@ def create_elu_table():
         index_column="siren",
         preprocess_table_data=ct.preprocess_elus_data,
     )
+    return execute_query(q_ct.delete_duplicates_elus_query)
 
 
 def create_ess_table():
