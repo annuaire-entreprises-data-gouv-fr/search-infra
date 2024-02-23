@@ -55,6 +55,12 @@ def create_convention_collective_table():
         index_column="siret",
         preprocess_table_data=cc.preprocess_convcollective_data,
     )
+    create_only_index(
+        table_name="convention_collective",
+        create_index_func=create_index,
+        index_name="index_siren_convention_collective",
+        index_column="siren",
+    )
 
 
 def create_rge_table():
