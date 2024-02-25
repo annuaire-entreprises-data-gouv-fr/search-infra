@@ -80,9 +80,9 @@ def create_only_index(
     sqlite_client.commit_and_close_conn()
 
 
-def replace_table_model(
-    replace_table_query,
+def execute_query(
+    query,
 ):
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
-    sqlite_client.execute(replace_table_query)
-    return sqlite_client
+    sqlite_client.execute(query)
+    sqlite_client.commit_and_close_conn()

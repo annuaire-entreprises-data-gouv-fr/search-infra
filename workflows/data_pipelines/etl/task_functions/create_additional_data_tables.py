@@ -17,6 +17,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
     create_index,
     create_and_fill_table_model,
     create_only_index,
+    execute_query,
 )
 
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries import (
@@ -35,7 +36,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries import (
 
 
 def create_bilan_financiers_table():
-    return create_and_fill_table_model(
+    create_and_fill_table_model(
         table_name="bilan_financier",
         create_table_query=q_bf.create_table_bilan_financier_query,
         create_index_func=create_unique_index,
@@ -46,7 +47,7 @@ def create_bilan_financiers_table():
 
 
 def create_convention_collective_table():
-    return create_and_fill_table_model(
+    create_and_fill_table_model(
         table_name="convention_collective",
         create_table_query=q_cc.create_table_convention_collective_query,
         create_index_func=create_unique_index,
@@ -57,7 +58,7 @@ def create_convention_collective_table():
 
 
 def create_rge_table():
-    return create_and_fill_table_model(
+    create_and_fill_table_model(
         table_name="rge",
         create_table_query=q_rge.create_table_rge_query,
         create_index_func=create_index,
@@ -68,7 +69,7 @@ def create_rge_table():
 
 
 def create_uai_table():
-    return create_and_fill_table_model(
+    create_and_fill_table_model(
         table_name="uai",
         create_table_query=q_uai.create_table_uai_query,
         create_index_func=create_index,
@@ -79,7 +80,7 @@ def create_uai_table():
 
 
 def create_finess_table():
-    return create_and_fill_table_model(
+    create_and_fill_table_model(
         table_name="finess",
         create_table_query=q_finess.create_table_finess_query,
         create_index_func=create_index,
@@ -107,7 +108,7 @@ def create_agence_bio_table():
 
 
 def create_organisme_formation_table():
-    return create_and_fill_table_model(
+    create_and_fill_table_model(
         table_name="organisme_formation",
         create_table_query=q_of.create_table_organisme_formation_query,
         create_index_func=create_index,
@@ -118,7 +119,7 @@ def create_organisme_formation_table():
 
 
 def create_spectacle_table():
-    return create_and_fill_table_model(
+    create_and_fill_table_model(
         table_name="spectacle",
         create_table_query=q_es.create_table_spectacle_query,
         create_index_func=create_index,
@@ -129,7 +130,7 @@ def create_spectacle_table():
 
 
 def create_egapro_table():
-    return create_and_fill_table_model(
+    create_and_fill_table_model(
         table_name="egapro",
         create_table_query=q_egapro.create_table_egapro_query,
         create_index_func=create_index,
@@ -140,7 +141,7 @@ def create_egapro_table():
 
 
 def create_colter_table():
-    return create_and_fill_table_model(
+    create_and_fill_table_model(
         table_name="colter",
         create_table_query=q_ct.create_table_colter_query,
         create_index_func=create_index,
@@ -151,7 +152,7 @@ def create_colter_table():
 
 
 def create_elu_table():
-    return create_and_fill_table_model(
+    create_and_fill_table_model(
         table_name="elus",
         create_table_query=q_ct.create_table_elus_query,
         create_index_func=create_index,
@@ -159,10 +160,11 @@ def create_elu_table():
         index_column="siren",
         preprocess_table_data=ct.preprocess_elus_data,
     )
+    execute_query(q_ct.delete_duplicates_elus_query)
 
 
 def create_ess_table():
-    return create_and_fill_table_model(
+    create_and_fill_table_model(
         table_name="ess_france",
         create_table_query=q_ess.create_table_ess_query,
         create_index_func=create_index,
