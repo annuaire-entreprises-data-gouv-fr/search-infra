@@ -6,7 +6,7 @@ def preprocess_marche_inclusion_data(data_dir):
     minio_client.get_files(
         list_files=[
             {
-                "source_path": "marche_inclusion",
+                "source_path": "marche_inclusion/",
                 "source_name": "stock_marche_inclusion.csv",
                 "dest_path": f"{data_dir}",
                 "dest_name": "marche_inclusion.csv",
@@ -25,6 +25,7 @@ def preprocess_marche_inclusion_data(data_dir):
         .reset_index()
     )
     df_siae_grouped.rename(columns={"kind_parent": "type_siae"}, inplace=True)
+    df_siae_grouped["type_siae"] = df_siae_grouped["type_siae"].astype(str)
 
     df_siae_grouped["est_siae"] = True
 
