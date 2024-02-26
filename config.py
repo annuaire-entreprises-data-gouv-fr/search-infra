@@ -40,9 +40,6 @@ MARCHE_INCLUSION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}marche_inclusion/"
 INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
 INSEE_API_URL = "https://api.insee.fr/entreprises/sirene/V3/"
 
-# Marche Inclusion
-SECRET_TOKEN_MARCHE_INCLUSION = Variable.get("SECRET_TOKEN_MARCHE_INCLUSION", "")
-
 # Notification
 TCHAP_ANNUAIRE_WEBHOOK = Variable.get("TCHAP_ANNUAIRE_WEBHOOK", "")
 TCHAP_ANNUAIRE_ROOM_ID = Variable.get("TCHAP_ANNUAIRE_ROOM_ID", "")
@@ -63,7 +60,7 @@ RNE_API_DIFF_URL = "https://registre-national-entreprises.inpi.fr/api/companies/
 
 # MARCHE INCLUSION
 MARCHE_INCLUSION_API_URL = "https://lemarche.inclusion.beta.gouv.fr/api/siae/?"
-
+SECRET_TOKEN_MARCHE_INCLUSION = Variable.get("SECRET_TOKEN_MARCHE_INCLUSION", "")
 # AIO
 AIO_URL = Variable.get("AIO_URL", None)
 COLOR_URL = Variable.get("COLOR_URL", None)
