@@ -35,6 +35,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_spectacle_table,
     create_uai_table,
     create_convention_collective_table,
+    create_marche_inclusion_table,
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_dirigeants_tables import (
@@ -311,6 +312,12 @@ with DAG(
         python_callable=create_colter_table,
     )
 
+    create_marche_inclusion_table = PythonOperator(
+        task_id="create_marche_inclusion_table",
+        provide_context=True,
+        python_callable=create_marche_inclusion_table,
+    )
+
     send_database_to_minio = PythonOperator(
         task_id="upload_db_to_minio",
         provide_context=True,
@@ -384,8 +391,9 @@ with DAG(
     create_egapro_table.set_upstream(create_spectacle_table)
     create_colter_table.set_upstream(create_egapro_table)
     create_elu_table.set_upstream(create_colter_table)
+    create_marche_inclusion_table.set_upstream(create_elu_table)
 
-    send_database_to_minio.set_upstream(create_elu_table)
+    send_database_to_minio.set_upstream(create_marche_inclusion_table)
 
     clean_folder.set_upstream(send_database_to_minio)
     send_email.set_upstream(clean_folder)
