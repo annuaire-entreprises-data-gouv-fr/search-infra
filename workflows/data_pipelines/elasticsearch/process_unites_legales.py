@@ -164,7 +164,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         # ESS
-
         unite_legale_processed["est_ess"] = is_ess(
             sqlite_str_to_bool(unite_legale["est_ess_france"]),
             unite_legale["economie_sociale_solidaire_unite_legale"],
@@ -173,6 +172,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         # Egapro
         unite_legale_processed["egapro_renseignee"] = sqlite_str_to_bool(
             unite_legale["egapro_renseignee"]
+        )
+
+        # Marche Inclusion
+        unite_legale_processed["est_siae"] = sqlite_str_to_bool(
+            unite_legale["est_siae"]
         )
 
         # Etablissements

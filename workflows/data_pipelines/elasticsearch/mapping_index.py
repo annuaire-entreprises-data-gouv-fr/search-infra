@@ -294,6 +294,7 @@ class UniteLegaleMapping(InnerDoc):
     est_qualiopi = Boolean()
     est_rge = Boolean()
     est_service_public = Boolean()
+    est_siae = Boolean()
     est_societe_mission = Keyword()
     est_uai = Boolean()
     etablissements = Nested(EtablissementMapping)
@@ -318,6 +319,7 @@ class UniteLegaleMapping(InnerDoc):
     slug = Text()
     statut_diffusion_unite_legale = Keyword()
     statut_entrepreneur_spectacle = Text()
+    type_siae = Text()
     tranche_effectif_salarie_unite_legale = Keyword()
 
 

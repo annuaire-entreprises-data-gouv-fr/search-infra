@@ -10,6 +10,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean import (
     organisme_formation as of,
     rge,
     uai,
+    marche_inclusion as mi,
 )
 
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
@@ -32,6 +33,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries import (
     entrepreneur_spectacle as q_es,
     colter as q_ct,
     uai as q_uai,
+    marche_inclusion as q_mi,
 )
 
 
@@ -177,4 +179,15 @@ def create_ess_table():
         index_name="index_ess",
         index_column="siren",
         preprocess_table_data=ess.preprocess_ess_france_data,
+    )
+
+
+def create_marche_inclusion_table():
+    create_and_fill_table_model(
+        table_name="marche_inclusion",
+        create_table_query=q_mi.create_table_marche_inclusion_query,
+        create_index_func=create_index,
+        index_name="index_marche_inclusion",
+        index_column="siren",
+        preprocess_table_data=mi.preprocess_marche_inclusion_data,
     )

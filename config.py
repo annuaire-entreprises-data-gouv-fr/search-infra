@@ -34,6 +34,7 @@ RNE_DAG_FOLDER = "dag_datalake_sirene/data_pipelines/"
 METADATA_CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}metadata/cc/"
 METADATA_CC_MINIO_PATH = "metadata/cc/"
 INSEE_FLUX_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/flux/"
+MARCHE_INCLUSION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}marche_inclusion/"
 
 # Insee
 INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
@@ -57,6 +58,9 @@ RNE_AUTH = json.loads(Variable.get("RNE_AUTH", "[]"))
 RNE_API_TOKEN_URL = "https://registre-national-entreprises.inpi.fr/api/sso/login"
 RNE_API_DIFF_URL = "https://registre-national-entreprises.inpi.fr/api/companies/diff?"
 
+# MARCHE INCLUSION
+MARCHE_INCLUSION_API_URL = "https://lemarche.inclusion.beta.gouv.fr/api/siae/?"
+SECRET_TOKEN_MARCHE_INCLUSION = Variable.get("SECRET_TOKEN_MARCHE_INCLUSION", "")
 # AIO
 AIO_URL = Variable.get("AIO_URL", None)
 COLOR_URL = Variable.get("COLOR_URL", None)
