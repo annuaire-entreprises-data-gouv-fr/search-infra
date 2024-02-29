@@ -91,7 +91,7 @@ default_args = {
 with DAG(
     dag_id=AIRFLOW_ETL_DAG_NAME,
     default_args=default_args,
-    schedule_interval="0 18 * * *",  # Run everyday at 18h
+    schedule_interval="0 5 * * *",  # Run everyday at 5 am
     start_date=datetime(2023, 12, 27),
     dagrun_timeout=timedelta(minutes=60 * 5),
     tags=["preprocessing", "data"],

@@ -32,7 +32,7 @@ with DAG(
     max_active_runs=1,
     catchup=False,
     dagrun_timeout=timedelta(minutes=(60 * 30)),
-    tags=["data_processing", "rne", "dirigeants", "database"],
+    tags=["rne", "database"],
     params={},
 ) as dag:
     clean_previous_outputs = BashOperator(
