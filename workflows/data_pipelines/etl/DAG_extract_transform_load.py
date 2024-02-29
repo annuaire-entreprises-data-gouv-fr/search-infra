@@ -94,7 +94,7 @@ with DAG(
     schedule_interval="0 5 * * *",  # Run everyday at 5 am
     start_date=datetime(2023, 12, 27),
     dagrun_timeout=timedelta(minutes=60 * 5),
-    tags=["preprocessing", "data"],
+    tags=["database", "all-data"],
     catchup=False,  # False to ignore past runs
     on_failure_callback=send_notification_failure_tchap,
     max_active_runs=1,

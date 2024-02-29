@@ -66,7 +66,7 @@ with DAG(
     schedule_interval="0 0 * * *",  # Run every day at midnight
     start_date=datetime(2023, 9, 4),
     dagrun_timeout=timedelta(minutes=60 * 12),
-    tags=["siren"],
+    tags=["index", "elasticsearch"],
     catchup=False,  # False to ignore past runs
     on_failure_callback=send_notification_failure_tchap,
     max_active_runs=1,
