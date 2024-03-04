@@ -7,6 +7,8 @@ AIRFLOW_DAG_TMP = Variable.get("AIRFLOW_DAG_TMP", "/tmp/")
 AIRFLOW_DAG_FOLDER = "dag_datalake_sirene/"
 AIRFLOW_ETL_DAG_NAME = "extract_transform_load_db"
 AIRFLOW_ELK_DAG_NAME = "index_elasticsearch"
+AIRFLOW_SNAPSHOT_DAG_NAME = "snapshot_index"
+AIRFLOW_SNAPSHOT_ROLLBACK_DAG_NAME = "snapshot_index_rollback"
 AIRFLOW_ENV = Variable.get("ENV", "dev")
 AIRFLOW_URL = Variable.get("AIRFLOW_URL", "")
 AIRFLOW_ETL_DATA_DIR = (
@@ -65,6 +67,7 @@ SECRET_TOKEN_MARCHE_INCLUSION = Variable.get("SECRET_TOKEN_MARCHE_INCLUSION", ""
 AIO_URL = Variable.get("AIO_URL", None)
 COLOR_URL = Variable.get("COLOR_URL", None)
 PATH_AIO = Variable.get("PATH_AIO", None)
+COLOR_IS_DAILY = bool(Variable.get("COLOR_IS_DAILY", "False"))
 
 # Redis
 REDIS_HOST = "redis"
@@ -77,9 +80,25 @@ ELASTIC_PASSWORD = Variable.get("ELASTIC_PASSWORD", None)
 ELASTIC_URL = Variable.get("ELASTIC_URL", None)
 ELASTIC_USER = Variable.get("ELASTIC_USER", None)
 ELASTIC_BULK_SIZE = 1500
-ELASTIC_SHARDS = 1
+ELASTIC_SHARDS = 2
 ELASTIC_REPLICAS = 0
 
+ELASTIC_MAX_LIVE_VERSIONS = int(Variable.get("ELASTIC_MAX_LIVE_VERSIONS", 2))
+
+ELASTIC_SNAPSHOT_REPOSITORY = Variable.get("ELASTIC_SNAPSHOT_REPOSITORY", "data-prod")
+ELASTIC_SNAPSHOT_MAX_REVISIONS = 5
+ELASTIC_SNAPSHOT_MINIO_STATE_PATH = Variable.get(
+    "ELASTIC_SNAPSHOT_MINIO_STATE_PATH", "elastic_index_version"
+)
+
+ELASTIC_DOWNSTREAM_ALIAS = Variable.get("ELASTIC_DOWNSTREAM_ALIAS", "siren-reader")
+# comma separated URL
+ELASTIC_DOWNSTREAM_URLS = Variable.get("ELASTIC_DOWNSTREAM_URLS", "")
+ELASTIC_DOWNSTREAM_USER = Variable.get("ELASTIC_DOWNSTREAM_USER", "")
+ELASTIC_DOWNSTREAM_PASSWORD = Variable.get("ELASTIC_DOWNSTREAM_PASSWORD", "")
+
+API_URL = Variable.get("API_URL", "")
+API_IS_REMOTE = bool(Variable.get("API_IS_REMOTE", "False"))
 
 # Datasets
 URL_AGENCE_BIO = (

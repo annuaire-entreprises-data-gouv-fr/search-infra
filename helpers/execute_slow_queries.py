@@ -1,13 +1,13 @@
 import logging
 import requests
 
-from dag_datalake_sirene.config import AIO_URL
+from dag_datalake_sirene.config import API_URL
 from dag_datalake_sirene.helpers.slow_requests import SLOW_REQUESTS
 
 
 def execute_slow_requests():
     session = requests.Session()
-    base_url = AIO_URL
+    base_url = API_URL
     for query in SLOW_REQUESTS:
         try:
             path = f"/search?{query}"

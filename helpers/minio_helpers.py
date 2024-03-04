@@ -36,6 +36,9 @@ class MinIOClient:
         if not self.bucket_exists:
             raise ValueError(f"Bucket '{self.bucket}' does not exist.")
 
+    def get_root_dirpath(self) -> str:
+        return f"ae/{AIRFLOW_ENV}"
+
     def send_files(
         self,
         list_files: List[File],
@@ -117,11 +120,13 @@ class MinIOClient:
         filename: str,
         minio_path: str,
         local_path: str,
+        content_type: str = "application/octet-stream",
     ) -> None:
         self.client.fput_object(
             bucket_name=self.bucket,
             object_name=minio_path,
             file_path=local_path + filename,
+            content_type=content_type,
         )
 
     def get_latest_file_minio(

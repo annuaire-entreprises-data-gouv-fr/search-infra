@@ -73,4 +73,4 @@ class ElasticCreateIndex:
             logging.info(f"Index {self.elastic_index} deleted!")
         logging.info(f"Creating {self.elastic_index} index!")
         # Create the mapping in elasticsearch
-        StructureMapping.init()
+        StructureMapping.init(index=self.elastic_index)
