@@ -98,7 +98,7 @@ ELASTIC_DOWNSTREAM_USER = Variable.get("ELASTIC_DOWNSTREAM_USER", "")
 ELASTIC_DOWNSTREAM_PASSWORD = Variable.get("ELASTIC_DOWNSTREAM_PASSWORD", "")
 
 API_URL = Variable.get("API_URL", "")
-API_IS_REMOTE = Variable.get("False", "").lower() not in ["false", "0"]
+API_IS_REMOTE = Variable.get("API_IS_REMOTE", "False").lower() not in ["false", "0"]
 
 # Datasets
 URL_AGENCE_BIO = (
