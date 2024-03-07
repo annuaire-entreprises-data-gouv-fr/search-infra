@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 
 from airflow.models import DAG
-from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from operators.clean_folder import CleanFolderOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
@@ -85,7 +84,7 @@ default_args = {
     "depends_on_past": False,
     "email": EMAIL_LIST,
     "email_on_failure": True,
-    "email_on_retry": True,
+    "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=10),
 }
@@ -338,20 +337,6 @@ with DAG(
         deferrable=False,
     )
 
-    success_email_body = f"""
-    Hi, <br><br>
-    preprocess-data-sirene-{AIRFLOW_ENV} DAG has been executed
-    successfully at {datetime.now()}.
-    """
-
-    send_email = EmailOperator(
-        task_id="send_email",
-        to=EMAIL_LIST,
-        subject=f"Airflow Success: DAG-preprocess-{AIRFLOW_ENV}!",
-        html_content=success_email_body,
-        dag=dag,
-    )
-
     send_notification_tchap = PythonOperator(
         task_id="send_notification_tchap",
         python_callable=send_notification_success_tchap,
@@ -406,5 +391,4 @@ with DAG(
 
     clean_folder.set_upstream(send_database_to_minio)
     trigger_indexing_dag.set_upstream(clean_folder)
-    send_email.set_upstream(trigger_indexing_dag)
-    send_notification_tchap.set_upstream(send_email)
+    send_notification_tchap.set_upstream(trigger_indexing_dag)

@@ -1,6 +1,5 @@
 import logging
 from airflow.operators.python_operator import PythonOperator
-from airflow.operators.email_operator import EmailOperator
 from airflow.models import DAG
 from datetime import datetime, timedelta, timezone
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
@@ -83,19 +82,5 @@ with DAG(
         },
         dag=dag,
     )
-    success_email_body = f"""
-    Hi, <br><br>
-    delete-old-files-from-MinIO-{AIRFLOW_ENV} DAG has
-    been executed successfully at {datetime.now()}.
-    """
-
-    send_email = EmailOperator(
-        task_id="send_email",
-        to=EMAIL_LIST,
-        subject=f"Airflow Success: DAG-{AIRFLOW_ENV}!",
-        html_content=success_email_body,
-        dag=dag,
-    )
 
     delete_old_sirene_databases.set_upstream(delete_old_rne_databases)
-    send_email.set_upstream(delete_old_sirene_databases)

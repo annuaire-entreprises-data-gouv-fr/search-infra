@@ -1,11 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.models import DAG
-from airflow.operators.email_operator import EmailOperator
 from airflow.utils.dates import days_ago
 from dag_datalake_sirene.config import (
-    AIRFLOW_ENV,
     EMAIL_LIST,
     PATH_AIO,
 )
@@ -14,7 +12,7 @@ default_args = {
     "depends_on_past": False,
     "email": EMAIL_LIST,
     "email_on_failure": True,
-    "email_on_retry": True,
+    "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
 }
@@ -36,19 +34,3 @@ with DAG(
         cmd_timeout=60,
         dag=dag,
     )
-
-    success_email_body = f"""
-    Hi, <br><br>
-    Restarting API ***{AIRFLOW_ENV}*** DAG has been executed successfully at
-     {datetime.now()}.
-    """
-
-    send_email = EmailOperator(
-        task_id="send_email",
-        to=EMAIL_LIST,
-        subject=f"Airflow Success: DAG-{AIRFLOW_ENV}!",
-        html_content=success_email_body,
-        dag=dag,
-    )
-
-    send_email.set_upstream(restart_aio_container)
