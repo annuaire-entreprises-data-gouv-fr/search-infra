@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 
 from airflow.models import DAG
-from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
@@ -39,7 +38,6 @@ from dag_datalake_sirene.config import (
     AIRFLOW_ELK_DAG_NAME,
     AIRFLOW_SNAPSHOT_DAG_NAME,
     AIRFLOW_DAG_FOLDER,
-    AIRFLOW_ENV,
     EMAIL_LIST,
     REDIS_HOST,
     REDIS_PORT,
@@ -55,7 +53,7 @@ default_args = {
     "depends_on_past": False,
     "email": EMAIL_LIST,
     "email_on_failure": True,
-    "email_on_retry": True,
+    "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
 }
@@ -136,20 +134,6 @@ with DAG(
         python_callable=run_e2e_tests,
     )
 
-    success_email_body = f"""
-    Hi, <br><br>
-    insert-elk-sirene-{AIRFLOW_ENV} DAG has been executed
-    successfully at {datetime.now()}.
-    """
-
-    send_email = EmailOperator(
-        task_id="send_email",
-        to=EMAIL_LIST,
-        subject=f"Airflow Success: DAG-{AIRFLOW_ENV}!",
-        html_content=success_email_body,
-        dag=dag,
-    )
-
     send_notification_tchap = PythonOperator(
         task_id="send_notification_tchap",
         python_callable=send_notification_success_tchap,
@@ -176,8 +160,7 @@ with DAG(
 
         trigger_snapshot_dag.set_upstream(update_elastic_alias)
         test_api.set_upstream(trigger_snapshot_dag)
-
-        send_email.set_upstream([test_api, update_sitemap])
+        send_notification_tchap.set_upstream([test_api, update_sitemap])
     else:
         execute_aio_container = SSHOperator(
             ssh_conn_id="SERVER",
@@ -201,6 +184,3 @@ with DAG(
         execute_aio_container.set_upstream(update_elastic_alias)
         test_api.set_upstream(execute_aio_container)
         flush_cache.set_upstream(test_api)
-        send_email.set_upstream([flush_cache, update_sitemap])
-
-    send_notification_tchap.set_upstream(send_email)

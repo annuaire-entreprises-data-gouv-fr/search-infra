@@ -3,15 +3,19 @@ from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.snapshot import (
+# fmt: off
+from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.snapshot\
+    import (
     snapshot_elastic_index,
     update_minio_current_index_version,
     delete_old_snapshots,
 )
 
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.downstream import (
+from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.\
+    task_functions.downstream import (
     wait_for_downstream_import,
 )
+# fmt: on
 
 from dag_datalake_sirene.config import (
     EMAIL_LIST,
@@ -22,7 +26,7 @@ default_args = {
     "depends_on_past": False,
     "email": EMAIL_LIST,
     "email_on_failure": True,
-    "email_on_retry": True,
+    "email_on_retry": False,
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
 }

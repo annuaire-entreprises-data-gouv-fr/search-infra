@@ -1,5 +1,4 @@
 from airflow.operators.python_operator import PythonOperator
-from airflow.operators.email_operator import EmailOperator
 from airflow.models import DAG
 from datetime import datetime, timedelta, timezone
 from airflow.models.dagrun import DagRun
@@ -8,7 +7,6 @@ import os
 import logging
 import shutil
 from dag_datalake_sirene.config import (
-    AIRFLOW_ENV,
     EMAIL_LIST,
 )
 
@@ -96,20 +94,5 @@ with DAG(
         task_id="delete_old_runs", python_callable=delete_old_runs, dag=dag
     )
 
-    success_email_body = f"""
-    Hi, <br><br>
-    delete-logs-and-runs-{AIRFLOW_ENV} DAG has
-    been executed successfully at {datetime.now()}.
-    """
-
-    send_email = EmailOperator(
-        task_id="send_email",
-        to=EMAIL_LIST,
-        subject=f"Airflow Success: DAG-{AIRFLOW_ENV}!",
-        html_content=success_email_body,
-        dag=dag,
-    )
-
     # Set the task dependency
     delete_old_runs_task.set_upstream(delete_old_logs_task)
-    send_email.set_upstream(delete_old_runs_task)
