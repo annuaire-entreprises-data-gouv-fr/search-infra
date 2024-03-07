@@ -63,10 +63,10 @@ default_args = {
 with DAG(
     dag_id=AIRFLOW_ELK_DAG_NAME,
     default_args=default_args,
-    schedule_interval="0 0 * * *",  # Run every day at midnight
+    schedule_interval=None,  # Triggered by database etl
     start_date=datetime(2023, 9, 4),
     dagrun_timeout=timedelta(minutes=60 * 12),
-    tags=["siren"],
+    tags=["index", "elasticsearch"],
     catchup=False,  # False to ignore past runs
     on_failure_callback=send_notification_failure_tchap,
     max_active_runs=1,
@@ -179,7 +179,6 @@ with DAG(
 
         send_email.set_upstream([test_api, update_sitemap])
     else:
-
         execute_aio_container = SSHOperator(
             ssh_conn_id="SERVER",
             task_id="execute_aio_container",

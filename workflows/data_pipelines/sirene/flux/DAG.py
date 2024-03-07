@@ -38,10 +38,10 @@ default_args = {
 with DAG(
     dag_id=DAG_NAME,
     default_args=default_args,
-    schedule_interval="0 4 * * *",
+    schedule_interval="0 4 * * *",  # Daily at 4 AM
     start_date=days_ago(1),
     dagrun_timeout=timedelta(minutes=60),
-    tags=["update", "sirene"],
+    tags=["sirene", "flux"],
 ) as dag:
     clean_previous_outputs = BashOperator(
         task_id="clean_previous_outputs",

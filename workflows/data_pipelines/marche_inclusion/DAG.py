@@ -30,7 +30,7 @@ default_args = {
 with DAG(
     dag_id=DAG_NAME,
     default_args=default_args,
-    schedule_interval="10 0 * * *",  # Run at 12:10 AM every day
+    schedule_interval="0 1 * * *",  # Run daily at 1 AM
     start_date=days_ago(1),
     dagrun_timeout=timedelta(minutes=60),
     tags=["marche inclusion"],

@@ -4,6 +4,7 @@ from airflow.models import DAG
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from operators.clean_folder import CleanFolderOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
@@ -74,6 +75,7 @@ from dag_datalake_sirene.config import (
     AIRFLOW_ETL_DAG_NAME,
     AIRFLOW_DAG_FOLDER,
     AIRFLOW_ENV,
+    AIRFLOW_ELK_DAG_NAME,
     RNE_DATABASE_LOCATION,
     EMAIL_LIST,
 )
@@ -91,10 +93,10 @@ default_args = {
 with DAG(
     dag_id=AIRFLOW_ETL_DAG_NAME,
     default_args=default_args,
-    schedule_interval="0 18 * * *",  # Run everyday at 18h
+    schedule_interval="0 5 * * *",  # Run everyday at 5 am
     start_date=datetime(2023, 12, 27),
     dagrun_timeout=timedelta(minutes=60 * 5),
-    tags=["preprocessing", "data"],
+    tags=["database", "all-data"],
     catchup=False,  # False to ignore past runs
     on_failure_callback=send_notification_failure_tchap,
     max_active_runs=1,
@@ -329,6 +331,13 @@ with DAG(
         folder_path=(f"{AIRFLOW_DAG_TMP}+{AIRFLOW_DAG_FOLDER}+{AIRFLOW_ETL_DAG_NAME}"),
     )
 
+    trigger_indexing_dag = TriggerDagRunOperator(
+        task_id="trigger_indexing_dag",
+        trigger_dag_id=AIRFLOW_ELK_DAG_NAME,
+        wait_for_completion=False,
+        deferrable=False,
+    )
+
     success_email_body = f"""
     Hi, <br><br>
     preprocess-data-sirene-{AIRFLOW_ENV} DAG has been executed
@@ -396,5 +405,6 @@ with DAG(
     send_database_to_minio.set_upstream(create_marche_inclusion_table)
 
     clean_folder.set_upstream(send_database_to_minio)
-    send_email.set_upstream(clean_folder)
+    trigger_indexing_dag.set_upstream(clean_folder)
+    send_email.set_upstream(trigger_indexing_dag)
     send_notification_tchap.set_upstream(send_email)
