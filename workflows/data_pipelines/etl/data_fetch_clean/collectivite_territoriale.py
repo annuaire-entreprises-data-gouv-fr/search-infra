@@ -27,9 +27,9 @@ def preprocess_colter_data(data_dir, **kwargs):
     df_regions["colter_niveau"] = "region"
 
     # Cas particulier Corse
-    df_regions.loc[df_regions["colter_code_insee"] == "94", "colter_niveau"] = (
-        "particulier"
-    )
+    df_regions.loc[
+        df_regions["colter_code_insee"] == "94", "colter_niveau"
+    ] = "particulier"
     df_colter = df_regions
 
     # Process Départements
@@ -88,9 +88,9 @@ def preprocess_colter_data(data_dir, **kwargs):
         ["colter_code_insee", "siren", "colter_code", "colter_niveau"]
     ]
     df_communes.loc[df_communes["colter_code_insee"] == "75056", "colter_code"] = "75C"
-    df_communes.loc[df_communes["colter_code_insee"] == "75056", "colter_niveau"] = (
-        "particulier"
-    )
+    df_communes.loc[
+        df_communes["colter_code_insee"] == "75056", "colter_niveau"
+    ] = "particulier"
 
     df_colter = pd.concat([df_colter, df_communes])
     df_colter.to_csv(data_dir + "colter-new.csv", index=False)

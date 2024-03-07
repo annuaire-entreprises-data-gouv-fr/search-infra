@@ -179,7 +179,6 @@ with DAG(
 
         send_email.set_upstream([test_api, update_sitemap])
     else:
-
         execute_aio_container = SSHOperator(
             ssh_conn_id="SERVER",
             task_id="execute_aio_container",
