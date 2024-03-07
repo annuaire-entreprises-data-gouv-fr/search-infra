@@ -5,6 +5,8 @@ from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
+from airflow.contrib.operators.ssh_operator import SSHOperator
+
 from dag_datalake_sirene.helpers.flush_cache import flush_cache
 
 # fmt: off
@@ -44,6 +46,7 @@ from dag_datalake_sirene.config import (
     REDIS_DB,
     REDIS_PASSWORD,
     API_IS_REMOTE,
+    PATH_AIO,
 )
 from operators.clean_folder import CleanFolderOperator
 
@@ -176,6 +179,15 @@ with DAG(
 
         send_email.set_upstream([test_api, update_sitemap])
     else:
+
+        execute_aio_container = SSHOperator(
+            ssh_conn_id="SERVER",
+            task_id="execute_aio_container",
+            command=f"cd {PATH_AIO} "
+            f"&& docker-compose -f docker-compose-aio.yml up --build -d --force",
+            cmd_timeout=60,
+            dag=dag,
+        )
         flush_cache = PythonOperator(
             task_id="flush_cache",
             provide_context=True,
@@ -187,8 +199,8 @@ with DAG(
                 REDIS_PASSWORD,
             ),
         )
-
-        test_api.set_upstream(update_elastic_alias)
+        execute_aio_container.set_upstream(update_elastic_alias)
+        test_api.set_upstream(execute_aio_container)
         flush_cache.set_upstream(test_api)
         send_email.set_upstream([flush_cache, update_sitemap])
 
