@@ -1,21 +1,18 @@
-# Annuaire des Entreprises - [Infrastructure de recherche]
+<h1 align="center">
+  <img src="https://github.com/etalab/annuaire-entreprises-site/blob/main/public/images/annnuaire-entreprises.svg" width="400px" />
+</h1>
 
-Ce site est disponible en ligne : [L’Annuaire des Entreprises](https://annuaire-entreprises.data.gouv.fr)
+<a href="https://github.com/etalab/annuaire-entreprises-search-infra/blob/main/LICENSE"><img src="https://img.shields.io/github/license/etalab/annuaire-entreprises-search-infra.svg?color=green" alt="License Badge"></a>
 
-Ce repository décrit le workflow qui récupère, traite et indexe les données publiques d'entreprises.
+Bienvenue sur le dépôt d’infra de [l’Annuaire des Entreprises](https://github.com/etalab/annuaire-entreprises-site).
+
+Ce dépôt décrit le workflow qui récupère, traite et indexe les données publiques d'entreprises.
 
 Ce code s'exécute dans une infrastructure Airflow basée sur cette stack 👉 https://github.com/etalab/data-engineering-stack.
 
-## Architecture du service 🏗
+## Dépôts liés 🏗
 
-Ce repository fait partie d'un ensemble de services qui constituent l'[Annuaire des Entreprises](https://annuaire-entreprises.data.gouv.fr) :
-
-| Description                                                                             | Accès                                                                     |
-| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Le site Web                                                                             | [par ici 👉](https://github.com/etalab/annuaire-entreprises-site)         |
-| L'API du Moteur de recherche                                                            | [par ici 👉](https://github.com/etalab/annuaire-entreprises-search-api)   |
-| L'API de redondance de Sirene                                                           | [par ici 👉](https://github.com/etalab/annuaire-entreprises-sirene-api)   |
-| Le traitement permettant la génération de données à ingérer dans le moteur de recherche | [par ici 👉](https://github.com/etalab/annuaire-entreprises-search-infra) |
+Ce dépôt fait partie [d'un ensemble de services qui constituent l'Annuaire des Entreprises](https://github.com/etalab/annuaire-entreprises-site?tab=readme-ov-file#dépôts-liés-).
 
 ## Sources de données
 
