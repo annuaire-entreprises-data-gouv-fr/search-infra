@@ -73,16 +73,16 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["bilan_financier"] = {}
 
         # Activite principale
-        unite_legale_processed[
-            "section_activite_principale"
-        ] = label_section_from_activite(
-            unite_legale["activite_principale_unite_legale"]
+        unite_legale_processed["section_activite_principale"] = (
+            label_section_from_activite(
+                unite_legale["activite_principale_unite_legale"]
+            )
         )
 
         # Entrepreneur individuel
-        unite_legale_processed[
-            "est_entrepreneur_individuel"
-        ] = is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
+        unite_legale_processed["est_entrepreneur_individuel"] = (
+            is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
+        )
 
         # Categorie entreprise
         unite_legale_processed["code_categorie_entreprise"] = map_categorie_to_number(
@@ -115,18 +115,18 @@ def process_unites_legales(chunk_unites_legales_sqlite):
                 unite_legale_processed["nom"], unite_legale_processed["nom_usage"]
             )
 
-            unite_legale_processed["dirigeants_pp"][0][
-                "prenoms"
-            ] = unite_legale_processed["prenom"]
+            unite_legale_processed["dirigeants_pp"][0]["prenoms"] = (
+                unite_legale_processed["prenom"]
+            )
 
         # Élus
         unite_legale_processed["liste_elus"] = create_list_names_elus(
             unite_legale_processed["colter_elus"]
         )
 
-        unite_legale_processed[
-            "est_entrepreneur_individuel"
-        ] = is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
+        unite_legale_processed["est_entrepreneur_individuel"] = (
+            is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
+        )
 
         unite_legale_processed["est_service_public"] = is_service_public(
             unite_legale["nature_juridique_unite_legale"],
@@ -148,14 +148,14 @@ def process_unites_legales(chunk_unites_legales_sqlite):
                 unite_legale_processed["nom"], unite_legale_processed["nom_usage"]
             )
 
-            unite_legale_processed["dirigeants_pp"][0][
-                "prenoms"
-            ] = unite_legale_processed["prenom"]
+            unite_legale_processed["dirigeants_pp"][0]["prenoms"] = (
+                unite_legale_processed["prenom"]
+            )
 
-        unite_legale_processed[
-            "section_activite_principale"
-        ] = label_section_from_activite(
-            unite_legale["activite_principale_unite_legale"]
+        unite_legale_processed["section_activite_principale"] = (
+            label_section_from_activite(
+                unite_legale["activite_principale_unite_legale"]
+            )
         )
 
         # Entrepreneur de spectacle vivant
