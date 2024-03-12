@@ -32,6 +32,8 @@ select_fields_to_index_query = """SELECT
             ul.annee_categorie_entreprise as annee_categorie_entreprise,
             ul.annee_tranche_effectif_salarie as annee_tranche_effectif_salarie,
             (SELECT liste_idcc_by_siren FROM convention_collective WHERE
+                        siren = ul.siren) as liste_idcc_by_siren,
+            (SELECT liste_idcc FROM convention_collective WHERE
                         siren = ul.siren) as liste_idcc,
             (SELECT count FROM count_etab ce WHERE ce.siren = ul.siren) as
             nombre_etablissements,
