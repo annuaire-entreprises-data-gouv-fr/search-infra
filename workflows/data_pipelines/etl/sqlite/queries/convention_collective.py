@@ -5,6 +5,6 @@ create_table_convention_collective_query = """
          siren,
          liste_idcc,
          liste_idcc_by_siren,
-         liste_idcc_by_siretg
+         liste_idcc_by_siret
      )
     """
