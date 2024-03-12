@@ -46,7 +46,7 @@ from dag_datalake_sirene.config import (
     API_IS_REMOTE,
     PATH_AIO,
 )
-from operators.clean_folder import CleanFolderOperator
+from airflow.operators.clean_folder import CleanFolderOperator
 
 
 default_args = {
