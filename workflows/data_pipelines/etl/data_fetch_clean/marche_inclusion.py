@@ -20,11 +20,9 @@ def preprocess_marche_inclusion_data(data_dir):
     df_siae["siren"] = df_siae["siret"].str[0:9]
 
     df_siae_grouped = (
-        df_siae.groupby("siren")["kind_parent"]
-        .agg(lambda x: list(set(x)))
-        .reset_index()
+        df_siae.groupby("siren")["kind"].agg(lambda x: list(set(x))).reset_index()
     )
-    df_siae_grouped.rename(columns={"kind_parent": "type_siae"}, inplace=True)
+    df_siae_grouped.rename(columns={"kind": "type_siae"}, inplace=True)
     df_siae_grouped["type_siae"] = df_siae_grouped["type_siae"].astype(str)
 
     df_siae_grouped["est_siae"] = True
