@@ -20,12 +20,10 @@ def call_api_marche_inclusion(number_of_strctures):
 
 
 def save_siae_to_csv(data, file_path):
-    csv_data = [
-        [result["siret"], result["kind_parent"]] for result in data.get("results", [])
-    ]
+    csv_data = [[result["siret"], result["kind"]] for result in data.get("results", [])]
     with open(file_path, "w", newline="") as csv_file:
         writer = csv.writer(csv_file)
-        writer.writerow(["siret", "kind_parent"])
+        writer.writerow(["siret", "kind"])
         writer.writerows(csv_data)
 
 
