@@ -3,7 +3,8 @@ create_table_convention_collective_query = """
      (
          siret,
          siren,
+         liste_idcc,
          liste_idcc_by_siren,
-         liste_idcc_by_siret
+         liste_idcc_by_siretg
      )
     """
