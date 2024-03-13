@@ -59,9 +59,9 @@ def preprocess_convcollective_data(data_dir):
 
     merged_df = df_liste_cc_by_siret.merge(df_liste_cc_by_siren, on="siren", how="left")
 
-    merged_df["liste_idcc_by_siren"] = merged_df["liste_idcc_by_siren"].astype(str)
-
     df_cc = merged_df.merge(df_liste_cc, on="siren", how="left")
+    df_cc["liste_idcc_by_siren"] = df_cc["liste_idcc_by_siren"].astype(str)
+    df_cc["liste_idcc"] = df_cc["liste_idcc"].astype(str)
 
     del df_liste_cc_by_siren
     del df_liste_cc_by_siret
