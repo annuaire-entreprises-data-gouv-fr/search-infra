@@ -2,7 +2,6 @@ import filecmp
 import logging
 import requests
 import os
-from ast import literal_eval
 from datetime import datetime, date
 from unicodedata import normalize
 from dag_datalake_sirene.config import AIRFLOW_ENV
@@ -11,11 +10,15 @@ from dag_datalake_sirene.config import AIRFLOW_ENV
 def str_to_list(string):
     if string is None:
         return None
-    try:
-        li = literal_eval(string)
-        return li
-    except ValueError:
-        logging.info(f"////////////////Could not evaluate: {string}")
+    # Check if the string starts with '[' and ends with ']'
+    if string.startswith("[") and string.endswith("]"):
+        # Remove the brackets
+        string = string[1:-1]
+        elements = [elem.strip() for elem in string.split(",")]
+        return elements
+    else:
+        logging.info(f"///////////Could not turn str into list: {string}")
+        return None
 
 
 def str_to_bool(string):
