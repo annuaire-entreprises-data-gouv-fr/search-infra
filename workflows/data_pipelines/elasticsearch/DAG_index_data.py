@@ -77,7 +77,7 @@ with DAG(
 
     clean_previous_folder = CleanFolderOperator(
         task_id="clean_previous_folder",
-        folder_path=f"{AIRFLOW_DAG_TMP}+{AIRFLOW_DAG_FOLDER}+{AIRFLOW_ELK_DAG_NAME}",
+        folder_path=f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ELK_DAG_NAME}",
     )
 
     get_latest_sqlite_database = create_sqlite_database = PythonOperator(
@@ -158,9 +158,15 @@ with DAG(
             deferrable=False,
         )
 
+        clean_folder = CleanFolderOperator(
+            task_id="clean_folder",
+            folder_path=f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ELK_DAG_NAME}",
+        )
+
         trigger_snapshot_dag.set_upstream(update_elastic_alias)
         test_api.set_upstream(trigger_snapshot_dag)
-        send_notification_tchap.set_upstream([test_api, update_sitemap])
+        clean_folder.set_upstream(test_api)
+        send_notification_tchap.set_upstream([clean_folder, update_sitemap])
     else:
         execute_aio_container = SSHOperator(
             ssh_conn_id="SERVER",
@@ -181,6 +187,11 @@ with DAG(
                 REDIS_PASSWORD,
             ),
         )
+        clean_folder = CleanFolderOperator(
+            task_id="clean_folder",
+            folder_path=f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ELK_DAG_NAME}",
+        )
         execute_aio_container.set_upstream(update_elastic_alias)
         test_api.set_upstream(execute_aio_container)
-        flush_cache.set_upstream(test_api)
+        clean_folder.set_upstream(test_api)
+        flush_cache.set_upstream(clean_folder)
