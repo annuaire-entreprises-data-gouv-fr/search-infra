@@ -1,4 +1,5 @@
 import filecmp
+import json
 import logging
 import requests
 import os
@@ -7,17 +8,13 @@ from unicodedata import normalize
 from dag_datalake_sirene.config import AIRFLOW_ENV
 
 
-def str_to_list(string):
-    if string is None:
-        return None
-    # Check if the string starts with '[' and ends with ']'
-    if string.startswith("[") and string.endswith("]"):
-        # Remove the brackets
-        string = string[1:-1]
-        elements = [elem.strip() for elem in string.split(",")]
-        return elements
-    else:
-        logging.info(f"///////////Could not turn str into list: {string}")
+def str_to_list(string_list):
+    try:
+        if string_list is None:
+            return None
+        else:
+            return json.loads(string_list)
+    except json.JSONDecodeError:
         return None
 
 
