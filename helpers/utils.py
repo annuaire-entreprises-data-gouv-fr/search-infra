@@ -1,5 +1,5 @@
 import filecmp
-import json
+from ast import literal_eval
 import logging
 import requests
 import os
@@ -8,14 +8,14 @@ from unicodedata import normalize
 from dag_datalake_sirene.config import AIRFLOW_ENV
 
 
-def str_to_list(string_list):
-    try:
-        if string_list is None:
-            return None
-        else:
-            return json.loads(string_list)
-    except json.JSONDecodeError:
+def str_to_list(string):
+    if string is None:
         return None
+    try:
+        li = literal_eval(string)
+        return li
+    except ValueError:
+        logging.info(f"////////////////Could not evaluate: {string}")
 
 
 def str_to_bool(string):
