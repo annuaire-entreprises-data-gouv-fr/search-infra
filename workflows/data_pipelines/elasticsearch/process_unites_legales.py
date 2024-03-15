@@ -213,6 +213,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["siege"], is_non_diffusible
         )
 
+        # Convention collective
+        unite_legale_processed["liste_idcc"] = str_to_list(
+            unite_legale_processed["liste_idcc"]
+        )
+
         # Source de données
         unite_legale_processed["from_insee"] = sqlite_str_to_bool(
             unite_legale["from_insee"]

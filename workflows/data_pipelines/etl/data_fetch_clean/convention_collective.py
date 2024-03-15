@@ -22,6 +22,13 @@ def preprocess_convcollective_data(data_dir):
     df_conv_coll = df_conv_coll.dropna(subset=["siret"])
     df_conv_coll["idcc"] = df_conv_coll["idcc"].str.replace(" ", "")
 
+    df_liste_cc = (
+        df_conv_coll.groupby(by=["siren"])["idcc"]
+        .unique()
+        .apply(list)
+        .reset_index(name="liste_idcc")
+    )
+
     df_liste_cc_by_siret = (
         df_conv_coll.groupby(by=["siret"])["idcc"]
         .apply(list)
@@ -52,9 +59,12 @@ def preprocess_convcollective_data(data_dir):
 
     merged_df = df_liste_cc_by_siret.merge(df_liste_cc_by_siren, on="siren", how="left")
 
-    merged_df["liste_idcc_by_siren"] = merged_df["liste_idcc_by_siren"].astype(str)
+    df_cc = merged_df.merge(df_liste_cc, on="siren", how="left")
+    df_cc["liste_idcc_by_siren"] = df_cc["liste_idcc_by_siren"].astype(str)
+    df_cc["liste_idcc"] = df_cc["liste_idcc"].astype(str)
 
     del df_liste_cc_by_siren
     del df_liste_cc_by_siret
+    del merged_df
 
-    return merged_df
+    return df_cc
