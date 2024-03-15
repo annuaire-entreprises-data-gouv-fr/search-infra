@@ -102,7 +102,7 @@ with DAG(
 ) as dag:
     clean_previous_folder = CleanFolderOperator(
         task_id="clean_previous_folder",
-        folder_path=(f"{AIRFLOW_DAG_TMP}+{AIRFLOW_DAG_FOLDER}+{AIRFLOW_ETL_DAG_NAME}"),
+        folder_path=(f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ETL_DAG_NAME}"),
     )
 
     create_sqlite_database = PythonOperator(
@@ -327,7 +327,7 @@ with DAG(
 
     clean_folder = CleanFolderOperator(
         task_id="clean_folder",
-        folder_path=(f"{AIRFLOW_DAG_TMP}+{AIRFLOW_DAG_FOLDER}+{AIRFLOW_ETL_DAG_NAME}"),
+        folder_path=(f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ETL_DAG_NAME}"),
     )
 
     trigger_indexing_dag = TriggerDagRunOperator(
