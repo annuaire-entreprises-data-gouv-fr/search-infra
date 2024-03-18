@@ -103,7 +103,7 @@ API_IS_REMOTE = Variable.get("API_IS_REMOTE", "False").lower() not in ["false", 
 
 # Datasets
 URL_AGENCE_BIO = (
-    "https://object.files.data.gouv.fr/data-pipeline-open/prod/agence_bio"
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/agence_bio"
     "/latest/agence_bio_certifications.csv"
 )
 URL_BILANS_FINANCIERS = (
