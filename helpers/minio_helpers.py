@@ -1,3 +1,5 @@
+import boto3
+import botocore
 from datetime import datetime
 import logging
 from minio import Minio, S3Error
@@ -203,6 +205,47 @@ class MinIOClient:
             file_info_list.append((file_name, last_modified))
         logging.info(f"*****List of files: {file_info_list}")
         return file_info_list
+
+    def compare_files(
+        self,
+        file_path_1: str,
+        file_path_2: str,
+        file_name_1: str,
+        file_name_2: str,
+    ):
+        """Compare two minio files
+
+        Args:
+            both path and name from files to compare
+
+        """
+        if self.bucket is None:
+            raise AttributeError("A bucket has to be specified.")
+        s3 = boto3.client(
+            "s3",
+            endpoint_url=f"https://{self.url}",
+            aws_access_key_id=self.user,
+            aws_secret_access_key=self.password,
+        )
+
+        try:
+            logging.info(f"{AIRFLOW_ENV}/{file_path_1}{file_name_1}")
+            logging.info(f"{AIRFLOW_ENV}/{file_path_2}{file_name_2}")
+            file_1 = s3.head_object(
+                Bucket=self.bucket, Key=f"{AIRFLOW_ENV}/{file_path_1}{file_name_1}"
+            )
+            file_2 = s3.head_object(
+                Bucket=self.bucket, Key=f"{AIRFLOW_ENV}/{file_path_2}{file_name_2}"
+            )
+            logging.info(f"Hash file 1 : {file_1['ETag']}")
+            logging.info(f"Hash file 2 : {file_2['ETag']}")
+            logging.info(bool(file_1["ETag"] == file_2["ETag"]))
+
+            return bool(file_1["ETag"] == file_2["ETag"])
+
+        except botocore.exceptions.ClientError as e:
+            logging.error("Error loading files:", e)
+            return None
 
 
 minio_client = MinIOClient()
