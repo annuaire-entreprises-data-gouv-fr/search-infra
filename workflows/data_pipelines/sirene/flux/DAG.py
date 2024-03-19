@@ -20,12 +20,10 @@ from dag_datalake_sirene.helpers.utils import (
     check_if_monday,
 )
 from dag_datalake_sirene.config import (
-    AIRFLOW_DAG_TMP,
     INSEE_FLUX_TMP_FOLDER,
 )
 
 DAG_NAME = "data_processing_sirene_flux"
-TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene_flux/"
 
 default_args = {
     "depends_on_past": False,
