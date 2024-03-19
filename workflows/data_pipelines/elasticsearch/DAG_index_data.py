@@ -165,7 +165,7 @@ with DAG(
 
         trigger_snapshot_dag.set_upstream(update_elastic_alias)
         test_api.set_upstream(trigger_snapshot_dag)
-        clean_folder.set_upstream(test_api)
+        clean_folder.set_upstream([test_api, update_sitemap])
         send_notification_tchap.set_upstream([clean_folder, update_sitemap])
     else:
         execute_aio_container = SSHOperator(
@@ -193,5 +193,5 @@ with DAG(
         )
         execute_aio_container.set_upstream(update_elastic_alias)
         test_api.set_upstream(execute_aio_container)
-        clean_folder.set_upstream(test_api)
+        clean_folder.set_upstream([test_api, update_sitemap])
         flush_cache.set_upstream(clean_folder)
