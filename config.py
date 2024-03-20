@@ -39,6 +39,7 @@ INSEE_FLUX_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/flux/"
 MARCHE_INCLUSION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}marche_inclusion/"
 AGENCE_BIO_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}agence_bio/"
 UAI_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}uai/"
+BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
 
 # Insee
 INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
@@ -108,8 +109,8 @@ URL_AGENCE_BIO = (
     "/latest/agence_bio_certifications.csv"
 )
 URL_BILANS_FINANCIERS = (
-    "https://object.files.data.gouv.fr/data-pipeline-open/"
-    "prod/signaux_faibles/latest/synthese_bilans.csv"
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/bilans_financiers"
+    "/latest/synthese_bilans.csv"
 )
 URL_COLTER_REGIONS = (
     "https://www.data.gouv.fr/fr/datasets/r/619ee62e-8f9e-4c62-b166-abc6f2b86201"
