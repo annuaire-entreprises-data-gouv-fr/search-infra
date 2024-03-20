@@ -26,7 +26,7 @@ with DAG(
     clean_previous_outputs = BashOperator(
         task_id="clean_previous_outputs",
         bash_command=(
-            f"rm -rf {AGENCE_BIO_TMP_FOLDER} && mkdir -p {AGENCE_BIO_TMP_FOLDER}",
+            f"rm -rf {AGENCE_BIO_TMP_FOLDER} && mkdir -p {AGENCE_BIO_TMP_FOLDER}"
         ),
     )
 
