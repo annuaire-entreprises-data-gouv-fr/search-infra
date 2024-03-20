@@ -163,3 +163,8 @@ def convert_date_format(original_date_string):
 
 def get_current_year():
     return datetime.now().year
+
+
+def get_fiscal_year(date):
+    # Get the fiscal year based on the month of the date
+    return date.year if date.month >= 7 else date.year - 1
