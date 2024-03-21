@@ -52,6 +52,7 @@ def preprocess_dirigeants_pp(query):
             [
                 "siren",
                 "nom",
+                "nom_usage",
                 "prenoms",
                 "date_de_naissance",
                 "nationalite",
