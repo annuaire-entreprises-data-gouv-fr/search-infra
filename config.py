@@ -38,6 +38,7 @@ METADATA_CC_MINIO_PATH = "metadata/cc/"
 INSEE_FLUX_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/flux/"
 MARCHE_INCLUSION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}marche_inclusion/"
 AGENCE_BIO_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}agence_bio/"
+UAI_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}uai/"
 
 # Insee
 INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
@@ -160,8 +161,8 @@ URL_RGE = (
     "liste-des-entreprises-rge-2/lines?size=10000&select=siret%2Ccode_qualification"
 )
 URL_UAI = (
-    "https://object.files.data.gouv.fr/data-pipeline-open/"
-    "prod/uai/latest/annuaire_uai.csv"
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/uai"
+    "/latest/annuaire_uai.csv"
 )
 URL_UNITE_LEGALE = "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip"
 URL_UNITE_LEGALE_HISTORIQUE = (
@@ -178,3 +179,8 @@ URL_CC_DARES = (
 URL_CC_KALI = (
     "https://www.data.gouv.fr/fr/datasets/r/02b67492-5243-44e8-8dd1-0cb3f90f35ff"
 )
+
+
+# DataGouv
+DATAGOUV_URL = "https://www.data.gouv.fr"
+ORGA_REFERENCE = "646b7187b50b2a93b1ae3d45"
