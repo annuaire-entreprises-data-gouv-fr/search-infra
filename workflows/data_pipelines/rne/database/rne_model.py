@@ -37,7 +37,7 @@ class PouvoirEntreprise(BaseModel):
     pays: str | None = None
     siren: str | None = None
     denomination: str | None = None
-    role: str | None = None
+    roleEntreprise: str | None = None
     formeJuridique: str | None = None
     autreIdentifiantEtranger: str | None = None
     nicSiege: str | None = None
@@ -50,6 +50,7 @@ class Entrepreneur(BaseModel):
 
 
 class Pouvoir(BaseModel):
+    libelleRoleEntreprise: str | None = None
     typeDePersonne: str | None = None
     individu: PouvoirIndividu | None = PouvoirIndividu()
     entreprise: PouvoirEntreprise | None = PouvoirEntreprise()

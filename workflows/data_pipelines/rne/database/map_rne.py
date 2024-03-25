@@ -1,4 +1,7 @@
 import logging
+from dag_datalake_sirene.helpers.utils import (
+    remove_spaces,
+)
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.rne_model import (
     RNECompany,
 )
@@ -177,9 +180,9 @@ def map_rne_dirigeant_pp_to_ul(dirigeant_pp_rne):
 
 def map_rne_dirigeant_pm_to_ul(dirigeant_pm_rne):
     dirigeant_pm_ul = DirigeantsPM()
-    dirigeant_pm_ul.siren = dirigeant_pm_rne.siren
+    dirigeant_pm_ul.siren = remove_spaces(dirigeant_pm_rne.siren)
     dirigeant_pm_ul.denomination = dirigeant_pm_rne.denomination
-    dirigeant_pm_ul.role = dirigeant_pm_rne.role
+    dirigeant_pm_ul.role = dirigeant_pm_rne.roleEntreprise
     dirigeant_pm_ul.pays = dirigeant_pm_rne.pays
     dirigeant_pm_ul.forme_juridique = dirigeant_pm_rne.formeJuridique
     return dirigeant_pm_ul
