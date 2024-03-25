@@ -6,6 +6,7 @@ from airflow.utils.dates import days_ago
 from datetime import timedelta
 from dag_datalake_sirene.config import (
     BILANS_FINANCIERS_TMP_FOLDER,
+    EMAIL_LIST,
 )
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.bilans_financiers.task_functions \
@@ -18,8 +19,18 @@ from dag_datalake_sirene.workflows.data_pipelines.bilans_financiers.task_functio
 )
 # fmt: on
 
+default_args = {
+    "depends_on_past": False,
+    "email_on_failure": True,
+    "email_on_retry": False,
+    "email": EMAIL_LIST,
+    "retries": 1,
+}
+
+
 with DAG(
     dag_id="data_processing_bilans_financiers",
+    default_args=default_args,
     schedule_interval="0 6 * * MON",
     start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=60),

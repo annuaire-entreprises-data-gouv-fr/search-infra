@@ -13,6 +13,7 @@ from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.task_function
 # fmt: on
 from dag_datalake_sirene.config import (
     AIRFLOW_DAG_TMP,
+    EMAIL_LIST,
     MARCHE_INCLUSION_TMP_FOLDER,
 )
 
@@ -23,6 +24,7 @@ default_args = {
     "depends_on_past": False,
     "email_on_failure": True,
     "email_on_retry": False,
+    "email": EMAIL_LIST,
     "retries": 1,
 }
 
