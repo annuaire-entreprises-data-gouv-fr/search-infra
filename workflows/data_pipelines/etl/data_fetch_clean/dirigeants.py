@@ -52,12 +52,13 @@ def preprocess_dirigeants_pp(query):
             [
                 "siren",
                 "nom",
-                "nom_usage",
                 "prenoms",
+                "nom_usage",
                 "date_de_naissance",
                 "nationalite",
                 "date_mise_a_jour",
-            ]
+            ],
+            dropna=False,
         )["role_description"]
         .apply(lambda x: ", ".join(str(val) for val in x if val is not None))
         .reset_index()
