@@ -319,7 +319,7 @@ def notification_tchap(ti):
         key="last_date_processed", task_ids="process_flux_json_files"
     )
     send_message(
-        f"Données RNE traitées de {start_date} à {last_date_processed} "
+        f"\U0001F7E2 Données RNE traitées de {start_date} à {last_date_processed} "
         "et stockées sur la base de données sur Minio "
         f"- Bucket {minio_client.bucket}",
     )

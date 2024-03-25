@@ -246,7 +246,8 @@ def send_notification(ti):
     nb_id_bio = ti.xcom_pull(key="nb_id_bio", task_ids="process_agence_bio")
     nb_siret = ti.xcom_pull(key="nb_siret", task_ids="process_agence_bio")
     send_message(
-        ":mega: Données Agence Bio (certificats professionnels Bio) mises à jour.\n"
+        f"\U0001F7E2 Données Agence Bio (certificats professionnels Bio) "
+        f"mises à jour.\n"
         f"- {nb_id_bio} identifiants Bio référencés\n"
         f"- {nb_siret} établissements (siret) représentés\n"
         f"- Données stockées sur Minio"
