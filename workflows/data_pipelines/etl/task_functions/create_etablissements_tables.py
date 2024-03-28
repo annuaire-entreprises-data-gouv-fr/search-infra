@@ -1,7 +1,6 @@
 import logging
 import sqlite3
 
-from dag_datalake_sirene.helpers.labels.departements import all_deps
 from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 
 # fmt: off
@@ -52,16 +51,25 @@ def create_etablissements_table():
         index_name="index_siret",
         index_column="siren",
     )
-    # Upload geo data by departement
-    for dep in all_deps:
-        df_dep = preprocess_etablissement_data("stock", dep, None)
-        df_dep.to_sql("siret", sqlite_client.db_conn, if_exists="append", index=False)
+    # Upload data by chunk
+    for df_etablissement in preprocess_etablissement_data(
+        "stock", AIRFLOW_ETL_DATA_DIR
+    ):
+        df_etablissement.to_sql(
+            "siret", sqlite_client.db_conn, if_exists="append", index=False
+        )
         for row in sqlite_client.execute(get_table_count("siret")):
             logging.debug(
-                f"************ {row} total records have been added to the "
+                f"************ {row} records have been added to the "
                 f"`établissements` table!"
             )
-    del df_dep
+    del df_etablissement
+
+    for count_etablissements in sqlite_client.execute(get_table_count("siret")):
+        logging.info(
+            f"************ {count_etablissements} total records have been added to the "
+            f"siret table!"
+        )
     sqlite_client.commit_and_close_conn()
 
 
@@ -74,19 +82,24 @@ def create_flux_etablissements_table():
         index_column="siren",
     )
     # Upload flux data
-    df_siret = preprocess_etablissement_data("flux", None, AIRFLOW_ETL_DATA_DIR)
-    df_siret.to_sql(
-        "flux_siret",
-        sqlite_client.db_conn,
-        if_exists="append",
-        index=False,
-    )
+    for df_etablissement in preprocess_etablissement_data("flux", AIRFLOW_ETL_DATA_DIR):
+        df_etablissement.to_sql(
+            "flux_siret",
+            sqlite_client.db_conn,
+            if_exists="append",
+            index=False,
+        )
+        for row in sqlite_client.execute(get_table_count("flux_siret")):
+            logging.info(
+                f"************ {row} records have been added to the "
+                f"`flux établissements` table!"
+            )
+    del df_etablissement
     for row in sqlite_client.execute(get_table_count("flux_siret")):
         logging.info(
             f"************ {row} total records have been added to the "
             f"`flux établissements` table!"
         )
-    del df_siret
     sqlite_client.commit_and_close_conn()
 
 
