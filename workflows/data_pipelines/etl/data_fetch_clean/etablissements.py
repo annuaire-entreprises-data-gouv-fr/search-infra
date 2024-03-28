@@ -156,7 +156,7 @@ def download_historique(data_dir):
     r = requests.get(URL_ETABLISSEMENTS_HISTORIQUE, allow_redirects=True)
     open(data_dir + "StockEtablissementHistorique_utf8.zip", "wb").write(r.content)
     shutil.unpack_archive(
-        data_dir + "StockEtablissementHistoriqueS4F3_utf8.zip", data_dir
+        data_dir + "StockEtablissementS4F3Historique_utf8.zip", data_dir
     )
     df_iterator = pd.read_csv(
         f"{data_dir}StockEtablissementS4F3Historique_utf8.csv",
