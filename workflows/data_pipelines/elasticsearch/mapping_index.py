@@ -129,8 +129,6 @@ class EtablissementMapping(InnerDoc):
     epci = Keyword()
     est_siege = Boolean()
     etat_administratif = Keyword()
-    geo_adresse = Text(analyzer=annuaire_analyzer)
-    geo_id = Keyword()
     indice_repetition = Text()
     indice_repetition_2 = Text()
     latitude = Text()
