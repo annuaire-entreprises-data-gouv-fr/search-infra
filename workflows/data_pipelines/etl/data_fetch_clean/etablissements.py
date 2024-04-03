@@ -16,7 +16,7 @@ def download_stock(data_dir):
     open(data_dir + "StockEtablissement_utf8.zip", "wb").write(r.content)
     shutil.unpack_archive(data_dir + "StockEtablissement_utf8.zip", data_dir)
     df_iterator = pd.read_csv(
-        f"{data_dir}StockEtablissementS4F3_utf8.csv",
+        f"{data_dir}StockEtablissement_utf8.csv",
         chunksize=100000,
         dtype=str,
         usecols=[
