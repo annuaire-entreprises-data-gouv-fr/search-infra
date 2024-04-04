@@ -218,8 +218,8 @@ def preprocess_etablissement_data(siret_file_type, data_dir=None):
                 "codePaysEtranger2Etablissement": "code_pays_etranger_2",
                 "libellePaysEtranger2Etablissement": "libelle_pays_etranger_2",
                 "statutDiffusionEtablissement": "statut_diffusion_etablissement",
-                "coordonneeLambertAbscisseEtablissement": "longitude",
-                "coordonneeLambertOrdonneeEtablissement": "latitude",
+                "coordonneeLambertAbscisseEtablissement": "latitude",
+                "coordonneeLambertOrdonneeEtablissement": "longitude",
             }
         )
         yield df_etablissement
