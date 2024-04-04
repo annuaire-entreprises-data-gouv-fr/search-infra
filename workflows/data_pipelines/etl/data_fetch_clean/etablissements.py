@@ -146,9 +146,7 @@ def download_flux(data_dir):
             "coordonneeLambertOrdonneeEtablissement",
         ],
     )
-    df_flux["etablissementSiege"] = df_flux["etablissementSiege"].apply(
-        lambda x: x.lower()
-    )
+
     return df_flux
 
 
@@ -172,6 +170,9 @@ def preprocess_etablissement_data(siret_file_type, data_dir=None):
 
     # Insert rows in database by chunk
     for i, df_etablissement in enumerate(df_iterator):
+        df_etablissement["etablissementSiege"] = df_etablissement[
+            "etablissementSiege"
+        ].apply(lambda x: x.lower())
         df_etablissement = df_etablissement.rename(
             columns={
                 "dateCreationEtablissement": "date_creation",
