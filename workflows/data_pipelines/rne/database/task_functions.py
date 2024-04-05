@@ -124,11 +124,11 @@ def get_latest_db(**kwargs):
             ],
         )
         # Unzip json file
-        db_path_path = f"{RNE_DB_TMP_FOLDER}rne_{start_date}.db"
-        with gzip.open(f"{db_path_path}.gz", "rb") as f_in:
-            with open(db_path_path, "wb") as f_out:
+        db_path = f"{RNE_DB_TMP_FOLDER}rne_{start_date}.db"
+        with gzip.open(f"{db_path}.gz", "rb") as f_in:
+            with open(db_path, "wb") as f_out:
                 shutil.copyfileobj(f_in, f_out)
-        os.remove(f"{db_path_path}.gz")
+        os.remove(f"{db_path}.gz")
 
     count_ul, count_sieges, count_pp, count_pm = get_tables_count(
         RNE_DB_TMP_FOLDER + f"rne_{start_date}.db"
