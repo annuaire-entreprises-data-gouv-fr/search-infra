@@ -1,6 +1,9 @@
 from datetime import datetime
+import gzip
 import re
+import shutil
 import logging
+import os
 
 from dag_datalake_sirene.config import (
     SIRENE_MINIO_DATA_PATH,
@@ -29,12 +32,18 @@ def get_latest_database(**kwargs):
             list_files=[
                 {
                     "source_path": SIRENE_MINIO_DATA_PATH,
-                    "source_name": f"sirene_{last_date}.db",
+                    "source_name": f"sirene_{last_date}.db.gz",
                     "dest_path": AIRFLOW_ELK_DATA_DIR,
-                    "dest_name": "sirene.db",
+                    "dest_name": "sirene.db.gz",
                 }
             ],
         )
+        # Unzip database file
+        db_path = f"{AIRFLOW_ELK_DATA_DIR}sirene.db"
+        with gzip.open(f"{db_path}.gz", "rb") as f_in:
+            with open(db_path, "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        os.remove(f"{db_path}.gz")
 
     else:
         raise Exception(
