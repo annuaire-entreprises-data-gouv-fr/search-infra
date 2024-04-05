@@ -2,6 +2,8 @@ from minio.error import S3Error
 from datetime import datetime, timedelta
 import os
 import json
+import gzip
+import shutil
 import re
 import logging
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
@@ -194,13 +196,22 @@ def process_flux_json_files(**kwargs):
                     list_files=[
                         {
                             "source_path": RNE_MINIO_FLUX_DATA_PATH,
-                            "source_name": f"rne_flux_{file_date}.json",
+                            "source_name": f"rne_flux_{file_date}.json.gz",
                             "dest_path": RNE_DB_TMP_FOLDER,
-                            "dest_name": f"rne_flux_{file_date}.json",
+                            "dest_name": f"rne_flux_{file_date}.json.gz",
                         }
                     ],
                 )
                 json_path = f"{RNE_DB_TMP_FOLDER}rne_flux_{file_date}.json"
+                
+                # Unzip json file
+                with gzip.open(f"{RNE_DB_TMP_FOLDER}rne_flux_{file_date}.json.gz", 'rb') as f_in:
+                    with open(json_path, "wb") as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+                
+                # Remove zip file
+                os.remove(f"{json_path}.gz")
+
                 inject_records_into_db(json_path, rne_db_path, "flux")
                 logging.info(
                     f"File {json_path} processed and"
