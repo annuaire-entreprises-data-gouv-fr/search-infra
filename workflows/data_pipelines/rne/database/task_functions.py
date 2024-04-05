@@ -117,12 +117,19 @@ def get_latest_db(**kwargs):
             list_files=[
                 {
                     "source_path": RNE_MINIO_DATA_PATH,
-                    "source_name": f"rne_{previous_start_date}.db",
+                    "source_name": f"rne_{previous_start_date}.db.gz",
                     "dest_path": RNE_DB_TMP_FOLDER,
-                    "dest_name": f"rne_{start_date}.db",
+                    "dest_name": f"rne_{start_date}.db.gz",
                 }
             ],
         )
+        # Unzip json file
+        db_path_path = f"{RNE_DB_TMP_FOLDER}rne_{start_date}.db"
+        with gzip.open(f"{db_path_path}.gz", "rb") as f_in:
+            with open(db_path_path, "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        os.remove(f"{db_path_path}.gz")
+
     count_ul, count_sieges, count_pp, count_pm = get_tables_count(
         RNE_DB_TMP_FOLDER + f"rne_{start_date}.db"
     )
