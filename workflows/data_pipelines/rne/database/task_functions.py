@@ -203,12 +203,12 @@ def process_flux_json_files(**kwargs):
                     ],
                 )
                 json_path = f"{RNE_DB_TMP_FOLDER}rne_flux_{file_date}.json"
-                
+
                 # Unzip json file
-                with gzip.open(f"{RNE_DB_TMP_FOLDER}rne_flux_{file_date}.json.gz", 'rb') as f_in:
+                with gzip.open(f"{json_path}.gz", "rb") as f_in:
                     with open(json_path, "wb") as f_out:
                         shutil.copyfileobj(f_in, f_out)
-                
+
                 # Remove zip file
                 os.remove(f"{json_path}.gz")
 
@@ -274,22 +274,33 @@ def upload_db_to_minio(**kwargs):
     last_date_processed = kwargs["ti"].xcom_pull(
         key="last_date_processed", task_ids="process_flux_json_files"
     )
+
+    database_file_path = os.path.join(RNE_DB_TMP_FOLDER, f"rne_{start_date}.db.gz")
+    database_zip_file_path = os.path.join(RNE_DB_TMP_FOLDER, f"rne_{start_date}.db.gz")
+
+    # Zip database
+    with open(database_file_path, "rb") as f_in:
+        with gzip.open(database_zip_file_path, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
+
+    os.remove(database_file_path)
+
+    logging.info(f"Sending database: rne_{start_date}.db.gz")
     send_to_minio(
         [
             {
                 "source_path": RNE_DB_TMP_FOLDER,
-                "source_name": f"rne_{start_date}.db",
+                "source_name": f"rne_{start_date}.db.gz",
                 "dest_path": RNE_MINIO_DATA_PATH,
-                "dest_name": f"rne_{last_date_processed}.db",
+                "dest_name": f"rne_{last_date_processed}.db.gz",
             }
         ]
     )
     # Delete the local file after uploading to Minio
-    database_file_path = os.path.join(RNE_DB_TMP_FOLDER, f"rne_{start_date}.db")
-    if os.path.exists(database_file_path):
-        os.remove(database_file_path)
+    if os.path.exists(database_zip_file_path):
+        os.remove(database_zip_file_path)
     else:
-        logging.warning(f"Warning: Database file '{database_file_path}' not found.")
+        logging.warning(f"Warning: Database file '{database_zip_file_path}' not found.")
 
 
 def upload_latest_date_rne_minio(ti):
