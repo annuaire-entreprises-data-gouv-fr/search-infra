@@ -15,7 +15,9 @@ def download_historique(data_dir):
     open(data_dir + "StockUniteLegaleHistorique_utf8.zip", "wb").write(r.content)
     shutil.unpack_archive(data_dir + "StockUniteLegaleHistorique_utf8.zip", data_dir)
     df_iterator = pd.read_csv(
-        f"{data_dir}StockUniteLegaleHistorique_utf8.csv", chunksize=100000, dtype=str
+        f"{data_dir}StockUniteLegaleHistorique_utf8.csv",
+        chunksize=100000,
+        dtype=str,
     )
     return df_iterator
 

@@ -43,7 +43,7 @@ BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
 
 # Insee
 INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
-INSEE_API_URL = "https://api.insee.fr/entreprises/sirene/V3/"
+INSEE_API_URL = "https://api.insee.fr/entreprises/sirene/V3.11/"
 
 # Notification
 TCHAP_ANNUAIRE_WEBHOOK = Variable.get("TCHAP_ANNUAIRE_WEBHOOK", "")
@@ -145,7 +145,9 @@ URL_EGAPRO = (
 URL_ENTREPRENEUR_SPECTACLE = (
     "https://www.data.gouv.fr/fr/datasets/r/fb6c3b2e-da8c-4e69-a719-6a96329e4cb2"
 )
-URL_ETABLISSEMENTS = "https://files.data.gouv.fr/geo-sirene/last/dep/geo_siret"
+URL_ETABLISSEMENTS = (
+    "https://www.data.gouv.fr/fr/datasets/r/0651fb76-bcf3-4f6a-a38d-bc04fa708576"
+)
 URL_ETABLISSEMENTS_HISTORIQUE = (
     "https://www.data.gouv.fr/fr/datasets/r/88fbb6b4-0320-443e-b739-b4376a012c32"
 )
