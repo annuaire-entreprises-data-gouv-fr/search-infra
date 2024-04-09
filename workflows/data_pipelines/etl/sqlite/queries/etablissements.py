@@ -509,7 +509,7 @@ update_sieges_table_fields_with_rne_data_query = """
             WHERE siren IN (SELECT siren FROM db_rne.sieges)
         """
 
-insert_remaining_rne_sieges_data_into_main_table_query = """g
+insert_remaining_rne_sieges_data_into_main_table_query = """
             INSERT OR IGNORE INTO siretsiege
             SELECT DISTINCT
                 siren,
