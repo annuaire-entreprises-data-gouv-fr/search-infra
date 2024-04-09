@@ -509,7 +509,7 @@ update_sieges_table_fields_with_rne_data_query = """
             WHERE siren IN (SELECT siren FROM db_rne.sieges)
         """
 
-insert_remaining_rne_sieges_data_into_main_table_query = """
+insert_remaining_rne_sieges_data_into_main_table_query = """g
             INSERT OR IGNORE INTO siretsiege
             SELECT DISTINCT
                 siren,
@@ -554,12 +554,12 @@ insert_remaining_rne_sieges_data_into_main_table_query = """
                 NULL AS libelle_commune_etranger_2,
                 NULL AS code_pays_etranger_2,
                 NULL AS libelle_pays_etranger_2,
+                NULL as latitude,
+                NULL as longitude,
                 NULL AS statut_diffusion_etablissement,
                 NULL as date_mise_a_jour_insee,
                 date_mise_a_jour AS date_mise_a_jour_rne,
-                NULL as date_fermeture_etablissement,
-                NULL as latitude,
-                NULL as longitude
+                NULL as date_fermeture_etablissement
                 FROM db_rne.sieges
                 WHERE siren NOT IN (SELECT siren FROM siretsiege)
         """
