@@ -1,4 +1,6 @@
 import logging
+import gzip
+import shutil
 
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.dirigeants\
@@ -21,10 +23,27 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.dirigeants 
     get_chunk_dirig_pm_from_db_query,
 )
 
+
+from dag_datalake_sirene.helpers.minio_helpers import minio_client
+
+
 from dag_datalake_sirene.config import (
     SIRENE_DATABASE_LOCATION,
+    AIRFLOW_ENV,
     RNE_DATABASE_LOCATION,
 )
+
+
+def get_latest_dirigeants_database():
+    minio_client.get_latest_file_minio(
+        f"ae/{AIRFLOW_ENV}/rne/database/",
+        f"{RNE_DATABASE_LOCATION}.gz",
+    )
+
+    # Unzip database file
+    with gzip.open(f"{RNE_DATABASE_LOCATION}.gz", "rb") as f_in:
+        with open(RNE_DATABASE_LOCATION, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
 
 
 def create_dirig_pp_table():
