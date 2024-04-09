@@ -1,6 +1,8 @@
 import os
 import json
 from datetime import datetime, timedelta
+import gzip
+import shutil
 import re
 import logging
 from dag_datalake_sirene.helpers.tchap import send_message
@@ -41,11 +43,19 @@ def get_latest_json_file(ti):
     last_json_file_path = f"{RNE_FLUX_DATADIR}/rne_flux_{start_date}.json"
     minio_client.get_object_minio(
         f"ae/{AIRFLOW_ENV}/{RNE_MINIO_FLUX_DATA_PATH}",
-        f"rne_flux_{start_date}.json",
-        last_json_file_path,
+        f"rne_flux_{start_date}.json.gz",
+        f"{last_json_file_path}.gz",
     )
-    logging.info(f"***** Got file: {last_json_file_path}")
+    logging.info(f"Got zip file : rne_flux_{start_date}.json.gz")
+
+    # Unzip json file
+    with gzip.open(f"{last_json_file_path}.gz", "rb") as f_in:
+        with open(last_json_file_path, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
+
     ti.xcom_push(key="last_json_file_path", value=last_json_file_path)
+
+    os.remove(f"{last_json_file_path}.gz")
     return last_json_file_path
 
 
@@ -129,7 +139,7 @@ def get_and_save_daily_flux_rne(
 
     if first_exec:
         last_siren = get_last_siren(ti)
-        logging.info(f"*********{last_siren}")
+        logging.info(f"********* Last siren: {last_siren}")
     else:
         last_siren = None  # Initialize last_siren
     page_data = True
@@ -150,13 +160,17 @@ def get_and_save_daily_flux_rne(
             except Exception as e:
                 # If exception accures, save uncompleted file
                 if os.path.exists(json_file_path):
+                    # Zip file
+                    with open(json_file_path, "rb") as f_in:
+                        with gzip.open(f"{json_file_path}.gz", "wb") as f_out:
+                            shutil.copyfileobj(f_in, f_out)
                     minio_client.send_files(
                         list_files=[
                             {
                                 "source_path": f"{RNE_FLUX_DATADIR}/",
-                                "source_name": f"{json_file_name}",
+                                "source_name": f"{json_file_name}.gz",
                                 "dest_path": RNE_MINIO_FLUX_DATA_PATH,
-                                "dest_name": f"{json_file_name}",
+                                "dest_name": f"{json_file_name}.gz",
                             },
                         ],
                     )
@@ -164,22 +178,30 @@ def get_and_save_daily_flux_rne(
                 # JSON file and break the loop
                 logging.info(f"****** Deleting file: {json_file_path}")
                 os.remove(json_file_path)
+                os.remove(f"{json_file_path}.gz")
                 raise Exception(f"Error occurred during the API request: {e}")
 
     if os.path.exists(json_file_path):
+
+        # Zip file
+        with open(json_file_path, "rb") as f_in:
+            with gzip.open(f"{json_file_path}.gz", "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
         minio_client.send_files(
             list_files=[
                 {
                     "source_path": f"{RNE_FLUX_DATADIR}/",
-                    "source_name": f"{json_file_name}",
+                    "source_name": f"{json_file_name}.gz",
                     "dest_path": RNE_MINIO_FLUX_DATA_PATH,
-                    "dest_name": f"{json_file_name}",
+                    "dest_name": f"{json_file_name}.gz",
                 },
             ],
         )
-        logging.info(f"****** Sent file to MinIO: {json_file_name}")
+        logging.info(f"****** Sent file to MinIO: {json_file_name}.gz")
         logging.info(f"****** Deleting file: {json_file_path}")
         os.remove(json_file_path)
+        os.remove(f"{json_file_path}.gz")
 
 
 def get_every_day_flux(ti):

@@ -41,6 +41,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_dirigeants_tables import (
     create_dirig_pm_table,
     create_dirig_pp_table,
+    get_latest_dirigeants_database,
 )
 
 
@@ -64,7 +65,6 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.send_notifi
     send_notification_failure_tchap,
 )
 # fmt: on
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
 
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.upload_db import (
     upload_db_to_minio,
@@ -73,9 +73,7 @@ from dag_datalake_sirene.config import (
     AIRFLOW_DAG_TMP,
     AIRFLOW_ETL_DAG_NAME,
     AIRFLOW_DAG_FOLDER,
-    AIRFLOW_ENV,
     AIRFLOW_ELK_DAG_NAME,
-    RNE_DATABASE_LOCATION,
     EMAIL_LIST,
 )
 
@@ -222,11 +220,7 @@ with DAG(
     get_latest_dirigeants_database = PythonOperator(
         task_id="get_dirig_database",
         provide_context=True,
-        python_callable=minio_client.get_latest_file_minio,
-        op_args=(
-            f"ae/{AIRFLOW_ENV}/rne/database/",
-            RNE_DATABASE_LOCATION,
-        ),
+        python_callable=get_latest_dirigeants_database,
     )
 
     create_dirig_pp_table = PythonOperator(

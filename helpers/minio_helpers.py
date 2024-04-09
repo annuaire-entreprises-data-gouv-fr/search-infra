@@ -137,11 +137,11 @@ class MinIOClient:
         local_path: str,
     ) -> None:
         """
-        Download the latest .db file from Minio to the local file system.
+        Download the latest .db.gz file from Minio to the local file system.
 
         Args:
-            minio_path (str): The path within the Minio bucket where .db files
-            are located.
+            minio_path (str): The path within the Minio bucket where compressed .db
+            files are located.
             local_path (str): The local directory where the downloaded file
             will be saved.
         Note:
@@ -154,9 +154,9 @@ class MinIOClient:
             self.bucket, prefix=minio_path, recursive=True
         )
 
-        # Filter and sort .db files based on their names and the date in the filename
+        # Filter and sort .gz files based on their names and the date in the filename
         db_files = [
-            obj.object_name for obj in objects if obj.object_name.endswith(".db")
+            obj.object_name for obj in objects if obj.object_name.endswith(".gz")
         ]
 
         sorted_db_files = sorted(
@@ -175,7 +175,7 @@ class MinIOClient:
                 local_path,
             )
         else:
-            logging.warning("No .db files found in the specified path.")
+            logging.warning("No .gz files found in the specified path.")
 
     def delete_file(self, file_path: str):
         """/!\ USE WITH CAUTION"""
