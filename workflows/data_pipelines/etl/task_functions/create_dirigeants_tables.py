@@ -1,6 +1,7 @@
 import logging
 import gzip
 import shutil
+import os
 
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.dirigeants\
@@ -40,10 +41,13 @@ def get_latest_dirigeants_database():
         f"{RNE_DATABASE_LOCATION}.gz",
     )
 
+    logging.info(f"******* Getting file : {RNE_DATABASE_LOCATION}.gz")
     # Unzip database file
     with gzip.open(f"{RNE_DATABASE_LOCATION}.gz", "rb") as f_in:
         with open(RNE_DATABASE_LOCATION, "wb") as f_out:
             shutil.copyfileobj(f_in, f_out)
+
+    os.remove(f"{RNE_DATABASE_LOCATION}.gz")
 
 
 def create_dirig_pp_table():
