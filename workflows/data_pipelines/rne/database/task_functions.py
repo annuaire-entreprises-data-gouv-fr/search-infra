@@ -282,7 +282,7 @@ def upload_db_to_minio(**kwargs):
         key="last_date_processed", task_ids="process_flux_json_files"
     )
 
-    database_file_path = os.path.join(RNE_DB_TMP_FOLDER, f"rne_{start_date}.db.gz")
+    database_file_path = os.path.join(RNE_DB_TMP_FOLDER, f"rne_{start_date}.db")
     database_zip_file_path = os.path.join(RNE_DB_TMP_FOLDER, f"rne_{start_date}.db.gz")
 
     # Zip database
