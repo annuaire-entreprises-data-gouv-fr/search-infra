@@ -4,8 +4,6 @@ from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
-from airflow.contrib.operators.ssh_operator import SSHOperator
-
 from dag_datalake_sirene.helpers.flush_cache import flush_cache
 
 # fmt: off
@@ -44,7 +42,6 @@ from dag_datalake_sirene.config import (
     REDIS_DB,
     REDIS_PASSWORD,
     API_IS_REMOTE,
-    PATH_AIO,
 )
 from operators.clean_folder import CleanFolderOperator
 
@@ -168,14 +165,6 @@ with DAG(
         clean_folder.set_upstream([test_api, update_sitemap])
         send_notification_tchap.set_upstream([clean_folder, update_sitemap])
     else:
-        execute_aio_container = SSHOperator(
-            ssh_conn_id="SERVER",
-            task_id="execute_aio_container",
-            command=f"cd {PATH_AIO} "
-            f"&& docker-compose -f docker-compose-aio.yml up --build -d --force",
-            cmd_timeout=60,
-            dag=dag,
-        )
         flush_cache = PythonOperator(
             task_id="flush_cache",
             provide_context=True,
@@ -191,7 +180,6 @@ with DAG(
             task_id="clean_folder",
             folder_path=f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ELK_DAG_NAME}",
         )
-        execute_aio_container.set_upstream(update_elastic_alias)
-        test_api.set_upstream(execute_aio_container)
+        test_api.set_upstream(update_elastic_alias)
         clean_folder.set_upstream([test_api, update_sitemap])
         flush_cache.set_upstream(clean_folder)

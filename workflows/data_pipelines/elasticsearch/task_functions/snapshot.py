@@ -89,6 +89,8 @@ def rollback_minio_current_index_version(**kwargs):
     if previous is None:
         raise Exception("No previous version found")
 
+    elastic_connection = connections.get_connection()
+
     snapshots = elastic_connection.snapshot.get(
         repository=ELASTIC_SNAPSHOT_REPOSITORY,
         snapshot=previous["current"]["snapshot"],

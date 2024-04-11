@@ -73,9 +73,9 @@ PATH_AIO = Variable.get("PATH_AIO", None)
 COLOR_IS_DAILY = bool(Variable.get("COLOR_IS_DAILY", "False"))
 
 # Redis
-REDIS_HOST = "redis"
-REDIS_PORT = "6379"
-REDIS_DB = "0"
+REDIS_HOST = Variable.get("REDIS_HOST", "redis")
+REDIS_PORT = Variable.get("REDIS_PORT", "6379")
+REDIS_DB = Variable.get("REDIS_DB", "0")
 REDIS_PASSWORD = Variable.get("REDIS_PASSWORD", None)
 
 # ElasticSearch
