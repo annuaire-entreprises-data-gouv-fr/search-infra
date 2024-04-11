@@ -42,7 +42,6 @@ from dag_datalake_sirene.config import (
     REDIS_DB,
     REDIS_PASSWORD,
     API_IS_REMOTE,
-    PATH_AIO,
 )
 from operators.clean_folder import CleanFolderOperator
 
