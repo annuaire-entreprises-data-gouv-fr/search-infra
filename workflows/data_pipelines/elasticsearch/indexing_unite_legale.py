@@ -54,7 +54,11 @@ def doc_unite_legale_generator(data, elastic_index):
 
 
 def index_unites_legales_by_chunk(
-    cursor, elastic_connection, elastic_bulk_thread_count, elastic_bulk_size, elastic_index
+    cursor,
+    elastic_connection,
+    elastic_bulk_thread_count,
+    elastic_bulk_size,
+    elastic_index,
 ):
     # Indexing performance : do not refresh the index while indexing
     elastic_connection.indices.put_settings(
@@ -96,7 +100,10 @@ def index_unites_legales_by_chunk(
             # The bulk helper accept an instance of Elasticsearch class and an
             # iterable, a generator in our case
             for success, details in parallel_bulk(
-                elastic_connection, chunk_doc_generator, thread_count=elastic_bulk_thread_count, chunk_size=elastic_bulk_size
+                elastic_connection,
+                chunk_doc_generator,
+                thread_count=elastic_bulk_thread_count,
+                chunk_size=elastic_bulk_size,
             ):
                 if not success:
                     raise Exception(f"A file_access document failed: {details}")
