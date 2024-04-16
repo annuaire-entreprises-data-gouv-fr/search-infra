@@ -23,6 +23,7 @@ from dag_datalake_sirene.config import (
     ELASTIC_URL,
     ELASTIC_USER,
     ELASTIC_PASSWORD,
+    ELASTIC_BULK_THREAD_COUNT,
     ELASTIC_BULK_SIZE,
     ELASTIC_MAX_LIVE_VERSIONS,
 )
@@ -66,6 +67,7 @@ def fill_elastic_siren_index(**kwargs):
     doc_count = index_unites_legales_by_chunk(
         cursor=sqlite_client.db_cursor,
         elastic_connection=elastic_connection,
+        elastic_bulk_thread_count=ELASTIC_BULK_THREAD_COUNT,
         elastic_bulk_size=ELASTIC_BULK_SIZE,
         elastic_index=elastic_index,
     )
