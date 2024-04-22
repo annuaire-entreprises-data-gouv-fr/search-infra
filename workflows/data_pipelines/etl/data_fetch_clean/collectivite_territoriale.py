@@ -124,12 +124,14 @@ def preprocess_elus_data(data_dir):
     df_elus_part.loc[df_elus_part["colter_code"] == "972", "colter_code"] = "02"
     df_elus_part.loc[df_elus_part["colter_code"] == "973", "colter_code"] = "03"
     elus = pd.concat([elus, df_elus_part])
+
     # Conseillers communautaires
     df_elus_epci = process_elus_files(
         URL_ELUS_EPCI,
         "N° SIREN",
     )
     elus = pd.concat([elus, df_elus_epci])
+
     # Conseillers municipaux
     df_elus_epci = process_elus_files(
         URL_CONSEILLERS_MUNICIPAUX,
@@ -161,7 +163,7 @@ def preprocess_elus_data(data_dir):
 
 
 def process_elus_files(url, colname):
-    df_elus = pd.read_csv(url, dtype=str)
+    df_elus = pd.read_csv(url, dtype=str, sep=";")
 
     column_mapping = {
         "Nom de l'élu": "nom_elu",
