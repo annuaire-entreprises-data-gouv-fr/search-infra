@@ -128,11 +128,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
         )
 
-        unite_legale_processed["est_service_public"] = is_service_public(
-            unite_legale["nature_juridique_unite_legale"],
-            unite_legale_processed["siren"],
-        )
-
         unite_legale_processed["est_association"] = is_association(
             unite_legale_processed["nature_juridique_unite_legale"],
             unite_legale_processed["identifiant_association_unite_legale"],
@@ -232,6 +227,13 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
         unite_legale_processed["date_mise_a_jour_rne"] = convert_date_format(
             unite_legale["date_mise_a_jour_rne"]
+        )
+
+        # Service public
+        unite_legale_processed["est_service_public"] = is_service_public(
+            unite_legale["nature_juridique_unite_legale"],
+            unite_legale_processed["siren"],
+            unite_legale_processed["from_insee"],
         )
 
         # Create unité légale (structure) to be indexed
