@@ -233,7 +233,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         unite_legale_processed["est_service_public"] = is_service_public(
             unite_legale["nature_juridique_unite_legale"],
             unite_legale_processed["siren"],
-            unite_legale_processed["from_insee"],
         )
 
         # Create unité légale (structure) to be indexed
