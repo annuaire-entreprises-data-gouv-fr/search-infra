@@ -29,7 +29,7 @@ with DAG(
     schedule_interval="0 4 * * MON",
     start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=60),
-    tags=["agence bio", "bio", "certifications"],
+    tags=["agence bio", "certifications"],
     params={},
     catchup=False,
 ) as dag:
