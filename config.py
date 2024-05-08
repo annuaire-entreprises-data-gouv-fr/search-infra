@@ -41,6 +41,7 @@ AGENCE_BIO_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}agence_bio/"
 EGAPRO_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}egapro/"
 UAI_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}uai/"
 BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
+SPECTACLE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}spectacle/"
 
 # Insee
 INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
@@ -150,6 +151,10 @@ URL_MINIO_EGAPRO = (
 )
 URL_ENTREPRENEUR_SPECTACLE = (
     "https://www.data.gouv.fr/fr/datasets/r/fb6c3b2e-da8c-4e69-a719-6a96329e4cb2"
+)
+URL_MINIO_ENTREPRENEUR_SPECTACLE = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/spectacle"
+    "/latest/spectacle.csv"
 )
 URL_ETABLISSEMENTS = (
     "https://www.data.gouv.fr/fr/datasets/r/0651fb76-bcf3-4f6a-a38d-bc04fa708576"
