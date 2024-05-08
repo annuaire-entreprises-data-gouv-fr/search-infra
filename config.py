@@ -144,6 +144,10 @@ URL_CONVENTION_COLLECTIVE = (
 URL_EGAPRO = (
     "https://www.data.gouv.fr/fr/datasets/r/d434859f-8d3b-4381-bcdb-ec9200653ae6"
 )
+URL_MINIO_EGAPRO = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/egapro"
+    "/latest/egapro.csv"
+)
 URL_ENTREPRENEUR_SPECTACLE = (
     "https://www.data.gouv.fr/fr/datasets/r/fb6c3b2e-da8c-4e69-a719-6a96329e4cb2"
 )
