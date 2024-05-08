@@ -43,6 +43,7 @@ UAI_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}uai/"
 BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
 SPECTACLE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}spectacle/"
 FINESS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}finess/"
+RGE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rge/"
 
 # Insee
 INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
@@ -178,6 +179,9 @@ URL_ORGANISME_FORMATION = (
 URL_RGE = (
     "https://data.ademe.fr/data-fair/api/v1/datasets/"
     "liste-des-entreprises-rge-2/lines?size=10000&select=siret%2Ccode_qualification"
+)
+URL_MINIO_RGE = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/rge" "/latest/rge.csv"
 )
 URL_UAI = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/uai"
