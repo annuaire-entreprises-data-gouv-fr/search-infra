@@ -21,6 +21,7 @@ def preprocess_egapro_data(ti):
     df_egapro = df_egapro.rename(columns={"SIREN": "siren"})
     df_egapro.to_csv(f"{EGAPRO_TMP_FOLDER}egapro.csv", index=False)
     ti.xcom_push(key="nb_siren_egapro", value=str(df_egapro["siren"].nunique()))
+    del df_egapro
 
 
 def send_file_to_minio():
