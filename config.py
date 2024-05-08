@@ -42,6 +42,7 @@ EGAPRO_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}egapro/"
 UAI_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}uai/"
 BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
 SPECTACLE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}spectacle/"
+FINESS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}finess/"
 
 # Insee
 INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
@@ -164,6 +165,10 @@ URL_ETABLISSEMENTS_HISTORIQUE = (
 )
 URL_FINESS = (
     "https://www.data.gouv.fr/fr/datasets/r/2ce43ade-8d2c-4d1d-81da-ca06c82abc68"
+)
+URL_MINIO_FINESS = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/finess"
+    "/latest/finess.csv"
 )
 URL_ORGANISME_FORMATION = (
     "https://dgefp.opendatasoft.com/api/explore/v2.1/catalog/datasets/liste"
