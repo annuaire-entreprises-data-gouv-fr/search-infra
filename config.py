@@ -44,6 +44,7 @@ BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
 SPECTACLE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}spectacle/"
 FINESS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}finess/"
 RGE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rge/"
+FORMATION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}formation/"
 
 # Insee
 INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
@@ -175,6 +176,10 @@ URL_ORGANISME_FORMATION = (
     "https://dgefp.opendatasoft.com/api/explore/v2.1/catalog/datasets/liste"
     "-publique-des-of-v2/exports/csv?lang=fr&timezone=Europe%2FBerlin&use_labels"
     "=true&delimiter=%3B"
+)
+URL_MINIO_ORGANISME_FORMATION = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/formation"
+    "/latest/formation.csv"
 )
 URL_RGE = (
     "https://data.ademe.fr/data-fair/api/v1/datasets/"
