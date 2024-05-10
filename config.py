@@ -45,6 +45,7 @@ SPECTACLE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}spectacle/"
 FINESS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}finess/"
 RGE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rge/"
 FORMATION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}formation/"
+ESS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}ess/"
 
 # Insee
 INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
@@ -199,6 +200,10 @@ URL_UNITE_LEGALE_HISTORIQUE = (
 
 URL_ESS_FRANCE = (
     "https://www.data.gouv.fr/fr/datasets/r/57bc99ca-0432-4b46-8fcc-e76a35c9efaf"
+)
+URL_MINIO_ESS_FRANCE = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/ess"
+    "/latest/ess_france.csv"
 )
 URL_CC_DARES = (
     "https://travail-emploi.gouv.fr/IMG/xlsx/"
