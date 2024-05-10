@@ -182,8 +182,16 @@ URL_MINIO_ENTREPRENEUR_SPECTACLE = (
 URL_ETABLISSEMENTS = (
     "https://www.data.gouv.fr/fr/datasets/r/0651fb76-bcf3-4f6a-a38d-bc04fa708576"
 )
+URL_MINIO_ETABLISSEMENTS = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
+    "/sirene/stock/StockEtablissement_utf8.zip"
+)
 URL_ETABLISSEMENTS_HISTORIQUE = (
     "https://www.data.gouv.fr/fr/datasets/r/88fbb6b4-0320-443e-b739-b4376a012c32"
+)
+URL_MINIO_ETABLISSEMENTS_HISTORIQUE = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
+    "/sirene/stock/StockEtablissementHistorique_utf8.zip"
 )
 URL_FINESS = (
     "https://www.data.gouv.fr/fr/datasets/r/2ce43ade-8d2c-4d1d-81da-ca06c82abc68"
@@ -213,10 +221,17 @@ URL_UAI = (
     "/latest/annuaire_uai.csv"
 )
 URL_UNITE_LEGALE = "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip"
+URL_MINIO_UNITE_LEGALE = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
+    "/sirene/stock/StockUniteLegale_utf8.zip"
+)
 URL_UNITE_LEGALE_HISTORIQUE = (
     "https://www.data.gouv.fr/fr/datasets/r/0835cd60-2c2a-497b-bc64-404de704ce89"
 )
-
+URL_MINIO_UNITE_LEGALE_HISTORIQUE = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
+    "/sirene/historique/StockUniteLegaleHistorique_utf8.zip"
+)
 URL_ESS_FRANCE = (
     "https://www.data.gouv.fr/fr/datasets/r/57bc99ca-0432-4b46-8fcc-e76a35c9efaf"
 )
