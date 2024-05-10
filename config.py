@@ -46,6 +46,7 @@ FINESS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}finess/"
 RGE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rge/"
 FORMATION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}formation/"
 ESS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}ess/"
+COLTER_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}colter/"
 
 # Insee
 INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
@@ -142,6 +143,14 @@ URL_CONSEILLERS_MUNICIPAUX = (
 )
 URL_ASSEMBLEE_COL_STATUT_PARTICULIER = (
     "https://www.data.gouv.fr/fr/datasets/r/a595be27-cfab-4810-b9d4-22e193bffe35"
+)
+URL_MINIO_COLTER = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/colter"
+    "/latest/colter.csv"
+)
+URL_MINIO_ELUS = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/colter"
+    "/latest/elus.csv"
 )
 URL_CONVENTION_COLLECTIVE = (
     "https://www.data.gouv.fr/fr/datasets/r/a22e54f7-b937-4483-9a72-aad2ea1316f1"
