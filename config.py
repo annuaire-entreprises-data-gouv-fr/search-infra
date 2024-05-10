@@ -74,6 +74,10 @@ RNE_API_DIFF_URL = "https://registre-national-entreprises.inpi.fr/api/companies/
 # MARCHE INCLUSION
 MARCHE_INCLUSION_API_URL = "https://lemarche.inclusion.beta.gouv.fr/api/siae/?"
 SECRET_TOKEN_MARCHE_INCLUSION = Variable.get("SECRET_TOKEN_MARCHE_INCLUSION", "")
+URL_MINIO_MARCHE_INCLUSION = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/marche_inclusion"
+    "/stock_marche_inclusion.csv"
+)
 # AIO
 AIO_URL = Variable.get("AIO_URL", None)
 COLOR_URL = Variable.get("COLOR_URL", None)

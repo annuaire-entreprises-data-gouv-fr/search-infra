@@ -1,20 +1,10 @@
 import pandas as pd
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.config import URL_MINIO_MARCHE_INCLUSION
 
 
 def preprocess_marche_inclusion_data(data_dir):
-    minio_client.get_files(
-        list_files=[
-            {
-                "source_path": "marche_inclusion/",
-                "source_name": "stock_marche_inclusion.csv",
-                "dest_path": f"{data_dir}",
-                "dest_name": "marche_inclusion.csv",
-            }
-        ],
-    )
     df_siae = pd.read_csv(
-        f"{data_dir}marche_inclusion.csv",
+        URL_MINIO_MARCHE_INCLUSION,
         dtype=str,
     )
     df_siae["siren"] = df_siae["siret"].str[0:9]
