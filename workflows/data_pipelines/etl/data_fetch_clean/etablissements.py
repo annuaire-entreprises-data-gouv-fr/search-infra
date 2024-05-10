@@ -5,14 +5,14 @@ import shutil
 from datetime import datetime, timedelta
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.config import (
-    URL_ETABLISSEMENTS,
-    URL_ETABLISSEMENTS_HISTORIQUE,
+    URL_MINIO_ETABLISSEMENTS,
+    URL_MINIO_ETABLISSEMENTS_HISTORIQUE,
 )
 
 
 def download_stock(data_dir):
-    logging.info(f"Downloading Etablissements stock: {URL_ETABLISSEMENTS}")
-    r = requests.get(URL_ETABLISSEMENTS, allow_redirects=True)
+    logging.info(f"Downloading Etablissements stock: {URL_MINIO_ETABLISSEMENTS}")
+    r = requests.get(URL_MINIO_ETABLISSEMENTS, allow_redirects=True)
     open(data_dir + "StockEtablissement_utf8.zip", "wb").write(r.content)
     shutil.unpack_archive(data_dir + "StockEtablissement_utf8.zip", data_dir)
     df_iterator = pd.read_csv(
@@ -151,7 +151,7 @@ def download_flux(data_dir):
 
 
 def download_historique(data_dir):
-    r = requests.get(URL_ETABLISSEMENTS_HISTORIQUE, allow_redirects=True)
+    r = requests.get(URL_MINIO_ETABLISSEMENTS_HISTORIQUE, allow_redirects=True)
     open(data_dir + "StockEtablissementHistorique_utf8.zip", "wb").write(r.content)
     shutil.unpack_archive(data_dir + "StockEtablissementHistorique_utf8.zip", data_dir)
     df_iterator = pd.read_csv(
