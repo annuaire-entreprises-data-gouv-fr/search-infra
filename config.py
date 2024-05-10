@@ -47,6 +47,7 @@ RGE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rge/"
 FORMATION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}formation/"
 ESS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}ess/"
 COLTER_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}colter/"
+CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
 
 # Insee
 INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
@@ -154,6 +155,10 @@ URL_MINIO_ELUS = (
 )
 URL_CONVENTION_COLLECTIVE = (
     "https://www.data.gouv.fr/fr/datasets/r/a22e54f7-b937-4483-9a72-aad2ea1316f1"
+)
+URL_MINIO_CONVENTION_COLLECTIVE = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/convention_collective"
+    "/latest/cc.csv"
 )
 URL_EGAPRO = (
     "https://www.data.gouv.fr/fr/datasets/r/d434859f-8d3b-4381-bcdb-ec9200653ae6"
