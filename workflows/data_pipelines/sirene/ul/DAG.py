@@ -25,7 +25,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id="data_processing_sirene_stock",
+    dag_id="data_processing_sirene_stock_ul",
     default_args=default_args,
     schedule_interval="0 4 * * MON",
     start_date=days_ago(8),
@@ -36,7 +36,9 @@ with DAG(
 ) as dag:
     clean_previous_outputs = BashOperator(
         task_id="clean_previous_outputs",
-        bash_command=(f"rm -rf {INSEE_TMP_FOLDER} && mkdir -p {INSEE_TMP_FOLDER}"),
+        bash_command=(
+            f"rm -rf {INSEE_TMP_FOLDER}ul/ && mkdir -p {INSEE_TMP_FOLDER}ul/"
+        ),
     )
 
     download_historique_ul = PythonOperator(
