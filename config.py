@@ -191,7 +191,7 @@ URL_ETABLISSEMENTS_HISTORIQUE = (
 )
 URL_MINIO_ETABLISSEMENTS_HISTORIQUE = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
-    "/sirene/stock/StockEtablissementHistorique_utf8.zip"
+    "/sirene/historique/StockEtablissementHistorique_utf8.zip"
 )
 URL_FINESS = (
     "https://www.data.gouv.fr/fr/datasets/r/2ce43ade-8d2c-4d1d-81da-ca06c82abc68"

@@ -6,7 +6,7 @@ from dag_datalake_sirene.config import (
 
 
 def preprocess_colter_data(data_dir):
-    df_colter = pd.read_csv(URL_MINIO_COLTER, dtype=str, sep=";")
+    df_colter = pd.read_csv(URL_MINIO_COLTER, dtype=str)
     return df_colter
 
 
