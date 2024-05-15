@@ -27,7 +27,7 @@ default_args = {
 with DAG(
     dag_id="data_processing_sirene_stock_etab",
     default_args=default_args,
-    schedule_interval="0 0 * * *",  # Run everyday
+    schedule_interval="0 1 * * *",  # Run everyday
     start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=60),
     tags=["data-processing", "sirene", "backup", "historique", "etablissement"],
