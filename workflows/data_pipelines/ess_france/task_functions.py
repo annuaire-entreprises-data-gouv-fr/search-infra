@@ -61,7 +61,7 @@ def compare_files_minio():
 
 
 def send_notification(ti):
-    nb_siren = ti.xcom_pull(key="nb_siren_ess", task_ids="preprocess_ess_france_data")
+    nb_siren = ti.xcom_pull(key="nb_siren_ess", task_ids="preprocess_ess_data")
     send_message(
         f"\U0001F7E2 Données ESS France mises à jour.\n"
         f"- {nb_siren} unités légales représentées\n"

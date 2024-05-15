@@ -87,7 +87,7 @@ def compare_files_minio():
 
 def send_notification(ti):
     nb_siren = ti.xcom_pull(
-        key="nb_siren_spectacle", task_ids="preprocess_spectacle_data"
+        key="nb_siren_entrepreneur_spectacle", task_ids="preprocess_spectacle_data"
     )
     send_message(
         f"\U0001F7E2 Données Entrepreneur spectacle mises à jour.\n"
