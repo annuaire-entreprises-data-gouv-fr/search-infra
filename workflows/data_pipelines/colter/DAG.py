@@ -5,11 +5,12 @@ from airflow.operators.bash import BashOperator
 from airflow.utils.dates import days_ago
 from datetime import timedelta
 from dag_datalake_sirene.config import (
-    AGENCE_BIO_TMP_FOLDER,
+    COLTER_TMP_FOLDER,
     EMAIL_LIST,
 )
-from dag_datalake_sirene.workflows.data_pipelines.agence_bio.task_functions import (
-    process_agence_bio,
+from dag_datalake_sirene.workflows.data_pipelines.colter.task_functions import (
+    preprocess_colter_data,
+    preprocess_elus_data,
     send_file_to_minio,
     compare_files_minio,
     send_notification,
@@ -24,24 +25,26 @@ default_args = {
 }
 
 with DAG(
-    dag_id="data_processing_agence_bio",
+    dag_id="data_processing_collectivite_territoriale",
     default_args=default_args,
     schedule_interval="0 4 * * MON",
     start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=60),
-    tags=["agence bio", "certifications"],
+    tags=["élus", "conseillers", "régions", "départements"],
     params={},
     catchup=False,
 ) as dag:
     clean_previous_outputs = BashOperator(
         task_id="clean_previous_outputs",
-        bash_command=(
-            f"rm -rf {AGENCE_BIO_TMP_FOLDER} && mkdir -p {AGENCE_BIO_TMP_FOLDER}"
-        ),
+        bash_command=(f"rm -rf {COLTER_TMP_FOLDER} && mkdir -p {COLTER_TMP_FOLDER}"),
     )
 
-    process_agence_bio = PythonOperator(
-        task_id="process_agence_bio", python_callable=process_agence_bio
+    preprocess_colter_data = PythonOperator(
+        task_id="preprocess_colter_data", python_callable=preprocess_colter_data
+    )
+
+    preprocess_elus_data = PythonOperator(
+        task_id="preprocess_elus_data", python_callable=preprocess_elus_data
     )
 
     send_file_to_minio = PythonOperator(
@@ -56,7 +59,8 @@ with DAG(
         task_id="send_notification", python_callable=send_notification
     )
 
-    process_agence_bio.set_upstream(clean_previous_outputs)
-    send_file_to_minio.set_upstream(process_agence_bio)
+    preprocess_colter_data.set_upstream(clean_previous_outputs)
+    preprocess_elus_data.set_upstream(preprocess_colter_data)
+    send_file_to_minio.set_upstream(preprocess_elus_data)
     compare_files_minio.set_upstream(send_file_to_minio)
     send_notification.set_upstream(compare_files_minio)

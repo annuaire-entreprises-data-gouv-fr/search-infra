@@ -5,11 +5,11 @@ from airflow.operators.bash import BashOperator
 from airflow.utils.dates import days_ago
 from datetime import timedelta
 from dag_datalake_sirene.config import (
-    AGENCE_BIO_TMP_FOLDER,
+    EGAPRO_TMP_FOLDER,
     EMAIL_LIST,
 )
-from dag_datalake_sirene.workflows.data_pipelines.agence_bio.task_functions import (
-    process_agence_bio,
+from dag_datalake_sirene.workflows.data_pipelines.egapro.task_functions import (
+    preprocess_egapro_data,
     send_file_to_minio,
     compare_files_minio,
     send_notification,
@@ -24,24 +24,22 @@ default_args = {
 }
 
 with DAG(
-    dag_id="data_processing_agence_bio",
+    dag_id="data_processing_egapro",
     default_args=default_args,
     schedule_interval="0 4 * * MON",
     start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=60),
-    tags=["agence bio", "certifications"],
+    tags=["egapro"],
     params={},
     catchup=False,
 ) as dag:
     clean_previous_outputs = BashOperator(
         task_id="clean_previous_outputs",
-        bash_command=(
-            f"rm -rf {AGENCE_BIO_TMP_FOLDER} && mkdir -p {AGENCE_BIO_TMP_FOLDER}"
-        ),
+        bash_command=(f"rm -rf {EGAPRO_TMP_FOLDER} && mkdir -p {EGAPRO_TMP_FOLDER}"),
     )
 
-    process_agence_bio = PythonOperator(
-        task_id="process_agence_bio", python_callable=process_agence_bio
+    process_egapro = PythonOperator(
+        task_id="process_egapro", python_callable=preprocess_egapro_data
     )
 
     send_file_to_minio = PythonOperator(
@@ -56,7 +54,7 @@ with DAG(
         task_id="send_notification", python_callable=send_notification
     )
 
-    process_agence_bio.set_upstream(clean_previous_outputs)
-    send_file_to_minio.set_upstream(process_agence_bio)
+    process_egapro.set_upstream(clean_previous_outputs)
+    send_file_to_minio.set_upstream(process_egapro)
     compare_files_minio.set_upstream(send_file_to_minio)
     send_notification.set_upstream(compare_files_minio)

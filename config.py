@@ -36,10 +36,19 @@ RNE_DAG_FOLDER = "dag_datalake_sirene/data_pipelines/"
 METADATA_CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}metadata/cc/"
 METADATA_CC_MINIO_PATH = "metadata/cc/"
 INSEE_FLUX_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/flux/"
+INSEE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/ul/"
 MARCHE_INCLUSION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}marche_inclusion/"
 AGENCE_BIO_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}agence_bio/"
+EGAPRO_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}egapro/"
 UAI_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}uai/"
 BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
+SPECTACLE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}spectacle/"
+FINESS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}finess/"
+RGE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rge/"
+FORMATION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}formation/"
+ESS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}ess/"
+COLTER_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}colter/"
+CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
 
 # Insee
 INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
@@ -66,6 +75,10 @@ RNE_API_DIFF_URL = "https://registre-national-entreprises.inpi.fr/api/companies/
 # MARCHE INCLUSION
 MARCHE_INCLUSION_API_URL = "https://lemarche.inclusion.beta.gouv.fr/api/siae/?"
 SECRET_TOKEN_MARCHE_INCLUSION = Variable.get("SECRET_TOKEN_MARCHE_INCLUSION", "")
+URL_MINIO_MARCHE_INCLUSION = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/marche_inclusion"
+    "/stock_marche_inclusion.csv"
+)
 # AIO
 AIO_URL = Variable.get("AIO_URL", None)
 COLOR_URL = Variable.get("COLOR_URL", None)
@@ -137,44 +150,94 @@ URL_CONSEILLERS_MUNICIPAUX = (
 URL_ASSEMBLEE_COL_STATUT_PARTICULIER = (
     "https://www.data.gouv.fr/fr/datasets/r/a595be27-cfab-4810-b9d4-22e193bffe35"
 )
+URL_MINIO_COLTER = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/colter"
+    "/latest/colter.csv"
+)
+URL_MINIO_ELUS = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/colter"
+    "/latest/elus.csv"
+)
 URL_CONVENTION_COLLECTIVE = (
     "https://www.data.gouv.fr/fr/datasets/r/a22e54f7-b937-4483-9a72-aad2ea1316f1"
+)
+URL_MINIO_CONVENTION_COLLECTIVE = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/convention_collective"
+    "/latest/cc.csv"
 )
 URL_EGAPRO = (
     "https://www.data.gouv.fr/fr/datasets/r/d434859f-8d3b-4381-bcdb-ec9200653ae6"
 )
+URL_MINIO_EGAPRO = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/egapro"
+    "/latest/egapro.csv"
+)
 URL_ENTREPRENEUR_SPECTACLE = (
     "https://www.data.gouv.fr/fr/datasets/r/fb6c3b2e-da8c-4e69-a719-6a96329e4cb2"
+)
+URL_MINIO_ENTREPRENEUR_SPECTACLE = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/spectacle"
+    "/latest/spectacle.csv"
 )
 URL_ETABLISSEMENTS = (
     "https://www.data.gouv.fr/fr/datasets/r/0651fb76-bcf3-4f6a-a38d-bc04fa708576"
 )
+URL_MINIO_ETABLISSEMENTS = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
+    "/sirene/stock/StockEtablissement_utf8.zip"
+)
 URL_ETABLISSEMENTS_HISTORIQUE = (
     "https://www.data.gouv.fr/fr/datasets/r/88fbb6b4-0320-443e-b739-b4376a012c32"
 )
+URL_MINIO_ETABLISSEMENTS_HISTORIQUE = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
+    "/sirene/historique/StockEtablissementHistorique_utf8.zip"
+)
 URL_FINESS = (
     "https://www.data.gouv.fr/fr/datasets/r/2ce43ade-8d2c-4d1d-81da-ca06c82abc68"
+)
+URL_MINIO_FINESS = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/finess"
+    "/latest/finess.csv"
 )
 URL_ORGANISME_FORMATION = (
     "https://dgefp.opendatasoft.com/api/explore/v2.1/catalog/datasets/liste"
     "-publique-des-of-v2/exports/csv?lang=fr&timezone=Europe%2FBerlin&use_labels"
     "=true&delimiter=%3B"
 )
+URL_MINIO_ORGANISME_FORMATION = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/formation"
+    "/latest/formation.csv"
+)
 URL_RGE = (
     "https://data.ademe.fr/data-fair/api/v1/datasets/"
     "liste-des-entreprises-rge-2/lines?size=10000&select=siret%2Ccode_qualification"
+)
+URL_MINIO_RGE = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/rge" "/latest/rge.csv"
 )
 URL_UAI = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/uai"
     "/latest/annuaire_uai.csv"
 )
 URL_UNITE_LEGALE = "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip"
+URL_MINIO_UNITE_LEGALE = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
+    "/sirene/stock/StockUniteLegale_utf8.zip"
+)
 URL_UNITE_LEGALE_HISTORIQUE = (
     "https://www.data.gouv.fr/fr/datasets/r/0835cd60-2c2a-497b-bc64-404de704ce89"
 )
-
+URL_MINIO_UNITE_LEGALE_HISTORIQUE = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
+    "/sirene/historique/StockUniteLegaleHistorique_utf8.zip"
+)
 URL_ESS_FRANCE = (
     "https://www.data.gouv.fr/fr/datasets/r/57bc99ca-0432-4b46-8fcc-e76a35c9efaf"
+)
+URL_MINIO_ESS_FRANCE = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/ess"
+    "/latest/ess_france.csv"
 )
 URL_CC_DARES = (
     "https://travail-emploi.gouv.fr/IMG/xlsx/"
