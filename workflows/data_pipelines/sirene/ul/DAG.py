@@ -64,7 +64,6 @@ with DAG(
 
     download_historique_ul.set_upstream(clean_previous_outputs)
     send_historique_file_to_minio.set_upstream(download_historique_ul)
-    download_stock_ul.set_upstream(clean_previous_outputs)
+    download_stock_ul.set_upstream(send_historique_file_to_minio)
     send_stock_file_to_minio.set_upstream(download_stock_ul)
     send_notification.set_upstream(send_stock_file_to_minio)
-    send_notification.set_upstream(send_historique_file_to_minio)
