@@ -1,5 +1,5 @@
 from airflow.models import DAG
-from airflow.operators.python import PythonOperator, ShortCircuitOperator
+from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 
 from airflow.utils.dates import days_ago
@@ -49,7 +49,7 @@ with DAG(
         task_id="download_stock_etab", python_callable=download_stock_etab
     )
 
-    send_historique_file_to_minio = ShortCircuitOperator(
+    send_historique_file_to_minio = PythonOperator(
         task_id="send_historique_file_to_minio",
         python_callable=send_historique_file_to_minio,
     )
