@@ -296,6 +296,7 @@ class UniteLegaleMapping(InnerDoc):
     est_uai = Boolean()
     etablissements = Nested(EtablissementMapping)
     etat_administratif_unite_legale = Keyword()
+    facteur_taille_entreprise = Integer()
     from_insee = Boolean()
     from_rne = Boolean()
     identifiant_association_unite_legale = Keyword()

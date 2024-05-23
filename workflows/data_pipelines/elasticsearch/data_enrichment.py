@@ -486,3 +486,19 @@ def format_siege_unite_legale(siege, is_non_diffusible=False):
     siege["liste_id_bio"] = str_to_list(siege["liste_id_bio"])
 
     return siege
+
+
+def calculate_company_size_factor(unite_legale):
+    """
+    Calculate the size factor of an enterprise based on its category
+    code and the number of open establishments.
+    """
+    code_categorie_entreprise = unite_legale["code_categorie_entreprise"]
+    nombre_etablissements = unite_legale["nombre_etablissements_ouverts"]
+
+    if code_categorie_entreprise is None or nombre_etablissements is None:
+        return None
+
+    size_factor = code_categorie_entreprise * nombre_etablissements
+
+    return size_factor

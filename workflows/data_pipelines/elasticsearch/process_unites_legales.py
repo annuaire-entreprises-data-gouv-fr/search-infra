@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
+    calculate_company_size_factor,
     create_list_names_elus,
     format_dirigeants_pm,
     format_dirigeants_pp,
@@ -235,6 +236,10 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["siren"],
         )
 
+        # Produits catégorie/nombre étabs
+        unite_legale_processed["facteur_taille_entreprise"] = (
+            calculate_company_size_factor(unite_legale_processed)
+        )
         # Create unité légale (structure) to be indexed
         unite_legale_to_index = {}
         unite_legale_to_index["identifiant"] = unite_legale_processed["siren"]
