@@ -6,6 +6,10 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
 )
 
 
+class Immatriculation(BaseModel):
+    date_immatriculation: datetime | None = None
+
+
 class Adresse(BaseModel):
     pays: str | None = None
     code_pays: str | None = None
@@ -68,6 +72,7 @@ class UniteLegale(BaseModel):
     adresse: Adresse | None = Adresse()
     dirigeants: list[DirigeantsPP | DirigeantsPM] | None = None
     siege: Siege | None = Siege()
+    immatricution: Immatriculation | None = Immatriculation()
 
     def get_dirigeants_list(self):
         dirigeants_pp_list = []
