@@ -5,7 +5,7 @@ import requests
 import logging
 from requests.adapters import HTTPAdapter, Retry
 import time
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.s3_helpers import s3_client
 from dag_datalake_sirene.helpers.tchap import send_message
 from dag_datalake_sirene.config import (
     INSEE_API_URL,
@@ -219,7 +219,7 @@ def get_current_flux_etablissement(ti):
 
 
 def send_flux_minio():
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=[
             {
                 "source_path": INSEE_FLUX_TMP_FOLDER,
@@ -244,7 +244,7 @@ def send_flux_minio():
 
 
 def send_stock_minio():
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=[
             {
                 "source_path": INSEE_FLUX_TMP_FOLDER,
@@ -268,7 +268,7 @@ def send_notification(ti):
     )
     send_message(
         f"\U0001F7E2 Données Flux Sirene mises à jour - Disponibles sur Minio - Bucket "
-        f"{minio_client.bucket}\n"
+        f"{s3_client.bucket}\n"
         f"- {nb_flux_non_diffusible} unités légales non diffusibles modifiées"
         f" ce mois-ci\n"
         f"- {nb_flux_unite_legale}  unités légales modifiées ce mois-ci\n"

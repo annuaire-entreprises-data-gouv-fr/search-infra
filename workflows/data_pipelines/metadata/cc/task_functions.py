@@ -4,7 +4,7 @@ import logging
 import json
 from datetime import datetime
 from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.s3_helpers import s3_client
 from dag_datalake_sirene.config import (
     URL_CC_DARES,
     URL_CC_KALI,
@@ -99,7 +99,7 @@ def create_metadata_concollective_json():
 
 
 def upload_json_file_to_minio():
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=[
             {
                 "source_path": METADATA_CC_TMP_FOLDER,
@@ -115,7 +115,7 @@ def send_notification_success_tchap():
     send_message(
         f"\U0001F7E2 Données :"
         f"\nMetadata Conventions Collectives mise à jour sur Minio "
-        f"- Bucket {minio_client.bucket}."
+        f"- Bucket {s3_client.bucket}."
     )
 
 

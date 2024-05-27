@@ -9,7 +9,7 @@ from dag_datalake_sirene.helpers.datagouv import get_resource
 from dag_datalake_sirene.helpers.tchap import send_message
 from dag_datalake_sirene.helpers.utils import get_fiscal_year
 
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.s3_helpers import s3_client
 
 
 def download_bilans_financiers():
@@ -105,7 +105,7 @@ def process_bilans_financiers(ti):
 
 
 def send_file_to_minio():
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=[
             {
                 "source_path": BILANS_FINANCIERS_TMP_FOLDER,
@@ -118,7 +118,7 @@ def send_file_to_minio():
 
 
 def compare_files_minio():
-    is_same = minio_client.compare_files(
+    is_same = s3_client.compare_files(
         file_path_1="bilans_financiers/new/",
         file_name_2="synthese_bilans.csv",
         file_path_2="bilans_financiers/latest/",
@@ -130,7 +130,7 @@ def compare_files_minio():
     if is_same is None:
         logging.info("First time in this Minio env. Creating")
 
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=[
             {
                 "source_path": BILANS_FINANCIERS_TMP_FOLDER,

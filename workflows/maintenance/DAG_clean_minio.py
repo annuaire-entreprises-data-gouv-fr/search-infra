@@ -2,7 +2,7 @@ import logging
 from airflow.operators.python_operator import PythonOperator
 from airflow.models import DAG
 from datetime import datetime, timedelta, timezone
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.s3_helpers import s3_client
 from dag_datalake_sirene.config import (
     AIRFLOW_ENV,
     EMAIL_LIST,
@@ -22,7 +22,7 @@ def delete_old_files(
         keep_latest (int, optional): Number of latest files to retain. Defaults to 2.
         retention_days (int, optional): Number of days to retain files. Defaults to 14.
     """
-    file_info_list = minio_client.get_files_and_last_modified(prefix)
+    file_info_list = s3_client.get_files_and_last_modified(prefix)
 
     file_info_list.sort(key=lambda x: x[1], reverse=True)
 
@@ -36,7 +36,7 @@ def delete_old_files(
         if i < keep_latest or age < timedelta(days=retention_days):
             continue
         logging.info(f"***** Deleting file: {file_name}")
-        minio_client.delete_file(file_name)
+        s3_client.delete_file(file_name)
 
 
 default_args = {

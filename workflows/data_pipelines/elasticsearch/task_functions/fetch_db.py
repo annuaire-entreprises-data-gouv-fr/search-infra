@@ -9,13 +9,13 @@ from dag_datalake_sirene.config import (
     SIRENE_MINIO_DATA_PATH,
     AIRFLOW_ELK_DATA_DIR,
 )
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.s3_helpers import s3_client
 
 current_date = datetime.now().date()
 
 
 def get_latest_database(**kwargs):
-    database_files = minio_client.get_files_from_prefix(
+    database_files = s3_client.get_files_from_prefix(
         prefix=SIRENE_MINIO_DATA_PATH,
     )
 
@@ -28,7 +28,7 @@ def get_latest_database(**kwargs):
     if dates:
         last_date = dates[-1]
         logging.info(f"***** Last database saved: {last_date}")
-        minio_client.get_files(
+        s3_client.get_files(
             list_files=[
                 {
                     "source_path": SIRENE_MINIO_DATA_PATH,

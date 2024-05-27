@@ -2,7 +2,7 @@ import pandas as pd
 import logging
 import requests
 
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.s3_helpers import s3_client
 from dag_datalake_sirene.config import (
     FORMATION_TMP_FOLDER,
     URL_ORGANISME_FORMATION,
@@ -88,7 +88,7 @@ def preprocess_organisme_formation_data(ti):
 
 
 def send_file_to_minio():
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=[
             {
                 "source_path": FORMATION_TMP_FOLDER,
@@ -101,7 +101,7 @@ def send_file_to_minio():
 
 
 def compare_files_minio():
-    is_same = minio_client.compare_files(
+    is_same = s3_client.compare_files(
         file_path_1="formation/new/",
         file_name_2="formation.csv",
         file_path_2="formation/latest/",
@@ -113,7 +113,7 @@ def compare_files_minio():
     if is_same is None:
         logging.info("First time in this Minio env. Creating")
 
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=[
             {
                 "source_path": FORMATION_TMP_FOLDER,

@@ -1,18 +1,18 @@
 import boto3
-import botocore
+from boto3.s3.transfer import TransferConfig
+from botocore.exceptions import ClientError
 from datetime import datetime
 import logging
-from minio import Minio, S3Error
 from typing import List, TypedDict, Optional
 import os
 from dag_datalake_sirene.config import (
     AIRFLOW_ENV,
-    MINIO_BUCKET,
-    MINIO_URL,
-    MINIO_USER,
-    MINIO_PASSWORD,
+    S3_REGION,
+    S3_BUCKET,
+    S3_URL,
+    S3_ACCESS_KEY,
+    S3_SECRET_KEY,
 )
-
 
 class File(TypedDict):
     source_path: str
@@ -22,19 +22,29 @@ class File(TypedDict):
     content_type: Optional[str]
 
 
-class MinIOClient:
+class S3Client:
     def __init__(self):
-        self.url = MINIO_URL
-        self.user = MINIO_USER
-        self.password = MINIO_PASSWORD
-        self.bucket = MINIO_BUCKET
-        self.client = Minio(
-            self.url,
-            access_key=self.user,
-            secret_key=self.password,
-            secure=True,
+        self.bucket = S3_BUCKET
+        self.client = boto3.client(
+            "s3",
+            aws_access_key_id=S3_ACCESS_KEY,
+            aws_secret_access_key=S3_SECRET_KEY,
+            endpoint_url=S3_URL,
+            region_name=S3_REGION,
         )
-        self.bucket_exists = self.client.bucket_exists(self.bucket)
+        self.transfer_config = TransferConfig(multipart_threshold=4 * (1024**3))
+
+        try:
+            self.bucket_exists = (
+                self.client.head_bucket(Bucket=self.bucket)["ResponseMetadata"][
+                    "HTTPStatusCode"
+                ]
+                == 200
+            )
+        except ClientError as e:
+            logging.error(e)
+            self.bucket_exists = False
+
         if not self.bucket_exists:
             raise ValueError(f"Bucket '{self.bucket}' does not exist.")
 
@@ -62,33 +72,44 @@ class MinIOClient:
             )
             logging.info("Sending ", file["source_name"])
             if is_file:
-                self.client.fput_object(
+                self.client.upload_file(
+                    os.path.join(file["source_path"], file["source_name"]),
                     self.bucket,
                     f"ae/{AIRFLOW_ENV}/{file['dest_path']}{file['dest_name']}",
-                    os.path.join(file["source_path"], file["source_name"]),
-                    content_type=(
-                        file["content_type"] if "content_type" in file else None
-                    ),
+                    ExtraArgs={
+                        "ContentType": (
+                            file["content_type"] if "content_type" in file else None
+                        )
+                    },
+                    Config=self.transfer_config,
                 )
             else:
                 raise Exception(
                     f"file {file['source_path']}{file['source_name']} " "does not exist"
                 )
 
-    def get_files_from_prefix(self, prefix: str):
+    def get_files_from_prefix(self, prefix: str) -> List[str]:
         """Retrieve only the list of files in a Minio pattern
 
         Args:
             prefix: (str): prefix to search files
         """
-        list_objects = []
-        objects = self.client.list_objects(
-            self.bucket, prefix=f"ae/{AIRFLOW_ENV}/{prefix}"
-        )
-        for obj in objects:
-            logging.info(obj.object_name)
-            list_objects.append(obj.object_name.replace(f"ae/{AIRFLOW_ENV}/", ""))
-        return list_objects
+        filenames = [
+            file["Key"]
+            for page in self.client.get_paginator("list_objects_v2").paginate(
+                Bucket=self.bucket, Prefix=f"ae/{AIRFLOW_ENV}/{prefix}"
+            )
+            for file in (page["Contents"] if "Contents" in page else [])
+        ]
+
+        for filename in filenames:
+            logging.info(filename)
+
+        filenames = [
+            filename.replace(f"ae/{AIRFLOW_ENV}/", "") for filename in filenames
+        ]
+
+        return filenames
 
     def get_files(self, list_files: List[File]):
         """Retrieve list of files from Minio
@@ -99,22 +120,24 @@ class MinIOClient:
             `dest_path` and `dest_name` : local file destination ;
         """
         for file in list_files:
-            self.client.fget_object(
-                self.bucket,
-                f"ae/{AIRFLOW_ENV}/{file['source_path']}{file['source_name']}",
-                f"{file['dest_path']}{file['dest_name']}",
+            self.client.download_file(
+                Bucket=self.bucket,
+                Key=f"ae/{AIRFLOW_ENV}/{file['source_path']}{file['source_name']}",
+                Filename=f"{file['dest_path']}{file['dest_name']}",
+                Config=self.transfer_config,
             )
 
     def get_object_minio(
         self,
-        minio_path: str,
+        s3_path: str,
         filename: str,
         local_path: str,
     ) -> None:
-        self.client.fget_object(
-            self.bucket,
-            f"{minio_path}{filename}",
-            local_path,
+        self.client.download_file(
+            Bucket=self.bucket,
+            Key=f"{s3_path}{filename}",
+            Filename=local_path,
+            Config=self.transfer_config,
         )
 
     def put_object_minio(
@@ -124,11 +147,12 @@ class MinIOClient:
         local_path: str,
         content_type: str = "application/octet-stream",
     ) -> None:
-        self.client.fput_object(
-            bucket_name=self.bucket,
-            object_name=minio_path,
-            file_path=local_path + filename,
-            content_type=content_type,
+        self.client.upload_file(
+            local_path + filename,
+            self.bucket,
+            minio_path,
+            ExtraArgs={"ContentType": content_type},
+            Config=self.transfer_config,
         )
 
     def get_latest_file_minio(
@@ -150,13 +174,13 @@ class MinIOClient:
             'filename_YYYY-MM-DD.db', where YYYY-MM-DD represents the date.
         """
 
-        objects = self.client.list_objects(
-            self.bucket, prefix=minio_path, recursive=True
-        )
-
-        # Filter and sort .gz files based on their names and the date in the filename
         db_files = [
-            obj.object_name for obj in objects if obj.object_name.endswith(".gz")
+            file["Key"]
+            for page in self.client.get_paginator("list_objects_v2").paginate(
+                Bucket=self.bucket, Prefix=minio_path
+            )
+            for file in (page["Contents"] if "Contents" in page else [])
+            if file["Key"].endswith(".gz")
         ]
 
         sorted_db_files = sorted(
@@ -169,21 +193,23 @@ class MinIOClient:
             latest_db_file = sorted_db_files[0]
             logging.info(f"Latest dirigeants database: {latest_db_file}")
 
-            self.client.fget_object(
-                self.bucket,
-                latest_db_file,
-                local_path,
+            self.client.download_file(
+                Bucket=self.bucket,
+                Key=latest_db_file,
+                Filename=local_path,
+                Config=self.transfer_config,
             )
+            print("downloaded")
         else:
             logging.warning("No .gz files found in the specified path.")
 
     def delete_file(self, file_path: str):
         """/!\ USE WITH CAUTION"""
         try:
-            self.client.stat_object(self.bucket, file_path)
-            self.client.remove_object(self.bucket, f"{file_path}")
+            self.client.head_object(Bucket=self.bucket, Key=file_path)
+            self.client.delete_object(Bucket=self.bucket, Key=file_path)
             logging.info(f"File '{file_path}' deleted successfully.")
-        except S3Error as e:
+        except ClientError as e:
             logging.error(e)
 
     def get_files_and_last_modified(self, prefix: str):
@@ -221,12 +247,6 @@ class MinIOClient:
         """
         if self.bucket is None:
             raise AttributeError("A bucket has to be specified.")
-        s3 = boto3.client(
-            "s3",
-            endpoint_url=f"https://{self.url}",
-            aws_access_key_id=self.user,
-            aws_secret_access_key=self.password,
-        )
 
         try:
             logging.info(f"ae/{AIRFLOW_ENV}/{file_path_1}{file_name_1}")
@@ -243,9 +263,9 @@ class MinIOClient:
 
             return bool(file_1["ETag"] == file_2["ETag"])
 
-        except botocore.exceptions.ClientError as e:
+        except ClientError as e:
             logging.error("Error loading files:", e)
             return None
 
 
-minio_client = MinIOClient()
+s3_client = S3Client()

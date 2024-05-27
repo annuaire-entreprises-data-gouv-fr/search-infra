@@ -1,4 +1,4 @@
-from minio.error import S3Error
+from botocore.exceptions import ClientError
 from datetime import datetime, timedelta
 import os
 import json
@@ -6,7 +6,7 @@ import gzip
 import shutil
 import re
 import logging
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.s3_helpers import s3_client
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.process_rne import (
     create_tables,
     get_tables_count,
@@ -28,7 +28,7 @@ from dag_datalake_sirene.config import (
 
 def get_start_date_minio(**kwargs):
     try:
-        minio_client.get_files(
+        s3_client.get_files(
             list_files=[
                 {
                     "source_path": RNE_MINIO_DATA_PATH,
@@ -46,11 +46,11 @@ def get_start_date_minio(**kwargs):
         previous_latest_date = datetime.strptime(previous_latest_date, "%Y-%m-%d")
         start_date = datetime.strftime(previous_latest_date, "%Y-%m-%d")
         kwargs["ti"].xcom_push(key="start_date", value=start_date)
-    except S3Error as e:
-        if e.code == "NoSuchKey":
+    except ClientError as e:
+        if int(e.response['Error']['Code']) == 404:
             logging.info(
                 f"The file {RNE_MINIO_STOCK_DATA_PATH + RNE_LATEST_DATE_FILE} "
-                f"does not exist in the bucket {minio_client.bucket}."
+                f"does not exist in the bucket {s3_client.bucket}."
             )
             kwargs["ti"].xcom_push(key="start_date", value=None)
         else:
@@ -114,7 +114,7 @@ def get_latest_db(**kwargs):
         previous_start_date = datetime.strftime(
             (previous_latest_date - timedelta(days=1)), "%Y-%m-%d"
         )
-        minio_client.get_files(
+        s3_client.get_files(
             list_files=[
                 {
                     "source_path": RNE_MINIO_DATA_PATH,
@@ -152,7 +152,7 @@ def process_stock_json_files(**kwargs):
     if start_date is not None:
         return None
 
-    json_stock_rne_files = minio_client.get_files_from_prefix(
+    json_stock_rne_files = s3_client.get_files_from_prefix(
         prefix=RNE_MINIO_STOCK_DATA_PATH,
     )
 
@@ -161,7 +161,7 @@ def process_stock_json_files(**kwargs):
 
     for file_path in json_stock_rne_files:
         logging.info(f"*******Processing stock file: {file_path}...")
-        minio_client.get_files(
+        s3_client.get_files(
             list_files=[
                 {
                     "source_path": "",
@@ -183,7 +183,7 @@ def process_flux_json_files(**kwargs):
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
     rne_db_path = kwargs["ti"].xcom_pull(key="rne_db_path", task_ids="create_db")
 
-    json_daily_flux_files = minio_client.get_files_from_prefix(
+    json_daily_flux_files = s3_client.get_files_from_prefix(
         prefix=RNE_MINIO_FLUX_DATA_PATH,
     )
 
@@ -202,7 +202,7 @@ def process_flux_json_files(**kwargs):
             file_date = date_match.group(1)
             if file_date >= start_date:
                 logging.info(f"Processing file {file_path} with date {file_date}")
-                minio_client.get_files(
+                s3_client.get_files(
                     list_files=[
                         {
                             "source_path": RNE_MINIO_FLUX_DATA_PATH,
@@ -313,7 +313,7 @@ def check_db_count(
 
 
 def send_to_minio(list_files):
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=list_files,
     )
 

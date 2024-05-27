@@ -2,7 +2,7 @@ import os
 import zipfile
 import logging
 from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.s3_helpers import s3_client
 from dag_datalake_sirene.config import (
     RNE_STOCK_ZIP_FILE_PATH,
     RNE_STOCK_EXTRACTED_FILES_PATH,
@@ -17,7 +17,7 @@ def unzip_files_and_upload_minio(**kwargs):
             z.extract(file_info, path=RNE_STOCK_EXTRACTED_FILES_PATH)
 
             logging.info(f"Saving file {file_info.filename} in MinIO.....")
-            minio_client.send_files(
+            s3_client.send_files(
                 list_files=[
                     {
                         "source_path": RNE_STOCK_EXTRACTED_FILES_PATH,

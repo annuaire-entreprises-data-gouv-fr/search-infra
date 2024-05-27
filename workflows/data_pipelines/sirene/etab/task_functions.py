@@ -1,6 +1,6 @@
 import requests
 import logging
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.s3_helpers import s3_client
 from dag_datalake_sirene.config import (
     INSEE_TMP_FOLDER,
     URL_ETABLISSEMENTS,
@@ -23,7 +23,7 @@ def download_historique_etab():
 
 
 def send_stock_file_to_minio():
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=[
             {
                 "source_path": f"{INSEE_TMP_FOLDER}etab/",
@@ -36,7 +36,7 @@ def send_stock_file_to_minio():
 
 
 def send_historique_file_to_minio():
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=[
             {
                 "source_path": f"{INSEE_TMP_FOLDER}etab/",
