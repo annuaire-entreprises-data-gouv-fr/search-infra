@@ -46,8 +46,8 @@ with DAG(
         ),
     )
 
-    download_bilans_fiancniers = PythonOperator(
-        task_id="download_bilans_fiancniers", python_callable=download_bilans_financiers
+    download_bilans_financiers = PythonOperator(
+        task_id="download_bilans_financiers", python_callable=download_bilans_financiers
     )
 
     process_bilans_financiers = PythonOperator(
@@ -65,8 +65,8 @@ with DAG(
     send_notification = PythonOperator(
         task_id="send_notification", python_callable=send_notification
     )
-    download_bilans_fiancniers.set_upstream(clean_previous_outputs)
-    process_bilans_financiers.set_upstream(download_bilans_fiancniers)
+    download_bilans_financiers.set_upstream(clean_previous_outputs)
+    process_bilans_financiers.set_upstream(download_bilans_financiers)
     send_file_to_minio.set_upstream(process_bilans_financiers)
     compare_files_minio.set_upstream(send_file_to_minio)
     send_notification.set_upstream(compare_files_minio)
