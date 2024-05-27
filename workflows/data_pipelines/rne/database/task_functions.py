@@ -47,7 +47,7 @@ def get_start_date_minio(**kwargs):
         start_date = datetime.strftime(previous_latest_date, "%Y-%m-%d")
         kwargs["ti"].xcom_push(key="start_date", value=start_date)
     except ClientError as e:
-        if int(e.response['Error']['Code']) == 404:
+        if int(e.response["Error"]["Code"]) == 404:
             logging.info(
                 f"The file {RNE_MINIO_STOCK_DATA_PATH + RNE_LATEST_DATE_FILE} "
                 f"does not exist in the bucket {s3_client.bucket}."

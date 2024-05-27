@@ -14,6 +14,7 @@ from dag_datalake_sirene.config import (
     S3_SECRET_KEY,
 )
 
+
 class File(TypedDict):
     source_path: str
     source_name: str
