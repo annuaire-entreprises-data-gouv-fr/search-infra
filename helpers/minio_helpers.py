@@ -229,13 +229,13 @@ class MinIOClient:
         )
 
         try:
-            logging.info(f"{AIRFLOW_ENV}/{file_path_1}{file_name_1}")
-            logging.info(f"{AIRFLOW_ENV}/{file_path_2}{file_name_2}")
+            logging.info(f"ae/{AIRFLOW_ENV}/{file_path_1}{file_name_1}")
+            logging.info(f"ae/{AIRFLOW_ENV}/{file_path_2}{file_name_2}")
             file_1 = s3.head_object(
-                Bucket=self.bucket, Key=f"{AIRFLOW_ENV}/{file_path_1}{file_name_1}"
+                Bucket=self.bucket, Key=f"ae/{AIRFLOW_ENV}/{file_path_1}{file_name_1}"
             )
             file_2 = s3.head_object(
-                Bucket=self.bucket, Key=f"{AIRFLOW_ENV}/{file_path_2}{file_name_2}"
+                Bucket=self.bucket, Key=f"ae/{AIRFLOW_ENV}/{file_path_2}{file_name_2}"
             )
             logging.info(f"Hash file 1 : {file_1['ETag']}")
             logging.info(f"Hash file 2 : {file_2['ETag']}")
