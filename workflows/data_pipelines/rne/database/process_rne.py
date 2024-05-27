@@ -253,7 +253,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 unite_legale.nom_commercial,
                 unite_legale.date_creation,
                 unite_legale.date_mise_a_jour,
-                unite_legale.date_immatriculation,
+                unite_legale.immatricution.date_immatriculation,
                 unite_legale.date_radiation,
                 unite_legale.activite_principale,
                 unite_legale.tranche_effectif_salarie,
