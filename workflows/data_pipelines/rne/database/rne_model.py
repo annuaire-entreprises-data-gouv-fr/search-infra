@@ -119,7 +119,7 @@ class PersonneMorale(BaseModel):
 
 
 class PersonnePhysique(BaseModel):
-    identite: Identite | None = None
+    identite: Identite | None = Identite()
     composition: Composition | None = None
     adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
     etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
