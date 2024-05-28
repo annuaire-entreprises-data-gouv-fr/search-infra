@@ -68,6 +68,7 @@ class Entreprise(BaseModel):
     effectifSalarie: str | None = None
     dateImmat: datetime | None = None
     codeApe: str | None = None
+    indicateurAssocieUnique: str | None = None
 
 
 class Identite(BaseModel):

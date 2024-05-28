@@ -26,7 +26,6 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     unite_legale.etat_administratif = (
         rne_company.formality.content.natureCessationEntreprise.etatAdministratifInsee
     )
-    unite_legale.immatricution.date_immatriculation = get_date_immat(rne_company)
     cessation = get_detail_cessation(rne_company)
     if cessation:
         unite_legale.date_radiation = cessation.dateRadiation
@@ -35,8 +34,11 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     if identite:
         unite_legale.denomination = identite.denomination
         unite_legale.nom_commercial = identite.nomCommercial
-        unite_legale.date_immatriculation = identite.dateImmat
+        unite_legale.immatricution.date_immatriculation = identite.dateImmat
         unite_legale.tranche_effectif_salarie = identite.effectifSalarie
+        unite_legale.immatricution.indicateur_associe_unique = (
+            identite.indicateurAssocieUnique
+        )
     else:
         logging.warning(f"++++++++ Unite legale has no identite : {unite_legale.siren}")
 
@@ -118,13 +120,6 @@ def get_identite(rne_company: RNECompany):
         return identite.entreprise
     else:
         return None
-
-
-def get_date_immat(rne_company: RNECompany):
-    identite = get_identite(rne_company)
-    if identite:
-        return identite.dateImmat
-    return None
 
 
 def get_detail_cessation(rne_company: RNECompany):

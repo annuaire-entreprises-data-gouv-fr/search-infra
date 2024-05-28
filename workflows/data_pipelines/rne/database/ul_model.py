@@ -8,6 +8,7 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
 
 class Immatriculation(BaseModel):
     date_immatriculation: datetime | None = None
+    indicateur_associe_unique: bool | None = None
 
 
 class Adresse(BaseModel):
