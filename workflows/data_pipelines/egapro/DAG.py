@@ -26,7 +26,7 @@ default_args = {
 with DAG(
     dag_id="data_processing_egapro",
     default_args=default_args,
-    schedule_interval="0 4 * * MON",
+    schedule_interval="0 16 * * *",
     start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=60),
     tags=["egapro"],
