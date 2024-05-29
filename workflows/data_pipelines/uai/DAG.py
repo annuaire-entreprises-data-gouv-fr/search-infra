@@ -17,7 +17,7 @@ from dag_datalake_sirene.workflows.data_pipelines.uai.task_functions import (
 
 with DAG(
     dag_id="data_processing_uai",
-    schedule_interval="30 3 * * MON",
+    schedule_interval="0 16 * * *",
     start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=15),
     tags=["uai", "scolaire"],
