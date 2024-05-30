@@ -7,7 +7,7 @@ def preprocess_spectacle_data(data_dir):
         URL_MINIO_ENTREPRENEUR_SPECTACLE,
         dtype={
             "siren": "object",
-            "statut_entrepreneur_spectacle": "bool",
+            "statut_entrepreneur_spectacle": "object",
             "est_entrepreneur_spectacle": "bool",
         },
     )
