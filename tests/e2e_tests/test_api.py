@@ -261,6 +261,9 @@ def test_est_collectivite_territoriale(api_response_tester):
 def test_est_bio(api_response_tester):
     path = "/search?est_bio=true"
     api_response_tester.test_field_value(path, "complements.est_bio", True)
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
+    path = "/search?est_bio=false"
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
 
 
 def test_est_entrepreneur_individuel(api_response_tester):
