@@ -100,6 +100,17 @@ def test_organisme_formation(api_response_tester):
     """
     path = "/search?est_organisme_formation=true&est_qualiopi=true"
     api_response_tester.test_number_of_results(path, min_total_results_filters)
+    path = "/search?est_organisme_formation=true&est_qualiopi=false"
+    api_response_tester.test_number_of_results(path, 100)
+    path = "/search?est_organisme_formation=false&est_qualiopi=true"
+    api_response_tester.test_max_number_of_results(path, 0)
+    path = "/search?q=196716856"
+    api_response_tester.test_field_value(path, "complements.est_quliopi", True)
+    path = "/search?q=788945368"
+    api_response_tester.test_field_value(path, "complements.est_quliopi", False)
+    api_response_tester.test_field_value(
+        path, "complements.est_organisme_formation", True
+    )
 
 
 def test_near_point(api_response_tester):
@@ -183,7 +194,9 @@ def test_est_service_public(api_response_tester):
 #     """
 #     path = "/search?est_societe_mission=true"
 #     api_response_tester.test_number_of_results(path, 500)
-#     api_response_tester.test_field_value(path, "complements.est_societe_mission", True)
+#     api_response_tester.test_field_value(
+#       path, "complements.est_societe_mission", True
+#       )
 
 
 def test_commune_filter(api_response_tester):
