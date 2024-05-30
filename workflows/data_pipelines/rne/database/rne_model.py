@@ -96,6 +96,8 @@ class EtablissementPrincipal(BaseModel):
 
 
 class DetailCessationEntreprise(BaseModel):
+    dateCessationTotaleActivite: date | None = None
+    dateEffet: date | None = None
     dateRadiation: date | None = None
 
 
@@ -108,7 +110,9 @@ class Exploitation(BaseModel):
     composition: Composition | None = None
     adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
     etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
-    detailCessationEntreprise: DetailCessationEntreprise | None = None
+    detailCessationEntreprise: DetailCessationEntreprise | None = (
+        DetailCessationEntreprise()
+    )
 
 
 class PersonneMorale(BaseModel):
@@ -116,7 +120,9 @@ class PersonneMorale(BaseModel):
     composition: Composition | None = None
     adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
     etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
-    detailCessationEntreprise: DetailCessationEntreprise | None = None
+    detailCessationEntreprise: DetailCessationEntreprise | None = (
+        DetailCessationEntreprise()
+    )
 
 
 class PersonnePhysique(BaseModel):
@@ -124,7 +130,9 @@ class PersonnePhysique(BaseModel):
     composition: Composition | None = None
     adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
     etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
-    detailCessationEntreprise: DetailCessationEntreprise | None = None
+    detailCessationEntreprise: DetailCessationEntreprise | None = (
+        DetailCessationEntreprise()
+    )
 
 
 class NatureCreation(BaseModel):

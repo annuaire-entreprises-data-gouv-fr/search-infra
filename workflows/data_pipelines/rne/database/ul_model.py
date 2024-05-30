@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from pydantic import BaseModel
 from typing import Literal
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
@@ -7,7 +7,8 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
 
 
 class Immatriculation(BaseModel):
-    date_immatriculation: datetime | None = None
+    date_immatriculation: date | None = None
+    date_radiation: date | None = None
     indicateur_associe_unique: bool | None = None
 
 
@@ -73,7 +74,7 @@ class UniteLegale(BaseModel):
     adresse: Adresse | None = Adresse()
     dirigeants: list[DirigeantsPP | DirigeantsPM] | None = None
     siege: Siege | None = Siege()
-    immatricution: Immatriculation | None = Immatriculation()
+    immatriculation: Immatriculation | None = Immatriculation()
 
     def get_dirigeants_list(self):
         dirigeants_pp_list = []

@@ -28,15 +28,20 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     )
     cessation = get_detail_cessation(rne_company)
     if cessation:
-        unite_legale.date_radiation = cessation.dateRadiation
+        unite_legale.immatriculation.date_radiation = (
+            cessation.dateRadiation
+            or cessation.dateEffet
+            or cessation.dateCessationTotaleActivite
+            or None
+        )
 
     identite = get_identite(rne_company)
     if identite:
         unite_legale.denomination = identite.denomination
         unite_legale.nom_commercial = identite.nomCommercial
-        unite_legale.immatricution.date_immatriculation = identite.dateImmat
+        unite_legale.immatriculation.date_immatriculation = identite.dateImmat
         unite_legale.tranche_effectif_salarie = identite.effectifSalarie
-        unite_legale.immatricution.indicateur_associe_unique = (
+        unite_legale.immatriculation.indicateur_associe_unique = (
             identite.indicateurAssocieUnique
         )
     else:
@@ -51,6 +56,9 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     )
 
     unite_legale = get_denomination_personne_physique(rne_company, unite_legale)
+
+    if unite_legale.immatriculation:
+        logging.info(f"Immat : {unite_legale.immatriculation}")
 
     siege = get_siege(rne_company)
     if siege:

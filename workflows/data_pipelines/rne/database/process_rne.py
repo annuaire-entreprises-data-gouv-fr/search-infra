@@ -27,7 +27,6 @@ def create_tables(cursor):
             nom_commercial TEXT,
             date_creation TEXT,
             date_mise_a_jour DATE,
-            date_radiation DATE,
             activite_principale TEXT,
             tranche_effectif_salarie TEXT,
             nature_juridique TEXT,
@@ -101,7 +100,8 @@ def create_tables(cursor):
         CREATE TABLE IF NOT EXISTS immatriculation
         (
             siren TEXT,
-            date_immatriculation TEXT,
+            date_immatriculation DATE,
+            date_radiation DATE,
             indicateur_associe_unique TEXT,
             file_name TEXT
         )
@@ -240,7 +240,6 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             "nom_commercial",
             "date_creation",
             "date_mise_a_jour",
-            "date_radiation",
             "activite_principale",
             "tranche_effectif_salarie",
             "nature_juridique",
@@ -265,8 +264,6 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 unite_legale.nom_commercial,
                 unite_legale.date_creation,
                 unite_legale.date_mise_a_jour,
-                unite_legale.immatricution.date_immatriculation,
-                unite_legale.date_radiation,
                 unite_legale.activite_principale,
                 unite_legale.tranche_effectif_salarie,
                 unite_legale.nature_juridique,
@@ -398,6 +395,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
         immat_columns = [
             "siren",
             "date_immatriculation",
+            "date_radiation",
             "indicateur_associe_unique",
             "file_name",
         ]
@@ -410,6 +408,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             (
                 unite_legale.siren,
                 immatriculation.date_immatriculation,
+                immatriculation.date_radiation,
                 immatriculation.indicateur_associe_unique,
                 file_path,
             ),
