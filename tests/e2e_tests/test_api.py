@@ -100,6 +100,17 @@ def test_organisme_formation(api_response_tester):
     """
     path = "/search?est_organisme_formation=true&est_qualiopi=true"
     api_response_tester.test_number_of_results(path, min_total_results_filters)
+    path = "/search?est_organisme_formation=true&est_qualiopi=false"
+    api_response_tester.test_number_of_results(path, 100)
+    path = "/search?est_organisme_formation=false&est_qualiopi=true"
+    api_response_tester.test_max_number_of_results(path, 0)
+    path = "/search?q=196716856"
+    api_response_tester.test_field_value(path, "complements.est_quliopi", True)
+    path = "/search?q=788945368"
+    api_response_tester.test_field_value(path, "complements.est_quliopi", False)
+    api_response_tester.test_field_value(
+        path, "complements.est_organisme_formation", True
+    )
 
 
 def test_near_point(api_response_tester):
@@ -183,7 +194,9 @@ def test_est_service_public(api_response_tester):
 #     """
 #     path = "/search?est_societe_mission=true"
 #     api_response_tester.test_number_of_results(path, 500)
-#     api_response_tester.test_field_value(path, "complements.est_societe_mission", True)
+#     api_response_tester.test_field_value(
+#       path, "complements.est_societe_mission", True
+#       )
 
 
 def test_commune_filter(api_response_tester):
@@ -215,6 +228,9 @@ def test_convention_collective_renseignee(api_response_tester):
     api_response_tester.test_field_value(
         path, "complements.convention_collective_renseignee", True
     )
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
+    path = "/search?convention_collective_renseignee=false"
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
 
 
 def test_departement(api_response_tester):
@@ -227,6 +243,9 @@ def test_departement(api_response_tester):
 def test_egapro_renseignee(api_response_tester):
     path = "/search?egapro_renseignee=true"
     api_response_tester.test_field_value(path, "complements.egapro_renseignee", True)
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
+    path = "/search?egapro_renseignee=false"
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
 
 
 def test_est_association(api_response_tester):
@@ -248,6 +267,9 @@ def test_est_collectivite_territoriale(api_response_tester):
 def test_est_bio(api_response_tester):
     path = "/search?est_bio=true"
     api_response_tester.test_field_value(path, "complements.est_bio", True)
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
+    path = "/search?est_bio=false"
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
 
 
 def test_est_entrepreneur_individuel(api_response_tester):
@@ -255,6 +277,9 @@ def test_est_entrepreneur_individuel(api_response_tester):
     api_response_tester.test_field_value(
         path, "complements.est_entrepreneur_individuel", True
     )
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
+    path = "/search?est_entrepreneur_individuel=false"
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
 
 
 def test_est_entrepreneur_spectacle(api_response_tester):
@@ -262,21 +287,39 @@ def test_est_entrepreneur_spectacle(api_response_tester):
     api_response_tester.test_field_value(
         path, "complements.est_entrepreneur_spectacle", True
     )
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
+    path = "/search?est_entrepreneur_spectacle=false"
+    api_response_tester.test_field_value(
+        path, "complements.est_entrepreneur_spectacle", False
+    )
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
 
 
 def test_est_rge(api_response_tester):
     path = "/search?est_rge=true"
     api_response_tester.test_field_value(path, "complements.est_rge", True)
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
+    path = "/search?est_rge=false"
+    api_response_tester.test_field_value(path, "complements.est_rge", False)
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
 
 
 def test_est_finess(api_response_tester):
     path = "/search?est_finess=true"
     api_response_tester.test_field_value(path, "complements.est_finess", True)
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
+    path = "/search?est_finess=false"
+    api_response_tester.test_field_value(path, "complements.est_finess", False)
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
 
 
 def test_est_ess(api_response_tester):
     path = "/search?est_ess=true"
     api_response_tester.test_field_value(path, "complements.est_ess", True)
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
+    path = "/search?est_ess=false"
+    api_response_tester.test_field_value(path, "complements.est_ess", False)
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
 
 
 def test_est_organisme_formation(api_response_tester):
@@ -294,6 +337,10 @@ def test_est_qualiopi(api_response_tester):
 def test_est_uai(api_response_tester):
     path = "/search?est_uai=true"
     api_response_tester.test_field_value(path, "complements.est_uai", True)
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
+    path = "/search?est_uai=false"
+    api_response_tester.test_field_value(path, "complements.est_uai", False)
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
 
 
 def test_etat_administratif(api_response_tester):
