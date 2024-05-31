@@ -187,7 +187,7 @@ def process_records_to_extract_rne_data(data, file_type):
     return unites_legales
 
 
-def find_and_delete_same_siren_dirig(cursor, siren, file_path):
+def find_and_delete_same_siren(cursor, siren, file_path):
     """
     Find and delete older rows with the same SIREN as they are outdated.
 
@@ -195,53 +195,21 @@ def find_and_delete_same_siren_dirig(cursor, siren, file_path):
         cursor: The database cursor.
         siren (str): The SIREN to search for and delete.
         file_path (str): The file path to filter the rows.
-
     """
-    cursor.execute(
-        "SELECT COUNT(*) FROM dirigeants_pp WHERE siren = ? AND file_name != ?",
-        (siren, file_path),
-    )
-    count_already_existing_siren = cursor.fetchone()[0]
-    # If existing rows are found, delete them as they are outdated
-    if count_already_existing_siren is not None:
+    tables = ["dirigeants_pm", "dirigeants_pp", "unites_legales", "sieges"]
+
+    for table in tables:
         cursor.execute(
-            "DELETE FROM dirigeants_pp WHERE siren = ? AND file_name != ?",
+            f"SELECT COUNT(*) FROM {table} WHERE siren = ? AND file_name != ?",
             (siren, file_path),
         )
-
-
-def find_and_delete_same_siren(cursor, siren, file_path):
-    """
-    Find and delete older rows with the same SIREN as they are outdated.
-
-    Args:
-        cursor: The database cursor.
-        siren (str): The SIREN to search for and delete (table unites_legales).
-        siret (str): The SIRET to search for and delete (table sieges).
-        file_path (str): The file path to filter the rows.
-
-    """
-    cursor.execute(
-        "SELECT COUNT(*) FROM unites_legales WHERE siren = ? AND file_name != ?",
-        (siren, file_path),
-    )
-    count_already_existing_siren = cursor.fetchone()[0]
-    # If existing rows are found, delete them as they are outdated
-    if count_already_existing_siren is not None:
-        cursor.execute(
-            "DELETE FROM unites_legales WHERE siren = ? AND file_name != ?",
-            (siren, file_path),
-        )
-    cursor.execute(
-        "SELECT COUNT(*) FROM sieges WHERE siren = ? AND file_name != ?",
-        (siren, file_path),
-    )
-    count_already_existing_siret = cursor.fetchone()[0]
-    if count_already_existing_siret is not None:
-        cursor.execute(
-            "DELETE FROM sieges WHERE siren = ? AND file_name != ?",
-            (siren, file_path),
-        )
+        count_already_existing = cursor.fetchone()[0]
+        # If existing rows are found, delete them as they are outdated
+        if count_already_existing is not None and count_already_existing > 0:
+            cursor.execute(
+                f"DELETE FROM {table} WHERE siren = ? AND file_name != ?",
+                (siren, file_path),
+            )
 
 
 def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
@@ -349,7 +317,6 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
         list_dirigeants_pp, list_dirigeants_pm = unite_legale.get_dirigeants_list()
 
         for dirigeant_pp in list_dirigeants_pp:
-            find_and_delete_same_siren_dirig(cursor, unite_legale.siren, file_path)
             # Define the columns for the dirigeants_pp table
             dirigeants_pp_columns = [
                 "siren",
@@ -385,7 +352,6 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             )
 
         for dirigeant_pm in list_dirigeants_pm:
-            find_and_delete_same_siren_dirig(cursor, unite_legale.siren, file_path)
             # Define the columns for the dirigeants_pm table
             dirigeants_pm_columns = [
                 "siren",
