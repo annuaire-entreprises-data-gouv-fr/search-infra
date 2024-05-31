@@ -83,6 +83,5 @@ def send_notification(ti):
     nb_siret = ti.xcom_pull(key="nb_siret_rge", task_ids="preprocess_rge_data")
     send_message(
         f"\U0001F7E2 Données RGE mises à jour.\n"
-        f"- {nb_siret} établissements représentées\n"
-        f"- Données stockées sur Minio"
+        f"- {nb_siret} établissements représentées."
     )

@@ -281,7 +281,6 @@ def send_notification_stock(ti):
         key="nb_stock_non_diffusible", task_ids="get_stock_non_diffusible"
     )
     send_message(
-        f"\U0001F7E2 Données Flux Sirene mises à jour - Disponibles sur Minio - Bucket "
-        f"{minio_client.bucket}\n"
-        f"- {nb_stock_non_diffusible} unités légales non diffusibles\n"
+        f"\U0001F7E2 Données flux Sirene mises à jour."
+        f"- {nb_stock_non_diffusible} unités légales non diffusibles."
     )

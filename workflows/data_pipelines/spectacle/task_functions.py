@@ -91,6 +91,5 @@ def send_notification(ti):
     )
     send_message(
         f"\U0001F7E2 Données Entrepreneur spectacle mises à jour.\n"
-        f"- {nb_siren} unités légales représentées\n"
-        f"- Données stockées sur Minio"
+        f"- {nb_siren} unités légales représentées."
     )

@@ -68,6 +68,5 @@ def send_notification(ti):
     nb_siren = ti.xcom_pull(key="nb_siren_egapro", task_ids="process_egapro")
     send_message(
         f"\U0001F7E2 Données Egapro mises à jour.\n"
-        f"- {nb_siren} unités légales représentées\n"
-        f"- Données stockées sur Minio"
+        f"- {nb_siren} unités légales représentées."
     )

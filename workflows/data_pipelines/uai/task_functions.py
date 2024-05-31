@@ -160,7 +160,7 @@ def send_notification(ti):
     nb_uai = ti.xcom_pull(key="nb_uai", task_ids="process_uai")
     nb_siret = ti.xcom_pull(key="nb_siret", task_ids="process_uai")
     send_message(
-        ":mega: Données UAI (établissements scolaires) mises à jour.\n"
-        f"- {nb_uai} établissements scolaires référencés\n"
-        f"- {nb_siret} établissements (siret) représentés\n"
+        f"\U0001F7E2 Données UAI (établissements scolaires) mises à jour.\n"
+        f"- {nb_uai} établissements scolaires référencés.\n"
+        f"- {nb_siret} établissements (siret) représentés."
     )

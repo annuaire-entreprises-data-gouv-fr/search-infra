@@ -43,9 +43,8 @@ def send_notification_success_tchap(**kwargs):
     )
     send_message(
         f"\U0001F7E2 Données :"
-        f"\nDonnées stock RNE mise à jour sur Minio "
-        f"- Bucket {minio_client.bucket}."
-        f"\n - Nombre de fichiers stock : {count_files_rne_stock}"
+        f"\nDonnées stock RNE mises à jour."
+        f"\n - Nombre de fichiers stock : {count_files_rne_stock}."
     )
 
 
