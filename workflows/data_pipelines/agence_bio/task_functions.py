@@ -248,7 +248,6 @@ def send_notification(ti):
     send_message(
         f"\U0001F7E2 Données Agence Bio (certificats professionnels Bio) "
         f"mises à jour.\n"
-        f"- {nb_id_bio} identifiants Bio référencés\n"
-        f"- {nb_siret} établissements (siret) représentés\n"
-        f"- Données stockées sur Minio"
+        f"- {nb_id_bio} identifiants Bio référencés.\n"
+        f"- {nb_siret} établissements (siret) représentés."
     )

@@ -287,7 +287,4 @@ def compare_files_minio():
 
 
 def send_notification(ti):
-    send_message(
-        "\U0001F7E2 Données Collectivte territoriale mises à jour.\n"
-        "- Données stockées sur Minio"
-    )
+    send_message("\U0001F7E2 Données Collectivte territoriale mises à jour.")

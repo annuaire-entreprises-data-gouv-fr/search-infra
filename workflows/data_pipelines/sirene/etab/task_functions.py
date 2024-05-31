@@ -50,6 +50,5 @@ def send_historique_file_to_minio():
 
 def send_notification(ti):
     send_message(
-        "\U0001F7E2 Données Stock et Historqiue Sirene établissements mises à jour.\n"
-        "- Données stockées sur Minio"
+        "\U0001F7E2 Données stock et historqiue Sirene établissements mises à jour."
     )

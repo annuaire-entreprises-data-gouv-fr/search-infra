@@ -242,10 +242,9 @@ def send_notification_success_tchap(**kwargs):
     )
     send_message(
         f"\U0001F7E2 Données :"
-        f"\nDonnées flux RNE mise à jour sur Minio "
-        f"- Bucket {minio_client.bucket}."
-        f"\n - Date début flux : {rne_flux_start_date} "
-        f"\n - Date fin flux : {rne_flux_end_date} "
+        f"\nDonnées flux RNE mises à jour."
+        f"\n - Date début flux : {rne_flux_start_date}."
+        f"\n - Date fin flux : {rne_flux_end_date}."
     )
 
 
