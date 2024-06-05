@@ -104,6 +104,7 @@ def create_tables(cursor):
             date_radiation DATE,
             indicateur_associe_unique TEXT,
             capital_social REAL,
+            date_cloture_exercice TEXT,
             file_name TEXT
         )
     """
@@ -399,6 +400,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             "date_radiation",
             "indicateur_associe_unique",
             "capital_social",
+            "date_cloture_exercice",
             "file_name",
         ]
 
@@ -413,6 +415,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 immatriculation.date_radiation,
                 immatriculation.indicateur_associe_unique,
                 immatriculation.capital_social,
+                immatriculation.date_cloture_exercice,
                 file_path,
             ),
         )

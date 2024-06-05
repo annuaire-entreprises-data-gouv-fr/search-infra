@@ -18,6 +18,7 @@ class Adresse(BaseModel):
 
 class Description(BaseModel):
     montantCapital: float | None = None
+    dateClotureExerciceSocial: str | None = None
 
 
 class DescriptionPersonne(BaseModel):
