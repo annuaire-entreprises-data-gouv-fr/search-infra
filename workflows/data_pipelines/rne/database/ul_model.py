@@ -12,6 +12,7 @@ class Immatriculation(BaseModel):
     indicateur_associe_unique: bool | None = None
     capital_social: float | None = None
     date_cloture_exercice: str | None = None
+    duree_personne_morale: int | None = None
 
 
 class Adresse(BaseModel):

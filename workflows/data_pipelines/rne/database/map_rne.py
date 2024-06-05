@@ -53,6 +53,7 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         unite_legale.immatriculation.date_cloture_exercice = (
             identite_descr.dateClotureExerciceSocial
         )
+        unite_legale.immatriculation.duree_personne_morale = identite_descr.duree
 
     company_address = get_adresse(rne_company)
     unite_legale.adresse = map_address_rne_to_ul(company_address)
