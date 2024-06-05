@@ -35,17 +35,21 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
             or None
         )
 
-    identite = get_identite(rne_company)
-    if identite:
-        unite_legale.denomination = identite.denomination
-        unite_legale.nom_commercial = identite.nomCommercial
-        unite_legale.immatriculation.date_immatriculation = identite.dateImmat
-        unite_legale.tranche_effectif_salarie = identite.effectifSalarie
+    identite_entr = get_identite_entreprise(rne_company)
+    if identite_entr:
+        unite_legale.denomination = identite_entr.denomination
+        unite_legale.nom_commercial = identite_entr.nomCommercial
+        unite_legale.immatriculation.date_immatriculation = identite_entr.dateImmat
+        unite_legale.tranche_effectif_salarie = identite_entr.effectifSalarie
         unite_legale.immatriculation.indicateur_associe_unique = (
-            identite.indicateurAssocieUnique
+            identite_entr.indicateurAssocieUnique
         )
     else:
         logging.warning(f"++++++++ Unite legale has no identite : {unite_legale.siren}")
+
+    identite_descr = get_identite_description(rne_company)
+    if identite_descr:
+        unite_legale.immatriculation.capital_social = identite_descr.montantCapital
 
     company_address = get_adresse(rne_company)
     unite_legale.adresse = map_address_rne_to_ul(company_address)
@@ -78,7 +82,7 @@ def get_forme_juridique(rne_company: "RNECompany") -> str | None:
     if content.natureCreation:
         return content.natureCreation.formeJuridique
 
-    identite = get_identite(rne_company)
+    identite = get_identite_entreprise(rne_company)
     if identite:
         if identite.formeJuridique:
             return identite.formeJuridique
@@ -121,13 +125,14 @@ def get_value(rne_company: RNECompany, key: str, default=None):
         return default
 
 
-def get_identite(rne_company: RNECompany):
+def get_identite_entreprise(rne_company: RNECompany):
     identite = get_value(rne_company, "identite")
+    return getattr(identite, "entreprise", None) if identite else None
 
-    if identite and hasattr(identite, "entreprise"):
-        return identite.entreprise
-    else:
-        return None
+
+def get_identite_description(rne_company: RNECompany):
+    identite = get_value(rne_company, "identite")
+    return getattr(identite, "description", None) if identite else None
 
 
 def get_detail_cessation(rne_company: RNECompany):

@@ -16,6 +16,10 @@ class Adresse(BaseModel):
     distributionSpeciale: str | None = None
 
 
+class Description(BaseModel):
+    montantCapital: float | None = None
+
+
 class DescriptionPersonne(BaseModel):
     dateDeNaissance: str | None = None
     nom: str | None = None
@@ -74,6 +78,7 @@ class Entreprise(BaseModel):
 class Identite(BaseModel):
     entreprise: Entreprise | None = Entreprise()
     entrepreneur: Entrepreneur | None = Entrepreneur()
+    description: Description | None = Description()
 
 
 class AdresseEntreprise(BaseModel):

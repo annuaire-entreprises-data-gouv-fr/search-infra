@@ -10,6 +10,7 @@ class Immatriculation(BaseModel):
     date_immatriculation: date | None = None
     date_radiation: date | None = None
     indicateur_associe_unique: bool | None = None
+    capital_social: float | None = None
 
 
 class Adresse(BaseModel):
