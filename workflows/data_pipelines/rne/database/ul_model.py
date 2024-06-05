@@ -15,6 +15,8 @@ class Immatriculation(BaseModel):
     duree_personne_morale: int | None = None
     nature_entreprise: str | None = None
     date_debut_activite: str | None = None
+    capital_variable: bool | None = None
+    devise_capital: str | None = None
 
 
 class Adresse(BaseModel):

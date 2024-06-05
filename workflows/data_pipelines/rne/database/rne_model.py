@@ -18,6 +18,8 @@ class Adresse(BaseModel):
 
 class Description(BaseModel):
     montantCapital: float | None = None
+    capitalVariable: str | None = None
+    deviseCapital: str | None = None
     dateClotureExerciceSocial: str | None = None
     duree: int | None = None
 

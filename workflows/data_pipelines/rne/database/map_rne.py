@@ -54,6 +54,8 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         unite_legale.immatriculation.date_cloture_exercice = (
             identite_descr.dateClotureExerciceSocial
         )
+        unite_legale.immatriculation.capital_variable = identite_descr.capitalVariable
+        unite_legale.immatriculation.devise_capital = identite_descr.deviseCapital
         unite_legale.immatriculation.duree_personne_morale = identite_descr.duree
 
     unite_legale.immatriculation.nature_entreprise = get_nature_entreprise_list(

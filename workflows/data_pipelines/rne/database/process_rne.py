@@ -108,6 +108,8 @@ def create_tables(cursor):
             duree_personne_morale INTEGER,
             nature_entreprise TEXT,
             date_debut_activite TEXT,
+            capital_variable TEXT,
+            devise_capital TEXT,
             file_name TEXT
         )
     """
@@ -407,6 +409,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             "duree_personne_morale",
             "nature_entreprise",
             "date_debut_activite",
+            "capital_variable",
+            "devise_capital",
             "file_name",
         ]
 
@@ -425,6 +429,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 immatriculation.duree_personne_morale,
                 immatriculation.nature_entreprise,
                 immatriculation.date_debut_activite,
+                immatriculation.capital_variable,
+                immatriculation.devise_capital,
                 file_path,
             ),
         )
