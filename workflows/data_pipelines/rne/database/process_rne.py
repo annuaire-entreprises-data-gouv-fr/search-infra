@@ -106,6 +106,7 @@ def create_tables(cursor):
             capital_social REAL,
             date_cloture_exercice TEXT,
             duree_personne_morale INTEGER,
+            nature_entreprise TEXT,
             file_name TEXT
         )
     """
@@ -403,6 +404,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             "capital_social",
             "date_cloture_exercice",
             "duree_personne_morale",
+            "nature_entreprise",
             "file_name",
         ]
 
@@ -419,6 +421,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 immatriculation.capital_social,
                 immatriculation.date_cloture_exercice,
                 immatriculation.duree_personne_morale,
+                immatriculation.nature_entreprise,
                 file_path,
             ),
         )

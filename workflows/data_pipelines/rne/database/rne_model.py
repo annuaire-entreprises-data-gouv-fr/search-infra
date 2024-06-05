@@ -95,11 +95,16 @@ class DescriptionEtablissement(BaseModel):
     nomCommercial: str | None = None
 
 
+class Activite(BaseModel):
+    formeExercice: str | None = None
+
+
 class EtablissementPrincipal(BaseModel):
     descriptionEtablissement: DescriptionEtablissement | None = (
         DescriptionEtablissement()
     )
     adresse: Adresse | None = Adresse()
+    activities: list[Activite] | None = Activite()
 
 
 class DetailCessationEntreprise(BaseModel):
@@ -117,6 +122,9 @@ class Exploitation(BaseModel):
     composition: Composition | None = None
     adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
     etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
+    autresEtablissements: list[EtablissementPrincipal] | None = [
+        EtablissementPrincipal()
+    ]
     detailCessationEntreprise: DetailCessationEntreprise | None = (
         DetailCessationEntreprise()
     )
@@ -127,6 +135,9 @@ class PersonneMorale(BaseModel):
     composition: Composition | None = None
     adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
     etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
+    autresEtablissements: list[EtablissementPrincipal] | None = [
+        EtablissementPrincipal()
+    ]
     detailCessationEntreprise: DetailCessationEntreprise | None = (
         DetailCessationEntreprise()
     )
@@ -137,6 +148,9 @@ class PersonnePhysique(BaseModel):
     composition: Composition | None = None
     adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
     etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
+    autresEtablissements: list[EtablissementPrincipal] | None = [
+        EtablissementPrincipal()
+    ]
     detailCessationEntreprise: DetailCessationEntreprise | None = (
         DetailCessationEntreprise()
     )

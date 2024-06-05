@@ -55,6 +55,10 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         )
         unite_legale.immatriculation.duree_personne_morale = identite_descr.duree
 
+    unite_legale.immatriculation.nature_entreprise = get_nature_entreprise_list(
+        rne_company
+    )
+
     company_address = get_adresse(rne_company)
     unite_legale.adresse = map_address_rne_to_ul(company_address)
 
@@ -75,6 +79,33 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         logging.warning(f"+++++++++++ Unite legale has no siege : {unite_legale.siren}")
 
     return unite_legale
+
+
+def get_nature_entreprise_list(rne_company: "RNECompany") -> list[str] | None:
+    nature_entreprise = set()
+
+    if rne_company.formality and rne_company.formality.content:
+        nature_entreprise.add(
+            rne_company.formality.content.formeExerciceActivitePrincipale
+        )
+
+    siege = get_siege(rne_company)
+    if siege and siege.activities:
+        for activite in siege.activities:
+            nature_entreprise.add(activite.formeExercice)
+
+    etablissements = get_etablissements(rne_company)
+    if etablissements:
+        for etablissement in etablissements:
+            if etablissement.activites:
+                for activite in etablissement.activites:
+                    nature_entreprise.add(activite.formeExercice)
+
+    return list(nature_entreprise) if nature_entreprise else None
+
+
+def get_etablissements(rne_company: "RNECompany"):
+    return get_value(rne_company, "autresEtablissements", default=[])
 
 
 def get_forme_juridique(rne_company: "RNECompany") -> str | None:
