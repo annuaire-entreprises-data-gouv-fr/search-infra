@@ -75,6 +75,7 @@ class Entreprise(BaseModel):
     dateImmat: datetime | None = None
     codeApe: str | None = None
     indicateurAssocieUnique: str | None = None
+    dateDebutActiv: str | None = None
 
 
 class Identite(BaseModel):

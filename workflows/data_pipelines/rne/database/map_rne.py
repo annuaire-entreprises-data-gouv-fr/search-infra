@@ -44,6 +44,7 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         unite_legale.immatriculation.indicateur_associe_unique = (
             identite_entr.indicateurAssocieUnique
         )
+        unite_legale.immatriculation.date_debut_activite = identite_entr.dateDebutActiv
     else:
         logging.warning(f"++++++++ Unite legale has no identite : {unite_legale.siren}")
 

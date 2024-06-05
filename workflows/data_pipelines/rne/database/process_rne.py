@@ -107,6 +107,7 @@ def create_tables(cursor):
             date_cloture_exercice TEXT,
             duree_personne_morale INTEGER,
             nature_entreprise TEXT,
+            date_debut_activite TEXT,
             file_name TEXT
         )
     """
@@ -405,6 +406,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             "date_cloture_exercice",
             "duree_personne_morale",
             "nature_entreprise",
+            "date_debut_activite",
             "file_name",
         ]
 
@@ -422,6 +424,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 immatriculation.date_cloture_exercice,
                 immatriculation.duree_personne_morale,
                 immatriculation.nature_entreprise,
+                immatriculation.date_debut_activite,
                 file_path,
             ),
         )

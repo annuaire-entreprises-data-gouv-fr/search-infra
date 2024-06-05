@@ -14,6 +14,7 @@ class Immatriculation(BaseModel):
     date_cloture_exercice: str | None = None
     duree_personne_morale: int | None = None
     nature_entreprise: str | None = None
+    date_debut_activite: str | None = None
 
 
 class Adresse(BaseModel):
