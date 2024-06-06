@@ -71,10 +71,7 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     )
 
     unite_legale = get_denomination_personne_physique(rne_company, unite_legale)
-    """
-    if unite_legale.immatriculation:
-        logging.info(f"Immat : {unite_legale.immatriculation}")
-    """
+
     siege = get_siege(rne_company)
     if siege:
         unite_legale.siege = map_rne_siege_to_ul(siege)
