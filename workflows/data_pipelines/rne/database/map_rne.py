@@ -71,10 +71,10 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     )
 
     unite_legale = get_denomination_personne_physique(rne_company, unite_legale)
-
+    """
     if unite_legale.immatriculation:
         logging.info(f"Immat : {unite_legale.immatriculation}")
-
+    """
     siege = get_siege(rne_company)
     if siege:
         unite_legale.siege = map_rne_siege_to_ul(siege)
@@ -89,20 +89,24 @@ def get_nature_entreprise_list(rne_company: "RNECompany") -> list[str] | None:
 
     if rne_company.formality and rne_company.formality.content:
         nature_entreprise.add(
-            rne_company.formality.content.formeExerciceActivitePrincipale
+            getattr(
+                rne_company.formality.content, "formeExerciceActivitePrincipale", None
+            )
         )
 
     siege = get_siege(rne_company)
     if siege and siege.activities:
         for activite in siege.activities:
-            nature_entreprise.add(activite.formeExercice)
+            nature_entreprise.add(getattr(activite, "formeExercice", None))
 
     etablissements = get_etablissements(rne_company)
     if etablissements:
         for etablissement in etablissements:
-            if etablissement.activites:
+            if getattr(etablissement, "activites", None):
                 for activite in etablissement.activites:
-                    nature_entreprise.add(activite.formeExercice)
+                    nature_entreprise.add(getattr(activite, "formeExercice", None))
+
+    nature_entreprise.discard(None)  # Remove None if it was added
 
     return list(nature_entreprise) if nature_entreprise else None
 
