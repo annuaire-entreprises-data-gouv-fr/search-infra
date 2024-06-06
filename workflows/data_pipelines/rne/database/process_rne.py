@@ -105,7 +105,7 @@ def create_tables(cursor):
             indicateur_associe_unique TEXT,
             capital_social REAL,
             date_cloture_exercice TEXT,
-            duree_personne_morale INTEGER,
+            duree_personne_morale INT,
             nature_entreprise TEXT,
             date_debut_activite TEXT,
             capital_variable TEXT,
@@ -140,7 +140,7 @@ def create_index_db(cursor):
         """CREATE INDEX IF NOT EXISTS idx_pm_siren_file_name
         ON dirigeants_pm (siren, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_siren_immat_file_name
-        ON immatriculation (siren, file_name));""",
+        ON immatriculation (siren, file_name);""",
     ]
 
     for statement in index_statements:
@@ -406,11 +406,11 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             "indicateur_associe_unique",
             "capital_social",
             "date_cloture_exercice",
-            "duree_personne_morale",
             "nature_entreprise",
             "date_debut_activite",
             "capital_variable",
             "devise_capital",
+            "duree_personne_morale",
             "file_name",
         ]
 
@@ -426,11 +426,11 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 immatriculation.indicateur_associe_unique,
                 immatriculation.capital_social,
                 immatriculation.date_cloture_exercice,
-                immatriculation.duree_personne_morale,
-                immatriculation.nature_entreprise,
+                json.dumps(immatriculation.nature_entreprise),
                 immatriculation.date_debut_activite,
                 immatriculation.capital_variable,
                 immatriculation.devise_capital,
+                immatriculation.duree_personne_morale,
                 file_path,
             ),
         )
