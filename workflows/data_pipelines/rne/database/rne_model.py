@@ -18,7 +18,7 @@ class Adresse(BaseModel):
 
 class Description(BaseModel):
     montantCapital: float | None = None
-    capitalVariable: str | None = None
+    capitalVariable: bool | None = None
     deviseCapital: str | None = None
     dateClotureExerciceSocial: str | None = None
     duree: int | None = None
@@ -76,7 +76,7 @@ class Entreprise(BaseModel):
     effectifSalarie: str | None = None
     dateImmat: datetime | None = None
     codeApe: str | None = None
-    indicateurAssocieUnique: str | None = None
+    indicateurAssocieUnique: bool | None = None
     dateDebutActiv: str | None = None
 
 
