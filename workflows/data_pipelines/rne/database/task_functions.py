@@ -130,14 +130,15 @@ def get_latest_db(**kwargs):
                 shutil.copyfileobj(f_in, f_out)
         os.remove(f"{db_path}.gz")
 
-    count_ul, count_sieges, count_pp, count_pm = get_tables_count(
+    count_ul, count_sieges, count_pp, count_pm, count_immat = get_tables_count(
         RNE_DB_TMP_FOLDER + f"rne_{start_date}.db"
     )
     logging.info(
         f"*****Count ul : {count_ul}, "
-        f"*****Count ul : {count_sieges}, "
+        f"*****Count sieges : {count_sieges}, "
         f"*****Count pp : {count_pp}, "
-        f"*****Count pm : {count_pm}"
+        f"*****Count pm : {count_pm}",
+        f"*****Count immat : {count_immat}",
     )
 
 
