@@ -70,7 +70,6 @@ class UniteLegale(BaseModel):
     nom_commercial: str | None = None
     date_creation: datetime | None = None
     date_mise_a_jour: datetime | None = None
-    date_immatriculation: datetime | None = None
     date_radiation: datetime | None = None
     activite_principale: str | None = None
     tranche_effectif_salarie: str | None = None
