@@ -26,6 +26,7 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     unite_legale.etat_administratif = (
         rne_company.formality.content.natureCessationEntreprise.etatAdministratifInsee
     )
+
     cessation = get_detail_cessation(rne_company)
     if cessation:
         unite_legale.immatriculation.date_radiation = (
@@ -46,7 +47,7 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         )
         unite_legale.immatriculation.date_debut_activite = identite_entr.dateDebutActiv
     else:
-        logging.warning(f"++++++++ Unite legale has no identite : {unite_legale.siren}")
+        logging.warning(f"Unite legale has no identite : {unite_legale.siren}")
 
     identite_descr = get_identite_description(rne_company)
     if identite_descr:
@@ -76,7 +77,7 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     if siege:
         unite_legale.siege = map_rne_siege_to_ul(siege)
     else:
-        logging.warning(f"+++++++++++ Unite legale has no siege : {unite_legale.siren}")
+        logging.warning(f"Unite legale has no siege : {unite_legale.siren}")
 
     return unite_legale
 
@@ -86,12 +87,11 @@ def get_value(rne_company: RNECompany, key: str, default=None):
 
     if rne_company.is_personne_morale():
         return getattr(content.personneMorale, key, default)
-    elif rne_company.is_exploitation():
+    if rne_company.is_exploitation():
         return getattr(content.exploitation, key, default)
-    elif rne_company.is_personne_physique():
+    if rne_company.is_personne_physique():
         return getattr(content.personnePhysique, key, default)
-    else:
-        return default
+    return default
 
 
 def get_nature_entreprise_list(rne_company: "RNECompany") -> list[str] | None:
@@ -169,8 +169,7 @@ def get_adresse(rne_company: RNECompany):
     adresse_entreprise = get_value(rne_company, "adresseEntreprise")
     if adresse_entreprise and hasattr(adresse_entreprise, "adresse"):
         return adresse_entreprise.adresse
-    else:
-        return {}
+    return {}
 
 
 def get_siege(rne_company: RNECompany):
