@@ -216,7 +216,13 @@ def find_and_delete_same_siren(cursor, siren, file_path):
         siren (str): The SIREN to search for and delete.
         file_path (str): The file path to filter the rows.
     """
-    tables = ["dirigeants_pm", "dirigeants_pp", "unites_legales", "sieges"]
+    tables = [
+        "dirigeants_pm",
+        "dirigeants_pp",
+        "unites_legales",
+        "sieges",
+        "immatriculation",
+    ]
 
     for table in tables:
         cursor.execute(
