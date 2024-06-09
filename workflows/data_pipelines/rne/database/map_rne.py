@@ -100,8 +100,8 @@ def get_nature_entreprise_list(rne_company: "RNECompany") -> list[str] | None:
     }
 
     siege = get_siege(rne_company)
-    if siege and siege.activities:
-        for activite in siege.activities:
+    if siege and siege.activites:
+        for activite in siege.activites:
             nature_entreprise.add(getattr(activite, "formeExercice", None))
 
     etablissements = get_etablissements(rne_company)
