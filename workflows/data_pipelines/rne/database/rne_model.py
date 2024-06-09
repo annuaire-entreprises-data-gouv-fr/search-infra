@@ -107,7 +107,7 @@ class EtablissementPrincipal(BaseModel):
         DescriptionEtablissement()
     )
     adresse: Adresse | None = Adresse()
-    activities: list[Activite] | None = Activite()
+    activites: list[Activite] | None = Activite()
 
 
 class DetailCessationEntreprise(BaseModel):
