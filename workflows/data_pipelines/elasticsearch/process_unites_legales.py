@@ -154,6 +154,14 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             )
         )
 
+        # Immatriculation
+        if unite_legale["immatriculation"]:
+            unite_legale_processed["immatriculation"] = json.loads(
+                unite_legale["immatriculation"]
+            )
+        else:
+            unite_legale_processed["immatriculation"] = {}
+
         # Entrepreneur de spectacle vivant
         unite_legale_processed["est_entrepreneur_spectacle"] = sqlite_str_to_bool(
             unite_legale["est_entrepreneur_spectacle"]
