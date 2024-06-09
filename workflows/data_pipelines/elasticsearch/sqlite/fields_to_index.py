@@ -375,7 +375,31 @@ select_fields_to_index_query = """SELECT
             (SELECT liste_id_organisme_formation FROM organisme_formation
             WHERE siren = ul.siren)  as liste_id_organisme_formation,
             (SELECT est_siae  FROM marche_inclusion WHERE siren = ul.siren) AS est_siae,
-            (SELECT type_siae FROM marche_inclusion WHERE siren = ul.siren) AS type_siae
+            (SELECT type_siae FROM marche_inclusion WHERE siren = ul.siren)
+            AS type_siae,
+            (
+                SELECT json_object(
+                    'date_immatriculation', date_immatriculation,
+                    'date_radiation', date_radiation,
+                    'indicateur_associe_unique', indicateur_associe_unique,
+                    'capital_social', capital_social,
+                    'date_cloture_exercice', date_cloture_exercice,
+                    'duree_personne_morale', duree_personne_morale,
+                    'nature_entreprise', nature_entreprise,
+                    'date_debut_activite', date_debut_activite,
+                    'capital_variable', capital_variable,
+                    'devise_capital', devise_capital
+                )
+                FROM
+                (
+                    SELECT date_immatriculation, date_radiation,
+                    indicateur_associe_unique, capital_social,
+                    date_cloture_exercice, duree_personne_morale, nature_entreprise,
+                    date_debut_activite, capital_variable, devise_capital
+                    FROM immatriculation
+                    WHERE siren = ul.siren
+                )
+            ) as immatriculation
             FROM
                 unite_legale ul
             LEFT JOIN
