@@ -244,13 +244,16 @@ def check_db_count(
     min_ul_table_count=20000000,
     min_pp_table_count=11000000,
     min_pm_table_count=1000000,
+    min_immat_table_count=20000000,
 ):
     try:
         rne_db_path = ti.xcom_pull(key="rne_db_path", task_ids="create_db")
-        count_ul, count_sieges, count_pp, count_pm = get_tables_count(rne_db_path)
+        count_ul, count_sieges, count_pp, count_pm, count_immat = get_tables_count(
+            rne_db_path
+        )
         logging.info(
             f"*****Count ul:: {count_ul}, Count sieges: {count_sieges}, "
-            f"Count pp : {count_pp}, Count pm : {count_pm}"
+            f"Count pp : {count_pp}, Count pm : {count_pm}, Count immat : {count_immat}"
         )
 
         if (
@@ -258,6 +261,7 @@ def check_db_count(
             or count_sieges < min_ul_table_count
             or count_pp < min_pp_table_count
             or count_pm < min_pm_table_count
+            or count_immat < min_immat_table_count
         ):
             raise Exception(
                 f"Counts below the minimum threshold: "
@@ -265,6 +269,7 @@ def check_db_count(
                 f"count sieges : {count_sieges}"
                 f"count pp : {count_pp}"
                 f"count pm : {count_pm}"
+                f"count immat : {count_immat}"
             )
 
     except Exception as e:
