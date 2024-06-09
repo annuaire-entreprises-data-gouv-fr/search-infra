@@ -239,6 +239,19 @@ class BilanFinancierMapping(InnerDoc):
     annee_cloture_exercice = Text()
 
 
+class ImmatriculationMapping(InnerDoc):
+    date_immatriculation = Date()
+    date_radiation = Date()
+    indicateur_associe_unique = Boolean()
+    capital_social = Long()
+    date_cloture_exercice = Text()
+    duree_personne_morale = Integer()
+    nature_entreprise = Text()
+    date_debut_activite = Text()
+    capital_variable = Boolean()
+    devise_capital = Keyword()
+
+
 class UniteLegaleMapping(InnerDoc):
     """
 
@@ -300,6 +313,7 @@ class UniteLegaleMapping(InnerDoc):
     from_insee = Boolean()
     from_rne = Boolean()
     identifiant_association_unite_legale = Keyword()
+    immatriculation = Nested(ImmatriculationMapping)
     liste_dirigeants = Text(analyzer=annuaire_analyzer)
     liste_elus = Text(analyzer=annuaire_analyzer)
     liste_idcc = Text()
