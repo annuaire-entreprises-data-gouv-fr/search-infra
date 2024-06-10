@@ -1,5 +1,6 @@
 from pyproj import Transformer
 from dag_datalake_sirene.helpers.utils import is_valid_number
+from functools import lru_cache
 
 # Mapping between department codes and EPSG codes
 department_epsg_mapping = {
@@ -18,6 +19,12 @@ department_epsg_mapping = {
 default_epsg = 2154
 
 
+# Cache for transformers
+@lru_cache(maxsize=None)
+def get_transformer(epsg):
+    return Transformer.from_crs(f"EPSG:{epsg}", "EPSG:4326")
+
+
 # Function to perform the transformation
 def transform_coordinates(department_code, x, y):
     if not is_valid_number(x) or not is_valid_number(y):
@@ -26,6 +33,6 @@ def transform_coordinates(department_code, x, y):
         epsg = department_epsg_mapping[department_code]
     else:
         epsg = default_epsg
-    transformer = Transformer.from_crs(f"EPSG:{epsg}", "EPSG:4326")
+    transformer = get_transformer(epsg)
     lat, lon = transformer.transform(float(x), float(y))
     return str(lat), str(lon)
