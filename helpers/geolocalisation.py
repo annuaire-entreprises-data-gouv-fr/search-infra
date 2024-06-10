@@ -1,4 +1,17 @@
 from pyproj import Transformer
+import logging
+
+
+# Function to check if a value is a valid number
+def is_valid_number(value):
+    if value is None:
+        return False
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
 
 # Mapping between department codes and EPSG codes
 department_epsg_mapping = {
@@ -19,10 +32,13 @@ default_epsg = 2154
 
 # Function to perform the transformation
 def transform_coordinates(department_code, x, y):
+    if not is_valid_number(x) or not is_valid_number(y):
+        logging.warning(f"Invalid coordinate values: x={x}, y={y}")
+        return None, None
     if department_code in department_epsg_mapping:
         epsg = department_epsg_mapping[department_code]
     else:
         epsg = default_epsg
     transformer = Transformer.from_crs(f"EPSG:{epsg}", "EPSG:4326")
-    lon, lat = transformer.transform(x, y)
+    lat, lon = transformer.transform(float(x), float(y))
     return str(lat), str(lon)
