@@ -1,17 +1,6 @@
 from pyproj import Transformer
 import logging
-
-
-# Function to check if a value is a valid number
-def is_valid_number(value):
-    if value is None:
-        return False
-    try:
-        float(value)
-        return True
-    except ValueError:
-        return False
-
+from dag_datalake_sirene.helpers.utils import is_valid_number
 
 # Mapping between department codes and EPSG codes
 department_epsg_mapping = {
