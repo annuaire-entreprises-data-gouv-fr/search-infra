@@ -1,5 +1,4 @@
 from pyproj import Transformer
-import logging
 from dag_datalake_sirene.helpers.utils import is_valid_number
 
 # Mapping between department codes and EPSG codes
@@ -22,7 +21,6 @@ default_epsg = 2154
 # Function to perform the transformation
 def transform_coordinates(department_code, x, y):
     if not is_valid_number(x) or not is_valid_number(y):
-        logging.warning(f"Invalid coordinate values: x={x}, y={y}")
         return None, None
     if department_code in department_epsg_mapping:
         epsg = department_epsg_mapping[department_code]
