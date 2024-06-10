@@ -16,6 +16,9 @@ from dag_datalake_sirene.helpers.utils import (
     str_to_bool,
     str_to_list,
 )
+from dag_datalake_sirene.helpers.geolocalisation import (
+    transform_coordinates,
+)
 
 labels_file_path = "dags/dag_datalake_sirene/helpers/labels/"
 
@@ -423,12 +426,17 @@ def format_etablissements_and_complements(
             + " "
             + get_empty_string_if_none(etablissement["siret"])
         ).strip()
-        etablissement["coordonnees"] = format_coordonnees(
-            etablissement["longitude"], etablissement["latitude"]
-        )
         etablissement["departement"] = format_departement(etablissement["commune"])
         etablissement["region"] = label_region_from_departement(
             etablissement["departement"]
+        )
+        etablissement["latitude"], etablissement["longitude"] = transform_coordinates(
+            etablissement["departement"],
+            etablissement["x"],
+            etablissement["y"],
+        )
+        etablissement["coordonnees"] = format_coordonnees(
+            etablissement["longitude"], etablissement["latitude"]
         )
         etablissement["epci"] = label_epci_from_commune(etablissement["commune"])
         etablissement["est_siege"] = str_to_bool(etablissement["est_siege"])
@@ -474,8 +482,13 @@ def format_siege_unite_legale(siege, is_non_diffusible=False):
         siege["libelle_pays_etranger"],
         is_non_diffusible,
     )
-    siege["coordonnees"] = format_coordonnees(siege["longitude"], siege["latitude"])
     siege["departement"] = format_departement(siege["commune"])
+    siege["latitude"], siege["longitude"] = transform_coordinates(
+        siege["departement"],
+        siege["x"],
+        siege["y"],
+    )
+    siege["coordonnees"] = format_coordonnees(siege["longitude"], siege["latitude"])
     siege["region"] = label_region_from_departement(siege["departement"])
     siege["epci"] = label_epci_from_commune(siege["commune"])
     siege["est_siege"] = str_to_bool(siege["est_siege"])
