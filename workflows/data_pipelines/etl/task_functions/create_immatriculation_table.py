@@ -30,8 +30,14 @@ def create_immatriculation_table():
     """
     )
 
+    sqlite_client_siren.execute(
+        f"""CREATE INDEX IF NOT EXISTS idx_siren_immat
+        ON {table_name} (siren);"""
+    )
+    sqlite_client_siren.db_conn.commit()
+
     # Detach the source database
-    sqlite_client_siren.execute("DETACH DATABASE db_rne")
+    sqlite_client_siren.detach_database("db_rne")
 
     # Commit changes and close the connection
     sqlite_client_siren.commit_and_close_conn()
