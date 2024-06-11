@@ -155,22 +155,16 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         # Immatriculation
-        if unite_legale["immatriculation"]:
-            unite_legale_processed["immatriculation"] = json.loads(
-                unite_legale["immatriculation"]
+        immatriculation = unite_legale.get("immatriculation")
+        if immatriculation:
+            immatriculation_data = json.loads(immatriculation)
+            immatriculation_data["indicateur_associe_unique"] = sqlite_str_to_bool(
+                immatriculation_data.get("indicateur_associe_unique", None)
             )
-            unite_legale_processed["immatriculation"]["indicateur_associe_unique"] = (
-                sqlite_str_to_bool(
-                    unite_legale_processed["immatriculation"][
-                        "indicateur_associe_unique"
-                    ]
-                )
+            immatriculation_data["capital_variable"] = sqlite_str_to_bool(
+                immatriculation_data.get("capital_variable", None)
             )
-            unite_legale_processed["immatriculation"]["capital_variable"] = (
-                sqlite_str_to_bool(
-                    unite_legale_processed["immatriculation"]["capital_variable"]
-                )
-            )
+            unite_legale_processed["immatriculation"] = immatriculation_data
         else:
             unite_legale_processed["immatriculation"] = {}
 
