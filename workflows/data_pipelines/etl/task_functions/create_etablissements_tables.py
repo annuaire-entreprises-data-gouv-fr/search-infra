@@ -173,7 +173,8 @@ def add_rne_data_to_siege_table(**kwargs):
         sqlite_client_siren.execute(
             insert_remaining_rne_sieges_data_into_main_table_query
         )
-
+        sqlite_client_siren.db_conn.commit()
+        sqlite_client_siren.detach_database("db_rne")
         sqlite_client_siren.commit_and_close_conn()
 
     except sqlite3.IntegrityError as e:
