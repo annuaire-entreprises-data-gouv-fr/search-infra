@@ -16,6 +16,14 @@ class Adresse(BaseModel):
     distributionSpeciale: str | None = None
 
 
+class Description(BaseModel):
+    montantCapital: float | None = None
+    capitalVariable: bool | None = None
+    deviseCapital: str | None = None
+    dateClotureExerciceSocial: str | None = None
+    duree: int | None = None
+
+
 class DescriptionPersonne(BaseModel):
     dateDeNaissance: str | None = None
     nom: str | None = None
@@ -68,11 +76,14 @@ class Entreprise(BaseModel):
     effectifSalarie: str | None = None
     dateImmat: datetime | None = None
     codeApe: str | None = None
+    indicateurAssocieUnique: bool | None = None
+    dateDebutActiv: str | None = None
 
 
 class Identite(BaseModel):
     entreprise: Entreprise | None = Entreprise()
     entrepreneur: Entrepreneur | None = Entrepreneur()
+    description: Description | None = Description()
 
 
 class AdresseEntreprise(BaseModel):
@@ -87,14 +98,21 @@ class DescriptionEtablissement(BaseModel):
     nomCommercial: str | None = None
 
 
+class Activite(BaseModel):
+    formeExercice: str | None = None
+
+
 class EtablissementPrincipal(BaseModel):
     descriptionEtablissement: DescriptionEtablissement | None = (
         DescriptionEtablissement()
     )
     adresse: Adresse | None = Adresse()
+    activites: list[Activite] | None = Activite()
 
 
 class DetailCessationEntreprise(BaseModel):
+    dateCessationTotaleActivite: date | None = None
+    dateEffet: date | None = None
     dateRadiation: date | None = None
 
 
@@ -107,7 +125,12 @@ class Exploitation(BaseModel):
     composition: Composition | None = None
     adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
     etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
-    detailCessationEntreprise: DetailCessationEntreprise | None = None
+    autresEtablissements: list[EtablissementPrincipal] | None = [
+        EtablissementPrincipal()
+    ]
+    detailCessationEntreprise: DetailCessationEntreprise | None = (
+        DetailCessationEntreprise()
+    )
 
 
 class PersonneMorale(BaseModel):
@@ -115,15 +138,25 @@ class PersonneMorale(BaseModel):
     composition: Composition | None = None
     adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
     etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
-    detailCessationEntreprise: DetailCessationEntreprise | None = None
+    autresEtablissements: list[EtablissementPrincipal] | None = [
+        EtablissementPrincipal()
+    ]
+    detailCessationEntreprise: DetailCessationEntreprise | None = (
+        DetailCessationEntreprise()
+    )
 
 
 class PersonnePhysique(BaseModel):
-    identite: Identite | None = None
+    identite: Identite | None = Identite()
     composition: Composition | None = None
     adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
     etablissementPrincipal: EtablissementPrincipal | None = EtablissementPrincipal()
-    detailCessationEntreprise: DetailCessationEntreprise | None = None
+    autresEtablissements: list[EtablissementPrincipal] | None = [
+        EtablissementPrincipal()
+    ]
+    detailCessationEntreprise: DetailCessationEntreprise | None = (
+        DetailCessationEntreprise()
+    )
 
 
 class NatureCreation(BaseModel):

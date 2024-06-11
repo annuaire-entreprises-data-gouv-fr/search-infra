@@ -1,9 +1,22 @@
-from datetime import datetime
+from datetime import datetime, date
 from pydantic import BaseModel
 from typing import Literal
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
     format_adresse_complete,
 )
+
+
+class Immatriculation(BaseModel):
+    date_immatriculation: date | None = None
+    date_radiation: date | None = None
+    indicateur_associe_unique: bool | None = None
+    capital_social: float | None = None
+    date_cloture_exercice: str | None = None
+    duree_personne_morale: int | None = None
+    nature_entreprise: str | None = None
+    date_debut_activite: str | None = None
+    capital_variable: bool | None = None
+    devise_capital: str | None = None
 
 
 class Adresse(BaseModel):
@@ -57,7 +70,6 @@ class UniteLegale(BaseModel):
     nom_commercial: str | None = None
     date_creation: datetime | None = None
     date_mise_a_jour: datetime | None = None
-    date_immatriculation: datetime | None = None
     date_radiation: datetime | None = None
     activite_principale: str | None = None
     tranche_effectif_salarie: str | None = None
@@ -68,6 +80,7 @@ class UniteLegale(BaseModel):
     adresse: Adresse | None = Adresse()
     dirigeants: list[DirigeantsPP | DirigeantsPM] | None = None
     siege: Siege | None = Siege()
+    immatriculation: Immatriculation | None = Immatriculation()
 
     def get_dirigeants_list(self):
         dirigeants_pp_list = []

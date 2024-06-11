@@ -27,8 +27,6 @@ def create_tables(cursor):
             nom_commercial TEXT,
             date_creation TEXT,
             date_mise_a_jour DATE,
-            date_immatriculation DATE,
-            date_radiation DATE,
             activite_principale TEXT,
             tranche_effectif_salarie TEXT,
             nature_juridique TEXT,
@@ -97,6 +95,25 @@ def create_tables(cursor):
         )
     """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS immatriculation
+        (
+            siren TEXT,
+            date_immatriculation DATE,
+            date_radiation DATE,
+            indicateur_associe_unique TEXT,
+            capital_social REAL,
+            date_cloture_exercice TEXT,
+            duree_personne_morale INT,
+            nature_entreprise TEXT,
+            date_debut_activite TEXT,
+            capital_variable TEXT,
+            devise_capital TEXT,
+            file_name TEXT
+        )
+    """
+    )
     create_index_db(cursor)
 
 
@@ -111,6 +128,7 @@ def create_index_db(cursor):
         "CREATE INDEX IF NOT EXISTS file_etab ON sieges (file_name);",
         "CREATE INDEX IF NOT EXISTS file_pp ON dirigeants_pp (file_name);",
         "CREATE INDEX IF NOT EXISTS file_pm ON dirigeants_pm (file_name);",
+        "CREATE INDEX IF NOT EXISTS idx_siren_immat ON immatriculation (siren);",
         """CREATE INDEX IF NOT EXISTS idx_ul_siren_file_name
         ON unites_legales (siren, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_etab_siren_file_name
@@ -121,6 +139,8 @@ def create_index_db(cursor):
         ON dirigeants_pp (siren, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_pm_siren_file_name
         ON dirigeants_pm (siren, file_name);""",
+        """CREATE INDEX IF NOT EXISTS idx_siren_immat_file_name
+        ON immatriculation (siren, file_name);""",
     ]
 
     for statement in index_statements:
@@ -196,7 +216,13 @@ def find_and_delete_same_siren(cursor, siren, file_path):
         siren (str): The SIREN to search for and delete.
         file_path (str): The file path to filter the rows.
     """
-    tables = ["dirigeants_pm", "dirigeants_pp", "unites_legales", "sieges"]
+    tables = [
+        "dirigeants_pm",
+        "dirigeants_pp",
+        "unites_legales",
+        "sieges",
+        "immatriculation",
+    ]
 
     for table in tables:
         cursor.execute(
@@ -227,8 +253,6 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             "nom_commercial",
             "date_creation",
             "date_mise_a_jour",
-            "date_immatriculation",
-            "date_radiation",
             "activite_principale",
             "tranche_effectif_salarie",
             "nature_juridique",
@@ -253,8 +277,6 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 unite_legale.nom_commercial,
                 unite_legale.date_creation,
                 unite_legale.date_mise_a_jour,
-                unite_legale.date_immatriculation,
-                unite_legale.date_radiation,
                 unite_legale.activite_principale,
                 unite_legale.tranche_effectif_salarie,
                 unite_legale.nature_juridique,
@@ -380,6 +402,45 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 ),
             )
 
+        immatriculation = unite_legale.immatriculation
+
+        # Define the columns for the immatriculation table
+        immat_columns = [
+            "siren",
+            "date_immatriculation",
+            "date_radiation",
+            "indicateur_associe_unique",
+            "capital_social",
+            "date_cloture_exercice",
+            "nature_entreprise",
+            "date_debut_activite",
+            "capital_variable",
+            "devise_capital",
+            "duree_personne_morale",
+            "file_name",
+        ]
+
+        cursor.execute(
+            f"""
+                INSERT INTO immatriculation ({', '.join(immat_columns)})
+                VALUES ({', '.join(['?'] * len(immat_columns))})
+            """,
+            (
+                unite_legale.siren,
+                immatriculation.date_immatriculation,
+                immatriculation.date_radiation,
+                immatriculation.indicateur_associe_unique,
+                immatriculation.capital_social,
+                immatriculation.date_cloture_exercice,
+                json.dumps(immatriculation.nature_entreprise),
+                immatriculation.date_debut_activite,
+                immatriculation.capital_variable,
+                immatriculation.devise_capital,
+                immatriculation.duree_personne_morale,
+                file_path,
+            ),
+        )
+
     cursor.execute("SELECT COUNT(*) FROM dirigeants_pp")
     count_pp = cursor.fetchone()[0]
 
@@ -392,9 +453,12 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
     cursor.execute("SELECT COUNT(*) FROM sieges")
     count_sieges = cursor.fetchone()[0]
 
+    cursor.execute("SELECT COUNT(*) FROM immatriculation")
+    count_immat = cursor.fetchone()[0]
+
     logging.info(
         f"************Count UL: {count_ul}, Count sieges: {count_sieges}, "
-        f"Count pp: {count_pp}, Count pm: {count_pm}"
+        f"Count pp: {count_pp}, Count pm: {count_pm}, Count immat: {count_immat}"
     )
 
     cursor.execute("SELECT * FROM unites_legales ORDER BY rowid DESC LIMIT 1")
@@ -419,8 +483,11 @@ def get_tables_count(db_path):
     cursor.execute("SELECT COUNT(*) FROM dirigeants_pm")
     count_pm = cursor.fetchone()[0]
 
+    cursor.execute("SELECT COUNT(*) FROM immatriculation")
+    count_immat = cursor.fetchone()[0]
+
     connection.close()
-    return count_ul, count_sieges, count_pp, count_pm
+    return count_ul, count_sieges, count_pp, count_pm, count_immat
 
 
 def extract_rne_data(entity, file_type="flux"):
