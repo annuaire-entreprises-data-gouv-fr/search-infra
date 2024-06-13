@@ -44,6 +44,11 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     get_latest_dirigeants_database,
 )
 
+from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
+    create_immatriculation_table import (
+        create_immatriculation_table,
+)
+
 
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_sqlite_database import (
@@ -235,6 +240,12 @@ with DAG(
         python_callable=create_dirig_pm_table,
     )
 
+    create_immatriculation_table = PythonOperator(
+        task_id="copy_immatriculation_table",
+        provide_context=True,
+        python_callable=create_immatriculation_table,
+    )
+
     create_bilan_financiers_table = PythonOperator(
         task_id="create_bilan_financiers_table",
         provide_context=True,
@@ -366,8 +377,9 @@ with DAG(
     inject_rne_siege_data.set_upstream(inject_rne_unite_legale_data)
     create_dirig_pp_table.set_upstream(inject_rne_siege_data)
     create_dirig_pm_table.set_upstream(create_dirig_pp_table)
+    create_immatriculation_table.set_upstream(create_dirig_pm_table)
 
-    create_bilan_financiers_table.set_upstream(create_dirig_pm_table)
+    create_bilan_financiers_table.set_upstream(create_immatriculation_table)
     create_convention_collective_table.set_upstream(create_bilan_financiers_table)
     create_ess_table.set_upstream(create_convention_collective_table)
     create_rge_table.set_upstream(create_ess_table)
