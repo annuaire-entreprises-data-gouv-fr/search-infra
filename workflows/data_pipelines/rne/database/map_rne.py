@@ -95,21 +95,35 @@ def get_value(rne_company: RNECompany, key: str, default=None):
 
 
 def get_nature_entreprise_list(rne_company: "RNECompany") -> list[str] | None:
-    nature_entreprise = {
-        getattr(rne_company.formality.content, "formeExerciceActivitePrincipale", None)
-    }
+    nature_entreprise = set()
 
+    # Add the main activity form if it exists
+    forme_exercice_activite_principale = getattr(
+        rne_company.formality.content, "formeExerciceActivitePrincipale", None
+    )
+    if forme_exercice_activite_principale:
+        nature_entreprise.add(forme_exercice_activite_principale)
+
+    # Check the main establishment
     siege = get_siege(rne_company)
     if siege and siege.activites:
         for activite in siege.activites:
-            nature_entreprise.add(getattr(activite, "formeExercice", None))
+            if getattr(activite, "indicateurPrincipal", None):
+                forme_exercice = getattr(activite, "formeExercice", None)
+                if forme_exercice:
+                    nature_entreprise.add(forme_exercice)
 
+    # Check other establishments
     etablissements = get_etablissements(rne_company)
-    for etablissement in etablissements:
-        for activite in getattr(etablissement, "activites", []):
-            nature_entreprise.add(getattr(activite, "formeExercice", None))
+    if etablissements:
+        for etablissement in etablissements:
+            for activite in getattr(etablissement, "activites", []):
+                if getattr(activite, "indicateurPrincipal", None):
+                    forme_exercice = getattr(activite, "formeExercice", None)
+                    if forme_exercice:
+                        nature_entreprise.add(forme_exercice)
 
-    nature_entreprise.discard(None)
+    # Return the list of nature_entreprise or None if it's empty
     return list(nature_entreprise) if nature_entreprise else None
 
 
