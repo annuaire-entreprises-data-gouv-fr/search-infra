@@ -323,5 +323,4 @@ def map_beneficiaire_rne_to_beneficiaire_ul(beneficiaires):
         beneficiaire_ul.situation_matrimoniale = personne.situationMatrimoniale
 
         list_beneficiaires.append(beneficiaire_ul)
-        logging.info(f"££££££££{beneficiaire_ul}")
     return list_beneficiaires
