@@ -246,6 +246,7 @@ def find_and_delete_same_siren(cursor, siren, file_path):
         "unites_legales",
         "sieges",
         "immatriculation",
+        "beneficiaires",
     ]
 
     for table in tables:
