@@ -9,6 +9,7 @@ AIRFLOW_ETL_DAG_NAME = "extract_transform_load_db"
 AIRFLOW_ELK_DAG_NAME = "index_elasticsearch"
 AIRFLOW_SNAPSHOT_DAG_NAME = "snapshot_index"
 AIRFLOW_SNAPSHOT_ROLLBACK_DAG_NAME = "snapshot_index_rollback"
+AIRFLOW_PUBLISH_DAG_NAME = "publish_data_gouv"
 AIRFLOW_ENV = Variable.get("ENV", "dev")
 AIRFLOW_URL = Variable.get("AIRFLOW_URL", "")
 AIRFLOW_ETL_DATA_DIR = (
