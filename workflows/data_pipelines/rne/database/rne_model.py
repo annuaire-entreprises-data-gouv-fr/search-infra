@@ -74,7 +74,7 @@ class Entreprise(BaseModel):
     formeJuridique: str | None = None
     nomCommercial: str | None = None
     effectifSalarie: str | None = None
-    dateImmat: datetime | None = None
+    dateImmat: str | None = None
     codeApe: str | None = None
     indicateurAssocieUnique: bool | None = None
     dateDebutActiv: str | None = None
