@@ -41,7 +41,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_dirigeants_tables import (
     create_dirig_pm_table,
     create_dirig_pp_table,
-    get_latest_dirigeants_database,
+    get_latest_rne_database,
 )
 
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
@@ -222,10 +222,10 @@ with DAG(
         python_callable=insert_date_fermeture_etablissement,
     )
 
-    get_latest_dirigeants_database = PythonOperator(
-        task_id="get_dirig_database",
+    get_latest_rne_database = PythonOperator(
+        task_id="get_rne_database",
         provide_context=True,
-        python_callable=get_latest_dirigeants_database,
+        python_callable=get_latest_rne_database,
     )
 
     create_dirig_pp_table = PythonOperator(
@@ -372,8 +372,8 @@ with DAG(
         create_date_fermeture_etablissement_table
     )
 
-    get_latest_dirigeants_database.set_upstream(insert_date_fermeture_etablissement)
-    inject_rne_unite_legale_data.set_upstream(get_latest_dirigeants_database)
+    get_latest_rne_database.set_upstream(insert_date_fermeture_etablissement)
+    inject_rne_unite_legale_data.set_upstream(get_latest_rne_database)
     inject_rne_siege_data.set_upstream(inject_rne_unite_legale_data)
     create_dirig_pp_table.set_upstream(inject_rne_siege_data)
     create_dirig_pm_table.set_upstream(create_dirig_pp_table)
