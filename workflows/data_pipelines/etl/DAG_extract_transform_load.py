@@ -38,7 +38,8 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_marche_inclusion_table,
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
-    create_dirigeants_tables import (
+    create_dirig_benef_tables import (
+    create_benef_table,
     create_dirig_pm_table,
     create_dirig_pp_table,
     get_latest_rne_database,
@@ -240,6 +241,12 @@ with DAG(
         python_callable=create_dirig_pm_table,
     )
 
+    create_benef_table = PythonOperator(
+        task_id="create_benef_table",
+        provide_context=True,
+        python_callable=create_benef_table,
+    )
+
     create_immatriculation_table = PythonOperator(
         task_id="copy_immatriculation_table",
         provide_context=True,
@@ -377,7 +384,8 @@ with DAG(
     inject_rne_siege_data.set_upstream(inject_rne_unite_legale_data)
     create_dirig_pp_table.set_upstream(inject_rne_siege_data)
     create_dirig_pm_table.set_upstream(create_dirig_pp_table)
-    create_immatriculation_table.set_upstream(create_dirig_pm_table)
+    create_benef_table.set_upstream(create_dirig_pm_table)
+    create_immatriculation_table.set_upstream(create_benef_table)
 
     create_bilan_financiers_table.set_upstream(create_immatriculation_table)
     create_convention_collective_table.set_upstream(create_bilan_financiers_table)
