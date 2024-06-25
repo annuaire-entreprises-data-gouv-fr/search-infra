@@ -6,10 +6,10 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment\
 # fmt: on
 
 
-def preprocess_dirigeants_pp(query):
+def preprocess_personne_physique(query):
     cols = [column[0] for column in query.description]
-    dirig_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
-    dirig_chunk.sort_values(
+    pp_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
+    pp_chunk.sort_values(
         by=[
             "siren",
             "nom",
@@ -24,7 +24,7 @@ def preprocess_dirigeants_pp(query):
         ascending=[True, True, True, True, True, True, False, False],
     )
 
-    dirig_chunk.drop_duplicates(
+    pp_chunk.drop_duplicates(
         subset=[
             "siren",
             "nom",
@@ -42,13 +42,13 @@ def preprocess_dirigeants_pp(query):
     # List of columns to convert to uppercase
     columns_to_uppercase = ["nom", "nom_usage", "prenoms"]
     for column in columns_to_uppercase:
-        dirig_chunk[column] = dirig_chunk[column].str.upper()
+        pp_chunk[column] = pp_chunk[column].str.upper()
 
     # Map role numbers to descriptions
-    dirig_chunk["role_description"] = map_roles(dirig_chunk["role"])
+    pp_chunk["role_description"] = map_roles(pp_chunk["role"])
 
-    dirig_clean = (
-        dirig_chunk.groupby(
+    pp_clean = (
+        pp_chunk.groupby(
             [
                 "siren",
                 "nom",
@@ -63,7 +63,7 @@ def preprocess_dirigeants_pp(query):
         .apply(lambda x: ", ".join(str(val) for val in x if val is not None))
         .reset_index()
     )
-    return dirig_clean
+    return pp_clean
 
 
 def preprocess_dirigeant_pm(query):
