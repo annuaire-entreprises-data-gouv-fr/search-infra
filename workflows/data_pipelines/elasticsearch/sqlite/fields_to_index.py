@@ -91,6 +91,25 @@ select_fields_to_index_query = """SELECT
                     )
                 ) as dirigeants_pm,
             (SELECT json_group_array(
+                json_object(
+                    'siren', siren,
+                    'date_mise_a_jour', date_mise_a_jour,
+                    'date_de_naissance', date_de_naissance,
+                    'nom', nom,
+                    'nom_usage', nom_usage,
+                    'prenoms', prenoms,
+                    'nationalite', nationalite,
+                    'role_description', role_description
+                    )
+                ) FROM
+                (
+                    SELECT siren, date_mise_a_jour, date_de_naissance, nom,
+                    nom_usage, prenoms, nationalite, role_description
+                    FROM beneficiaires
+                    WHERE siren = ul.siren
+                )
+            ) as beneficiaires_effectifs,
+            (SELECT json_group_array(
                     json_object(
                         'activite_principale',activite_principale,
                         'activite_principale_registre_metier',
