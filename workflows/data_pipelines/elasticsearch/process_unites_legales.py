@@ -5,10 +5,10 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
     calculate_company_size_factor,
     create_list_names_elus,
     format_dirigeants_pm,
-    format_dirigeants_pp,
     format_etablissements_and_complements,
     format_nom,
     format_nom_complet,
+    format_personnes_physiques,
     format_slug,
     format_siege_unite_legale,
     is_association,
@@ -95,7 +95,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         (
             unite_legale_processed["dirigeants_pp"],
             unite_legale_processed["liste_dirigeants"],
-        ) = format_dirigeants_pp(
+        ) = format_personnes_physiques(
             unite_legale["dirigeants_pp"], unite_legale_processed["liste_dirigeants"]
         )
 
@@ -119,6 +119,16 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["dirigeants_pp"][0]["prenoms"] = (
                 unite_legale_processed["prenom"]
             )
+
+        # Beneficiaires Effectifs
+        unite_legale_processed["liste_beneficiaires"] = []
+        (
+            unite_legale_processed["beneficiaires_effectifs"],
+            unite_legale_processed["liste_beneficiaires"],
+        ) = format_personnes_physiques(
+            unite_legale["beneficiaires_effectifs"],
+            unite_legale_processed["liste_beneficiaires"],
+        )
 
         # Élus
         unite_legale_processed["liste_elus"] = create_list_names_elus(

@@ -4,7 +4,7 @@ from slugify import slugify
 
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.clean_data import (
     drop_duplicates_dirigeants_pm,
-    drop_duplicates_dirigeants_pp,
+    drop_duplicates_personnes_physiques,
     unique_qualites,
 )
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.es_fields import (
@@ -282,58 +282,66 @@ def map_roles(codes):
     return [mapping_role_dirigeants.get(str(code), None) for code in codes]
 
 
-# Dirigeants PP
-def format_dirigeants_pp(list_dirigeants_pp_sqlite, list_all_dirigeants=[]):
-    dirigeants_pp = json.loads(list_dirigeants_pp_sqlite)
-    dirigeants_pp_processed = []
-    for dirigeant_pp in dirigeants_pp:
-        dirigeant_pp["nom"] = format_nom(dirigeant_pp["nom"], dirigeant_pp["nom_usage"])
+# Perosnnes physiques (dirigeants pp et beneficiaires effectifs)
+def format_personnes_physiques(list_personnes_physiques_sqlite, list_all_personnes=[]):
+    personnes_physiques = json.loads(list_personnes_physiques_sqlite)
+    personnes_physiques_processed = []
 
-        # Drop qualite`s exact and partial duplicates
-        dirigeant_pp["role_description"] = unique_qualites(
-            dirigeant_pp["role_description"]
+    for personne_physique in personnes_physiques:
+        personne_physique["nom"] = format_nom(
+            personne_physique["nom"], personne_physique["nom_usage"]
         )
 
-        dirigeants_pp_processed.append(
+        # Drop qualites exact and partial duplicates
+        personne_physique["role_description"] = unique_qualites(
+            personne_physique["role_description"]
+        )
+
+        personnes_physiques_processed.append(
             dict(
-                nom=dirigeant_pp["nom"],
-                prenoms=dirigeant_pp["prenoms"],
-                date_de_naissance=dirigeant_pp["date_de_naissance"],
-                nationalite=dirigeant_pp["nationalite"],
-                role=dirigeant_pp["role_description"],
-                date_mise_a_jour=dirigeant_pp["date_mise_a_jour"],
+                nom=personne_physique["nom"],
+                prenoms=personne_physique["prenoms"],
+                date_de_naissance=personne_physique["date_de_naissance"],
+                nationalite=personne_physique["nationalite"],
+                role=personne_physique["role_description"],
+                date_mise_a_jour=personne_physique["date_mise_a_jour"],
             )
         )
-        # Liste dirigeants
-        if dirigeant_pp["prenoms"] and dirigeant_pp["nom"]:
-            list_all_dirigeants.append(
-                dirigeant_pp["prenoms"] + " " + dirigeant_pp["nom"]
+
+        # Liste personnes
+        if personne_physique["prenoms"] and personne_physique["nom"]:
+            list_all_personnes.append(
+                personne_physique["prenoms"] + " " + personne_physique["nom"]
             )
-        elif dirigeant_pp["prenoms"] and not dirigeant_pp["nom"]:
-            list_all_dirigeants.append(dirigeant_pp["prenoms"])
+        elif personne_physique["prenoms"] and not personne_physique["nom"]:
+            list_all_personnes.append(personne_physique["prenoms"])
             logging.debug(
-                f'Missing dirigeant nom for ****** {dirigeant_pp["siren"]} '
-                f'****** prenoms = {dirigeant_pp["prenoms"]}'
+                f'Missing personne_physique nom for ****** {personne_physique["siren"]}'
+                f' ***** prenoms = {personne_physique["prenoms"]}'
             )
-        elif dirigeant_pp["nom"] and not dirigeant_pp["prenoms"]:
-            list_all_dirigeants.append(dirigeant_pp["nom"])
+        elif personne_physique["nom"] and not personne_physique["prenoms"]:
+            list_all_personnes.append(personne_physique["nom"])
             logging.debug(
-                f"Missing dirigeant prenoms for ****** "
-                f'{dirigeant_pp["siren"]} ****** nom : {dirigeant_pp["nom"]}'
+                f"Missing personne_physique prenoms for ****** "
+                f'{personne_physique["siren"]} ****** nom : {personne_physique["nom"]}'
             )
         else:
             logging.debug(
-                f"Missing dirigeants names for ******" f' {dirigeant_pp["siren"]}'
+                f"Missing personne_physique names for **** {personne_physique['siren']}"
             )
 
-    if dirigeants_pp_processed:
-        # Case when two dirigeant have exactly the same fields/value
-        dirigeants_pp_processed = drop_exact_duplicates(dirigeants_pp_processed)
-        # Case when two dirigeant have partially the same fields/value
-        # (eg. same name, and fistname, different date or qualities)
-        dirigeants_pp_processed = drop_duplicates_dirigeants_pp(dirigeants_pp_processed)
+    if personnes_physiques_processed:
+        # Case when two personne_physique have exactly the same fields/values
+        personnes_physiques_processed = drop_exact_duplicates(
+            personnes_physiques_processed
+        )
+        # Case when two personne_physique have partially the same fields/values
+        # (eg. same name, and firstname, different date or qualities)
+        personnes_physiques_processed = drop_duplicates_personnes_physiques(
+            personnes_physiques_processed
+        )
 
-    return dirigeants_pp_processed, list(set(list_all_dirigeants))
+    return personnes_physiques_processed, list(set(list_all_personnes))
 
 
 # Dirigeants PM
