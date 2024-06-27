@@ -1,7 +1,7 @@
 ul_fields_to_select = """SELECT
             ul.siren,
             st.siret as siret_siege,
-            ul.etat_administratif_unite_legale as etat_administratif_unite_legale,
+            ul.etat_administratif_unite_legale as etat_administratif,
             ul.nom_raison_sociale as nom_raison_sociale,
             ul.nom as nom,
             ul.nom_usage as nom_usage,
@@ -14,7 +14,9 @@ ul_fields_to_select = """SELECT
             ul.activite_principale_unite_legale as activite_principale,
             ul.nature_juridique_unite_legale as nature_juridique,
             ul.economie_sociale_solidaire_unite_legale as
-            economie_sociale_solidaire_unite_legale,
+            economie_sociale_solidaire,
+            ul.identifiant_association_unite_legale as
+            identifiant_association,
             ul.est_societe_mission as est_societe_mission,
             (SELECT liste_idcc FROM convention_collective WHERE
                         siren = ul.siren) as liste_idcc,
