@@ -4,7 +4,7 @@ from airflow.operators.python import PythonOperator
 from dag_datalake_sirene.workflows.data_pipelines.data_gouv.task_functions import (
     get_latest_database,
     fill_ul_file,
-    fill_etab_file,
+    upload_to_minio,
 )
 
 from dag_datalake_sirene.workflows.data_pipelines.data_gouv.task_functions import (
@@ -57,11 +57,11 @@ with DAG(
         python_callable=fill_ul_file,
     )
 
-    fill_etab_file = PythonOperator(
-        task_id="fill_etab_file",
-        python_callable=fill_etab_file,
+    upload_to_minio = PythonOperator(
+        task_id="upload_to_minio",
+        python_callable=upload_to_minio,
     )
 
     get_latest_sqlite_database.set_upstream(clean_previous_folder)
     fill_ul_file.set_upstream(get_latest_sqlite_database)
-    fill_etab_file.set_upstream(fill_ul_file)
+    upload_to_minio.set_upstream(fill_ul_file)
