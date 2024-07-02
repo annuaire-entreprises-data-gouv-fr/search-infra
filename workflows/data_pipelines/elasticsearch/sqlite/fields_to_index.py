@@ -236,7 +236,7 @@ select_fields_to_index_query = """SELECT
                         annee_tranche_effectif_salarie,
                         s.date_mise_a_jour_insee as date_mise_a_jour_insee,
                         s.type_voie as type_voie,
-                        s.type_voie_2 as type_voie_2
+                        s.type_voie_2 as type_voie_2,
                         s.x as x,
                         s.y as y
                         FROM siret s
