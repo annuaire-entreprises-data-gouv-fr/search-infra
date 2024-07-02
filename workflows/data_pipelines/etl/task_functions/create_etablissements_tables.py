@@ -36,6 +36,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.etablisseme
     update_sieges_table_fields_with_rne_data_query,
 )
 # fmt: on
+from dag_datalake_sirene.helpers.labels.departements import all_deps
 from dag_datalake_sirene.config import AIRFLOW_ETL_DATA_DIR
 from dag_datalake_sirene.config import (
     SIRENE_DATABASE_LOCATION,
@@ -51,19 +52,16 @@ def create_etablissements_table():
         index_name="index_siret",
         index_column="siren",
     )
-    # Upload data by chunk
-    for df_etablissement in preprocess_etablissement_data(
-        "stock", AIRFLOW_ETL_DATA_DIR
-    ):
-        df_etablissement.to_sql(
-            "siret", sqlite_client.db_conn, if_exists="append", index=False
-        )
+    # Upload geo data by departement
+    for dep in all_deps:
+        df_dep = preprocess_etablissement_data("stock", dep, None)
+        df_dep.to_sql("siret", sqlite_client.db_conn, if_exists="append", index=False)
         for row in sqlite_client.execute(get_table_count("siret")):
             logging.debug(
                 f"************ {row} records have been added to the "
                 f"`établissements` table!"
             )
-    del df_etablissement
+    del df_dep
 
     for count_etablissements in sqlite_client.execute(get_table_count("siret")):
         logging.info(
@@ -82,18 +80,13 @@ def create_flux_etablissements_table():
         index_column="siren",
     )
     # Upload flux data
-    for df_etablissement in preprocess_etablissement_data("flux", AIRFLOW_ETL_DATA_DIR):
-        df_etablissement.to_sql(
-            "flux_siret",
-            sqlite_client.db_conn,
-            if_exists="append",
-            index=False,
-        )
-        for row in sqlite_client.execute(get_table_count("flux_siret")):
-            logging.info(
-                f"************ {row} records have been added to the "
-                f"`flux établissements` table!"
-            )
+    df_etablissement = preprocess_etablissement_data("flux", None, AIRFLOW_ETL_DATA_DIR)
+    df_etablissement.to_sql(
+        "flux_siret",
+        sqlite_client.db_conn,
+        if_exists="append",
+        index=False,
+    )
     del df_etablissement
     for row in sqlite_client.execute(get_table_count("flux_siret")):
         logging.info(
