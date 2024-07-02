@@ -438,11 +438,14 @@ def format_etablissements_and_complements(
         etablissement["region"] = label_region_from_departement(
             etablissement["departement"]
         )
-        etablissement["latitude"], etablissement["longitude"] = transform_coordinates(
-            etablissement["departement"],
-            etablissement["x"],
-            etablissement["y"],
-        )
+        if etablissement["latitude"] is None or etablissement["longitude"] is None:
+            etablissement["latitude"], etablissement["longitude"] = (
+                transform_coordinates(
+                    etablissement["departement"],
+                    etablissement["x"],
+                    etablissement["y"],
+                )
+            )
         etablissement["coordonnees"] = format_coordonnees(
             etablissement["longitude"], etablissement["latitude"]
         )

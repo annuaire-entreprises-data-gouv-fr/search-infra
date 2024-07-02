@@ -143,6 +143,9 @@ class EtablissementMapping(InnerDoc):
     epci = Keyword()
     est_siege = Boolean()
     etat_administratif = Keyword()
+    geo_adresse = Text(analyzer=annuaire_analyzer)
+    geo_id = Keyword()
+    geo_score = Keyword()
     indice_repetition = Text()
     indice_repetition_2 = Text()
     latitude = Text()
@@ -173,6 +176,8 @@ class EtablissementMapping(InnerDoc):
     tranche_effectif_salarie = Keyword()
     type_voie = Text()
     type_voie_2 = Text()
+    x = Keyword()
+    y = Keyword()
 
 
 class SiegeMapping(InnerDoc):
@@ -208,6 +213,7 @@ class SiegeMapping(InnerDoc):
     etat_administratif = Keyword()
     geo_adresse = Text(analyzer=annuaire_analyzer)
     geo_id = Keyword()
+    geo_score = Keyword()
     indice_repetition = Text()
     indice_repetition_2 = Text()
     latitude = Text()
@@ -236,6 +242,8 @@ class SiegeMapping(InnerDoc):
     tranche_effectif_salarie = Keyword()
     type_voie = Text()
     type_voie_2 = Text()
+    x = Keyword()
+    y = Keyword()
 
 
 class EluMapping(InnerDoc):
