@@ -494,11 +494,12 @@ def format_siege_unite_legale(siege, is_non_diffusible=False):
         is_non_diffusible,
     )
     siege["departement"] = format_departement(siege["commune"])
-    siege["latitude"], siege["longitude"] = transform_coordinates(
-        siege["departement"],
-        siege["x"],
-        siege["y"],
-    )
+    if siege["latitude"] is None or siege["longitude"] is None:
+        siege["latitude"], siege["longitude"] = transform_coordinates(
+            siege["departement"],
+            siege["x"],
+            siege["y"],
+        )
     siege["coordonnees"] = format_coordonnees(siege["longitude"], siege["latitude"])
     siege["region"] = label_region_from_departement(siege["departement"])
     siege["epci"] = label_epci_from_commune(siege["commune"])
