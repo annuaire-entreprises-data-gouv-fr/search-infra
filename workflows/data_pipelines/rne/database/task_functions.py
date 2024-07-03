@@ -288,6 +288,9 @@ def remove_duplicates(**kwargs):
             logging.info(f"Cleaning table: {table}")
             remove_duplicates_from_table(cursor, table)
         connection.commit()
+        # Vacuum the database to reclaim space
+        cursor.execute("VACUUM")
+        connection.commit()
     except Exception as e:
         connection.rollback()
         logging.warning(f"Error when removing duplicates: {e}")
