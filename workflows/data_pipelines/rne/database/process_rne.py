@@ -536,6 +536,35 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
     connection.close()
 
 
+def remove_duplicates_from_tables(cursor, table_name):
+    # Get the schema of the original table
+    cursor.execute(
+        f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{table_name}'"
+    )
+    create_table_sql = cursor.fetchone()[0]
+
+    # Create a temporary table with the same schema
+    temp_table = f"{table_name}_temp"
+    cursor.execute(f"{create_table_sql.replace(table_name, temp_table)}")
+
+    # Insert distinct rows into the temporary table
+    cursor.execute(f"INSERT INTO {temp_table} SELECT DISTINCT * FROM {table_name}")
+
+    # Get the list of indexes from the original table
+    cursor.execute(
+        f"SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name='{table_name}'"
+    )
+
+    # Drop the original table
+    cursor.execute(f"DROP TABLE {table_name}")
+
+    # Rename the temporary table to the original table name
+    cursor.execute(f"ALTER TABLE {temp_table} RENAME TO {table_name}")
+
+    # Recreate the indexes
+    create_index_db(cursor)
+
+
 def get_tables_count(db_path):
     connection, cursor = connect_to_db(db_path)
 

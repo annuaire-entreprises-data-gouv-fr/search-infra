@@ -11,6 +11,7 @@ from dag_datalake_sirene.workflows.data_pipelines.rne.database.process_rne impor
     create_tables,
     get_tables_count,
     inject_records_into_db,
+    remove_duplicates_from_tables,
 )
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
@@ -240,37 +241,6 @@ def process_flux_json_files(**kwargs):
     kwargs["ti"].xcom_push(key="last_date_processed", value=last_date_processed)
 
 
-def remove_duplicates_from_table(cursor, table_name):
-    # Get the schema of the original table
-    cursor.execute(
-        f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{table_name}'"
-    )
-    create_table_sql = cursor.fetchone()[0]
-
-    # Create a temporary table with the same schema
-    temp_table = f"{table_name}_temp"
-    cursor.execute(f"{create_table_sql.replace(table_name, temp_table)}")
-
-    # Insert distinct rows into the temporary table
-    cursor.execute(f"INSERT INTO {temp_table} SELECT DISTINCT * FROM {table_name}")
-
-    # Get the list of indexes from the original table
-    cursor.execute(
-        f"SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name='{table_name}'"
-    )
-    indexes = cursor.fetchall()
-
-    # Drop the original table
-    cursor.execute(f"DROP TABLE {table_name}")
-
-    # Rename the temporary table to the original table name
-    cursor.execute(f"ALTER TABLE {temp_table} RENAME TO {table_name}")
-
-    # Recreate the indexes
-    for index in indexes:
-        cursor.execute(index[0])
-
-
 def remove_duplicates(**kwargs):
     rne_db_path = kwargs["ti"].xcom_pull(key="rne_db_path", task_ids="create_db")
     connection, cursor = connect_to_db(rne_db_path)
@@ -286,7 +256,7 @@ def remove_duplicates(**kwargs):
     try:
         for table in tables:
             logging.info(f"Cleaning table: {table}")
-            remove_duplicates_from_table(cursor, table)
+            remove_duplicates_from_tables(cursor, table)
         connection.commit()
         # Vacuum the database to reclaim space
         cursor.execute("VACUUM")
