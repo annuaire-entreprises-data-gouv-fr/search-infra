@@ -543,9 +543,14 @@ def remove_duplicates_from_tables(cursor, table_name):
     )
     create_table_sql = cursor.fetchone()[0]
 
-    # Create a temporary table with the same schema
+    # Modify the SQL to create the temporary table without altering column names
     temp_table = f"{table_name}_temp"
-    cursor.execute(f"{create_table_sql.replace(table_name, temp_table)}")
+    create_temp_table_sql = create_table_sql.replace(
+        f"CREATE TABLE {table_name}", f"CREATE TABLE {temp_table}"
+    )
+
+    # Create the temporary table with the modified schema
+    cursor.execute(create_temp_table_sql)
 
     # Insert distinct rows into the temporary table
     cursor.execute(f"INSERT INTO {temp_table} SELECT DISTINCT * FROM {table_name}")
