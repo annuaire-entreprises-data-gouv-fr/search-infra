@@ -550,11 +550,6 @@ def remove_duplicates_from_tables(cursor, table_name):
     # Insert distinct rows into the temporary table
     cursor.execute(f"INSERT INTO {temp_table} SELECT DISTINCT * FROM {table_name}")
 
-    # Get the list of indexes from the original table
-    cursor.execute(
-        f"SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name='{table_name}'"
-    )
-
     # Drop the original table
     cursor.execute(f"DROP TABLE {table_name}")
 
