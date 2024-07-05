@@ -251,3 +251,4 @@ URL_CC_KALI = (
 # DataGouv
 DATAGOUV_URL = "https://www.data.gouv.fr"
 ORGA_REFERENCE = "646b7187b50b2a93b1ae3d45"
+DATAGOUV_SECRET_API_KEY = Variable.get("DATAGOUV_SECRET_API_KEY", "")
