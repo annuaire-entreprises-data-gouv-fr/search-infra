@@ -379,5 +379,9 @@ def publish_data(**kwargs):
     logging.info(f"Publishing unité légale : {response_etab}")
 
 
+def notification_tchap(ti):
+    send_message("\U0001F7E2 Fichiers mis à jour sur DataGouv.")
+
+
 def send_notification_failure_tchap(context):
     send_message("\U0001F534 Données :" "\nFail DAG de publication sur Data.gouv!!!!")

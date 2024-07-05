@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from airflow.models import DAG
+from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator, ShortCircuitOperator
 from dag_datalake_sirene.workflows.data_pipelines.data_gouv.task_functions import (
     get_latest_database,
@@ -8,6 +9,7 @@ from dag_datalake_sirene.workflows.data_pipelines.data_gouv.task_functions impor
     fill_etab_file,
     upload_etab_to_minio,
     publish_data,
+    notification_tchap,
 )
 
 from dag_datalake_sirene.workflows.data_pipelines.data_gouv.task_functions import (
@@ -81,6 +83,13 @@ with DAG(
         task_id="publish_data",
         python_callable=publish_data,
     )
+    clean_outputs = BashOperator(
+        task_id="clean_outputs",
+        bash_command=f"rm -rf {AIRFLOW_DAG_TMP}{AIRFLOW_PUBLISH_DAG_NAME}",
+    )
+    notification_tchap = PythonOperator(
+        task_id="notification_tchap", python_callable=notification_tchap
+    )
 
     clean_previous_folder.set_upstream(check_if_prod)
     get_latest_sqlite_database.set_upstream(clean_previous_folder)
@@ -89,3 +98,5 @@ with DAG(
     fill_etab_file.set_upstream(upload_ul_to_minio)
     upload_etab_to_minio.set_upstream(fill_etab_file)
     publish_files.set_upstream(upload_etab_to_minio)
+    clean_outputs.set_upstream(publish_files)
+    notification_tchap.set_upstream(clean_outputs)
