@@ -6,12 +6,9 @@ import logging
 import os
 import pandas as pd
 import json
-from dag_datalake_sirene.config import (
-    SIRENE_MINIO_DATA_PATH,
-    AIRFLOW_DATAGOUV_DATA_DIR,
-)
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
+from dag_datalake_sirene.helpers.datagouv import post_resource
 from dag_datalake_sirene.workflows.data_pipelines.data_gouv.queries import (
     etab_fields_to_select,
     ul_fields_to_select,
@@ -25,24 +22,28 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
     is_ess,
     is_service_public,
     label_section_from_activite,
+    label_region_from_departement,
+    format_departement,
+    format_coordonnees,
+    label_epci_from_commune,
 )
-from dag_datalake_sirene.helpers.tchap import send_message
 from dag_datalake_sirene.helpers.utils import (
+    str_to_bool,
+    str_to_list,
     convert_date_format,
     sqlite_str_to_bool,
-    str_to_list,
+)
+from dag_datalake_sirene.helpers.geolocalisation import (
+    transform_coordinates,
+)
+from dag_datalake_sirene.helpers.tchap import send_message
+from dag_datalake_sirene.config import (
+    SIRENE_MINIO_DATA_PATH,
+    AIRFLOW_DATAGOUV_DATA_DIR,
 )
 
 current_date = datetime.now().date()
-
-
-def send_to_minio(list_files):
-    minio_client.send_files(
-        list_files=list_files,
-    )
-
-
-current_date = datetime.now().date()
+today_date = datetime.today().strftime("%Y-%m-%d")
 
 
 def get_latest_database(**kwargs):
@@ -82,7 +83,7 @@ def get_latest_database(**kwargs):
         )
 
 
-def process_chunk(chunk):
+def process_ul_chunk(chunk):
     # Apply transformations directly to the DataFrame
     chunk["colter_elus"] = chunk["colter_elus"].apply(json.loads)
     chunk["nom_complet"] = chunk.apply(
@@ -141,62 +142,56 @@ def fill_ul_file():
     chunk_size = 100000
     sqlite_client = SqliteClient(AIRFLOW_DATAGOUV_DATA_DIR + "sirene.db")
 
-    ul_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales.csv"
+    ul_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{today_date}.csv"
 
-    # Define columns
     columns = [
-        "siren",
-        "siret_siege",
-        "etat_administratif",
-        "nom_raison_sociale",
-        "nom",
-        "nom_usage",
-        "prenom",
-        "sigle",
-        "date_mise_a_jour_insee",
-        "date_mise_a_jour_rne",
+        "activite_principale",
+        "colter_code",
+        "colter_code_insee",
+        "colter_elus",
+        "colter_niveau",
         "date_creation",
         "date_fermeture",
-        "activite_principale",
-        "nature_juridique",
-        "economie_sociale_solidaire",
-        "est_societe_mission",
-        "liste_idcc",
-        "nombre_etablissements",
-        "nombre_etablissements_ouverts",
-        "est_entrepreneur_spectacle",
-        "statut_entrepreneur_spectacle",
+        "date_mise_a_jour_insee",
+        "date_mise_a_jour_rne",
         "egapro_renseignee",
-        "colter_code_insee",
-        "colter_code",
-        "colter_niveau",
-        "est_ess_france",
-        "colter_elus",
-        "est_qualiopi",
-        "liste_id_organisme_formation",
-        "est_siae",
-        "type_siae",
-        "nom_complet",
-        "section_activite_principale",
-        "est_entrepreneur_individuel",
-        "liste_elus",
+        "economie_sociale_solidaire",
         "est_association",
+        "est_entrepreneur_individuel",
         "est_entrepreneur_spectacle",
         "est_ess",
-        "egapro_renseignee",
-        "est_siae",
+        "est_ess_france",
         "est_organisme_formation",
         "est_qualiopi",
-        "date_mise_a_jour_rne",
+        "est_siae",
         "est_service_public",
+        "est_societe_mission",
+        "liste_elus",
+        "liste_id_organisme_formation",
+        "liste_idcc",
+        "nature_juridique",
+        "nom",
+        "nom_complet",
+        "nom_raison_sociale",
+        "nom_usage",
+        "nombre_etablissements",
+        "nombre_etablissements_ouverts",
+        "prenom",
+        "section_activite_principale",
+        "siren",
+        "siret_siege",
+        "sigle",
+        "statut_entrepreneur_spectacle",
+        "type_siae",
     ]
 
-    first_chunk = not os.path.exists(ul_csv_path)
+    # first_chunk = not os.path.exists(ul_csv_path)
+    first_chunk = True
 
     for chunk in pd.read_sql_query(
         ul_fields_to_select, sqlite_client.db_conn, chunksize=chunk_size
     ):
-        processed_chunk = process_chunk(chunk)
+        processed_chunk = process_ul_chunk(chunk)
 
         # Append processed chunk to CSV file
         if first_chunk:
@@ -208,12 +203,17 @@ def fill_ul_file():
             processed_chunk.to_csv(
                 ul_csv_path, mode="a", header=False, index=False, columns=columns
             )
-
     sqlite_client.commit_and_close_conn()
 
 
-def upload_to_minio(**kwargs):
-    ul_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales.csv"
+def send_to_minio(list_files):
+    minio_client.send_files(
+        list_files=list_files,
+    )
+
+
+def upload_ul_to_minio(**kwargs):
+    ul_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{today_date}.csv"
 
     with open(ul_csv_path, "rb") as f_in:
         with gzip.open(f"{ul_csv_path}.gz", "wb") as f_out:
@@ -223,40 +223,161 @@ def upload_to_minio(**kwargs):
         [
             {
                 "source_path": AIRFLOW_DATAGOUV_DATA_DIR,
-                "source_name": "unites_legales.csv.gz",
-                "dest_path": "sirene/test/",
-                "dest_name": "unites_legales.csv.gz",
+                "source_name": f"unites_legales_{today_date}.csv.gz",
+                "dest_path": "data_gouv/",
+                "dest_name": f"unites_legales_{today_date}.csv.gz",
             }
         ]
     )
 
 
-def fill_etab_file():
-    sqlite_client = SqliteClient(AIRFLOW_DATAGOUV_DATA_DIR + "sirene.db")
-    df_etab = pd.read_sql_query(etab_fields_to_select, sqlite_client.db_conn)
-    df_etab
+def process_etablissement_chunk(chunk):
+    chunk["is_non_diffusible"] = chunk["statut_diffusion"] != "O"
 
-    df_etab["adresse"] = format_adresse_complete(
-        df_etab["complement_adresse"],
-        df_etab["numero_voie"],
-        df_etab["indice_repetition"],
-        df_etab["type_voie"],
-        df_etab["libelle_voie"],
-        df_etab["libelle_commune"],
-        df_etab["libelle_cedex"],
-        df_etab["distribution_speciale"],
-        df_etab["code_postal"],
-        df_etab["cedex"],
-        df_etab["commune"],
-        df_etab["libelle_commune_etranger"],
-        df_etab["libelle_pays_etranger"],
+    chunk["adresse"] = chunk.apply(
+        lambda row: format_adresse_complete(
+            row["complement_adresse"],
+            row["numero_voie"],
+            row["indice_repetition"],
+            row["type_voie"],
+            row["libelle_voie"],
+            row["libelle_commune"],
+            row["libelle_cedex"],
+            row["distribution_speciale"],
+            row["code_postal"],
+            row["cedex"],
+            row["commune"],
+            row["libelle_commune_etranger"],
+            row["libelle_pays_etranger"],
+            row["is_non_diffusible"],
+        ),
+        axis=1,
+    )
+    chunk["departement"] = chunk["commune"].apply(format_departement)
+    chunk["region"] = chunk["departement"].apply(label_region_from_departement)
+    coordinates = chunk.apply(
+        lambda row: transform_coordinates(row["departement"], row["x"], row["y"]),
+        axis=1,
+    )
+    chunk["latitude"], chunk["longitude"] = zip(*coordinates)
+    chunk["coordonnees"] = chunk.apply(
+        lambda row: format_coordonnees(row["longitude"], row["latitude"]), axis=1
+    )
+    chunk["epci"] = chunk["commune"].apply(label_epci_from_commune)
+    chunk["est_siege"] = chunk["est_siege"].apply(str_to_bool)
+    chunk["liste_idcc"] = chunk["liste_idcc"].apply(str_to_list)
+    chunk["liste_rge"] = chunk["liste_rge"].apply(str_to_list)
+    chunk["liste_uai"] = chunk["liste_uai"].apply(str_to_list)
+    chunk["liste_finess"] = chunk["liste_finess"].apply(str_to_list)
+    chunk["liste_id_bio"] = chunk["liste_id_bio"].apply(str_to_list)
+
+    return chunk
+
+
+def fill_etab_file():
+    chunk_size = 100000
+    sqlite_client = SqliteClient(AIRFLOW_DATAGOUV_DATA_DIR + "sirene.db")
+
+    etab_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}etablissements_{today_date}.csv"
+
+    columns = [
+        "activite_principale",
+        "code_postal",
+        "complement_adresse",
+        "date_debut_activite",
+        "distribution_speciale",
+        "enseigne_1",
+        "enseigne_2",
+        "enseigne_3",
+        "est_siege",
+        "indice_repetition",
+        "latitude",
+        "libelle_cedex",
+        "libelle_commune",
+        "libelle_commune_etranger",
+        "libelle_pays_etranger",
+        "libelle_voie",
+        "liste_finess",
+        "liste_id_bio",
+        "liste_idcc",
+        "liste_rge",
+        "liste_uai",
+        "longitude",
+        "nom_commercial",
+        "numero_voie",
+        "region",
+        "siren",
+        "siret",
+        "tranche_effectif_salarie",
+        "type_voie",
+        "x",
+        "y",
+    ]
+
+    # first_chunk = not os.path.exists(etab_csv_path)
+    first_chunk = True
+
+    for chunk in pd.read_sql_query(
+        etab_fields_to_select, sqlite_client.db_conn, chunksize=chunk_size
+    ):
+        processed_chunk = process_etablissement_chunk(chunk)
+
+        # Append processed chunk to CSV file
+        if first_chunk:
+            processed_chunk.to_csv(
+                etab_csv_path, mode="w", header=True, index=False, columns=columns
+            )
+            first_chunk = False
+        else:
+            processed_chunk.to_csv(
+                etab_csv_path, mode="a", header=False, index=False, columns=columns
+            )
+
+    sqlite_client.commit_and_close_conn()
+
+
+def upload_etab_to_minio(**kwargs):
+    ul_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}etablissements_{today_date}.csv"
+
+    with open(ul_csv_path, "rb") as f_in:
+        with gzip.open(f"{ul_csv_path}.gz", "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
+
+    send_to_minio(
+        [
+            {
+                "source_path": AIRFLOW_DATAGOUV_DATA_DIR,
+                "source_name": f"etablissements_{today_date}.csv.gz",
+                "dest_path": "data_gouv/",
+                "dest_name": f"etablissements_{today_date}.csv.gz",
+            }
+        ]
     )
 
-    etab_parquet_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}etablissements.parquet"
-    df_etab.to_parquet(etab_parquet_path, index=False)
 
-    # del df_etab
+def publish_data(**kwargs):
+    response_ul = post_resource(
+        file_to_upload={
+            "dest_path": AIRFLOW_DATAGOUV_DATA_DIR,
+            "dest_name": f"unites_legales_{today_date}.csv.gz",
+        },
+        dataset_id="667ebdd4547ab9bd6e4682d3",
+        resource_id="b8e5376c-c158-4d88-91f3-f6bb0d165332",
+    )
+
+    logging.info(f"Publishing unité légale : {response_ul}")
+
+    response_etab = post_resource(
+        file_to_upload={
+            "dest_path": AIRFLOW_DATAGOUV_DATA_DIR,
+            "dest_name": f"etablissements_{today_date}.csv.gz",
+        },
+        dataset_id="667ebdd4547ab9bd6e4682d3",
+        resource_id="12812d7d-d11c-45f4-965c-35a3b149c585",
+    )
+
+    logging.info(f"Publishing unité légale : {response_etab}")
 
 
 def send_notification_failure_tchap(context):
-    send_message("\U0001F534 Données :" "\nFail DAG de publication!!!!")
+    send_message("\U0001F534 Données :" "\nFail DAG de publication sur Data.gouv!!!!")
