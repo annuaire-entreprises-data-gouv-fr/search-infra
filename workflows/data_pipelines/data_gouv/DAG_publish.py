@@ -1,19 +1,22 @@
 from datetime import datetime, timedelta
 from airflow.models import DAG
-from airflow.operators.python import PythonOperator
+from airflow.operators.python import PythonOperator, ShortCircuitOperator
 from dag_datalake_sirene.workflows.data_pipelines.data_gouv.task_functions import (
     get_latest_database,
     fill_ul_file,
-    upload_to_minio,
+    upload_ul_to_minio,
+    fill_etab_file,
+    upload_etab_to_minio,
+    publish_data,
 )
 
 from dag_datalake_sirene.workflows.data_pipelines.data_gouv.task_functions import (
     send_notification_failure_tchap,
 )
+from dag_datalake_sirene.helpers.utils import check_if_prod
 
 from dag_datalake_sirene.config import (
     AIRFLOW_DAG_TMP,
-    AIRFLOW_DAG_FOLDER,
     EMAIL_LIST,
     AIRFLOW_PUBLISH_DAG_NAME,
 )
@@ -32,7 +35,7 @@ default_args = {
 with DAG(
     dag_id=AIRFLOW_PUBLISH_DAG_NAME,
     default_args=default_args,
-    schedule_interval=None,  # Triggered by database etl
+    schedule_interval=None,  # daily
     start_date=datetime(2023, 9, 4),
     dagrun_timeout=timedelta(minutes=60 * 12),
     tags=["publish", "datagouv"],
@@ -41,9 +44,13 @@ with DAG(
     max_active_runs=1,
 ) as dag:
 
+    check_if_prod = ShortCircuitOperator(
+        task_id="check_if_prod", python_callable=check_if_prod
+    )
+
     clean_previous_folder = CleanFolderOperator(
         task_id="clean_previous_folder",
-        folder_path=f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_PUBLISH_DAG_NAME}",
+        folder_path=f"{AIRFLOW_DAG_TMP}{AIRFLOW_PUBLISH_DAG_NAME}",
     )
 
     get_latest_sqlite_database = create_sqlite_database = PythonOperator(
@@ -57,11 +64,28 @@ with DAG(
         python_callable=fill_ul_file,
     )
 
-    upload_to_minio = PythonOperator(
-        task_id="upload_to_minio",
-        python_callable=upload_to_minio,
+    upload_ul_to_minio = PythonOperator(
+        task_id="upload_ul_to_minio",
+        python_callable=upload_ul_to_minio,
+    )
+    fill_etab_file = PythonOperator(
+        task_id="fill_etab_file",
+        python_callable=fill_etab_file,
     )
 
+    upload_etab_to_minio = PythonOperator(
+        task_id="upload_etab_to_minio",
+        python_callable=upload_etab_to_minio,
+    )
+    publish_files = PythonOperator(
+        task_id="publish_data",
+        python_callable=publish_data,
+    )
+
+    clean_previous_folder.set_upstream(check_if_prod)
     get_latest_sqlite_database.set_upstream(clean_previous_folder)
     fill_ul_file.set_upstream(get_latest_sqlite_database)
-    upload_to_minio.set_upstream(fill_ul_file)
+    upload_ul_to_minio.set_upstream(fill_ul_file)
+    fill_etab_file.set_upstream(upload_ul_to_minio)
+    upload_etab_to_minio.set_upstream(fill_etab_file)
+    publish_files.set_upstream(upload_etab_to_minio)
