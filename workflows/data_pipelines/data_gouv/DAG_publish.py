@@ -37,9 +37,9 @@ default_args = {
 with DAG(
     dag_id=AIRFLOW_PUBLISH_DAG_NAME,
     default_args=default_args,
-    schedule_interval=None,  # daily
+    schedule_interval="0 17 * * *",  # Executes daily at 5 PM
     start_date=datetime(2023, 9, 4),
-    dagrun_timeout=timedelta(minutes=60 * 12),
+    dagrun_timeout=timedelta(minutes=60 * 3),
     tags=["publish", "datagouv"],
     catchup=False,  # False to ignore past runs
     on_failure_callback=send_notification_failure_tchap,
