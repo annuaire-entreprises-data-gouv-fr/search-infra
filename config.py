@@ -179,9 +179,7 @@ URL_MINIO_ENTREPRENEUR_SPECTACLE = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/spectacle"
     "/latest/spectacle.csv"
 )
-URL_ETABLISSEMENTS = (
-    "https://www.data.gouv.fr/fr/datasets/r/0651fb76-bcf3-4f6a-a38d-bc04fa708576"
-)
+URL_ETABLISSEMENTS = "https://files.data.gouv.fr/geo-sirene/last/dep/geo_siret"
 URL_MINIO_ETABLISSEMENTS = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
     "/sirene/stock/StockEtablissement_utf8.zip"

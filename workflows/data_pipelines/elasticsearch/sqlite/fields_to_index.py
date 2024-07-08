@@ -134,9 +134,12 @@ select_fields_to_index_query = """SELECT
                         'enseigne_3',enseigne_3,
                         'est_siege',est_siege,
                         'etat_administratif',etat_administratif_etablissement,
+                        'geo_adresse',geo_adresse,
+                        'geo_id',geo_id,
+                        'geo_score',geo_score,
                         'indice_repetition',indice_repetition,
                         'indice_repetition_2',indice_repetition_2,
-                        'x',x,
+                        'latitude',latitude,
                         'libelle_cedex',libelle_cedex,
                         'libelle_cedex_2',libelle_cedex_2,
                         'libelle_commune',libelle_commune,
@@ -147,24 +150,26 @@ select_fields_to_index_query = """SELECT
                         'libelle_pays_etranger_2',libelle_pays_etranger_2,
                         'libelle_voie',libelle_voie,
                         'libelle_voie_2',libelle_voie_2,
-                        'liste_finess', liste_finess,
-                        'liste_id_bio', liste_id_bio,
-                        'liste_idcc', liste_idcc,
-                        'liste_rge', liste_rge,
-                        'liste_uai', liste_uai,
-                        'y',y,
+                        'liste_finess',liste_finess,
+                        'liste_id_bio',liste_id_bio,
+                        'liste_idcc',liste_idcc,
+                        'liste_rge',liste_rge,
+                        'liste_uai',liste_uai,
+                        'longitude',longitude,
                         'nom_commercial',nom_commercial,
                         'numero_voie',numero_voie,
                         'numero_voie_2',numero_voie_2,
-                        'siren', siren,
-                        'siret', siret,
+                        'siren',siren,
+                        'siret',siret,
                         'statut_diffusion_etablissement',
                         statut_diffusion_etablissement,
                         'tranche_effectif_salarie',tranche_effectif_salarie,
                         'annee_tranche_effectif_salarie',annee_tranche_effectif_salarie,
-                        'date_mise_a_jour_insee', date_mise_a_jour_insee,
+                        'date_mise_a_jour_insee',date_mise_a_jour_insee,
                         'type_voie',type_voie,
-                        'type_voie_2',type_voie_2
+                        'type_voie_2',type_voie_2,
+                        'x',x,
+                        'y',y
                         )
                     ) FROM
                     (
@@ -193,9 +198,12 @@ select_fields_to_index_query = """SELECT
                         s.est_siege as est_siege,
                         s.etat_administratif_etablissement as
                         etat_administratif_etablissement,
+                        s.geo_adresse as geo_adresse,
+                        s.geo_id as geo_id,
+                        s.geo_score as geo_score,
                         s.indice_repetition as indice_repetition,
                         s.indice_repetition_2 as indice_repetition_2,
-                        s.x as x,
+                        s.latitude as latitude,
                         s.libelle_cedex as libelle_cedex,
                         s.libelle_cedex_2 as libelle_cedex_2,
                         s.libelle_commune as libelle_commune,
@@ -206,6 +214,7 @@ select_fields_to_index_query = """SELECT
                         s.libelle_pays_etranger_2 as libelle_pays_etranger_2,
                         s.libelle_voie as libelle_voie,
                         s.libelle_voie_2 as libelle_voie_2,
+                        s.longitude as longitude,
                         (SELECT liste_finess FROM finess WHERE siret = s.siret) as
                         liste_finess,
                         (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
@@ -214,7 +223,6 @@ select_fields_to_index_query = """SELECT
                         WHERE siret = s.siret) as liste_idcc,
                         (SELECT liste_rge FROM rge WHERE siret = s.siret) as liste_rge,
                         (SELECT liste_uai FROM uai WHERE siret = s.siret) as liste_uai,
-                        s.y as y,
                         s.nom_commercial as nom_commercial,
                         s.numero_voie as numero_voie,
                         s.numero_voie_2 as numero_voie_2,
@@ -228,7 +236,9 @@ select_fields_to_index_query = """SELECT
                         annee_tranche_effectif_salarie,
                         s.date_mise_a_jour_insee as date_mise_a_jour_insee,
                         s.type_voie as type_voie,
-                        s.type_voie_2 as type_voie_2
+                        s.type_voie_2 as type_voie_2,
+                        s.x as x,
+                        s.y as y
                         FROM siret s
                         WHERE s.siren = ul.siren
                     )
@@ -259,9 +269,12 @@ select_fields_to_index_query = """SELECT
                         'etat_administratif',etat_administratif_etablissement,
                         'from_insee',from_insee,
                         'from_rne',from_rne,
+                        'geo_adresse',geo_adresse,
+                        'geo_id',geo_id,
+                        'geo_score',geo_score,
                         'indice_repetition',indice_repetition,
                         'indice_repetition_2',indice_repetition_2,
-                        'x',x,
+                        'latitude',latitude,
                         'libelle_cedex',libelle_cedex,
                         'libelle_cedex_2',libelle_cedex_2,
                         'libelle_commune',libelle_commune,
@@ -272,17 +285,17 @@ select_fields_to_index_query = """SELECT
                         'libelle_pays_etranger_2',libelle_pays_etranger_2,
                         'libelle_voie',libelle_voie,
                         'libelle_voie_2',libelle_voie_2,
-                        'liste_finess', liste_finess,
-                        'liste_id_bio', liste_id_bio,
-                        'liste_idcc', liste_idcc,
-                        'liste_rge', liste_rge,
-                        'liste_uai', liste_uai,
-                        'y',y,
+                        'liste_finess',liste_finess,
+                        'liste_id_bio',liste_id_bio,
+                        'liste_idcc',liste_idcc,
+                        'liste_rge',liste_rge,
+                        'liste_uai',liste_uai,
+                        'longitude',longitude,
                         'nom_commercial',nom_commercial,
                         'numero_voie',numero_voie,
                         'numero_voie_2',numero_voie_2,
-                        'siren', siren,
-                        'siret', siret,
+                        'siren',siren,
+                        'siret',siret,
                         'statut_diffusion_etablissement',
                         statut_diffusion_etablissement,
                         'tranche_effectif_salarie',tranche_effectif_salarie,
@@ -291,7 +304,9 @@ select_fields_to_index_query = """SELECT
                         'type_voie',type_voie,
                         'type_voie_2',type_voie_2,
                         'date_mise_a_jour_insee',date_mise_a_jour_insee,
-                        'date_mise_a_jour_rne',date_mise_a_jour_rne
+                        'date_mise_a_jour_rne',date_mise_a_jour_rne,
+                        'x',x,
+                        'y',y
                         )
                     FROM
                     (
@@ -320,9 +335,12 @@ select_fields_to_index_query = """SELECT
                         s.est_siege as est_siege,
                         s.etat_administratif_etablissement as
                         etat_administratif_etablissement,
+                        s.geo_adresse as geo_adresse,
+                        s.geo_id as geo_id,
+                        s.geo_score as geo_score,
                         s.indice_repetition as indice_repetition,
                         s.indice_repetition_2 as indice_repetition_2,
-                        s.x as x,
+                        s.latitude as latitude,
                         s.libelle_cedex as libelle_cedex,
                         s.libelle_cedex_2 as libelle_cedex_2,
                         s.libelle_commune as libelle_commune,
@@ -341,7 +359,7 @@ select_fields_to_index_query = """SELECT
                         siret = s.siret) as liste_idcc,
                         (SELECT liste_rge FROM rge WHERE siret = s.siret) as liste_rge,
                         (SELECT liste_uai FROM uai WHERE siret = s.siret) as liste_uai,
-                        s.y as y,
+                        s.longitude as longitude,
                         s.nom_commercial as nom_commercial,
                         s.numero_voie as numero_voie,
                         s.numero_voie_2 as numero_voie_2,
@@ -355,7 +373,9 @@ select_fields_to_index_query = """SELECT
                         s.type_voie as type_voie,
                         s.type_voie_2 as type_voie_2,
                         s.date_mise_a_jour_insee as date_mise_a_jour_insee,
-                        s.date_mise_a_jour_rne as date_mise_a_jour_rne
+                        s.date_mise_a_jour_rne as date_mise_a_jour_rne,
+                        s.x as x,
+                        s.y as y
                         FROM siretsiege as s
                         WHERE s.siren = st.siren
                     )

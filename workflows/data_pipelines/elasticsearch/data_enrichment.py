@@ -438,11 +438,14 @@ def format_etablissements_and_complements(
         etablissement["region"] = label_region_from_departement(
             etablissement["departement"]
         )
-        etablissement["latitude"], etablissement["longitude"] = transform_coordinates(
-            etablissement["departement"],
-            etablissement["x"],
-            etablissement["y"],
-        )
+        if etablissement["latitude"] is None or etablissement["longitude"] is None:
+            etablissement["latitude"], etablissement["longitude"] = (
+                transform_coordinates(
+                    etablissement["departement"],
+                    etablissement["x"],
+                    etablissement["y"],
+                )
+            )
         etablissement["coordonnees"] = format_coordonnees(
             etablissement["longitude"], etablissement["latitude"]
         )
@@ -491,11 +494,12 @@ def format_siege_unite_legale(siege, is_non_diffusible=False):
         is_non_diffusible,
     )
     siege["departement"] = format_departement(siege["commune"])
-    siege["latitude"], siege["longitude"] = transform_coordinates(
-        siege["departement"],
-        siege["x"],
-        siege["y"],
-    )
+    if siege["latitude"] is None or siege["longitude"] is None:
+        siege["latitude"], siege["longitude"] = transform_coordinates(
+            siege["departement"],
+            siege["x"],
+            siege["y"],
+        )
     siege["coordonnees"] = format_coordonnees(siege["longitude"], siege["latitude"])
     siege["region"] = label_region_from_departement(siege["departement"])
     siege["epci"] = label_epci_from_commune(siege["commune"])
