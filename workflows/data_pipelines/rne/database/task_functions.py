@@ -11,6 +11,7 @@ from dag_datalake_sirene.workflows.data_pipelines.rne.database.process_rne impor
     create_tables,
     get_tables_count,
     inject_records_into_db,
+    remove_duplicates_from_tables,
 )
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
@@ -238,6 +239,33 @@ def process_flux_json_files(**kwargs):
     else:
         last_date_processed = None
     kwargs["ti"].xcom_push(key="last_date_processed", value=last_date_processed)
+
+
+def remove_duplicates(**kwargs):
+    rne_db_path = kwargs["ti"].xcom_pull(key="rne_db_path", task_ids="create_db")
+    connection, cursor = connect_to_db(rne_db_path)
+
+    tables = [
+        "unites_legales",
+        "sieges",
+        "dirigeants_pp",
+        "dirigeants_pm",
+        "immatriculation",
+        "beneficiaires",
+    ]
+    try:
+        for table in tables:
+            logging.info(f"Cleaning table: {table}")
+            remove_duplicates_from_tables(cursor, table)
+        connection.commit()
+        # Vacuum the database to reclaim space
+        cursor.execute("VACUUM")
+        connection.commit()
+    except Exception as e:
+        connection.rollback()
+        logging.warning(f"Error when removing duplicates: {e}")
+    finally:
+        connection.close()
 
 
 def check_db_count(

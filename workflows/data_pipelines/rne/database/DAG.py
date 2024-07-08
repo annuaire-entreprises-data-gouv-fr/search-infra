@@ -10,6 +10,7 @@ from dag_datalake_sirene.workflows.data_pipelines.rne.database.task_functions im
     create_db,
     process_flux_json_files,
     process_stock_json_files,
+    remove_duplicates,
     upload_db_to_minio,
     upload_latest_date_rne_minio,
     notification_tchap,
@@ -53,6 +54,10 @@ with DAG(
     process_flux_json_files = PythonOperator(
         task_id="process_flux_json_files", python_callable=process_flux_json_files
     )
+
+    remove_duplicates = PythonOperator(
+        task_id="remove_duplicates", python_callable=remove_duplicates
+    )
     check_db_count = PythonOperator(
         task_id="check_db_count", python_callable=check_db_count
     )
@@ -78,7 +83,8 @@ with DAG(
     get_latest_db.set_upstream(create_db)
     process_stock_json_files.set_upstream(get_latest_db)
     process_flux_json_files.set_upstream(process_stock_json_files)
-    check_db_count.set_upstream(process_flux_json_files)
+    remove_duplicates.set_upstream(process_flux_json_files)
+    check_db_count.set_upstream(remove_duplicates)
     upload_db_to_minio.set_upstream(check_db_count)
     upload_latest_date_rne_minio.set_upstream(upload_db_to_minio)
     clean_outputs.set_upstream(upload_latest_date_rne_minio)
