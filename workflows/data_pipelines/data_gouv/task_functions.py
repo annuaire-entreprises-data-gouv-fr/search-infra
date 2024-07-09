@@ -134,6 +134,8 @@ def process_ul_chunk(chunk):
         lambda row: is_service_public(row["nature_juridique"], row["siren"]),
         axis=1,
     )
+    # Drop the column economie_sociale_solidaire
+    chunk.drop(columns=["economie_sociale_solidaire"], inplace=True)
 
     return chunk
 
@@ -155,7 +157,6 @@ def fill_ul_file():
         "date_mise_a_jour_insee",
         "date_mise_a_jour_rne",
         "egapro_renseignee",
-        "economie_sociale_solidaire",
         "est_association",
         "est_entrepreneur_individuel",
         "est_entrepreneur_spectacle",
