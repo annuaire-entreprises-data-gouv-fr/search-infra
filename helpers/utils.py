@@ -8,6 +8,10 @@ from unicodedata import normalize
 from dag_datalake_sirene.config import AIRFLOW_ENV
 
 
+def check_if_prod():
+    return AIRFLOW_ENV == "prod"
+
+
 def is_valid_number(value):
     if value is None:
         return False
