@@ -21,7 +21,6 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
     is_entrepreneur_individuel,
     is_ess,
     is_service_public,
-    label_section_from_activite,
     label_region_from_departement,
     format_departement,
     format_coordonnees,
@@ -84,59 +83,77 @@ def get_latest_database(**kwargs):
 
 
 def process_ul_chunk(chunk):
-    # Apply transformations directly to the DataFrame
+    # Transformations on columns
     chunk["colter_elus"] = chunk["colter_elus"].apply(json.loads)
+
+    # Generate 'nom_complet'
     chunk["nom_complet"] = chunk.apply(
         lambda row: format_nom_complet(
             row["nom"], row["nom_usage"], row["nom_raison_sociale"], row["prenom"]
         ),
         axis=1,
     )
+
+    # Fill NA values in 'nombre_etablissements_ouverts'
     chunk["nombre_etablissements_ouverts"].fillna(0, inplace=True)
-    chunk["section_activite_principale"] = chunk["activite_principale"].apply(
-        label_section_from_activite
-    )
+
+    # Apply transformation functions
     chunk["est_entrepreneur_individuel"] = chunk["nature_juridique"].apply(
         is_entrepreneur_individuel
     )
     chunk["liste_elus"] = chunk["colter_elus"].apply(create_list_names_elus)
+
     chunk["est_association"] = chunk.apply(
         lambda row: is_association(
-            row["nature_juridique"],
-            row["identifiant_association"],
+            row["nature_juridique"], row["identifiant_association"]
         ),
         axis=1,
     )
+
     chunk["est_entrepreneur_spectacle"] = chunk["est_entrepreneur_spectacle"].apply(
         sqlite_str_to_bool
     )
+
     chunk["est_ess"] = chunk.apply(
         lambda row: is_ess(
-            sqlite_str_to_bool(row["est_ess_france"]),
-            row["economie_sociale_solidaire"],
+            sqlite_str_to_bool(row["est_ess_france"]), row["economie_sociale_solidaire"]
         ),
         axis=1,
     )
+
     chunk["egapro_renseignee"] = chunk["egapro_renseignee"].apply(sqlite_str_to_bool)
     chunk["est_siae"] = chunk["est_siae"].apply(sqlite_str_to_bool)
+
     chunk["liste_id_organisme_formation"] = chunk["liste_id_organisme_formation"].apply(
         str_to_list
     )
+
     chunk["est_organisme_formation"] = chunk["liste_id_organisme_formation"].apply(
         lambda x: bool(x)
     )
+
     chunk["est_qualiopi"] = chunk["est_qualiopi"].apply(sqlite_str_to_bool)
     chunk["liste_idcc"] = chunk["liste_idcc"].apply(str_to_list)
+
     chunk["date_mise_a_jour_rne"] = chunk["date_mise_a_jour_rne"].apply(
         convert_date_format
     )
+
     chunk["est_service_public"] = chunk.apply(
-        lambda row: is_service_public(row["nature_juridique"], row["siren"]),
-        axis=1,
+        lambda row: is_service_public(row["nature_juridique"], row["siren"]), axis=1
     )
-    # Drop the column economie_sociale_solidaire
-    chunk.drop(columns=["economie_sociale_solidaire"], inplace=True)
-    chunk.drop(columns=["est_ess_france"], inplace=True)
+
+    # Drop unnecessary columns
+    columns_to_drop = [
+        "economie_sociale_solidaire",
+        "est_ess_france",
+        "nature_juridique",
+        "nom",
+        "nom_usage",
+        "nom_raison_sociale",
+        "prenom",
+    ]
+    chunk.drop(columns=columns_to_drop, inplace=True)
 
     return chunk
 
@@ -148,41 +165,33 @@ def fill_ul_file():
     ul_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{today_date}.csv"
 
     columns = [
-        "activite_principale",
+        "siren",
+        "siret_siege",
+        "etat_administratif",
+        "statut_diffusion",
+        "nombre_etablissements",
+        "nombre_etablissements_ouverts",
+        "nom_complet",
         "colter_code",
         "colter_code_insee",
         "colter_elus",
         "colter_niveau",
-        "date_creation",
-        "date_fermeture",
         "date_mise_a_jour_insee",
         "date_mise_a_jour_rne",
         "egapro_renseignee",
         "est_association",
         "est_entrepreneur_individuel",
         "est_entrepreneur_spectacle",
+        "statut_entrepreneur_spectacle",
         "est_ess",
         "est_organisme_formation",
         "est_qualiopi",
-        "est_siae",
         "est_service_public",
         "est_societe_mission",
         "liste_elus",
         "liste_id_organisme_formation",
         "liste_idcc",
-        "nature_juridique",
-        "nom",
-        "nom_complet",
-        "nom_raison_sociale",
-        "nom_usage",
-        "nombre_etablissements",
-        "nombre_etablissements_ouverts",
-        "prenom",
-        "section_activite_principale",
-        "siren",
-        "siret_siege",
-        "sigle",
-        "statut_entrepreneur_spectacle",
+        "est_siae",
         "type_siae",
     ]
 

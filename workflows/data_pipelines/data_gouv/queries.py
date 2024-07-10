@@ -1,5 +1,6 @@
 ul_fields_to_select = """
-SELECT ul.activite_principale_unite_legale as activite_principale,
+SELECT ul.etat_administratif_unite_legale as etat_administratif,
+    ul.statut_diffusion_unite_legale as statut_diffusion,
     (
         SELECT colter_code
         FROM colter
@@ -43,8 +44,6 @@ SELECT ul.activite_principale_unite_legale as activite_principale,
         FROM colter
         WHERE siren = ul.siren
     ) as colter_niveau,
-    ul.date_creation_unite_legale as date_creation,
-    ul.date_fermeture_unite_legale as date_fermeture,
     ul.date_mise_a_jour_insee as date_mise_a_jour_insee,
     ul.date_mise_a_jour_rne as date_mise_a_jour_rne,
     (
