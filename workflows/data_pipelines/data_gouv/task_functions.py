@@ -21,10 +21,7 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
     is_entrepreneur_individuel,
     is_ess,
     is_service_public,
-    label_region_from_departement,
     format_departement,
-    format_coordonnees,
-    label_epci_from_commune,
 )
 from dag_datalake_sirene.helpers.utils import (
     str_to_bool,
@@ -264,16 +261,11 @@ def process_etablissement_chunk(chunk):
         axis=1,
     )
     chunk["departement"] = chunk["commune"].apply(format_departement)
-    chunk["region"] = chunk["departement"].apply(label_region_from_departement)
     coordinates = chunk.apply(
         lambda row: transform_coordinates(row["departement"], row["x"], row["y"]),
         axis=1,
     )
     chunk["latitude"], chunk["longitude"] = zip(*coordinates)
-    chunk["coordonnees"] = chunk.apply(
-        lambda row: format_coordonnees(row["longitude"], row["latitude"]), axis=1
-    )
-    chunk["epci"] = chunk["commune"].apply(label_epci_from_commune)
     chunk["est_siege"] = chunk["est_siege"].apply(str_to_bool)
     chunk["liste_idcc"] = chunk["liste_idcc"].apply(str_to_list)
     chunk["liste_rge"] = chunk["liste_rge"].apply(str_to_list)
@@ -291,37 +283,19 @@ def fill_etab_file():
     etab_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}etablissements_{today_date}.csv"
 
     columns = [
-        "activite_principale",
-        "code_postal",
-        "complement_adresse",
-        "date_debut_activite",
-        "distribution_speciale",
-        "enseigne_1",
-        "enseigne_2",
-        "enseigne_3",
+        "siren",
+        "siret",
         "est_siege",
-        "indice_repetition",
-        "latitude",
-        "libelle_cedex",
-        "libelle_commune",
-        "libelle_commune_etranger",
-        "libelle_pays_etranger",
-        "libelle_voie",
+        "adresse",
+        "etat_administratif",
+        "statut_diffusion",
         "liste_finess",
         "liste_id_bio",
         "liste_idcc",
         "liste_rge",
         "liste_uai",
+        "latitude",
         "longitude",
-        "nom_commercial",
-        "numero_voie",
-        "region",
-        "siren",
-        "siret",
-        "tranche_effectif_salarie",
-        "type_voie",
-        "x",
-        "y",
     ]
 
     # first_chunk = not os.path.exists(etab_csv_path)
