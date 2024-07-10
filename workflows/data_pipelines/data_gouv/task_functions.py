@@ -136,6 +136,7 @@ def process_ul_chunk(chunk):
     )
     # Drop the column economie_sociale_solidaire
     chunk.drop(columns=["economie_sociale_solidaire"], inplace=True)
+    chunk.drop(columns=["est_ess_france"], inplace=True)
 
     return chunk
 
@@ -161,7 +162,6 @@ def fill_ul_file():
         "est_entrepreneur_individuel",
         "est_entrepreneur_spectacle",
         "est_ess",
-        "est_ess_france",
         "est_organisme_formation",
         "est_qualiopi",
         "est_siae",
