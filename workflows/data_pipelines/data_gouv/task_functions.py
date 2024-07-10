@@ -140,18 +140,6 @@ def process_ul_chunk(chunk):
         lambda row: is_service_public(row["nature_juridique"], row["siren"]), axis=1
     )
 
-    # Drop unnecessary columns
-    columns_to_drop = [
-        "economie_sociale_solidaire",
-        "est_ess_france",
-        "nature_juridique",
-        "nom",
-        "nom_usage",
-        "nom_raison_sociale",
-        "prenom",
-    ]
-    chunk.drop(columns=columns_to_drop, inplace=True)
-
     return chunk
 
 
