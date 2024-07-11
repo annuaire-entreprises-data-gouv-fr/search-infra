@@ -2,7 +2,7 @@
   <img src="https://github.com/etalab/annuaire-entreprises-site/blob/main/public/images/annuaire-entreprises-paysage-large.gif" width="400px" />
 </h1>
 
-<a href="https://github.com/annuaire-entreprises-data-gouv-fr/annuaire-entreprises-search-infra/blob/main/LICENSE"><img src="https://img.shields.io/github/license/etalab/annuaire-entreprises-search-infra.svg?color=green" alt="License Badge"></a>
+<a href="https://github.com/annuaire-entreprises-data-gouv-fr/search-infra/blob/main/LICENSE"><img src="https://img.shields.io/github/license/etalab/annuaire-entreprises-search-infra.svg?color=green" alt="License Badge"></a>
 
 Bienvenue sur le dépôt d’infra de [l’Annuaire des Entreprises](https://github.com/etalab/annuaire-entreprises-site).
 
