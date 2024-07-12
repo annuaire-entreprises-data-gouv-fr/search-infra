@@ -4,6 +4,7 @@ import requests
 import shutil
 from datetime import datetime, timedelta
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.utils import encode_text_as_utf8
 from dag_datalake_sirene.config import (
     URL_ETABLISSEMENTS,
     URL_MINIO_ETABLISSEMENTS_HISTORIQUE,
@@ -222,6 +223,10 @@ def preprocess_etablissement_data(siret_file_type, departement=None, data_dir=No
             "coordonneeLambertOrdonneeEtablissement": "y",
         }
     )
+    # Apply UTF-8 encoding to all textual columns
+    text_columns = df_etablissement.select_dtypes(include=["object"]).columns
+    for col in text_columns:
+        df_etablissement[col] = df_etablissement[col].apply(encode_text_as_utf8)
     return df_etablissement
 
 

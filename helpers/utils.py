@@ -188,3 +188,15 @@ def remove_spaces(string):
     if string is None:
         return None
     return string.replace(" ", "")
+
+
+def encode_text_as_utf8(text):
+    if isinstance(text, str):
+        try:
+            return text.encode("latin1").decode(
+                "utf-8", errors="ignore"
+            )  # or use 'replace'
+        except UnicodeDecodeError:
+            logging.warning(f"^^^^^^^^^^^^error encoding :{text}")
+            return text  # Return the text unchanged if decoding fails
+    return text
