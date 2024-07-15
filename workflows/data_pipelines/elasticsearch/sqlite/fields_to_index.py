@@ -31,10 +31,10 @@ select_fields_to_index_query = """SELECT
             ul.est_societe_mission as est_societe_mission,
             ul.annee_categorie_entreprise as annee_categorie_entreprise,
             ul.annee_tranche_effectif_salarie as annee_tranche_effectif_salarie,
-            (SELECT liste_idcc_by_siren FROM convention_collective WHERE
-                        siren = ul.siren) as liste_idcc_by_siren,
-            (SELECT liste_idcc FROM convention_collective WHERE
-                        siren = ul.siren) as liste_idcc,
+            (SELECT sirets_par_idcc FROM convention_collective WHERE
+                        siren = ul.siren) as sirets_par_idcc,
+            (SELECT liste_idcc_unite_legale FROM convention_collective WHERE
+                        siren = ul.siren) as liste_idcc_unite_legale,
             (SELECT count FROM count_etab ce WHERE ce.siren = ul.siren) as
             nombre_etablissements,
             (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = ul.siren) as
@@ -219,7 +219,7 @@ select_fields_to_index_query = """SELECT
                         liste_finess,
                         (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
                         liste_id_bio,
-                        (SELECT liste_idcc_by_siret FROM convention_collective
+                        (SELECT liste_idcc_etablissement FROM convention_collective
                         WHERE siret = s.siret) as liste_idcc,
                         (SELECT liste_rge FROM rge WHERE siret = s.siret) as liste_rge,
                         (SELECT liste_uai FROM uai WHERE siret = s.siret) as liste_uai,
@@ -355,8 +355,8 @@ select_fields_to_index_query = """SELECT
                         liste_finess,
                         (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
                         liste_id_bio,
-                        (SELECT liste_idcc_by_siret FROM convention_collective WHERE
-                        siret = s.siret) as liste_idcc,
+                        (SELECT liste_idcc_etablissement FROM convention_collective
+                        WHERE siret = s.siret) as liste_idcc,
                         (SELECT liste_rge FROM rge WHERE siret = s.siret) as liste_rge,
                         (SELECT liste_uai FROM uai WHERE siret = s.siret) as liste_uai,
                         s.longitude as longitude,

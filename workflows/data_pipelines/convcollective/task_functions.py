@@ -28,26 +28,25 @@ def preprocess_convcollective_data(ti):
     df_conv_coll = df_conv_coll.dropna(subset=["siret"])
     df_conv_coll["idcc"] = df_conv_coll["idcc"].str.replace(" ", "")
 
-    df_liste_cc = (
+    df_list_cc = (
         df_conv_coll.groupby(by=["siren"])["idcc"]
         .unique()
         .apply(list)
-        .reset_index(name="liste_idcc")
+        .reset_index(name="liste_idcc_unite_legale")
     )
 
-    df_liste_cc_by_siret = (
+    df_list_cc_per_siret = (
         df_conv_coll.groupby(by=["siret"])["idcc"]
         .apply(list)
-        .reset_index(name="liste_idcc_by_siret")
+        .reset_index(name="liste_idcc_etablissement")
     )
-    # df_liste_cc["siren"] = df_liste_cc["siret"].str[0:9]
-    df_liste_cc_by_siret["liste_idcc_by_siret"] = df_liste_cc_by_siret[
-        "liste_idcc_by_siret"
+    df_list_cc_per_siret["liste_idcc_etablissement"] = df_list_cc_per_siret[
+        "liste_idcc_etablissement"
     ].astype(str)
-    df_liste_cc_by_siret["siren"] = df_liste_cc_by_siret["siret"].str[0:9]
+    df_list_cc_per_siret["siren"] = df_list_cc_per_siret["siret"].str[0:9]
 
     # Group by siren and construct the dictionary
-    siren_idcc_dict = {}
+    siret_idcc_dict = {}
     for siren, group in df_conv_coll.groupby("siren"):
         idcc_siret_dict = {}
         for _, row in group.iterrows():
@@ -56,23 +55,23 @@ def preprocess_convcollective_data(ti):
             if idcc not in idcc_siret_dict:
                 idcc_siret_dict[idcc] = []
             idcc_siret_dict[idcc].append(siret)
-        siren_idcc_dict[siren] = idcc_siret_dict
+        siret_idcc_dict[siren] = idcc_siret_dict
 
     # Create DataFrame from the dictionary
-    df_liste_cc_by_siren = pd.DataFrame(
-        siren_idcc_dict.items(), columns=["siren", "liste_idcc_by_siren"]
+    df_list_cc_per_siren = pd.DataFrame(
+        siret_idcc_dict.items(), columns=["siren", "sirets_par_idcc"]
     )
 
-    merged_df = df_liste_cc_by_siret.merge(df_liste_cc_by_siren, on="siren", how="left")
+    merged_df = df_list_cc_per_siret.merge(df_list_cc_per_siren, on="siren", how="left")
 
-    df_cc = merged_df.merge(df_liste_cc, on="siren", how="left")
-    df_cc["liste_idcc_by_siren"] = df_cc["liste_idcc_by_siren"].astype(str)
-    df_cc["liste_idcc"] = df_cc["liste_idcc"].astype(str)
+    df_cc = merged_df.merge(df_list_cc, on="siren", how="left")
+    df_cc["sirets_par_idcc"] = df_cc["sirets_par_idcc"].astype(str)
+    df_cc["liste_idcc_unite_legale"] = df_cc["liste_idcc_unite_legale"].astype(str)
     df_cc.to_csv(f"{CC_TMP_FOLDER}cc.csv", index=False)
     ti.xcom_push(key="nb_siren_cc", value=str(df_cc["siren"].nunique()))
 
-    del df_liste_cc_by_siren
-    del df_liste_cc_by_siret
+    del df_list_cc_per_siren
+    del df_list_cc_per_siret
     del merged_df
     del df_cc
 
