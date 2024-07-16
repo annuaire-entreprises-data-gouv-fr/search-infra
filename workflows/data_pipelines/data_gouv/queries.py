@@ -80,7 +80,7 @@ SELECT ul.etat_administratif_unite_legale as etat_administratif,
         WHERE siren = ul.siren
     ) as liste_id_organisme_formation,
     (
-        SELECT liste_idcc
+        SELECT liste_idcc_unite_legale
         FROM convention_collective
         WHERE siren = ul.siren
     ) as liste_idcc,
@@ -152,7 +152,7 @@ etab_fields_to_select = """SELECT s.activite_principale as activite_principale,
         WHERE siret = s.siret
     ) as liste_id_bio,
     (
-        SELECT liste_idcc_by_siret
+        SELECT liste_idcc_etablissement
         FROM convention_collective
         WHERE siret = s.siret
     ) as liste_idcc,
