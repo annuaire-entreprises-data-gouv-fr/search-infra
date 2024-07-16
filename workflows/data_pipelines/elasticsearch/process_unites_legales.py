@@ -234,8 +234,8 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         # Convention collective
-        unite_legale_processed["liste_idcc"] = str_to_list(
-            unite_legale_processed["liste_idcc"]
+        unite_legale_processed["liste_idcc_unite_legale"] = str_to_list(
+            unite_legale_processed["liste_idcc_unite_legale"]
         )
 
         # Source de données
