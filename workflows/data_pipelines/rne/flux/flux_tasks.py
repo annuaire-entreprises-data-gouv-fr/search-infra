@@ -6,7 +6,7 @@ import shutil
 import re
 import logging
 from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.s3_helpers import s3_client
 from dag_datalake_sirene.helpers.utils import get_last_line
 from dag_datalake_sirene.workflows.data_pipelines.rne.flux.rne_api import ApiRNEClient
 from dag_datalake_sirene.config import (
@@ -18,7 +18,7 @@ from dag_datalake_sirene.config import (
 
 
 def get_last_json_file_date():
-    json_daily_flux_files = minio_client.get_files_from_prefix(
+    json_daily_flux_files = s3_client.get_files_from_prefix(
         prefix=RNE_MINIO_FLUX_DATA_PATH,
     )
 
@@ -41,7 +41,7 @@ def get_last_json_file_date():
 def get_latest_json_file(ti):
     start_date = compute_start_date()
     last_json_file_path = f"{RNE_FLUX_DATADIR}/rne_flux_{start_date}.json"
-    minio_client.get_object_minio(
+    s3_client.get_object_minio(
         f"ae/{AIRFLOW_ENV}/{RNE_MINIO_FLUX_DATA_PATH}",
         f"rne_flux_{start_date}.json.gz",
         f"{last_json_file_path}.gz",
@@ -164,7 +164,7 @@ def get_and_save_daily_flux_rne(
                     with open(json_file_path, "rb") as f_in:
                         with gzip.open(f"{json_file_path}.gz", "wb") as f_out:
                             shutil.copyfileobj(f_in, f_out)
-                    minio_client.send_files(
+                    s3_client.send_files(
                         list_files=[
                             {
                                 "source_path": f"{RNE_FLUX_DATADIR}/",
@@ -188,7 +188,7 @@ def get_and_save_daily_flux_rne(
             with gzip.open(f"{json_file_path}.gz", "wb") as f_out:
                 shutil.copyfileobj(f_in, f_out)
 
-        minio_client.send_files(
+        s3_client.send_files(
             list_files=[
                 {
                     "source_path": f"{RNE_FLUX_DATADIR}/",

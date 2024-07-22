@@ -1,7 +1,7 @@
 import csv
 import requests
 import logging
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.s3_helpers import s3_client
 from dag_datalake_sirene.config import (
     MARCHE_INCLUSION_API_URL,
     MARCHE_INCLUSION_TMP_FOLDER,
@@ -42,7 +42,7 @@ def get_structures_siae():
 
 
 def send_file_minio():
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=[
             {
                 "source_path": MARCHE_INCLUSION_TMP_FOLDER,

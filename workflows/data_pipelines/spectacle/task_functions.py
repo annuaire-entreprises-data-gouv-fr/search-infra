@@ -2,7 +2,7 @@ import pandas as pd
 import logging
 import requests
 
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.s3_helpers import s3_client
 from dag_datalake_sirene.config import (
     SPECTACLE_TMP_FOLDER,
     URL_ENTREPRENEUR_SPECTACLE,
@@ -46,7 +46,7 @@ def preprocess_spectacle_data(ti):
 
 
 def send_file_to_minio():
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=[
             {
                 "source_path": SPECTACLE_TMP_FOLDER,
@@ -59,7 +59,7 @@ def send_file_to_minio():
 
 
 def compare_files_minio():
-    is_same = minio_client.compare_files(
+    is_same = s3_client.compare_files(
         file_path_1="spectacle/new/",
         file_name_2="spectacle.csv",
         file_path_2="spectacle/latest/",
@@ -71,7 +71,7 @@ def compare_files_minio():
     if is_same is None:
         logging.info("First time in this Minio env. Creating")
 
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=[
             {
                 "source_path": SPECTACLE_TMP_FOLDER,

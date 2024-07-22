@@ -12,7 +12,7 @@ from dag_datalake_sirene.config import (
     ELASTIC_SNAPSHOT_MAX_REVISIONS,
     ELASTIC_SNAPSHOT_MINIO_STATE_PATH,
 )
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.s3_helpers import s3_client
 
 from dag_datalake_sirene.helpers.filesystem import (
     Filesystem,
@@ -20,8 +20,8 @@ from dag_datalake_sirene.helpers.filesystem import (
 )
 
 filesystem = Filesystem(
-    minio_client,
-    f"{minio_client.get_root_dirpath()}/{ELASTIC_SNAPSHOT_MINIO_STATE_PATH}/",
+    s3_client,
+    f"{s3_client.get_root_dirpath()}/{ELASTIC_SNAPSHOT_MINIO_STATE_PATH}/",
     JsonSerializer(),
 )
 

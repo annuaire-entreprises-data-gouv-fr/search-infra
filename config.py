@@ -68,6 +68,13 @@ MINIO_BUCKET_DATA_PIPELINE = Variable.get("MINIO_BUCKET_DATA_PIPELINE", None)
 MINIO_USER = Variable.get("MINIO_USER", "")
 MINIO_PASSWORD = Variable.get("MINIO_PASSWORD", "")
 
+# S3
+S3_REGION = Variable.get("S3_REGION")
+S3_BUCKET = Variable.get("S3_BUCKET")
+S3_URL = Variable.get("S3_URL")
+S3_ACCESS_KEY = Variable.get("S3_ACCESS_KEY")
+S3_SECRET_KEY = Variable.get("S3_SECRET_KEY")
+
 # RNE
 RNE_FTP_URL = Variable.get("RNE_FTP_URL", "")
 RNE_AUTH = json.loads(Variable.get("RNE_AUTH", "[]"))

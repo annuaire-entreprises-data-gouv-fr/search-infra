@@ -3,7 +3,7 @@ import shutil
 import logging
 import pandas as pd
 import requests
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.s3_helpers import s3_client
 from dag_datalake_sirene.config import (
     URL_MINIO_UNITE_LEGALE,
     URL_MINIO_UNITE_LEGALE_HISTORIQUE,
@@ -42,7 +42,7 @@ def download_flux(data_dir):
     else:
         year_month = datetime.today().strftime("%Y-%m")
     logging.info(f"Downloading flux for : {year_month}")
-    minio_client.get_files(
+    s3_client.get_files(
         list_files=[
             {
                 "source_path": "insee/sirene/flux/",

@@ -2,7 +2,7 @@ import pandas as pd
 import logging
 import requests
 import zipfile
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.s3_helpers import s3_client
 from dag_datalake_sirene.helpers.tchap import send_message
 from dag_datalake_sirene.helpers.utils import get_current_year
 from dag_datalake_sirene.config import (
@@ -218,7 +218,7 @@ def get_epci_url():
 
 
 def send_file_to_minio():
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=[
             {
                 "source_path": COLTER_TMP_FOLDER,
@@ -237,7 +237,7 @@ def send_file_to_minio():
 
 
 def compare_files_minio():
-    is_same = minio_client.compare_files(
+    is_same = s3_client.compare_files(
         file_path_1="colter/new/",
         file_path_2="colter/latest/",
         file_name_1="colter.csv",
@@ -249,7 +249,7 @@ def compare_files_minio():
     if is_same is None:
         logging.info("First time in this Minio env. Creating")
 
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=[
             {
                 "source_path": COLTER_TMP_FOLDER,
@@ -260,7 +260,7 @@ def compare_files_minio():
         ],
     )
 
-    is_same = minio_client.compare_files(
+    is_same = s3_client.compare_files(
         file_path_1="colter/new/",
         file_name_2="elus.csv",
         file_path_2="colter/latest/",
@@ -272,7 +272,7 @@ def compare_files_minio():
     if is_same is None:
         logging.info("First time in this Minio env. Creating")
 
-    minio_client.send_files(
+    s3_client.send_files(
         list_files=[
             {
                 "source_path": COLTER_TMP_FOLDER,
