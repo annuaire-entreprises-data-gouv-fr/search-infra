@@ -14,12 +14,14 @@ from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.task_functions imp
     get_stock_non_diffusible,
     send_flux_minio,
     send_stock_minio,
+    send_notification_failure_tchap,
 )
 
 from dag_datalake_sirene.helpers.utils import (
     check_if_monday,
 )
 from dag_datalake_sirene.config import (
+    EMAIL_LIST,
     INSEE_FLUX_TMP_FOLDER,
 )
 
@@ -31,6 +33,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
+    "email": EMAIL_LIST,
 }
 
 
@@ -41,6 +44,9 @@ with DAG(
     start_date=days_ago(1),
     dagrun_timeout=timedelta(minutes=60 * 5),
     tags=["sirene", "flux"],
+    catchup=False,
+    on_failure_callback=send_notification_failure_tchap,
+    max_active_runs=1,
 ) as dag:
     clean_previous_outputs = BashOperator(
         task_id="clean_previous_outputs",
