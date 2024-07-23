@@ -20,6 +20,7 @@ from dag_datalake_sirene.helpers.utils import (
     check_if_monday,
 )
 from dag_datalake_sirene.config import (
+    EMAIL_LIST,
     INSEE_FLUX_TMP_FOLDER,
 )
 
@@ -31,6 +32,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
+    "email": EMAIL_LIST,
 }
 
 
