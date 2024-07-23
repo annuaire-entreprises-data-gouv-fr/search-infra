@@ -64,6 +64,10 @@ def call_insee_api(api_endpoint, data_property, max_retries=10):
                 logging.error(f"An error occurred: {e}")
                 time.sleep(30)  # Sleep before retrying in case of request exceptions
                 retry_attempt += 1
+        else:
+            # If while loop exited without breaking, it means retries were exhausted
+            raise Exception(f"Max retries exceeded for endpoint {api_endpoint}.")
+
         response_json = api_response.json()
 
         if (
