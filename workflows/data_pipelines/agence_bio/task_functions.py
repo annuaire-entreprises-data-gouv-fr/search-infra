@@ -43,11 +43,12 @@ def process_agence_bio(ti, max_retries=5):
             r.raise_for_status()
             try:
                 data = r.json()
+                break
             except requests.exceptions.JSONDecodeError as e:
                 logging.error(f"Failed to decode JSON response: {e}")
                 raise
         except requests.RequestException as e:
-            logging.error(f"An error occurred: {e}")
+            logging.error(f"An unexpected error occurred: {e}")
             time.sleep(30)  # Sleep before retrying in case of request exceptions
             retry_attempt += 1
     else:
@@ -56,7 +57,7 @@ def process_agence_bio(ti, max_retries=5):
 
     res = data["items"]
     while data["items"]:
-        print(cpt)
+        logging.info(f"Number of resutls : {cpt}")
         cpt += 1000
         r = requests.get(f"{url}{str(cpt)}")
         data = r.json()
