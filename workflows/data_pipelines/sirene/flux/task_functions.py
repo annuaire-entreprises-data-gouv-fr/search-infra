@@ -299,3 +299,7 @@ def send_notification_stock(ti):
         f"\U0001F7E2 Données flux Sirene mises à jour."
         f"- {nb_stock_non_diffusible} unités légales non diffusibles."
     )
+
+
+def send_notification_failure_tchap(context):
+    send_message("\U0001F534 Données :" "\nFail DAG de flux sirene!!!!")
