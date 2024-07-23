@@ -35,7 +35,7 @@ def flatten_dict(dd, separator="_", prefix=""):
     )
 
 
-def call_insee_api(api_endpoint, data_property):
+def call_insee_api(api_endpoint, data_property, max_retries=10):
     current_cursor = "*"
     api_data = []
     api_headers = {"Authorization": f"Bearer {INSEE_SECRET_BEARER}"}
@@ -47,8 +47,23 @@ def call_insee_api(api_endpoint, data_property):
         if request_count % 10000 == 0:
             logging.info(request_count)
 
-        api_response = session.get(api_endpoint + current_cursor, headers=api_headers)
-        time.sleep(0.5)
+        retry_attempt = 0
+        while retry_attempt <= max_retries:
+            try:
+                api_response = session.get(
+                    api_endpoint + current_cursor, headers=api_headers
+                )
+                if api_response.status_code == 429:
+                    logging.warning("Rate limit exceeded. Sleeping for 10 seconds...")
+                    time.sleep(10)
+                    retry_attempt += 1
+                    continue
+                else:
+                    break
+            except requests.RequestException as e:
+                logging.error(f"An error occurred: {e}")
+                time.sleep(30)  # Sleep before retrying in case of request exceptions
+                retry_attempt += 1
         response_json = api_response.json()
 
         if (
