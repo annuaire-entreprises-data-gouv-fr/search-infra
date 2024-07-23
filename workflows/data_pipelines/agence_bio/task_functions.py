@@ -18,22 +18,11 @@ def flatten_object(obj, prop):
     return res[1:]
 
 
-def process_agence_bio(ti, max_retries=5):
-    url = (
-        "https://opendata.agencebio.org/api/gouv/operateurs/?departements="
-        "01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,21,22,23,"
-        "24,25,26,27,28,29,2A,2B,30,31,32,33,34,35,36,37,38,39,40,41,42,43,"
-        "44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,"
-        "66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,"
-        "88,89,90,91,92,93,94,95,971,972,973,974,976,977,978,984,986,987,"
-        "988,989&nb=1000&debut="
-    )
-    cpt = 0
-    res = []
+def call_api_bio(url, params=None, max_retries=5):
     retry_attempt = 0
     while retry_attempt <= max_retries:
         try:
-            r = requests.get(f"{url}{str(cpt)}")
+            r = requests.get(url, params=params)
             logging.info(f"******** Status code : {r.status_code}")
             if r.status_code == 429:
                 logging.warning("Rate limit exceeded. Sleeping for 30 seconds...")
@@ -42,8 +31,7 @@ def process_agence_bio(ti, max_retries=5):
                 continue
             r.raise_for_status()
             try:
-                data = r.json()
-                break
+                return r.json()
             except requests.exceptions.JSONDecodeError as e:
                 logging.error(f"Failed to decode JSON response: {e}")
                 raise
@@ -51,17 +39,37 @@ def process_agence_bio(ti, max_retries=5):
             logging.error(f"An unexpected error occurred: {e}")
             time.sleep(30)  # Sleep before retrying in case of request exceptions
             retry_attempt += 1
-    else:
-        # If while loop exited without breaking, it means retries were exhausted
-        raise Exception("Max retries exceeded for endpoint.")
 
-    res = data["items"]
-    while data["items"]:
-        logging.info(f"Number of resutls : {cpt}")
+    # If while loop exited without breaking, it means retries were exhausted
+    raise Exception("Max retries exceeded for endpoint.")
+
+
+def process_agence_bio(ti, max_retries=5):
+    base_url = (
+        "https://opendata.agencebio.org/api/gouv/operateurs/?departements="
+        "01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,21,22,23,"
+        "24,25,26,27,28,29,2A,2B,30,31,32,33,34,35,36,37,38,39,40,41,42,43,"
+        "44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,"
+        "66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,"
+        "88,89,90,91,92,93,94,95,971,972,973,974,976,977,978,984,986,987,"
+        "988,989&nb=1000"
+    )
+    cpt = 0
+    res = []
+
+    while True:
+        params = {"debut": str(cpt)}
+        data = call_api_bio(base_url, params=params, max_retries=max_retries)
+        items = data.get("items", [])
+
+        if not items:
+            logging.info("Finished !!!!")
+            break
+
+        res.extend(items)
+        logging.info(f"Number of results : {cpt}")
         cpt += 1000
-        r = requests.get(f"{url}{str(cpt)}")
-        data = r.json()
-        res = res + data["items"]
+
     df_bio = pd.DataFrame(res)
     df_bio["flatten_activites"] = df_bio["activites"].apply(
         lambda x: flatten_object(x, "nom")
