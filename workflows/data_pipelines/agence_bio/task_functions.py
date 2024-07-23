@@ -40,13 +40,20 @@ def process_agence_bio(ti, max_retries=5):
                 time.sleep(30)
                 retry_attempt += 1
                 continue
-            else:
-                break
+            r.raise_for_status()
+            try:
+                data = r.json()
+            except requests.exceptions.JSONDecodeError as e:
+                logging.error(f"Failed to decode JSON response: {e}")
+                raise
         except requests.RequestException as e:
             logging.error(f"An error occurred: {e}")
             time.sleep(30)  # Sleep before retrying in case of request exceptions
             retry_attempt += 1
-    data = r.json()
+    else:
+        # If while loop exited without breaking, it means retries were exhausted
+        raise Exception("Max retries exceeded for endpoint.")
+
     res = data["items"]
     while data["items"]:
         print(cpt)
