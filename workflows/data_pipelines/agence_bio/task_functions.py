@@ -1,6 +1,7 @@
 import pandas as pd
 import requests
 import logging
+import time
 
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.config import (
@@ -17,7 +18,7 @@ def flatten_object(obj, prop):
     return res[1:]
 
 
-def process_agence_bio(ti):
+def process_agence_bio(ti, max_retries=5):
     url = (
         "https://opendata.agencebio.org/api/gouv/operateurs/?departements="
         "01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,21,22,23,"
@@ -29,7 +30,22 @@ def process_agence_bio(ti):
     )
     cpt = 0
     res = []
-    r = requests.get(f"{url}{str(cpt)}")
+    retry_attempt = 0
+    while retry_attempt <= max_retries:
+        try:
+            r = requests.get(f"{url}{str(cpt)}")
+            logging.info(f"******** Status code : {r.status_code}")
+            if r.status_code == 429:
+                logging.warning("Rate limit exceeded. Sleeping for 30 seconds...")
+                time.sleep(30)
+                retry_attempt += 1
+                continue
+            else:
+                break
+        except requests.RequestException as e:
+            logging.error(f"An error occurred: {e}")
+            time.sleep(30)  # Sleep before retrying in case of request exceptions
+            retry_attempt += 1
     data = r.json()
     res = data["items"]
     while data["items"]:
