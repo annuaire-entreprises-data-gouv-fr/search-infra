@@ -35,7 +35,7 @@ def flatten_dict(dd, separator="_", prefix=""):
     )
 
 
-def call_insee_api(api_endpoint, data_property, max_retries=10):
+def call_insee_api(api_endpoint, data_property, max_retries=100):
     current_cursor = "*"
     api_data = []
     api_headers = {"Authorization": f"Bearer {INSEE_SECRET_BEARER}"}
