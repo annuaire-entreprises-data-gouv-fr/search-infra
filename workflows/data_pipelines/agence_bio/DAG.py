@@ -28,7 +28,7 @@ with DAG(
     default_args=default_args,
     schedule_interval="0 16 * * *",
     start_date=days_ago(8),
-    dagrun_timeout=timedelta(minutes=60),
+    dagrun_timeout=timedelta(minutes=60 * 5),
     tags=["agence bio", "certifications"],
     params={},
     catchup=False,
