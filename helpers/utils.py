@@ -3,6 +3,8 @@ from ast import literal_eval
 import logging
 import requests
 import os
+import gzip
+import pandas as pd
 from datetime import datetime, date
 from unicodedata import normalize
 from dag_datalake_sirene.config import AIRFLOW_ENV
@@ -188,3 +190,27 @@ def remove_spaces(string):
     if string is None:
         return None
     return string.replace(" ", "")
+
+
+def flatten_dict(dd, separator="_", prefix=""):
+    return (
+        {
+            prefix + separator + k if prefix else k: v
+            for kk, vv in dd.items()
+            for k, v in flatten_dict(vv, separator, kk).items()
+        }
+        if isinstance(dd, dict)
+        else {prefix: dd}
+    )
+
+
+def save_dataframe(df: pd.DataFrame, file_path: str, chunk_size: int = 100000):
+    df.to_csv(file_path, index=False)
+
+    with open(file_path, "rb") as orig_file:
+        with gzip.open(f"{file_path}.gz", "wb") as zipped_file:
+            while True:
+                chunk = orig_file.read(chunk_size)
+                if not chunk:
+                    break
+                zipped_file.write(chunk)

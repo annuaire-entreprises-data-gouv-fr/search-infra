@@ -1,11 +1,11 @@
 from datetime import datetime
-import gzip
 import pandas as pd
-import requests
 import logging
-from requests.adapters import HTTPAdapter, Retry
-import time
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.utils import flatten_dict, save_dataframe
+from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.insee_client import (
+    INSEEAPIClient,
+)
 from dag_datalake_sirene.helpers.tchap import send_message
 from dag_datalake_sirene.config import (
     INSEE_API_URL,
@@ -16,79 +16,12 @@ from dag_datalake_sirene.config import (
 
 CURRENT_MONTH = datetime.today().strftime("%Y-%m")
 
-session = requests.Session()
-retry = Retry(connect=3, backoff_factor=3)
-adapter = HTTPAdapter(max_retries=retry)
-session.mount("http://", adapter)
-session.mount("https://", adapter)
 
-
-def flatten_dict(dd, separator="_", prefix=""):
-    return (
-        {
-            prefix + separator + k if prefix else k: v
-            for kk, vv in dd.items()
-            for k, v in flatten_dict(vv, separator, kk).items()
-        }
-        if isinstance(dd, dict)
-        else {prefix: dd}
-    )
-
-
-def call_insee_api(api_endpoint, data_property, max_retries=10):
-    current_cursor = "*"
-    api_data = []
-    api_headers = {"Authorization": f"Bearer {INSEE_SECRET_BEARER}"}
-    continue_fetching = True
-    request_count = 0
-
-    while continue_fetching:
-        request_count += 1000
-        if request_count % 10000 == 0:
-            logging.info(request_count)
-
-        retry_attempt = 0
-        while retry_attempt <= max_retries:
-            try:
-                api_response = session.get(
-                    api_endpoint + current_cursor, headers=api_headers
-                )
-                if api_response.status_code == 429:
-                    logging.warning("Rate limit exceeded. Sleeping for 10 seconds...")
-                    time.sleep(10)
-                    retry_attempt += 1
-                    continue
-                else:
-                    break
-            except requests.RequestException as e:
-                logging.error(f"An error occurred: {e}")
-                time.sleep(30)  # Sleep before retrying in case of request exceptions
-                retry_attempt += 1
-        else:
-            # If while loop exited without breaking, it means retries were exhausted
-            raise Exception(f"Max retries exceeded for endpoint {api_endpoint}.")
-
-        response_json = api_response.json()
-
-        if (
-            "header" in response_json
-            and "curseurSuivant" in response_json["header"]
-            and "curseur" in response_json["header"]
-            and response_json["header"]["curseur"]
-            != response_json["header"]["curseurSuivant"]
-        ):
-            current_cursor = response_json["header"]["curseurSuivant"]
-        else:
-            continue_fetching = False
-
-        if data_property in response_json:
-            api_data.extend(response_json[data_property])
-
-    return api_data
+INSEEAPIClient = INSEEAPIClient(INSEE_API_URL, INSEE_SECRET_BEARER)
 
 
 def get_current_flux_unite_legale(ti):
-    query_params = (
+    endpoint = (
         f"siren?q=dateDernierTraitementUniteLegale%3A{CURRENT_MONTH}"
         "&champs=siren,dateCreationUniteLegale,sigleUniteLegale,prenomUsuelUniteLegale,"
         "identifiantAssociationUniteLegale,trancheEffectifsUniteLegale,"
@@ -99,63 +32,56 @@ def get_current_flux_unite_legale(ti):
         "categorieJuridiqueUniteLegale,activitePrincipaleUniteLegale,"
         "economieSocialeSolidaireUniteLegale,statutDiffusionUniteLegale,"
         "societeMissionUniteLegale,anneeCategorieEntreprise,anneeEffectifsUniteLegale,"
-        "caractereEmployeurUniteLegale&nombre=1000&curseur="
+        "caractereEmployeurUniteLegale&nombre=1000"
     )
-    endpoint = f"{INSEE_API_URL}{query_params}"
 
-    data = call_insee_api(endpoint, "unitesLegales")
-
-    flux = []
-    for entry in data:
-        row = entry.copy()
-        if "periodesUniteLegale" in row:
-            row.update(row["periodesUniteLegale"][0])
-            del row["periodesUniteLegale"]
-        flux.append(flatten_dict(row))
-
+    data = INSEEAPIClient.call_insee_api(
+        endpoint=endpoint, data_property="unitesLegales"
+    )
+    flux = [
+        flatten_dict({**entry, **entry.get("periodesUniteLegale", [{}])[0]})
+        for entry in data
+    ]
     df = pd.DataFrame(flux)
 
-    file_path = f"{INSEE_FLUX_TMP_FOLDER}flux_unite_legale_{CURRENT_MONTH}.csv.gz"
-    df.to_csv(file_path, index=False, compression="gzip")
+    file_path = f"{INSEE_FLUX_TMP_FOLDER}flux_unite_legale_{CURRENT_MONTH}.csv"
+    save_dataframe(df, file_path)
 
+    logging.info(f"******** Nombre flux unités légales : {str(df.shape[0])}")
     ti.xcom_push(key="nb_flux_unite_legale", value=str(df.shape[0]))
 
 
 def get_stock_non_diffusible(ti):
-    endpoint = (
-        f"{INSEE_API_URL}siret"
-        "?q=statutDiffusionUniteLegale%3AP"
-        "&champs=siren&nombre=1000&curseur="
+    endpoint = "siret?q=statutDiffusionUniteLegale%3AP" "&champs=siren&nombre=1000"
+    data = INSEEAPIClient.call_insee_api(
+        endpoint=endpoint, data_property="etablissements"
     )
-    data = call_insee_api(endpoint, "etablissements")
     df = pd.DataFrame(data)
-    df.to_csv(
-        f"{INSEE_FLUX_TMP_FOLDER}stock_non_diffusible.csv.gz",
-        index=False,
-        compression="gzip",
-    )
+
+    file_path = f"{INSEE_FLUX_TMP_FOLDER}stock_non_diffusible.csv"
+    save_dataframe(df, file_path)
+    logging.info(f"******** Nombre stock ul non diffusibles : {str(df.shape[0])}")
     ti.xcom_push(key="nb_stock_non_diffusible", value=str(df.shape[0]))
 
 
 def get_current_flux_non_diffusible(ti):
     endpoint = (
-        f"{INSEE_API_URL}siren"
-        "?q=statutDiffusionUniteLegale%3AP"
+        "siren?q=statutDiffusionUniteLegale%3AP"
         "%20AND%20dateDernierTraitementUniteLegale%3A"
-        f"{CURRENT_MONTH}&champs=siren&nombre=1000&curseur="
+        f"{CURRENT_MONTH}&champs=siren&nombre=1000"
     )
-    data = call_insee_api(endpoint, "unitesLegales")
+    data = INSEEAPIClient.call_insee_api(endpoint, "unitesLegales")
     df = pd.DataFrame(data)
-    df.to_csv(
-        f"{INSEE_FLUX_TMP_FOLDER}flux_non_diffusible_{CURRENT_MONTH}.csv.gz",
-        index=False,
-        compression="gzip",
-    )
+
+    file_path = f"{INSEE_FLUX_TMP_FOLDER}flux_non_diffusible_{CURRENT_MONTH}.csv"
+    save_dataframe(df, file_path)
+
+    logging.info(f"******** Nombre flux ul non diffusibles : {str(df.shape[0])}")
     ti.xcom_push(key="nb_flux_non_diffusible", value=str(df.shape[0]))
 
 
 def get_current_flux_etablissement(ti):
-    query_params = (
+    endpoint = (
         f"siret?q=dateDernierTraitementEtablissement%3A{CURRENT_MONTH}"
         "&champs=siren,siret,dateCreationEtablissement,trancheEffectifsEtablissement,"
         "activitePrincipaleRegistreMetiersEtablissement,etablissementSiege,"
@@ -179,61 +105,25 @@ def get_current_flux_etablissement(ti):
         "caractereEmployeurEtablissement,"
         "coordonneeLambertAbscisseEtablissement,"
         "coordonneeLambertOrdonneeEtablissement"
-        "&nombre=1000&curseur="
+        "&nombre=1000"
     )
-    endpoint = f"{INSEE_API_URL}{query_params}"
-    data = call_insee_api(endpoint, "etablissements")
-    flux = []
-    for d in data:
-        row = d.copy()
-        if "periodesEtablissement" in row:
-            for item in row["periodesEtablissement"][0]:
-                row[item] = row["periodesEtablissement"][0][item]
-            del row["periodesEtablissement"]
-        flux.append(flatten_dict(row))
 
-    data.clear()
+    data = INSEEAPIClient.call_insee_api(endpoint, "etablissements")
 
-    # We save csv.gz by batch of 100 000 for memory
-    df = pd.DataFrame(columns=[c for c in flux[0]])
-    for column in df.columns:
-        for prefix in ["adresseEtablissement_", "adresse2Etablissement_"]:
-            if prefix in column:
-                df = df.rename(columns={column: column.replace(prefix, "")})
+    flux = [
+        flatten_dict({**d, **d.get("periodesEtablissement", [{}])[0]}) for d in data
+    ]
+    df = pd.DataFrame(flux)
+
+    for prefix in ["adresseEtablissement_", "adresse2Etablissement_"]:
+        df.columns = [
+            col.replace(prefix, "") if prefix in col else col for col in df.columns
+        ]
+
     file_path = f"{INSEE_FLUX_TMP_FOLDER}flux_etablissement_{CURRENT_MONTH}.csv"
-    df.to_csv(
-        file_path,
-        index=False,
-    )
-    first = 0
-    for i in range(len(flux)):
-        if i != 0 and i % 100000 == 0:
-            fluxinter = flux[first:i]
-            df = pd.DataFrame(fluxinter)
-            df.to_csv(
-                file_path,
-                mode="a",
-                index=False,
-                header=False,
-            )
-            first = i
+    save_dataframe(df, file_path)
 
-    fluxinter = flux[first : len(flux)]
-    df = pd.DataFrame(fluxinter)
-    df.to_csv(
-        file_path,
-        mode="a",
-        index=False,
-        header=False,
-    )
-
-    with open(file_path, "rb") as orig_file:
-        with gzip.open(
-            f"{file_path}.gz",
-            "wb",
-        ) as zipped_file:
-            zipped_file.writelines(orig_file)
-
+    logging.info(f"******** Nombre flux établissements : {str(df.shape[0])}")
     ti.xcom_push(key="nb_flux_etablissement", value=str(df.shape[0]))
 
 
