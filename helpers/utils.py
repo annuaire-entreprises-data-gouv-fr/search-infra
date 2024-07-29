@@ -214,3 +214,11 @@ def save_dataframe(df: pd.DataFrame, file_path: str, chunk_size: int = 100000):
                 if not chunk:
                     break
                 zipped_file.write(chunk)
+
+
+def flatten_object(obj, prop):
+    # obj = ast.literal_eval(x)
+    res = ""
+    for item in obj:
+        res += f",{item[prop]}"
+    return res[1:]
