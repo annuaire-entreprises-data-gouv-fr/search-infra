@@ -71,12 +71,12 @@ class APIClient:
         endpoint: str,
         params: dict[str, Any],
         cursor_param: str,
+        cursor: str | None,
         data_property: str,
-        next_cursor_func: Callable[[dict[str, Any]], str | None],
+        next_cursor_func: Callable[[dict[str, Any], str | None], str | None],
         batch_size: int = 1000,
         sleep_time: float = 2.0,
     ) -> list[dict[str, Any]]:
-        cursor: str | None = "*"
         all_data: list[dict[str, Any]] = []
         request_count = 0
 
@@ -91,7 +91,8 @@ class APIClient:
             response = self.get(endpoint, params=current_params)
             response_json = response.json()
 
-            cursor = next_cursor_func(response_json)
+            cursor = next_cursor_func(response_json, cursor)
+
             all_data.extend(response_json.get(data_property, []))
 
             time.sleep(sleep_time)

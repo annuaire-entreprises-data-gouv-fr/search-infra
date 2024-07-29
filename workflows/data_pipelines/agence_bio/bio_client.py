@@ -17,13 +17,14 @@ class BIOAPIClient(APIClient):
             "976,977,978,984,986,987,988,989"
         )
 
-        def next_cursor(response: dict[str, Any]) -> str | None:
+        def next_cursor(response: dict[str, Any], previous_cursor: str) -> str | None:
             items = response.get("items", [])
-            return None if not items else str(int(response.get("debut", 0)) + 1000)
+            return None if not items else str(int(previous_cursor) + 1000)
 
         return self.fetch_all(
             endpoint="",
             params={"departements": departments, "nb": "1000"},
+            cursor="0",
             cursor_param="debut",
             data_property="items",
             next_cursor_func=next_cursor,

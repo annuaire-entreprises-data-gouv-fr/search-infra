@@ -9,7 +9,7 @@ class INSEEAPIClient(APIClient):
         )
 
     def call_insee_api(self, endpoint: str, data_property: str) -> list[dict[str, Any]]:
-        def next_cursor(response: dict[str, Any]) -> str | None:
+        def next_cursor(response: dict[str, Any], previous_cursor: str) -> str | None:
             header = response.get("header", {})
             next_cursor = header.get("curseurSuivant")
             current_cursor = header.get("curseur")
@@ -23,6 +23,7 @@ class INSEEAPIClient(APIClient):
             endpoint=endpoint,
             params={},
             cursor_param="curseur",
+            cursor="*",
             data_property=data_property,
             next_cursor_func=next_cursor,
             batch_size=1000,
