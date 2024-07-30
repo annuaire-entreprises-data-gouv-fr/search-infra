@@ -26,7 +26,7 @@ french_stemmer = token_filter(
 french_synonym = token_filter(
     "french_synonym",
     type="synonym",
-    expand=True,
+    expand=True,  # This enables bidirectional synonym expansion
     synonyms=[
         "avenue, av",
         "boulevard, bd",
