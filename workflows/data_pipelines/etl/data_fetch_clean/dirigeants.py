@@ -69,6 +69,7 @@ def preprocess_personne_physique(query):
 def preprocess_dirigeant_pm(query):
     cols = [column[0] for column in query.description]
     dirig_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
+    dirig_chunk = dirig_chunk.applymap(lambda x: None if pd.isna(x) else x)
     dirig_chunk.sort_values(
         by=[
             "siren",
@@ -92,9 +93,9 @@ def preprocess_dirigeant_pm(query):
     dirig_chunk["role_description"] = map_roles(dirig_chunk["role"])
 
     dirig_clean = (
-        dirig_chunk.groupby(by=["siren", "siren_dirigeant", "denomination"])[
-            "role_description"
-        ]
+        dirig_chunk.groupby(
+            by=["siren", "siren_dirigeant", "denomination"], dropna=False
+        )["role_description"]
         .apply(lambda x: ", ".join(str(val) for val in x if val is not None))
         .reset_index()
     )
