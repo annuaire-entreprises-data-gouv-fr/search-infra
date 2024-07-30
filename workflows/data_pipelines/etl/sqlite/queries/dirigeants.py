@@ -16,13 +16,13 @@ create_table_dirigeant_pp_query = """
 create_table_dirigeant_pm_query = """
         CREATE TABLE IF NOT EXISTS dirigeants_pm
         (
-            siren,
-            date_mise_a_jour,
-            denomination,
-            siren_dirigeant,
-            role,
-            forme_juridique,
-            role_description
+            siren TEXT,
+            date_mise_a_jour DATE,
+            denomination TEXT,
+            siren_dirigeant TEXT,
+            role TEXT,
+            forme_juridique TEXT,
+            role_description TEXT
         )
     """
 
