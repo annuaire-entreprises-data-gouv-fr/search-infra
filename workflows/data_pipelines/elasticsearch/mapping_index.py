@@ -24,7 +24,24 @@ french_stemmer = token_filter(
 )
 # Ignore_case option deprecated, use lowercase filter before synonym filter
 french_synonym = token_filter(
-    "french_synonym", type="synonym", expand=True, synonyms=[]
+    "french_synonym",
+    type="synonym",
+    expand=True,  # This enables bidirectional synonym expansion
+    synonyms=[
+        "avenue, av",
+        "boulevard, bd",
+        "rue, r",
+        "route, rte",
+        "impasse, imp",
+        "allée, all",
+        "place, pl",
+        "cours, crs",
+        "chemin, chem",
+        "appartement, app, apt",
+        "bâtiment, bât, b",
+        "résidence, résid, res",
+        "lieu-dit, lieu dit, lieu-dit",
+    ],
 )
 
 # This filter replaces single quotes, dots and commas with empty char
