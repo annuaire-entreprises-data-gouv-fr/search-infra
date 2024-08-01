@@ -63,6 +63,9 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     unite_legale.immatriculation.nature_entreprise = get_nature_entreprise_list(
         rne_company
     )
+    unite_legale.immatriculation.description_detaillee = (
+        get_description_detaillee_activite_list(rne_company)
+    )
 
     unite_legale.micro_entreprise = (
         rne_company.formality.content.natureCreation.microEntreprise
@@ -136,6 +139,28 @@ def get_nature_entreprise_list(rne_company: "RNECompany") -> list[str] | None:
 
     # Return the list of nature_entreprise or None if it's empty
     return list(nature_entreprise) if nature_entreprise else None
+
+
+def get_description_detaillee_activite_list(
+    rne_company: "RNECompany",
+) -> list[str] | None:
+    description_detaillee = set()
+
+    def extract_descriptions(etablissement):
+        if hasattr(etablissement, "activites"):
+            for activite in etablissement.activites:
+                description = getattr(activite, "descriptionDetaillee", None)
+                if description:
+                    description_detaillee.add(description)
+
+    # Check the main establishment
+    extract_descriptions(get_siege(rne_company))
+
+    # Check other establishments
+    for etablissement in get_etablissements(rne_company) or []:
+        extract_descriptions(etablissement)
+
+    return list(description_detaillee) or None
 
 
 def get_etablissements(rne_company: "RNECompany"):
