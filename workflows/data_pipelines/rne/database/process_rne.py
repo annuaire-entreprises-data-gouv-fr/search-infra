@@ -33,6 +33,9 @@ def create_tables(cursor):
             etat_administratif TEXT,
             forme_exercice_activite_principale TEXT,
             statut_diffusion TEXT,
+            micro_entreprise BOOLEAN,
+            regime_micro_social BOOLEAN,
+            eirl BOOLEAN,
             adresse TEXT,
             file_name TEXT
         )
@@ -284,6 +287,9 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             "etat_administratif",
             "forme_exercice_activite_principale",
             "statut_diffusion",
+            "micro_entreprise",
+            "regime_micro_social",
+            "eirl",
             "adresse",
             "file_name",
         ]
@@ -308,6 +314,9 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 unite_legale.etat_administratif,
                 unite_legale.forme_exercice_activite_principale,
                 unite_legale.statut_diffusion,
+                unite_legale.micro_entreprise,
+                unite_legale.regime_micro_social,
+                unite_legale.eirl,
                 unite_legale.format_address(),
                 file_path,
             ),

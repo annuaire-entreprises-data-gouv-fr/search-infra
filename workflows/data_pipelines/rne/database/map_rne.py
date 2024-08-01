@@ -64,6 +64,11 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         rne_company
     )
 
+    unite_legale.micro_entreprise = (
+        rne_company.formality.content.natureCreation.microEntreprise
+    )
+    unite_legale.micro_entreprise = get_regime_micro_social(rne_company)
+
     company_address = get_adresse(rne_company)
     unite_legale.adresse = map_address_rne_to_ul(company_address)
 
@@ -210,6 +215,15 @@ def get_dirigeants(rne_company: RNECompany):
 def get_beneficiaires(rne_company: RNECompany):
     beneficiaires = get_value(rne_company, "beneficiairesEffectifs", None)
     return beneficiaires
+
+
+def get_regime_micro_social(rne_company: RNECompany):
+    if not rne_company.is_personne_physique():
+        return None
+
+    identite = get_value(rne_company, "identite")
+    entrepreneur = getattr(identite, "entrepreneur", None)
+    return getattr(entrepreneur, "regimeMicroSocial.optionMicroSocial", None)
 
 
 def map_address_rne_to_ul(address_rne):

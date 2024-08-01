@@ -24,6 +24,10 @@ class Description(BaseModel):
     duree: int | None = None
 
 
+class RegimeregimeMicroSocial(BaseModel):
+    optionMicroSocial: bool | None = None
+
+
 class DescriptionPersonne(BaseModel):
     dateDeNaissance: str | None = None
     nom: str | None = None
@@ -55,6 +59,7 @@ class PouvoirEntreprise(BaseModel):
 class Entrepreneur(BaseModel):
     descriptionPersonne: DescriptionPersonne | None = DescriptionPersonne()
     adresseDomicile: Adresse | None = Adresse()
+    regimeMicroSocial: RegimeregimeMicroSocial | None = None
 
 
 class Pouvoir(BaseModel):
@@ -178,6 +183,8 @@ class NatureCreation(BaseModel):
     formeJuridiqueInsee: str | None = None
     societeEtrangere: bool | None = None
     entrepriseAgricole: bool | None = None
+    microEntreprise: bool | None = None
+    eirl: bool | None = None
 
 
 class Content(BaseModel):

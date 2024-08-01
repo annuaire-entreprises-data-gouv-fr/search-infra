@@ -89,6 +89,9 @@ class UniteLegale(BaseModel):
     etat_administratif: str | None = None
     forme_exercice_activite_principale: str | None = None
     statut_diffusion: str | None = None
+    micro_entreprise: bool | None = None
+    regime_micro_social: bool | None = None
+    eirl: bool | None = None
     adresse: Adresse | None = Adresse()
     dirigeants: list[DirigeantsPP | DirigeantsPM] | None = None
     siege: Siege | None = Siege()
