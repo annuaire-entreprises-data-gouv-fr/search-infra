@@ -70,6 +70,7 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     unite_legale.micro_entreprise = (
         rne_company.formality.content.natureCreation.microEntreprise
     )
+    unite_legale.eirl = rne_company.formality.content.natureCreation.eirl
     unite_legale.micro_entreprise = get_regime_micro_social(rne_company)
     unite_legale.indicateur_artiste_auteur = get_indicateur_artiste_auteur(rne_company)
     unite_legale.indicateur_marin_professionnel = get_indicateur_marin_professionnel(
