@@ -37,6 +37,7 @@ def create_tables(cursor):
             regime_micro_social BOOLEAN,
             eirl BOOLEAN,
             indicateur_artiste_auteur BOOLEAN,
+            indicateur_marin_professionnel BOOLEAN,
             adresse TEXT,
             file_name TEXT
         )
@@ -293,6 +294,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             "regime_micro_social",
             "eirl",
             "indicateur_artiste_auteur",
+            "indicateur_marin_professionnel",
             "adresse",
             "file_name",
         ]
@@ -321,6 +323,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 unite_legale.regime_micro_social,
                 unite_legale.eirl,
                 unite_legale.indicateur_artiste_auteur,
+                unite_legale.indicateur_marin_professionnel,
                 unite_legale.format_address(),
                 file_path,
             ),

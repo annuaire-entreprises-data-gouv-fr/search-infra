@@ -108,6 +108,7 @@ class Activite(BaseModel):
     indicateurPrincipal: bool | None = None
     descriptionDetaillee: str | None = None
     indicateurArtisteAuteur: bool | None = None
+    indicateurMarinProfessionnel: bool | None = None
 
 
 class EtablissementPrincipal(BaseModel):
