@@ -93,6 +93,7 @@ class UniteLegale(BaseModel):
     micro_entreprise: bool | None = None
     regime_micro_social: bool | None = None
     eirl: bool | None = None
+    indicateur_artiste_auteur: bool | None = None
     adresse: Adresse | None = Adresse()
     dirigeants: list[DirigeantsPP | DirigeantsPM] | None = None
     siege: Siege | None = Siege()

@@ -71,6 +71,7 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         rne_company.formality.content.natureCreation.microEntreprise
     )
     unite_legale.micro_entreprise = get_regime_micro_social(rne_company)
+    unite_legale.indicateur_artiste_auteur = get_indicateur_artiste_auteur(rne_company)
 
     company_address = get_adresse(rne_company)
     unite_legale.adresse = map_address_rne_to_ul(company_address)
@@ -139,6 +140,21 @@ def get_nature_entreprise_list(rne_company: "RNECompany") -> list[str] | None:
 
     # Return the list of nature_entreprise or None if it's empty
     return list(nature_entreprise) if nature_entreprise else None
+
+
+def get_indicateur_artiste_auteur(rne_company: "RNECompany") -> bool:
+    def has_indicateur_artiste_auteur(etablissement):
+        if hasattr(etablissement, "activites"):
+            return any(
+                getattr(activite, "indicateurArtisteAuteur", False)
+                for activite in etablissement.activites
+            )
+        return False
+
+    etablissements = [get_siege(rne_company)] + (get_etablissements(rne_company) or [])
+    return any(
+        has_indicateur_artiste_auteur(etablissement) for etablissement in etablissements
+    )
 
 
 def get_description_detaillee_activite_list(

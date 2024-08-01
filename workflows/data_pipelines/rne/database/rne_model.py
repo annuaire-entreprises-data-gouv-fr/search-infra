@@ -107,6 +107,7 @@ class Activite(BaseModel):
     formeExercice: str | None = None
     indicateurPrincipal: bool | None = None
     descriptionDetaillee: str | None = None
+    indicateurArtisteAuteur: bool | None = None
 
 
 class EtablissementPrincipal(BaseModel):
