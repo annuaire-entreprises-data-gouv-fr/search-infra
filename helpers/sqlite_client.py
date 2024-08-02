@@ -16,8 +16,13 @@ class SqliteClient:
         self.db_conn.commit()
         self.db_conn.close()
 
-    def execute(self, query):
+    def execute(self, query, params=None):
+        if params:
+            return self.db_cursor.execute(query, params)
         return self.db_cursor.execute(query)
+
+    def executemany(self, query, params):
+        return self.db_cursor.executemany(query, params)
 
     def connect_to_another_db(self, db_to_connect, db_alias):
         self.execute(f"ATTACH DATABASE '{db_to_connect}' AS '{db_alias}'")
