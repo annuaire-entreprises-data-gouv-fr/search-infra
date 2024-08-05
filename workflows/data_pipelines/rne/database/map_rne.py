@@ -269,12 +269,15 @@ def get_beneficiaires(rne_company: RNECompany):
 
 
 def get_regime_micro_social(rne_company: RNECompany):
-    if not rne_company.is_personne_physique():
-        return None
-
-    identite = get_value(rne_company, "identite")
-    entrepreneur = getattr(identite, "entrepreneur", None)
-    return getattr(entrepreneur, "regimeMicroSocial.optionMicroSocial", None)
+    if rne_company.is_personne_physique():
+        identite = getattr(rne_company, "identite", None)
+        if identite:
+            entrepreneur = getattr(identite, "entrepreneur", None)
+            if entrepreneur:
+                regime_micro_social = getattr(entrepreneur, "regimeMicroSocial", None)
+                if regime_micro_social:
+                    return getattr(regime_micro_social, "optionMicroSocial", None)
+    return None
 
 
 def map_address_rne_to_ul(address_rne):
