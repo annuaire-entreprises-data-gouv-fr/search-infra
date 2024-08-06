@@ -108,11 +108,7 @@ class APIClient:
     def fetch_all(
         self,
         endpoint: str,
-        params: dict[str, Any],
-        cursor_param: str,
-        cursor: str | None,
-        data_property: str,
-        next_cursor_func: Callable[[dict[str, Any], str | None], str | None],
+        pagination_handler,
         batch_size: int = 1000,
         sleep_time: float = 2.0,
     ) -> list[dict[str, Any]]:
@@ -141,21 +137,18 @@ class APIClient:
         """
         all_data: list[dict[str, Any]] = []
         request_count = 0
+        _, current_params = pagination_handler()
 
-        while cursor is not None:
+        while current_params is not None:
             request_count += batch_size
             if request_count % 10000 == 0:
                 logging.info(f"Request count: {request_count}")
-
-            current_params = params.copy()
-            current_params[cursor_param] = str(cursor)
-
             response = self.get(endpoint, params=current_params)
             response_json = response.json()
 
-            cursor = next_cursor_func(response_json, cursor)
+            data, current_params = pagination_handler(response_json, current_params)
 
-            all_data.extend(response_json.get(data_property, []))
+            all_data.extend(data)
 
             time.sleep(sleep_time)
 
