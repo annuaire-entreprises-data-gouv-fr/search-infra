@@ -8,7 +8,7 @@ class INSEEAPIClient(APIClient):
             base_url=api_endpoint, headers={"Authorization": f"Bearer {bearer_token}"}
         )
 
-    def insee_pagination_handler(
+    def handle_insee_pagination(
         self, response: dict[str, Any] = None, current_params: dict[str, Any] = None
     ) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
         if current_params is None:
@@ -23,16 +23,15 @@ class INSEEAPIClient(APIClient):
 
         if not next_cursor or next_cursor == current_cursor:
             return data, None
-        else:
-            new_params = current_params.copy()
-            new_params["curseur"] = next_cursor
-            return data, new_params
+
+        new_params = {**current_params, "curseur": next_cursor}
+        return data, new_params
 
     def call_insee_api(self, endpoint: str, data_property: str) -> list[dict[str, Any]]:
         self.data_property = data_property
         return self.fetch_all(
             endpoint=endpoint,
-            pagination_handler=self.insee_pagination_handler,
+            pagination_handler=self.handle_insee_pagination,
             batch_size=1000,
             sleep_time=2.0,
         )
