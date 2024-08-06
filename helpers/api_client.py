@@ -134,13 +134,17 @@ class APIClient:
             request_count += batch_size
             if request_count % 10000 == 0:
                 logging.info(f"Request count: {request_count}")
+
+            start_time = time.time()
             response = self.get(endpoint, params=current_params)
+            response_time = time.time() - start_time
+
             response_json = response.json()
 
             data, current_params = pagination_handler(response_json, current_params)
 
             all_data.extend(data)
 
-            time.sleep(sleep_time)
+            time.sleep(max(0, sleep_time - response_time))
 
         return all_data
