@@ -150,7 +150,7 @@ def process_agence_bio(ti):
 
     # Fetch data
     logging.info("Fetching data from BIO API...")
-    raw_data = client.fetch_all_departements()
+    raw_data = client.call_api_bio()
     logging.info(f"Fetched {len(raw_data)} records from BIO API")
 
     # Process data

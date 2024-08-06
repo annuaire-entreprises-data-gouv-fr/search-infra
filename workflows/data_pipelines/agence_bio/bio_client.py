@@ -7,7 +7,9 @@ class BIOAPIClient(APIClient):
     def __init__(self):
         super().__init__(base_url="https://opendata.agencebio.org/api/gouv/operateurs/")
 
-    def bio_pagination_handler(self, response=None, current_params=None):
+    def bio_pagination_handler(
+        self, response: dict[str, Any] = None, current_params: dict[str, Any] = None
+    ) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
         if not current_params:
             departments = (
                 "01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,21,22,"

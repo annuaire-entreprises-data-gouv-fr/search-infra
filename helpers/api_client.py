@@ -108,7 +108,7 @@ class APIClient:
     def fetch_all(
         self,
         endpoint: str,
-        pagination_handler,
+        pagination_handler: Callable,
         batch_size: int = 1000,
         sleep_time: float = 2.0,
     ) -> list[dict[str, Any]]:
@@ -117,23 +117,14 @@ class APIClient:
 
         Args:
             endpoint (str): The API endpoint to request.
-            params (dict[str, Any]): Base query parameters.
-            cursor_param (str): The name of the cursor parameter used for pagination.
-            cursor (str | None): The initial cursor value.
-            data_property (str): The property in the response that contains the data.
-            next_cursor_func (Callable): A function to extract the next cursor from
-                                        the response.
+            pagination_handler (Callable): A function to handle pagination
+            and data extraction.
             batch_size (int): Number of items to request per batch. Default is 1000.
             sleep_time (float): Time to sleep between requests in seconds.
                                 Default is 2.0.
 
         Returns:
             list[dict[str, Any]]: A list of all data items fetched from the API.
-
-        This method handles pagination, making multiple requests as necessary to
-        fetch all data.
-        It logs the request count every 10,000 requests and sleeps between
-        requests to avoid overwhelming the API.
         """
         all_data: list[dict[str, Any]] = []
         request_count = 0
