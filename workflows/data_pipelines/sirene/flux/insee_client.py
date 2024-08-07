@@ -1,40 +1,37 @@
-import logging
-import time
 from typing import Any
 from dag_datalake_sirene.helpers.api_client import APIClient
 
 
-class INSEEAPIClient:
+class INSEEAPIClient(APIClient):
     def __init__(self, api_endpoint: str, bearer_token: str):
-        self.api_client = APIClient(
-            api_endpoint, {"Authorization": f"Bearer {bearer_token}"}
+        super().__init__(
+            base_url=api_endpoint, headers={"Authorization": f"Bearer {bearer_token}"}
         )
 
-    def call_insee_api(self, endpoint, data_property: str) -> list[dict[str, Any]]:
-        cursor: str | None = "*"
-        api_data: list[dict[str, Any]] = []
-        request_count = 0
+    def process_response_and_pagination(
+        self, response: dict[str, Any] = None, current_params: dict[str, Any] = None
+    ) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+        if current_params is None:
+            initial_params = {"curseur": "*"}
+            return None, initial_params
 
-        while cursor is not None:
-            request_count += 1000
-            if request_count % 10000 == 0:
-                logging.info(f"Request count: {request_count}")
+        header = response.get("header", {})
+        next_cursor = header.get("curseurSuivant")
+        current_cursor = header.get("curseur")
 
-            response = self.api_client.get(endpoint, {"curseur": str(cursor)})
-            response_json = response.json()
+        data = response.get(self.data_property, [])
 
-            header = response_json.get("header", {})
-            next_cursor = header.get("curseurSuivant")
-            current_cursor = header.get("curseur")
+        if not next_cursor or next_cursor == current_cursor:
+            return data, None
 
-            cursor = (
-                None
-                if not next_cursor or next_cursor == current_cursor
-                else next_cursor
-            )
-            api_data.extend(response_json.get(data_property, []))
+        new_params = {**current_params, "curseur": next_cursor}
+        return data, new_params
 
-            # Wait for 2 seconds after each call to avoid 429
-            time.sleep(2)
-
-        return api_data
+    def call_insee_api(self, endpoint: str, data_property: str) -> list[dict[str, Any]]:
+        self.data_property = data_property
+        return self.fetch_all(
+            endpoint=endpoint,
+            response_and_pagination_handler=self.process_response_and_pagination,
+            batch_size=1000,
+            sleep_time=2.0,
+        )

@@ -1,76 +1,20 @@
 import pandas as pd
-import requests
 import logging
-import time
+from typing import Any
 
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.utils import flatten_object
 from dag_datalake_sirene.config import (
     AGENCE_BIO_TMP_FOLDER,
 )
 from dag_datalake_sirene.helpers.tchap import send_message
+from dag_datalake_sirene.workflows.data_pipelines.agence_bio.bio_client import (
+    BIOAPIClient,
+)
 
 
-def flatten_object(obj, prop):
-    # obj = ast.literal_eval(x)
-    res = ""
-    for item in obj:
-        res += f",{item[prop]}"
-    return res[1:]
-
-
-def call_api_bio(url, params=None, max_retries=5):
-    retry_attempt = 0
-    while retry_attempt <= max_retries:
-        try:
-            r = requests.get(url, params=params)
-            logging.info(f"******** Status code : {r.status_code}")
-            if r.status_code == 429:
-                logging.warning("Rate limit exceeded. Sleeping for 30 seconds...")
-                time.sleep(30)
-                retry_attempt += 1
-                continue
-            r.raise_for_status()
-            try:
-                return r.json()
-            except requests.exceptions.JSONDecodeError as e:
-                logging.error(f"Failed to decode JSON response: {e}")
-                raise
-        except requests.RequestException as e:
-            logging.error(f"An unexpected error occurred: {e}")
-            time.sleep(30)  # Sleep before retrying in case of request exceptions
-            retry_attempt += 1
-
-    # If while loop exited without breaking, it means retries were exhausted
-    raise Exception("Max retries exceeded for endpoint.")
-
-
-def process_agence_bio(ti, max_retries=5):
-    base_url = (
-        "https://opendata.agencebio.org/api/gouv/operateurs/?departements="
-        "01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,21,22,23,"
-        "24,25,26,27,28,29,2A,2B,30,31,32,33,34,35,36,37,38,39,40,41,42,43,"
-        "44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,"
-        "66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,"
-        "88,89,90,91,92,93,94,95,971,972,973,974,976,977,978,984,986,987,"
-        "988,989&nb=1000"
-    )
-    cpt = 0
-    res = []
-
-    while True:
-        params = {"debut": str(cpt)}
-        data = call_api_bio(base_url, params=params, max_retries=max_retries)
-        items = data.get("items", [])
-
-        if not items:
-            logging.info("Finished !!!!")
-            break
-
-        res.extend(items)
-        logging.info(f"Number of results : {cpt}")
-        cpt += 1000
-
-    df_bio = pd.DataFrame(res)
+def process_agence_bio_data(data: list[dict[str, Any]]) -> dict[str, pd.DataFrame]:
+    df_bio = pd.DataFrame(data)
     df_bio["flatten_activites"] = df_bio["activites"].apply(
         lambda x: flatten_object(x, "nom")
     )
@@ -78,19 +22,19 @@ def process_agence_bio(ti, max_retries=5):
     arr_cert = []
     arr_prod = []
     arr_adr = []
-    for index, row in df_bio.iterrows():
+    for _, row in df_bio.iterrows():
         for cert in row["certificats"]:
-            dict_cert = cert
+            dict_cert = cert.copy()
             dict_cert["siret"] = row["siret"]
             dict_cert["id_bio"] = row["numeroBio"]
             arr_cert.append(dict_cert)
         for prod in row["productions"]:
-            dict_prod = prod
+            dict_prod = prod.copy()
             dict_prod["siret"] = row["siret"]
             dict_prod["id_bio"] = row["numeroBio"]
             arr_prod.append(dict_prod)
         for adr in row["adressesOperateurs"]:
-            dict_adr = adr
+            dict_adr = adr.copy()
             dict_adr["siret"] = row["siret"]
             dict_adr["id_bio"] = row["numeroBio"]
             arr_adr.append(dict_adr)
@@ -99,6 +43,7 @@ def process_agence_bio(ti, max_retries=5):
     df_prod = pd.DataFrame(arr_prod)
     df_adr = pd.DataFrame(arr_adr)
 
+    # Process df_cert
     df_cert = df_cert[
         [
             "id_bio",
@@ -122,12 +67,14 @@ def process_agence_bio(ti, max_retries=5):
         }
     )
 
+    # Process df_prod
     df_prod["flatten_etatProductions"] = df_prod["etatProductions"].apply(
         lambda x: flatten_object(x, "etatProduction")
     )
     df_prod = df_prod[["id_bio", "siret", "code", "nom", "flatten_etatProductions"]]
     df_prod = df_prod.rename(columns={"flatten_etatProductions": "etat_productions"})
 
+    # Process df_adr
     df_adr = df_adr[
         [
             "id_bio",
@@ -154,6 +101,7 @@ def process_agence_bio(ti, max_retries=5):
         }
     )
 
+    # Process df_bio
     df_bio = df_bio.drop(
         columns=["adressesOperateurs", "productions", "activites", "certificats"]
     )
@@ -189,13 +137,38 @@ def process_agence_bio(ti, max_retries=5):
         ]
     ]
 
-    df_bio.to_csv(f"{AGENCE_BIO_TMP_FOLDER}agence_bio_principal.csv", index=False)
-    df_cert.to_csv(f"{AGENCE_BIO_TMP_FOLDER}agence_bio_certifications.csv", index=False)
-    df_prod.to_csv(f"{AGENCE_BIO_TMP_FOLDER}agence_bio_productions.csv", index=False)
-    df_adr.to_csv(f"{AGENCE_BIO_TMP_FOLDER}agence_bio_adresses.csv", index=False)
+    return {
+        "principal": df_bio,
+        "certifications": df_cert,
+        "productions": df_prod,
+        "adresses": df_adr,
+    }
 
-    ti.xcom_push(key="nb_id_bio", value=str(df_bio["id_bio"].nunique()))
-    ti.xcom_push(key="nb_siret", value=str(df_bio["siret"].nunique()))
+
+def process_agence_bio(ti):
+    client = BIOAPIClient()
+
+    # Fetch data
+    logging.info("Fetching data from BIO API...")
+    raw_data = client.call_api_bio()
+    logging.info(f"Fetched {len(raw_data)} records from BIO API")
+
+    # Process data
+    logging.info("Processing BIO API data...")
+    processed_data = process_agence_bio_data(raw_data)
+
+    # Save to CSV
+    for name, df in processed_data.items():
+        file_path = f"{AGENCE_BIO_TMP_FOLDER}agence_bio_{name}.csv"
+        df.to_csv(file_path, index=False)
+        logging.info(f"Saved {name} data to {file_path}")
+
+    ti.xcom_push(
+        key="nb_id_bio", value=str(processed_data["principal"]["id_bio"].nunique())
+    )
+    ti.xcom_push(
+        key="nb_siret", value=str(processed_data["principal"]["siret"].nunique())
+    )
 
 
 def send_file_to_minio():
