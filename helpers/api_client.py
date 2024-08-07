@@ -108,7 +108,7 @@ class APIClient:
     def fetch_all(
         self,
         endpoint: str,
-        pagination_handler: Callable,
+        response_and_pagination_handler: Callable,
         batch_size: int = 1000,
         sleep_time: float = 2.0,
     ) -> list[dict[str, Any]]:
@@ -117,7 +117,7 @@ class APIClient:
 
         Args:
             endpoint (str): The API endpoint to request.
-            pagination_handler (Callable): A function to handle pagination
+            response_and_pagination_handler (Callable): A function to handle pagination
             and data extraction.
             batch_size (int): Number of items to request per batch. Default is 1000.
             sleep_time (float): Time to sleep between requests in seconds.
@@ -128,7 +128,7 @@ class APIClient:
         """
         all_data: list[dict[str, Any]] = []
         request_count = 0
-        _, current_params = pagination_handler()
+        _, current_params = response_and_pagination_handler()
 
         while current_params is not None:
             request_count += batch_size
@@ -141,7 +141,9 @@ class APIClient:
 
             response_json = response.json()
 
-            data, current_params = pagination_handler(response_json, current_params)
+            data, current_params = response_and_pagination_handler(
+                response_json, current_params
+            )
 
             all_data.extend(data)
 

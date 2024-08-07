@@ -8,7 +8,7 @@ class INSEEAPIClient(APIClient):
             base_url=api_endpoint, headers={"Authorization": f"Bearer {bearer_token}"}
         )
 
-    def handle_insee_pagination(
+    def process_response_and_pagination(
         self, response: dict[str, Any] = None, current_params: dict[str, Any] = None
     ) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
         if current_params is None:
@@ -31,7 +31,7 @@ class INSEEAPIClient(APIClient):
         self.data_property = data_property
         return self.fetch_all(
             endpoint=endpoint,
-            pagination_handler=self.handle_insee_pagination,
+            response_and_pagination_handler=self.process_response_and_pagination,
             batch_size=1000,
             sleep_time=2.0,
         )

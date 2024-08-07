@@ -17,7 +17,7 @@ class BIOAPIClient(APIClient):
     def __init__(self):
         super().__init__(base_url=self.BASE_URL)
 
-    def handle_bio_pagination(
+    def process_response_and_pagination(
         self, response: dict[str, Any] = None, current_params: dict[str, Any] = None
     ) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
 
@@ -39,7 +39,7 @@ class BIOAPIClient(APIClient):
         self.params = {"departements": self.DEPARTMENTS, "nb": "1000"}
         return self.fetch_all(
             endpoint="",
-            pagination_handler=self.handle_bio_pagination,
+            response_and_pagination_handler=self.process_response_and_pagination,
             batch_size=1000,
             sleep_time=0.5,
         )
