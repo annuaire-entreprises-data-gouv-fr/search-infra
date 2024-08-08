@@ -7,6 +7,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.unite_leg
     import (
     preprocess_historique_unite_legale_data,
     preprocess_unite_legale_data,
+    process_anciens_sieges_flux,
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.unite_legale\
     import (
@@ -84,6 +85,25 @@ def create_flux_unite_legale_table(**kwargs):
         "flux",
     )
     kwargs["ti"].xcom_push(key="count_flux_unites_legales", value=counts)
+
+
+def add_ancien_siege_flux_data(**kwargs):
+    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
+
+    table_name = "anciens_sieges"
+
+    for df_unite_legale in process_anciens_sieges_flux(AIRFLOW_ETL_DATA_DIR):
+        df_unite_legale.to_sql(
+            table_name, sqlite_client.db_conn, if_exists="append", index=False
+        )
+        for row in sqlite_client.execute(get_table_count(table_name)):
+            logging.debug(
+                f"************ {row} total records have been added "
+                f"to the {table_name} table!"
+            )
+
+    del df_unite_legale
+    sqlite_client.commit_and_close_conn()
 
 
 def replace_unite_legale_table():
