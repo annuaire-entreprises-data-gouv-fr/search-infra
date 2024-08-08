@@ -59,7 +59,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_unite_legale_tables import (
     create_date_fermeture_unite_legale_table,
     create_flux_unite_legale_table,
-    create_historique_unite_legale_table,
+    create_historique_unite_legale_tables,
     create_unite_legale_table,
     insert_date_fermeture_unite_legale,
     replace_unite_legale_table,
@@ -166,7 +166,7 @@ with DAG(
     create_historique_unite_legale_table = PythonOperator(
         task_id="create_historique_unite_legale_table",
         provide_context=True,
-        python_callable=create_historique_unite_legale_table,
+        python_callable=create_historique_unite_legale_tables,
     )
 
     create_date_fermeture_unite_legale_table = PythonOperator(
