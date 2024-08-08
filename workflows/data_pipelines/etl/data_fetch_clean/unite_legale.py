@@ -153,8 +153,16 @@ def preprocess_historique_unite_legale_data(data_dir):
                 "changementEtatAdministratifUniteLegale": "changement_etat"
                 "_administratif_unite_legale",
                 "etatAdministratifUniteLegale": "etat_administratif_unite_legale",
-                "nicSiegeUniteLegale": "nic_siege_unite_legale",
+                "nicSiegeUniteLegale": "nic_siege",
                 "changementNicSiegeUniteLegale": "changement_nic_siege_unite_legale",
             }
         )
-        yield df_unite_legale
+
+        # Create a new DataFrame for SIREN-NIC relationships
+        siren_nic_df = df_unite_legale[["siren", "nic_siege"]].drop_duplicates()
+        siren_nic_df = siren_nic_df.astype({"siren": str, "nic_siege": str})
+
+        # Create the new column combining SIREN and NIC
+        siren_nic_df["siret"] = siren_nic_df["siren"] + siren_nic_df["nic_siege"]
+
+        yield df_unite_legale, siren_nic_df
