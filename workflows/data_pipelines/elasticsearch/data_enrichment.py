@@ -15,6 +15,7 @@ from dag_datalake_sirene.helpers.utils import (
     get_empty_string_if_none,
     str_to_bool,
     str_to_list,
+    sqlite_str_to_bool,
 )
 from dag_datalake_sirene.helpers.geolocalisation import (
     transform_coordinates,
@@ -446,6 +447,9 @@ def format_etablissements_and_complements(
                     etablissement["y"],
                 )
             )
+        etablissement["ancien_siege"] = sqlite_str_to_bool(
+            etablissement["ancien_siege"]
+        )
         etablissement["coordonnees"] = format_coordonnees(
             etablissement["longitude"], etablissement["latitude"]
         )
