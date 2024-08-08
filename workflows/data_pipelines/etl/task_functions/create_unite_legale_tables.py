@@ -104,6 +104,11 @@ def add_ancien_siege_flux_data(**kwargs):
             )
     del df_unite_legale
     sqlite_client.execute(delete_current_siege_from_anciens_sieges_query)
+    for row in sqlite_client.execute(get_table_count(table_name)):
+        logging.info(
+            f"************ {row} final records have been added "
+            f"to the {table_name} table!"
+        )
     sqlite_client.commit_and_close_conn()
 
 
