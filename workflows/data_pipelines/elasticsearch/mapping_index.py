@@ -131,6 +131,7 @@ class EtablissementMapping(InnerDoc):
     activite_principale = Text()
     activite_principale_registre_metier = Keyword()
     adresse = Text(analyzer=annuaire_analyzer)
+    ancien_siege = Boolean()
     annee_tranche_effectif_salarie = Date()
     caractere_employeur = Keyword()
     cedex = Keyword()
