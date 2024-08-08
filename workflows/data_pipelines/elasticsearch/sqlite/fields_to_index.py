@@ -177,6 +177,8 @@ select_fields_to_index_query = """SELECT
                         s.activite_principale as activite_principale,
                         s.activite_principale_registre_metier as
                         activite_principale_registre_metier,
+                        (SELECT TRUE FROM anciens_sieges WHERE siret = s.siret) as
+                        ancien_siege,
                         s.caractere_employeur as caractere_employeur,
                         s.cedex as cedex,
                         s.cedex_2 as cedex_2,
