@@ -179,6 +179,14 @@ def preprocess_historique_unite_legale_data(data_dir):
 
 
 def process_anciens_sieges_flux(data_dir):
+    """
+    The function uses the 'extract_nic_list' function to extract the NIC from the
+    'periodesUniteLegale' column. It then explodes the resulting
+    DataFrame to create a row for each NIC, removes duplicates, and casts the 'siren'
+    and 'nic_siege' columns to strings before computing the 'siret' column.
+
+    The function is a generator, yielding the resulting DataFrame in chunks.
+    """
     df_iterator = download_flux(data_dir)
 
     for _, df_unite_legale in enumerate(df_iterator):
