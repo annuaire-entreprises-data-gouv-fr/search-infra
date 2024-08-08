@@ -196,6 +196,11 @@ create_table_anciens_sieges_query = """
         )
     """
 
+delete_current_siege_from_anciens_sieges_query = """
+        DELETE FROM anciens_sieges
+        WHERE siret IN (SELECT siret FROM siretsiege);
+"""
+
 create_table_date_fermeture_unite_legale_query = """
         CREATE TABLE IF NOT EXISTS date_fermeture_unite_legale AS
             SELECT siren, MAX(date_debut_periode) AS date_fermeture_unite_legale

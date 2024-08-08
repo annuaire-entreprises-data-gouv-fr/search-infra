@@ -16,6 +16,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.unite_legal
     create_table_historique_unite_legale_query,
     create_table_anciens_sieges_query,
     create_table_unite_legale_query,
+    delete_current_siege_from_anciens_sieges_query,
     insert_date_fermeture_unite_legale_query,
     replace_table_unite_legale_query,
     insert_remaining_rne_data_into_main_table_query,
@@ -97,12 +98,12 @@ def add_ancien_siege_flux_data(**kwargs):
             table_name, sqlite_client.db_conn, if_exists="append", index=False
         )
         for row in sqlite_client.execute(get_table_count(table_name)):
-            logging.debug(
+            logging.info(
                 f"************ {row} total records have been added "
                 f"to the {table_name} table!"
             )
-
     del df_unite_legale
+    sqlite_client.execute(delete_current_siege_from_anciens_sieges_query)
     sqlite_client.commit_and_close_conn()
 
 
