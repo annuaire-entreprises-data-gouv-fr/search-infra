@@ -104,6 +104,7 @@ def create_siege_only_table(**kwargs):
         index_name="index_siret_siren",
         index_column="siren",
     )
+    sqlite_client.execute(create_index(("index_siret_siege", "siretsiege", "siret")))
     sqlite_client.execute(populate_table_siret_siege_query)
     for count_sieges in sqlite_client.execute(get_table_count("siretsiege")):
         logging.info(
