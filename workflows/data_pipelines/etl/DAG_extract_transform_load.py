@@ -64,6 +64,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     insert_date_fermeture_unite_legale,
     replace_unite_legale_table,
     add_rne_data_to_unite_legale_table,
+    add_ancien_siege_flux_data,
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.send_notification\
     import (
@@ -131,6 +132,12 @@ with DAG(
         task_id="create_flux_unite_legale_table",
         provide_context=True,
         python_callable=create_flux_unite_legale_table,
+    )
+
+    add_ancien_siege_flux_data = PythonOperator(
+        task_id="add_ancien_siege_flux_data",
+        provide_context=True,
+        python_callable=add_ancien_siege_flux_data,
     )
 
     create_flux_etablissements_table = PythonOperator(
@@ -363,7 +370,8 @@ with DAG(
     )
     create_etablissements_table.set_upstream(create_date_fermeture_unite_legale_table)
     create_flux_unite_legale_table.set_upstream(create_etablissements_table)
-    create_flux_etablissements_table.set_upstream(create_flux_unite_legale_table)
+    add_ancien_siege_flux_data.set_upstream(create_flux_unite_legale_table)
+    create_flux_etablissements_table.set_upstream(add_ancien_siege_flux_data)
     replace_unite_legale_table.set_upstream(create_flux_etablissements_table)
     insert_date_fermeture_unite_legale.set_upstream(replace_unite_legale_table)
     replace_etablissements_table.set_upstream(insert_date_fermeture_unite_legale)
