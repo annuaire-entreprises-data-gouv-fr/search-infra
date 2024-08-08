@@ -370,8 +370,7 @@ with DAG(
     )
     create_etablissements_table.set_upstream(create_date_fermeture_unite_legale_table)
     create_flux_unite_legale_table.set_upstream(create_etablissements_table)
-    add_ancien_siege_flux_data.set_upstream(create_flux_unite_legale_table)
-    create_flux_etablissements_table.set_upstream(add_ancien_siege_flux_data)
+    create_flux_etablissements_table.set_upstream(create_flux_unite_legale_table)
     replace_unite_legale_table.set_upstream(create_flux_etablissements_table)
     insert_date_fermeture_unite_legale.set_upstream(replace_unite_legale_table)
     replace_etablissements_table.set_upstream(insert_date_fermeture_unite_legale)
@@ -379,7 +378,8 @@ with DAG(
     count_nombre_etablissements_ouverts.set_upstream(count_nombre_etablissements)
     create_siege_only_table.set_upstream(count_nombre_etablissements_ouverts)
     replace_siege_only_table.set_upstream(create_siege_only_table)
-    create_historique_etablissement_table.set_upstream(replace_siege_only_table)
+    add_ancien_siege_flux_data.set_upstream(replace_siege_only_table)
+    create_historique_etablissement_table.set_upstream(add_ancien_siege_flux_data)
     create_date_fermeture_etablissement_table.set_upstream(
         create_historique_etablissement_table
     )
