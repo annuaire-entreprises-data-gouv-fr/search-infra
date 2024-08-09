@@ -59,11 +59,12 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_unite_legale_tables import (
     create_date_fermeture_unite_legale_table,
     create_flux_unite_legale_table,
-    create_historique_unite_legale_table,
+    create_historique_unite_legale_tables,
     create_unite_legale_table,
     insert_date_fermeture_unite_legale,
     replace_unite_legale_table,
     add_rne_data_to_unite_legale_table,
+    add_ancien_siege_flux_data,
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.send_notification\
     import (
@@ -133,6 +134,12 @@ with DAG(
         python_callable=create_flux_unite_legale_table,
     )
 
+    add_ancien_siege_flux_data = PythonOperator(
+        task_id="add_ancien_siege_flux_data",
+        provide_context=True,
+        python_callable=add_ancien_siege_flux_data,
+    )
+
     create_flux_etablissements_table = PythonOperator(
         task_id="create_flux_etablissements_table",
         provide_context=True,
@@ -166,7 +173,7 @@ with DAG(
     create_historique_unite_legale_table = PythonOperator(
         task_id="create_historique_unite_legale_table",
         provide_context=True,
-        python_callable=create_historique_unite_legale_table,
+        python_callable=create_historique_unite_legale_tables,
     )
 
     create_date_fermeture_unite_legale_table = PythonOperator(
@@ -371,7 +378,8 @@ with DAG(
     count_nombre_etablissements_ouverts.set_upstream(count_nombre_etablissements)
     create_siege_only_table.set_upstream(count_nombre_etablissements_ouverts)
     replace_siege_only_table.set_upstream(create_siege_only_table)
-    create_historique_etablissement_table.set_upstream(replace_siege_only_table)
+    add_ancien_siege_flux_data.set_upstream(replace_siege_only_table)
+    create_historique_etablissement_table.set_upstream(add_ancien_siege_flux_data)
     create_date_fermeture_etablissement_table.set_upstream(
         create_historique_etablissement_table
     )

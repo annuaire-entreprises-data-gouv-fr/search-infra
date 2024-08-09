@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import ast
 import shutil
 import logging
 import pandas as pd
@@ -61,6 +62,15 @@ def download_flux(data_dir):
     return df_iterator
 
 
+def extract_nic_list(periods_data):
+    nic_list = []
+    for row in ast.literal_eval(periods_data):
+        nic_value = row["nicSiegeUniteLegale"]
+        if nic_value is not None:
+            nic_list.append(nic_value)
+    return list(set(nic_list))
+
+
 def preprocess_unite_legale_data(data_dir, sirene_file_type):
     if sirene_file_type == "stock":
         df_iterator = download_stock(data_dir)
@@ -68,7 +78,7 @@ def preprocess_unite_legale_data(data_dir, sirene_file_type):
         df_iterator = download_flux(data_dir)
 
     # Insert rows in database by chunk
-    for i, df_unite_legale in enumerate(df_iterator):
+    for _, df_unite_legale in enumerate(df_iterator):
         df_unite_legale = df_unite_legale[
             [
                 "siren",
@@ -133,7 +143,7 @@ def preprocess_historique_unite_legale_data(data_dir):
     df_iterator = download_historique(data_dir)
 
     # Insert rows in database by chunk
-    for i, df_unite_legale in enumerate(df_iterator):
+    for _, df_unite_legale in enumerate(df_iterator):
         df_unite_legale = df_unite_legale[
             [
                 "siren",
@@ -153,8 +163,42 @@ def preprocess_historique_unite_legale_data(data_dir):
                 "changementEtatAdministratifUniteLegale": "changement_etat"
                 "_administratif_unite_legale",
                 "etatAdministratifUniteLegale": "etat_administratif_unite_legale",
-                "nicSiegeUniteLegale": "nic_siege_unite_legale",
+                "nicSiegeUniteLegale": "nic_siege",
                 "changementNicSiegeUniteLegale": "changement_nic_siege_unite_legale",
             }
         )
-        yield df_unite_legale
+
+        # Create a new DataFrame for SIREN-NIC relationships
+        siren_nic_df = df_unite_legale[["siren", "nic_siege"]].drop_duplicates()
+        siren_nic_df = siren_nic_df.astype({"siren": str, "nic_siege": str})
+
+        # Create the new column combining SIREN and NIC
+        siren_nic_df["siret"] = siren_nic_df["siren"] + siren_nic_df["nic_siege"]
+
+        yield df_unite_legale, siren_nic_df
+
+
+def process_anciens_sieges_flux(data_dir):
+    """
+    The function uses the 'extract_nic_list' function to extract the NIC from the
+    'periodesUniteLegale' column. It then explodes the resulting
+    DataFrame to create a row for each NIC, removes duplicates, and casts the 'siren'
+    and 'nic_siege' columns to strings before computing the 'siret' column.
+
+    The function is a generator, yielding the resulting DataFrame in chunks.
+    """
+    df_iterator = download_flux(data_dir)
+
+    for _, df_unite_legale in enumerate(df_iterator):
+        df_expanded = (
+            df_unite_legale[["siren", "periodesUniteLegale"]]
+            .assign(
+                nic_siege=df_unite_legale["periodesUniteLegale"].apply(extract_nic_list)
+            )
+            .drop("periodesUniteLegale", axis=1)
+            .explode("nic_siege")
+            .drop_duplicates(subset=["siren", "nic_siege"])
+            .astype({"siren": str, "nic_siege": str})
+            .assign(siret=lambda df: df["siren"] + df["nic_siege"])
+        )
+        yield df_expanded
