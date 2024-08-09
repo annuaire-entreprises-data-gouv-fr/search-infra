@@ -114,6 +114,7 @@ select_fields_to_index_query = """SELECT
                         'activite_principale',activite_principale,
                         'activite_principale_registre_metier',
                         activite_principale_registre_metier,
+                        'ancien_siege',ancien_siege,
                         'caractere_employeur',caractere_employeur,
                         'cedex',cedex,
                         'cedex_2',cedex_2,
@@ -177,6 +178,15 @@ select_fields_to_index_query = """SELECT
                         s.activite_principale as activite_principale,
                         s.activite_principale_registre_metier as
                         activite_principale_registre_metier,
+                        CASE
+                            WHEN EXISTS (
+                                SELECT 1
+                                FROM anciens_sieges
+                                WHERE siret = s.siret
+                                )
+                                THEN TRUE
+                            ELSE FALSE
+                        END AS ancien_siege,
                         s.caractere_employeur as caractere_employeur,
                         s.cedex as cedex,
                         s.cedex_2 as cedex_2,
