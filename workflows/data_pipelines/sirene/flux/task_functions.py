@@ -31,8 +31,8 @@ def get_current_flux_unite_legale(ti):
         "denominationUsuelle2UniteLegale,denominationUsuelle3UniteLegale,"
         "categorieJuridiqueUniteLegale,activitePrincipaleUniteLegale,"
         "economieSocialeSolidaireUniteLegale,statutDiffusionUniteLegale,"
-        "societeMissionUniteLegale,anneeCategorieEntreprise,anneeEffectifsUniteLegale,"
-        "caractereEmployeurUniteLegale&nombre=1000"
+        "societeMissionUniteLegale,anneeCategorieEntreprise,anneeEffectifsUniteLegale,caractereEmployeurUniteLegale,"
+        "nicSiegeUniteLegale&nombre=1000"
     )
 
     data = INSEEAPIClient.call_insee_api(

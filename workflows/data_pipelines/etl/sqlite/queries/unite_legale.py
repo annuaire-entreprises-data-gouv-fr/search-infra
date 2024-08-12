@@ -182,10 +182,24 @@ create_table_historique_unite_legale_query = """
             date_debut_periode DATE,
             etat_administratif_unite_legale TEXT,
             changement_etat_administratif_unite_legale TEXT,
-            nic_siege_unite_legale TEXT,
+            nic_siege TEXT,
             changement_nic_siege_unite_legale TEXT
         )
     """
+
+create_table_anciens_sieges_query = """
+        CREATE TABLE IF NOT EXISTS anciens_sieges
+        (
+            siren TEXT,
+            nic_siege TEXT,
+            siret TEXT
+        )
+    """
+
+delete_current_siege_from_anciens_sieges_query = """
+        DELETE FROM anciens_sieges
+        WHERE siret IN (SELECT siret FROM siretsiege);
+"""
 
 create_table_date_fermeture_unite_legale_query = """
         CREATE TABLE IF NOT EXISTS date_fermeture_unite_legale AS
