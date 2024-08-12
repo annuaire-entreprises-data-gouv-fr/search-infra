@@ -12,7 +12,7 @@ class ApiRNEClient:
     """API client for interacting with the
     Registre National des Entreprises (RNE) API."""
 
-    def __init__(self, max_retries=10):
+    def __init__(self, max_retries=100):
         """
         Initializes the API client.
 
