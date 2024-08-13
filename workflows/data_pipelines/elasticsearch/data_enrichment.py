@@ -63,33 +63,42 @@ def format_nom_complet(
 def format_slug(
     nom_complet,
     sigle=None,
+    nom_commercial_siege=None,
     denomination_usuelle_1=None,
     denomination_usuelle_2=None,
     denomination_usuelle_3=None,
     siren=None,
     statut_diffusion=None,
 ):
-    if statut_diffusion == "P":
-        if siren:
-            return slugify(f"{siren}")
-    all_denomination_usuelle = ""
-    for item in [
-        denomination_usuelle_1,
-        denomination_usuelle_2,
-        denomination_usuelle_3,
-    ]:
-        if item:
-            all_denomination_usuelle += f"{item} "
-    if all_denomination_usuelle:
-        nom_complet = f"{nom_complet} {all_denomination_usuelle.strip()}"
+    if statut_diffusion == "P" and siren:
+        return slugify(siren)
+
+    slug_parts = [nom_complet]
+
+    if nom_commercial_siege:
+        slug_parts.append(nom_commercial_siege)
+    else:
+        denomination_usuelle = " ".join(
+            filter(
+                None,
+                [
+                    denomination_usuelle_1,
+                    denomination_usuelle_2,
+                    denomination_usuelle_3,
+                ],
+            )
+        )
+        if denomination_usuelle:
+            slug_parts.append(denomination_usuelle)
+
     if sigle:
-        nom_complet = f"{nom_complet} {sigle}"
+        slug_parts.append(sigle)
+
     if siren:
-        nom_complet = f"{nom_complet} {siren}"
-    if nom_complet:
-        return slugify(nom_complet.lower())
-    # if nom_complet is null
-    return ""
+        slug_parts.append(siren)
+
+    full_name = " ".join(filter(None, slug_parts))
+    return slugify(full_name.lower()) if full_name else ""
 
 
 # Noms
