@@ -56,6 +56,14 @@ def format_nom_complet(
     return name.upper().strip() if name else name
 
 
+def get_nom_commercial(unite_legale):
+    siege = unite_legale.get("siege", None)
+    if siege is not None:
+        nom_commercial = siege.get("nom_commercial", None)
+        return nom_commercial
+    return None
+
+
 # Slug
 # Because we need to create sitemap and for keeping coherence
 # between sitemap values and slug in API. We calculate this field

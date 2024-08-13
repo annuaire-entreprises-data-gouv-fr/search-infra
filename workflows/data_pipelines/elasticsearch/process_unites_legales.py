@@ -11,6 +11,7 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
     format_personnes_physiques,
     format_slug,
     format_siege_unite_legale,
+    get_nom_commercial,
     is_association,
     is_entrepreneur_individuel,
     is_ess,
@@ -226,7 +227,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         unite_legale_processed["slug"] = format_slug(
             unite_legale_processed["nom_complet"],
             unite_legale["sigle"],
-            unite_legale_processed["siege"]["nom_commercial"],
+            get_nom_commercial(unite_legale_processed),
             unite_legale["denomination_usuelle_1_unite_legale"],
             unite_legale["denomination_usuelle_2_unite_legale"],
             unite_legale["denomination_usuelle_3_unite_legale"],
