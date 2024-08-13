@@ -47,17 +47,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["prenom"],
         )
 
-        # Slug Nom Complet
-        unite_legale_processed["slug"] = format_slug(
-            unite_legale_processed["nom_complet"],
-            unite_legale["sigle"],
-            unite_legale["denomination_usuelle_1_unite_legale"],
-            unite_legale["denomination_usuelle_2_unite_legale"],
-            unite_legale["denomination_usuelle_3_unite_legale"],
-            unite_legale["siren"],
-            unite_legale["statut_diffusion_unite_legale"],
-        )
-
         # Replace missing values with 0
         unite_legale_processed["nombre_etablissements_ouverts"] = (
             0
@@ -231,6 +220,18 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         # Siege
         unite_legale_processed["siege"] = format_siege_unite_legale(
             unite_legale["siege"], is_non_diffusible
+        )
+
+        # Slug Nom Complet
+        unite_legale_processed["slug"] = format_slug(
+            unite_legale_processed["nom_complet"],
+            unite_legale["sigle"],
+            unite_legale_processed["siege"]["nom_commercial"],
+            unite_legale["denomination_usuelle_1_unite_legale"],
+            unite_legale["denomination_usuelle_2_unite_legale"],
+            unite_legale["denomination_usuelle_3_unite_legale"],
+            unite_legale["siren"],
+            unite_legale["statut_diffusion_unite_legale"],
         )
 
         # Convention collective
