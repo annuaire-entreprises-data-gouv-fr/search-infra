@@ -10,6 +10,9 @@ from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.sqlite.sitemap import (
     select_sitemap_fields_query,
 )
+from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
+    get_nom_commercial,
+)
 from dag_datalake_sirene.config import (
     AIRFLOW_ELK_DATA_DIR,
     AIRFLOW_ENV,
@@ -58,6 +61,7 @@ def create_sitemap():
                 slug = format_slug(
                     nom_complet,
                     ul["sigle"],
+                    get_nom_commercial(ul),
                     ul["denomination_usuelle_1_unite_legale"],
                     ul["denomination_usuelle_2_unite_legale"],
                     ul["denomination_usuelle_3_unite_legale"],
