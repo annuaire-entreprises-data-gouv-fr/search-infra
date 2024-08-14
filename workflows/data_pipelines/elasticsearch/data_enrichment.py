@@ -65,7 +65,7 @@ def get_nom_commercial(unite_legale):
 
 
 # Slug
-# Because we need to create sitemap and for keeping coherence
+# Because we need to create sitemap and for to ensure coherence
 # between sitemap values and slug in API. We calculate this field
 # with this function and we add it both in elasticsearch and in sitemap
 def format_slug(
