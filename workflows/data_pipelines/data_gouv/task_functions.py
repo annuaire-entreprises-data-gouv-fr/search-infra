@@ -255,6 +255,7 @@ def process_etablissement_chunk(chunk):
     )
     chunk["latitude"], chunk["longitude"] = zip(*coordinates)
     chunk["est_siege"] = chunk["est_siege"].apply(str_to_bool)
+    chunk["ancien_siege"] = chunk["ancien_siege"].apply(sqlite_str_to_bool)
     chunk["liste_idcc"] = chunk["liste_idcc"].apply(str_to_list)
     chunk["liste_rge"] = chunk["liste_rge"].apply(str_to_list)
     chunk["liste_uai"] = chunk["liste_uai"].apply(str_to_list)
@@ -274,6 +275,7 @@ def fill_etab_file():
         "siren",
         "siret",
         "est_siege",
+        "ancien_siege",
         "adresse",
         "etat_administratif",
         "statut_diffusion",

@@ -120,6 +120,15 @@ WHERE ul.siren IS NOT NULL;
 
 etab_fields_to_select = """SELECT s.activite_principale as activite_principale,
     s.activite_principale_registre_metier as activite_principale_registre_metier,
+    CASE
+        WHEN EXISTS (
+            SELECT 1
+            FROM anciens_sieges
+            WHERE siret = s.siret
+            )
+            THEN TRUE
+        ELSE FALSE
+    END AS ancien_siege,
     s.caractere_employeur as caractere_employeur,
     s.cedex as cedex,
     s.code_pays_etranger as code_pays_etranger,
