@@ -3,6 +3,7 @@ import botocore
 from datetime import datetime
 import logging
 from minio import Minio, S3Error
+from minio.commonconfig import CopySource
 from typing import List, TypedDict, Optional
 import os
 from dag_datalake_sirene.config import (
@@ -86,8 +87,9 @@ class MinIOClient:
             self.bucket, prefix=f"ae/{AIRFLOW_ENV}/{prefix}"
         )
         for obj in objects:
-            logging.info(obj.object_name)
-            list_objects.append(obj.object_name.replace(f"ae/{AIRFLOW_ENV}/", ""))
+            if not obj.object_name.endswith("/"):  # Exclude folders
+                logging.info(obj.object_name)
+                list_objects.append(obj.object_name.replace(f"ae/{AIRFLOW_ENV}/", ""))
         return list_objects
 
     def get_files(self, list_files: List[File]):
@@ -246,6 +248,45 @@ class MinIOClient:
         except botocore.exceptions.ClientError as e:
             logging.error("Error loading files:", e)
             return None
+
+    def rename_folder(self, old_folder_suffix: str, new_folder_suffix: str):
+        """
+        Rename a folder in MinIO under the default path 'ae/{env}/'.
+
+        Args:
+            old_folder_suffix (str): The folder suffix to rename (after 'ae/{env}/').
+            new_folder_suffix (str): The new folder suffix (after 'ae/{env}/').
+        """
+        old_folder = f"ae/{AIRFLOW_ENV}/{old_folder_suffix}"
+        new_folder = f"ae/{AIRFLOW_ENV}/{new_folder_suffix}"
+
+        # Ensure folder suffixes end with '/'
+        if not old_folder.endswith("/"):
+            old_folder += "/"
+        if not new_folder.endswith("/"):
+            new_folder += "/"
+
+        objects = self.client.list_objects(
+            self.bucket, prefix=old_folder, recursive=True
+        )
+
+        for obj in objects:
+            old_object_name = obj.object_name
+            new_object_name = old_object_name.replace(old_folder, new_folder, 1)
+
+            # Copy object to the new location using CopySource
+            self.client.copy_object(
+                self.bucket,
+                new_object_name,
+                CopySource(self.bucket, old_object_name),
+            )
+            logging.info(f"Copied {old_object_name} to {new_object_name}")
+
+            # Delete the old object
+            self.client.remove_object(self.bucket, old_object_name)
+            logging.info(f"Deleted {old_object_name}")
+
+        logging.info(f"Folder '{old_folder}' renamed to '{new_folder}'")
 
 
 minio_client = MinIOClient()

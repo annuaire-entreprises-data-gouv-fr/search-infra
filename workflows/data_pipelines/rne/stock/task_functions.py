@@ -22,7 +22,7 @@ def unzip_files_and_upload_minio(**kwargs):
                     {
                         "source_path": RNE_STOCK_EXTRACTED_FILES_PATH,
                         "source_name": file_info.filename,
-                        "dest_path": "rne/stock/data/",
+                        "dest_path": "rne/stock/",
                         "dest_name": file_info.filename,
                     },
                 ],

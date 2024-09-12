@@ -65,7 +65,7 @@ with DAG(
         provide_context=True,
         op_kwargs={
             "prefix": f"ae/{AIRFLOW_ENV}/rne/database/",
-            "keep_latest": 3,
+            "keep_latest": 5,
             "retention_days": 3,
         },
         dag=dag,
