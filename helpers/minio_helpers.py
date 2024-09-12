@@ -87,8 +87,9 @@ class MinIOClient:
             self.bucket, prefix=f"ae/{AIRFLOW_ENV}/{prefix}"
         )
         for obj in objects:
-            logging.info(obj.object_name)
-            list_objects.append(obj.object_name.replace(f"ae/{AIRFLOW_ENV}/", ""))
+            if not obj.object_name.endswith("/"):  # Exclude folders
+                logging.info(obj.object_name)
+                list_objects.append(obj.object_name.replace(f"ae/{AIRFLOW_ENV}/", ""))
         return list_objects
 
     def get_files(self, list_files: List[File]):
