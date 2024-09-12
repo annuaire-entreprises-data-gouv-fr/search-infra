@@ -30,7 +30,7 @@ with DAG(
     start_date=datetime(2023, 10, 5),
     catchup=False,
     max_active_runs=1,
-    dagrun_timeout=timedelta(minutes=(60 * 8)),
+    dagrun_timeout=timedelta(minutes=(60 * 18)),
     on_failure_callback=send_notification_failure_tchap,
     tags=["download", "rne", "stock"],
     params={},
