@@ -3,7 +3,7 @@ import json
 
 # Airflow
 AIRFLOW_DAG_HOME = Variable.get("AIRFLOW_DAG_HOME", "/opt/airflow/dags/")
-AIRFLOW_DAG_TMP = Variable.get("AIRFLOW_DAG_TMP", "/tmp/")
+AIRFLOW_DAG_TMP = Variable.get("AIRFLOW_DAG_TMP", "/opt/airflow/data/tmp/")
 AIRFLOW_DAG_FOLDER = "dag_datalake_sirene/"
 AIRFLOW_ETL_DAG_NAME = "extract_transform_load_db"
 AIRFLOW_ELK_DAG_NAME = "index_elasticsearch"

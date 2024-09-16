@@ -3,7 +3,7 @@ import datetime
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 
-
+from config import AIRFLOW_DAG_TMP
 
 with DAG(
     dag_id="test_dag",
