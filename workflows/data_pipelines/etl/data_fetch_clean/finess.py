@@ -1,5 +1,5 @@
 import pandas as pd
-from dag_datalake_sirene.config import URL_MINIO_FINESS
+from config import URL_MINIO_FINESS
 
 
 def preprocess_finess_data(data_dir):

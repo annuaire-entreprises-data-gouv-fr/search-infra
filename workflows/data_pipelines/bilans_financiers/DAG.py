@@ -4,12 +4,12 @@ from airflow.operators.bash import BashOperator
 
 from airflow.utils.dates import days_ago
 from datetime import timedelta
-from dag_datalake_sirene.config import (
+from config import (
     BILANS_FINANCIERS_TMP_FOLDER,
     EMAIL_LIST,
 )
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.bilans_financiers.task_functions \
+from workflows.data_pipelines.bilans_financiers.task_functions \
     import (
     download_bilans_financiers,
     process_bilans_financiers,

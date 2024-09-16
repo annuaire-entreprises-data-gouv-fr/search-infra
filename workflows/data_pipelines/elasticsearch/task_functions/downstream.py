@@ -2,7 +2,7 @@ import requests
 import time
 import logging
 
-from dag_datalake_sirene.config import (
+from config import (
     AIRFLOW_ELK_DAG_NAME,
     ELASTIC_DOWNSTREAM_URLS,
     ELASTIC_DOWNSTREAM_USER,

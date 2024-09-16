@@ -1,8 +1,8 @@
 import csv
 import requests
 import logging
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.config import (
+from helpers.minio_helpers import minio_client
+from config import (
     MARCHE_INCLUSION_API_URL,
     MARCHE_INCLUSION_TMP_FOLDER,
     SECRET_TOKEN_MARCHE_INCLUSION,

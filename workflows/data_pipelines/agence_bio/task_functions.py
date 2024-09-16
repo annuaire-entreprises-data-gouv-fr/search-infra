@@ -2,13 +2,13 @@ import pandas as pd
 import logging
 from typing import Any
 
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.helpers.utils import flatten_object
-from dag_datalake_sirene.config import (
+from helpers.minio_helpers import minio_client
+from helpers.utils import flatten_object
+from config import (
     AGENCE_BIO_TMP_FOLDER,
 )
-from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.workflows.data_pipelines.agence_bio.bio_client import (
+from helpers.tchap import send_message
+from workflows.data_pipelines.agence_bio.bio_client import (
     BIOAPIClient,
 )
 

@@ -1,9 +1,9 @@
 import os
 import zipfile
 import logging
-from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.config import (
+from helpers.tchap import send_message
+from helpers.minio_helpers import minio_client
+from config import (
     RNE_STOCK_ZIP_FILE_PATH,
     RNE_STOCK_EXTRACTED_FILES_PATH,
 )

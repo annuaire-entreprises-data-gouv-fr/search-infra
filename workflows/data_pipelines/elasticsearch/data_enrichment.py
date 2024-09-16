@@ -2,22 +2,22 @@ import json
 import logging
 from slugify import slugify
 
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.clean_data import (
+from workflows.data_pipelines.elasticsearch.clean_data import (
     drop_duplicates_dirigeants_pm,
     drop_duplicates_personnes_physiques,
     unique_qualites,
 )
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.es_fields import (
+from workflows.data_pipelines.elasticsearch.es_fields import (
     get_elasticsearch_field_name,
 )
-from dag_datalake_sirene.helpers.utils import (
+from helpers.utils import (
     drop_exact_duplicates,
     get_empty_string_if_none,
     str_to_bool,
     str_to_list,
     sqlite_str_to_bool,
 )
-from dag_datalake_sirene.helpers.geolocalisation import (
+from helpers.geolocalisation import (
     transform_coordinates,
 )
 

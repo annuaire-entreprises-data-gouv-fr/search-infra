@@ -1,5 +1,5 @@
 from typing import Any
-from dag_datalake_sirene.helpers.api_client import APIClient
+from helpers.api_client import APIClient
 
 
 class BIOAPIClient(APIClient):

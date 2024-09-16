@@ -4,11 +4,11 @@ import logging
 import shutil
 import os
 
-from dag_datalake_sirene.config import (
+from config import (
     SIRENE_MINIO_DATA_PATH,
     AIRFLOW_ETL_DATA_DIR,
 )
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from helpers.minio_helpers import minio_client
 
 current_date = datetime.now().date()
 

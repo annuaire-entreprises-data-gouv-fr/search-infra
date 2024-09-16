@@ -1,5 +1,5 @@
 import pandas as pd
-from dag_datalake_sirene.config import URL_UAI
+from config import URL_UAI
 
 
 def preprocess_uai_data(data_dir):

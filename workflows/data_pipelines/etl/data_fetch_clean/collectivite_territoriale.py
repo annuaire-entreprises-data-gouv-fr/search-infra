@@ -1,5 +1,5 @@
 import pandas as pd
-from dag_datalake_sirene.config import (
+from config import (
     URL_MINIO_COLTER,
     URL_MINIO_ELUS,
 )

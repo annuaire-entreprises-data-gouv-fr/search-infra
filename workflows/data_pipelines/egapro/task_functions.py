@@ -1,12 +1,12 @@
 import pandas as pd
 import logging
 
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.config import (
+from helpers.minio_helpers import minio_client
+from config import (
     EGAPRO_TMP_FOLDER,
     URL_EGAPRO,
 )
-from dag_datalake_sirene.helpers.tchap import send_message
+from helpers.tchap import send_message
 
 
 def preprocess_egapro_data(ti):

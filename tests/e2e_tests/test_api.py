@@ -1,8 +1,8 @@
 import re
 
 import pytest
-from dag_datalake_sirene.tests.e2e_tests.response_tester import APIResponseTester
-from dag_datalake_sirene.config import API_URL
+from tests.e2e_tests.response_tester import APIResponseTester
+from config import API_URL
 
 min_total_results = 10
 min_total_results_filters = 1000

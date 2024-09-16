@@ -2,14 +2,14 @@ from airflow.models import DAG
 from datetime import timedelta, datetime
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
-from dag_datalake_sirene.config import (
+from config import (
     AIRFLOW_DAG_HOME,
     EMAIL_LIST,
     RNE_DAG_FOLDER,
     RNE_FTP_URL,
     RNE_STOCK_TMP_FOLDER,
 )
-from dag_datalake_sirene.workflows.data_pipelines.rne.stock.task_functions import (
+from workflows.data_pipelines.rne.stock.task_functions import (
     unzip_files_and_upload_minio,
     send_notification_failure_tchap,
     send_notification_success_tchap,

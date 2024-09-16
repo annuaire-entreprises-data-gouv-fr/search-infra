@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
+from workflows.data_pipelines.elasticsearch.data_enrichment import (
     calculate_company_size_factor,
     create_list_names_elus,
     format_dirigeants_pm,
@@ -19,7 +19,7 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
     label_section_from_activite,
     map_categorie_to_number,
 )
-from dag_datalake_sirene.helpers.utils import (
+from helpers.utils import (
     convert_date_format,
     sqlite_str_to_bool,
     str_to_list,

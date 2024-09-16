@@ -4,3 +4,5 @@ data/
 output/
 .env
 .vscode/
+venv/
+logs/

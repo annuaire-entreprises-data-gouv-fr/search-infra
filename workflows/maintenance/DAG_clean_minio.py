@@ -2,8 +2,8 @@ import logging
 from airflow.operators.python_operator import PythonOperator
 from airflow.models import DAG
 from datetime import datetime, timedelta, timezone
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.config import (
+from helpers.minio_helpers import minio_client
+from config import (
     AIRFLOW_ENV,
     EMAIL_LIST,
 )

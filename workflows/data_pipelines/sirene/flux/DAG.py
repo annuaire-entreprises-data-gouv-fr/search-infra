@@ -5,7 +5,7 @@ from airflow.operators.python import PythonOperator, ShortCircuitOperator
 from airflow.operators.bash import BashOperator
 from airflow.utils.dates import days_ago
 
-from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.task_functions import (
+from workflows.data_pipelines.sirene.flux.task_functions import (
     get_current_flux_etablissement,
     get_current_flux_non_diffusible,
     get_current_flux_unite_legale,
@@ -17,10 +17,10 @@ from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.task_functions imp
     send_notification_failure_tchap,
 )
 
-from dag_datalake_sirene.helpers.utils import (
+from helpers.utils import (
     check_if_monday,
 )
-from dag_datalake_sirene.config import (
+from config import (
     EMAIL_LIST,
     INSEE_FLUX_TMP_FOLDER,
 )

@@ -3,9 +3,9 @@ import requests
 import logging
 import json
 from datetime import datetime
-from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.config import (
+from helpers.tchap import send_message
+from helpers.minio_helpers import minio_client
+from config import (
     URL_CC_DARES,
     URL_CC_KALI,
     METADATA_CC_MINIO_PATH,

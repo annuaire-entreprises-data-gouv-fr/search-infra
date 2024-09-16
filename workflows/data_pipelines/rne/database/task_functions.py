@@ -6,18 +6,18 @@ import gzip
 import shutil
 import re
 import logging
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.workflows.data_pipelines.rne.database.process_rne import (
+from helpers.minio_helpers import minio_client
+from workflows.data_pipelines.rne.database.process_rne import (
     create_tables,
     get_tables_count,
     inject_records_into_db,
     remove_duplicates_from_tables,
 )
-from dag_datalake_sirene.workflows.data_pipelines.rne.database.db_connexion import (
+from workflows.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
 )
-from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.config import (
+from helpers.tchap import send_message
+from config import (
     RNE_MINIO_DATA_PATH,
     RNE_LATEST_DATE_FILE,
     RNE_DB_TMP_FOLDER,

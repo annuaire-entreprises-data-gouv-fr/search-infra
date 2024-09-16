@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator, ShortCircuitOperator
-from dag_datalake_sirene.workflows.data_pipelines.data_gouv.task_functions import (
+from workflows.data_pipelines.data_gouv.task_functions import (
     get_latest_database,
     fill_ul_file,
     upload_ul_to_minio,
@@ -12,12 +12,12 @@ from dag_datalake_sirene.workflows.data_pipelines.data_gouv.task_functions impor
     notification_tchap,
 )
 
-from dag_datalake_sirene.workflows.data_pipelines.data_gouv.task_functions import (
+from workflows.data_pipelines.data_gouv.task_functions import (
     send_notification_failure_tchap,
 )
-from dag_datalake_sirene.helpers.utils import check_if_prod
+from helpers.utils import check_if_prod
 
-from dag_datalake_sirene.config import (
+from config import (
     AIRFLOW_DAG_TMP,
     EMAIL_LIST,
     AIRFLOW_PUBLISH_DAG_NAME,

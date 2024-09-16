@@ -7,7 +7,7 @@ import gzip
 import pandas as pd
 from datetime import datetime, date
 from unicodedata import normalize
-from dag_datalake_sirene.config import AIRFLOW_ENV
+from config import AIRFLOW_ENV
 
 
 def check_if_prod():

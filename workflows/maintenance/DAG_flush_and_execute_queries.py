@@ -3,11 +3,11 @@ from datetime import timedelta
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.helpers.flush_cache import flush_cache
-from dag_datalake_sirene.helpers.execute_slow_queries import (
+from helpers.flush_cache import flush_cache
+from helpers.execute_slow_queries import (
     execute_slow_requests,
 )
-from dag_datalake_sirene.config import (
+from config import (
     EMAIL_LIST,
     REDIS_HOST,
     REDIS_PORT,

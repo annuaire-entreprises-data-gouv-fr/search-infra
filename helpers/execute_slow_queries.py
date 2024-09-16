@@ -1,8 +1,8 @@
 import logging
 import requests
 
-from dag_datalake_sirene.config import API_URL
-from dag_datalake_sirene.helpers.slow_requests import SLOW_REQUESTS
+from config import API_URL
+from helpers.slow_requests import SLOW_REQUESTS
 
 
 def execute_slow_requests():

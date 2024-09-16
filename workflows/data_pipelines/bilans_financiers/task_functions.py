@@ -2,14 +2,14 @@ import pandas as pd
 import logging
 from datetime import datetime
 
-from dag_datalake_sirene.config import (
+from config import (
     BILANS_FINANCIERS_TMP_FOLDER,
 )
-from dag_datalake_sirene.helpers.datagouv import get_resource
-from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.utils import get_fiscal_year
+from helpers.datagouv import get_resource
+from helpers.tchap import send_message
+from helpers.utils import get_fiscal_year
 
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from helpers.minio_helpers import minio_client
 
 
 def download_bilans_financiers():

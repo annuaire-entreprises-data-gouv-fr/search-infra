@@ -4,10 +4,10 @@ from airflow.operators.bash import BashOperator
 
 from airflow.utils.dates import days_ago
 from datetime import timedelta
-from dag_datalake_sirene.config import (
+from config import (
     UAI_TMP_FOLDER,
 )
-from dag_datalake_sirene.workflows.data_pipelines.uai.task_functions import (
+from workflows.data_pipelines.uai.task_functions import (
     download_latest_data,
     process_uai,
     send_file_to_minio,

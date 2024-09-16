@@ -2,13 +2,13 @@ from airflow.models import DAG
 from datetime import timedelta, datetime
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
-from dag_datalake_sirene.config import EMAIL_LIST
-from dag_datalake_sirene.workflows.data_pipelines.rne.flux.flux_tasks import (
+from config import EMAIL_LIST
+from workflows.data_pipelines.rne.flux.flux_tasks import (
     get_every_day_flux,
     send_notification_failure_tchap,
     send_notification_success_tchap,
 )
-from dag_datalake_sirene.config import RNE_FLUX_TMP_FOLDER
+from config import RNE_FLUX_TMP_FOLDER
 
 default_args = {
     "depends_on_past": False,

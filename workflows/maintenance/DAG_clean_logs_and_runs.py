@@ -6,7 +6,7 @@ from airflow.settings import Session
 import os
 import logging
 import shutil
-from dag_datalake_sirene.config import (
+from config import (
     EMAIL_LIST,
 )
 

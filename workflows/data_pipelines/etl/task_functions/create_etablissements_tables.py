@@ -1,22 +1,22 @@
 import logging
 import sqlite3
 
-from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
+from helpers.sqlite_client import SqliteClient
 
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.etablissements\
+from workflows.data_pipelines.etl.data_fetch_clean.etablissements\
     import (
         preprocess_etablissement_data,
         preprocess_historique_etablissement_data,
     )
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
+from workflows.data_pipelines.etl.sqlite.helpers import (
     get_table_count,
     create_index,
     create_table_model,
     create_unique_index,
     execute_query,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.etablissements\
+from workflows.data_pipelines.etl.sqlite.queries.etablissements\
     import (
     create_table_flux_etablissements_query,
     create_table_etablissements_query,
@@ -36,9 +36,9 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.etablisseme
     update_sieges_table_fields_with_rne_data_query,
 )
 # fmt: on
-from dag_datalake_sirene.helpers.labels.departements import all_deps
-from dag_datalake_sirene.config import AIRFLOW_ETL_DATA_DIR
-from dag_datalake_sirene.config import (
+from helpers.labels.departements import all_deps
+from config import AIRFLOW_ETL_DATA_DIR
+from config import (
     SIRENE_DATABASE_LOCATION,
     RNE_DATABASE_LOCATION,
 )

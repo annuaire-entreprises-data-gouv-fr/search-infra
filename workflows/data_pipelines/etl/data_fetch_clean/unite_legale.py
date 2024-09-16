@@ -4,8 +4,8 @@ import shutil
 import logging
 import pandas as pd
 import requests
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.config import (
+from helpers.minio_helpers import minio_client
+from config import (
     URL_MINIO_UNITE_LEGALE,
     URL_MINIO_UNITE_LEGALE_HISTORIQUE,
 )

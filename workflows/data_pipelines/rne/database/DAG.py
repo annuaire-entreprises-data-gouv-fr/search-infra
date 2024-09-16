@@ -2,8 +2,8 @@ from airflow.models import DAG
 from datetime import datetime, timedelta
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
-from dag_datalake_sirene.config import EMAIL_LIST, RNE_DB_TMP_FOLDER
-from dag_datalake_sirene.workflows.data_pipelines.rne.database.task_functions import (
+from config import EMAIL_LIST, RNE_DB_TMP_FOLDER
+from workflows.data_pipelines.rne.database.task_functions import (
     get_start_date_minio,
     get_latest_db,
     check_db_count,

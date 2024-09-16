@@ -3,9 +3,9 @@ import os
 import shutil
 
 
-from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
+from helpers.sqlite_client import SqliteClient
 
-from dag_datalake_sirene.config import (
+from config import (
     AIRFLOW_ETL_DATA_DIR,
     SIRENE_DATABASE_LOCATION,
 )

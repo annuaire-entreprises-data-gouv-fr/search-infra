@@ -1,15 +1,15 @@
 import pandas as pd
 import logging
-from dag_datalake_sirene.config import (
+from config import (
     UAI_TMP_FOLDER,
 )
-from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.datagouv import (
+from helpers.tchap import send_message
+from helpers.datagouv import (
     get_dataset_or_resource_metadata,
     get_resource,
 )
 
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from helpers.minio_helpers import minio_client
 
 
 def download_latest_data(ti):

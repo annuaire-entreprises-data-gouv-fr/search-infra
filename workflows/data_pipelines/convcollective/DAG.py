@@ -4,12 +4,12 @@ from airflow.operators.bash import BashOperator
 
 from airflow.utils.dates import days_ago
 from datetime import timedelta
-from dag_datalake_sirene.config import (
+from config import (
     CC_TMP_FOLDER,
     EMAIL_LIST,
 )
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.convcollective.task_functions import (
+from workflows.data_pipelines.convcollective.task_functions import (
     preprocess_convcollective_data,
     send_file_to_minio,
     compare_files_minio,

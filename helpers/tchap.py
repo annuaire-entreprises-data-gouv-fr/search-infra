@@ -1,6 +1,6 @@
 import requests
 import logging
-from dag_datalake_sirene.config import (
+from config import (
     AIRFLOW_ENV,
     TCHAP_ANNUAIRE_WEBHOOK,
     TCHAP_ANNUAIRE_ROOM_ID,

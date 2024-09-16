@@ -2,8 +2,8 @@ from airflow.models import DAG
 from datetime import timedelta, datetime
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
-from dag_datalake_sirene.config import EMAIL_LIST, METADATA_CC_TMP_FOLDER
-from dag_datalake_sirene.workflows.data_pipelines.metadata.cc.task_functions import (
+from config import EMAIL_LIST, METADATA_CC_TMP_FOLDER
+from workflows.data_pipelines.metadata.cc.task_functions import (
     create_metadata_concollective_json,
     upload_json_file_to_minio,
     send_notification_failure_tchap,

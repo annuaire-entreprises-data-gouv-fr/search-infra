@@ -4,26 +4,26 @@ import shutil
 import os
 
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.dirigeants\
+from workflows.data_pipelines.etl.data_fetch_clean.dirigeants\
     import (
     preprocess_dirigeant_pm,
     preprocess_personne_physique,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.beneficiaires\
+from workflows.data_pipelines.etl.sqlite.queries.beneficiaires\
     import (
     create_table_benef_query,
     get_chunk_benef_from_db_query,
 )
 # fmt: on
-from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
+from helpers.sqlite_client import SqliteClient
 
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
+from workflows.data_pipelines.etl.sqlite.helpers import (
     drop_table,
     get_distinct_column_count,
     create_index,
 )
 
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.dirigeants import (
+from workflows.data_pipelines.etl.sqlite.queries.dirigeants import (
     create_table_dirigeant_pp_query,
     create_table_dirigeant_pm_query,
     get_chunk_dirig_pp_from_db_query,
@@ -31,10 +31,10 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.dirigeants 
 )
 
 
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from helpers.minio_helpers import minio_client
 
 
-from dag_datalake_sirene.config import (
+from config import (
     SIRENE_DATABASE_LOCATION,
     AIRFLOW_ENV,
     RNE_DATABASE_LOCATION,

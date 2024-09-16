@@ -1,7 +1,7 @@
 from datetime import datetime, date
 from pydantic import BaseModel
 from typing import Literal
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
+from workflows.data_pipelines.elasticsearch.data_enrichment import (
     format_adresse_complete,
 )
 

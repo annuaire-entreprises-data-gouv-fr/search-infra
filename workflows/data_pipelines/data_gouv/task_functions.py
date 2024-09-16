@@ -6,14 +6,14 @@ import logging
 import os
 import pandas as pd
 import json
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
-from dag_datalake_sirene.helpers.datagouv import post_resource
-from dag_datalake_sirene.workflows.data_pipelines.data_gouv.queries import (
+from helpers.minio_helpers import minio_client
+from helpers.sqlite_client import SqliteClient
+from helpers.datagouv import post_resource
+from workflows.data_pipelines.data_gouv.queries import (
     etab_fields_to_select,
     ul_fields_to_select,
 )
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
+from workflows.data_pipelines.elasticsearch.data_enrichment import (
     create_list_names_elus,
     format_adresse_complete,
     format_nom_complet,
@@ -23,17 +23,17 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
     is_service_public,
     format_departement,
 )
-from dag_datalake_sirene.helpers.utils import (
+from helpers.utils import (
     str_to_bool,
     str_to_list,
     convert_date_format,
     sqlite_str_to_bool,
 )
-from dag_datalake_sirene.helpers.geolocalisation import (
+from helpers.geolocalisation import (
     transform_coordinates,
 )
-from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.config import (
+from helpers.tchap import send_message
+from config import (
     SIRENE_MINIO_DATA_PATH,
     AIRFLOW_DATAGOUV_DATA_DIR,
 )

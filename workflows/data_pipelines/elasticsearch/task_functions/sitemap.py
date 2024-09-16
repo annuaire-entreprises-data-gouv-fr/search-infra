@@ -1,16 +1,16 @@
 import os
 
 
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
+from workflows.data_pipelines.elasticsearch.data_enrichment import (
     format_nom_complet,
     format_slug,
 )
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.sqlite.sitemap import (
+from helpers.minio_helpers import minio_client
+from helpers.sqlite_client import SqliteClient
+from workflows.data_pipelines.elasticsearch.sqlite.sitemap import (
     select_sitemap_fields_query,
 )
-from dag_datalake_sirene.config import (
+from config import (
     AIRFLOW_ELK_DATA_DIR,
     AIRFLOW_ENV,
 )

@@ -6,7 +6,7 @@ from operators.clean_folder import CleanFolderOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
+from workflows.data_pipelines.etl.task_functions.\
     create_etablissements_tables import (
     add_rne_data_to_siege_table,
     count_nombre_etablissements,
@@ -21,7 +21,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     replace_siege_only_table,
 )
 
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
+from workflows.data_pipelines.etl.task_functions.\
     create_additional_data_tables import (
     create_agence_bio_table,
     create_bilan_financiers_table,
@@ -37,7 +37,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_convention_collective_table,
     create_marche_inclusion_table,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
+from workflows.data_pipelines.etl.task_functions.\
     create_dirig_benef_tables import (
     create_benef_table,
     create_dirig_pm_table,
@@ -45,17 +45,17 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     get_latest_rne_database,
 )
 
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
+from workflows.data_pipelines.etl.task_functions.\
     create_immatriculation_table import (
         create_immatriculation_table,
 )
 
 
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
+from workflows.data_pipelines.etl.task_functions.\
     create_sqlite_database import (
     create_sqlite_database,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
+from workflows.data_pipelines.etl.task_functions.\
     create_unite_legale_tables import (
     create_date_fermeture_unite_legale_table,
     create_flux_unite_legale_table,
@@ -66,17 +66,17 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     add_rne_data_to_unite_legale_table,
     add_ancien_siege_flux_data,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.send_notification\
+from workflows.data_pipelines.etl.task_functions.send_notification\
     import (
     send_notification_success_tchap,
     send_notification_failure_tchap,
 )
 # fmt: on
 
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.upload_db import (
+from workflows.data_pipelines.etl.task_functions.upload_db import (
     upload_db_to_minio,
 )
-from dag_datalake_sirene.config import (
+from config import (
     AIRFLOW_DAG_TMP,
     AIRFLOW_ETL_DAG_NAME,
     AIRFLOW_DAG_FOLDER,

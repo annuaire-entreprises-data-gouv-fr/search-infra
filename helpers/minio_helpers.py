@@ -6,7 +6,7 @@ from minio import Minio, S3Error
 from minio.commonconfig import CopySource
 from typing import List, TypedDict, Optional
 import os
-from dag_datalake_sirene.config import (
+from config import (
     AIRFLOW_ENV,
     MINIO_BUCKET,
     MINIO_URL,

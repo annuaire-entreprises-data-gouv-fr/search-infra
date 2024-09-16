@@ -1,13 +1,13 @@
 from datetime import datetime
 import pandas as pd
 import logging
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.helpers.utils import flatten_dict, save_dataframe
-from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.insee_client import (
+from helpers.minio_helpers import minio_client
+from helpers.utils import flatten_dict, save_dataframe
+from workflows.data_pipelines.sirene.flux.insee_client import (
     INSEEAPIClient,
 )
-from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.config import (
+from helpers.tchap import send_message
+from config import (
     INSEE_API_URL,
     INSEE_FLUX_TMP_FOLDER,
     INSEE_SECRET_BEARER,

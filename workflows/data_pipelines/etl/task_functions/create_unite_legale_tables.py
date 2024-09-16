@@ -1,15 +1,15 @@
 import logging
 import sqlite3
-from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
+from helpers.sqlite_client import SqliteClient
 
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.unite_legale\
+from workflows.data_pipelines.etl.data_fetch_clean.unite_legale\
     import (
     preprocess_historique_unite_legale_data,
     preprocess_unite_legale_data,
     process_anciens_sieges_flux,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.unite_legale\
+from workflows.data_pipelines.etl.sqlite.queries.unite_legale\
     import (
     create_table_date_fermeture_unite_legale_query,
     create_table_flux_unite_legale_query,
@@ -23,15 +23,15 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.unite_legal
     update_main_table_fields_with_rne_data_query,
 )
 # fmt: on
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
+from workflows.data_pipelines.etl.sqlite.helpers import (
     create_index,
     create_table_model,
     create_unique_index,
     execute_query,
     get_table_count,
 )
-from dag_datalake_sirene.config import AIRFLOW_ETL_DATA_DIR
-from dag_datalake_sirene.config import (
+from config import AIRFLOW_ETL_DATA_DIR
+from config import (
     SIRENE_DATABASE_LOCATION,
     RNE_DATABASE_LOCATION,
 )

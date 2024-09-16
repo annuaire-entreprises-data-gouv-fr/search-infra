@@ -4,11 +4,11 @@ from airflow.operators.bash import BashOperator
 
 from airflow.utils.dates import days_ago
 from datetime import timedelta
-from dag_datalake_sirene.config import (
+from config import (
     INSEE_TMP_FOLDER,
     EMAIL_LIST,
 )
-from dag_datalake_sirene.workflows.data_pipelines.sirene.etab.task_functions import (
+from workflows.data_pipelines.sirene.etab.task_functions import (
     download_historique_etab,
     download_stock_etab,
     send_historique_file_to_minio,

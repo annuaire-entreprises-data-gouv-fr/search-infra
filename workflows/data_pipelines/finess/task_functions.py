@@ -2,12 +2,12 @@ import pandas as pd
 import logging
 import requests
 
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.config import (
+from helpers.minio_helpers import minio_client
+from config import (
     FINESS_TMP_FOLDER,
     URL_FINESS,
 )
-from dag_datalake_sirene.helpers.tchap import send_message
+from helpers.tchap import send_message
 
 
 def preprocess_finess_data(ti):

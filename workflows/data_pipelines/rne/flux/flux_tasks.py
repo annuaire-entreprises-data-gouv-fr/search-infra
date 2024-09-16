@@ -5,11 +5,11 @@ import gzip
 import shutil
 import re
 import logging
-from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.helpers.utils import get_last_line
-from dag_datalake_sirene.workflows.data_pipelines.rne.flux.rne_api import ApiRNEClient
-from dag_datalake_sirene.config import (
+from helpers.tchap import send_message
+from helpers.minio_helpers import minio_client
+from helpers.utils import get_last_line
+from workflows.data_pipelines.rne.flux.rne_api import ApiRNEClient
+from config import (
     AIRFLOW_ENV,
     RNE_FLUX_DATADIR,
     RNE_MINIO_FLUX_DATA_PATH,

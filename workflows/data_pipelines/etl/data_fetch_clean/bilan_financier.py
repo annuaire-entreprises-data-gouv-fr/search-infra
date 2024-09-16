@@ -1,5 +1,5 @@
 import pandas as pd
-from dag_datalake_sirene.config import URL_BILANS_FINANCIERS
+from config import URL_BILANS_FINANCIERS
 
 
 def preprocess_bilan_financier_data(data_dir):

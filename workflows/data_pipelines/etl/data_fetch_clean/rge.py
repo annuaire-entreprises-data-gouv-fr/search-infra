@@ -1,5 +1,5 @@
 import pandas as pd
-from dag_datalake_sirene.config import URL_MINIO_RGE
+from config import URL_MINIO_RGE
 
 
 def preprocess_rge_data(data_dir):

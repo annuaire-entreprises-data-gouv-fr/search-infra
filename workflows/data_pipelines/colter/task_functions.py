@@ -2,10 +2,10 @@ import pandas as pd
 import logging
 import requests
 import zipfile
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.utils import get_current_year
-from dag_datalake_sirene.config import (
+from helpers.minio_helpers import minio_client
+from helpers.tchap import send_message
+from helpers.utils import get_current_year
+from config import (
     COLTER_TMP_FOLDER,
     URL_COLTER_REGIONS,
     URL_COLTER_DEP,

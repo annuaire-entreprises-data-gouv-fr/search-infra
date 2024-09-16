@@ -5,13 +5,13 @@ from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from airflow.utils.dates import days_ago
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.task_functions\
+from workflows.data_pipelines.marche_inclusion.task_functions\
     import (
     get_structures_siae,
     send_file_minio,
 )
 # fmt: on
-from dag_datalake_sirene.config import (
+from config import (
     AIRFLOW_DAG_TMP,
     EMAIL_LIST,
     MARCHE_INCLUSION_TMP_FOLDER,

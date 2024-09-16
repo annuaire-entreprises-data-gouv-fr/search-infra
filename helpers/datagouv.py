@@ -1,7 +1,7 @@
 from typing import Optional, TypedDict
 import requests
 import os
-from dag_datalake_sirene.config import (
+from config import (
     DATAGOUV_URL,
     DATAGOUV_SECRET_API_KEY,
 )

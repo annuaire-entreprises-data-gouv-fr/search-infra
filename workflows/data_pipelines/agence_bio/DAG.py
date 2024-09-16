@@ -4,11 +4,11 @@ from airflow.operators.bash import BashOperator
 
 from airflow.utils.dates import days_ago
 from datetime import timedelta
-from dag_datalake_sirene.config import (
+from config import (
     AGENCE_BIO_TMP_FOLDER,
     EMAIL_LIST,
 )
-from dag_datalake_sirene.workflows.data_pipelines.agence_bio.task_functions import (
+from workflows.data_pipelines.agence_bio.task_functions import (
     process_agence_bio,
     send_file_to_minio,
     compare_files_minio,

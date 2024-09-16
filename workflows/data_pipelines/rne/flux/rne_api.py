@@ -5,7 +5,7 @@ from typing import Union
 import requests
 from requests.adapters import HTTPAdapter
 from requests.exceptions import SSLError
-from dag_datalake_sirene.config import RNE_AUTH, RNE_API_TOKEN_URL, RNE_API_DIFF_URL
+from config import RNE_AUTH, RNE_API_TOKEN_URL, RNE_API_DIFF_URL
 
 
 class ApiRNEClient:

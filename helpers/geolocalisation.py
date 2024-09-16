@@ -1,5 +1,5 @@
 from pyproj import Transformer
-from dag_datalake_sirene.helpers.utils import is_valid_number
+from helpers.utils import is_valid_number
 from functools import lru_cache
 
 # Mapping between department codes and EPSG codes

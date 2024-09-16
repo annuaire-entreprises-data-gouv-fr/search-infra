@@ -1,4 +1,4 @@
-from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean import (
+from workflows.data_pipelines.etl.data_fetch_clean import (
     agence_bio as bio,
     collectivite_territoriale as ct,
     bilan_financier as bf,
@@ -13,7 +13,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean import (
     marche_inclusion as mi,
 )
 
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
+from workflows.data_pipelines.etl.sqlite.helpers import (
     create_unique_index,
     create_index,
     create_and_fill_table_model,
@@ -21,7 +21,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
     execute_query,
 )
 
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries import (
+from workflows.data_pipelines.etl.sqlite.queries import (
     agence_bio as q_bio,
     bilan_financier as q_bf,
     convention_collective as q_cc,

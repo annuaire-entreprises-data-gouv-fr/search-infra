@@ -1,5 +1,5 @@
 import pandas as pd
-from dag_datalake_sirene.config import URL_AGENCE_BIO
+from config import URL_AGENCE_BIO
 
 
 def get_statut(statuts):

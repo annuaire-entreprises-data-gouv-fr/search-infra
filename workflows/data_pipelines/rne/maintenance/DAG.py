@@ -1,10 +1,10 @@
 from airflow.models import DAG
 from datetime import timedelta, datetime
 from airflow.operators.python import PythonOperator
-from dag_datalake_sirene.config import (
+from config import (
     EMAIL_LIST,
 )
-from dag_datalake_sirene.workflows.data_pipelines.rne.maintenance.task_functions import (
+from workflows.data_pipelines.rne.maintenance.task_functions import (
     rename_old_rne_folders,
 )
 

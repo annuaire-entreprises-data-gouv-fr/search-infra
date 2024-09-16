@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 from elasticsearch_dsl import connections
 
-from dag_datalake_sirene.config import (
+from config import (
     AIRFLOW_ELK_DAG_NAME,
     ELASTIC_URL,
     ELASTIC_USER,
@@ -12,9 +12,9 @@ from dag_datalake_sirene.config import (
     ELASTIC_SNAPSHOT_MAX_REVISIONS,
     ELASTIC_SNAPSHOT_MINIO_STATE_PATH,
 )
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from helpers.minio_helpers import minio_client
 
-from dag_datalake_sirene.helpers.filesystem import (
+from helpers.filesystem import (
     Filesystem,
     JsonSerializer,
 )

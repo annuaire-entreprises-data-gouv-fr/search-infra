@@ -4,10 +4,10 @@ from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
-from dag_datalake_sirene.helpers.flush_cache import flush_cache
+from helpers.flush_cache import flush_cache
 
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
+from workflows.data_pipelines.elasticsearch.task_functions.\
     index import (
     get_next_index_name,
     check_elastic_index,
@@ -16,22 +16,22 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
     fill_elastic_siren_index,
     delete_previous_elastic_indices,
 )
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
+from workflows.data_pipelines.elasticsearch.task_functions.\
     sitemap import (
     create_sitemap,
     update_sitemap,
 )
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
+from workflows.data_pipelines.elasticsearch.task_functions.\
     fetch_db import get_latest_database
 
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
+from workflows.data_pipelines.elasticsearch.task_functions.\
     send_notification import (
     send_notification_success_tchap,
     send_notification_failure_tchap,
 )
 # fmt: on
-from dag_datalake_sirene.tests.e2e_tests.run_tests import run_e2e_tests
-from dag_datalake_sirene.config import (
+from tests.e2e_tests.run_tests import run_e2e_tests
+from config import (
     AIRFLOW_DAG_TMP,
     AIRFLOW_ELK_DAG_NAME,
     AIRFLOW_SNAPSHOT_DAG_NAME,
