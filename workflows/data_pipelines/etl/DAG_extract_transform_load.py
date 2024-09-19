@@ -9,22 +9,22 @@ from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_etablissements_tables import (
     add_rne_data_to_siege_table,
-    count_nombre_etablissements,
-    count_nombre_etablissements_ouverts,
-    create_etablissements_table,
+    count_nombre_etablissement,
+    count_nombre_etablissement_ouvert,
+    create_etablissement_table,
     create_date_fermeture_etablissement_table,
-    create_flux_etablissements_table,
+    create_flux_etablissement_table,
     create_historique_etablissement_table,
-    create_siege_only_table,
+    create_siege_table,
     insert_date_fermeture_etablissement,
-    replace_etablissements_table,
-    replace_siege_only_table,
+    replace_etablissement_table,
+    replace_siege_table,
 )
 
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_additional_data_tables import (
     create_agence_bio_table,
-    create_bilan_financiers_table,
+    create_bilan_financier_table,
     create_colter_table,
     create_ess_table,
     create_rge_table,
@@ -122,10 +122,10 @@ with DAG(
         python_callable=create_unite_legale_table,
     )
 
-    create_etablissements_table = PythonOperator(
-        task_id="create_etablissements_table",
+    create_etablissement_table = PythonOperator(
+        task_id="create_etablissement_table",
         provide_context=True,
-        python_callable=create_etablissements_table,
+        python_callable=create_etablissement_table,
     )
 
     create_flux_unite_legale_table = PythonOperator(
@@ -140,10 +140,10 @@ with DAG(
         python_callable=add_ancien_siege_flux_data,
     )
 
-    create_flux_etablissements_table = PythonOperator(
-        task_id="create_flux_etablissements_table",
+    create_flux_etablissement_table = PythonOperator(
+        task_id="create_flux_etablissement_table",
         provide_context=True,
-        python_callable=create_flux_etablissements_table,
+        python_callable=create_flux_etablissement_table,
     )
 
     replace_unite_legale_table = PythonOperator(
@@ -152,22 +152,22 @@ with DAG(
         python_callable=replace_unite_legale_table,
     )
 
-    replace_etablissements_table = PythonOperator(
-        task_id="replace_etablissements_table",
+    replace_etablissement_table = PythonOperator(
+        task_id="replace_etablissement_table",
         provide_context=True,
-        python_callable=replace_etablissements_table,
+        python_callable=replace_etablissement_table,
     )
 
-    count_nombre_etablissements = PythonOperator(
-        task_id="count_nombre_etablissements",
+    count_nombre_etablissement = PythonOperator(
+        task_id="count_nombre_etablissement",
         provide_context=True,
-        python_callable=count_nombre_etablissements,
+        python_callable=count_nombre_etablissement,
     )
 
-    count_nombre_etablissements_ouverts = PythonOperator(
-        task_id="count_nombre_etablissements_ouverts",
+    count_nombre_etablissement_ouvert = PythonOperator(
+        task_id="count_nombre_etablissement_ouverts",
         provide_context=True,
-        python_callable=count_nombre_etablissements_ouverts,
+        python_callable=count_nombre_etablissement_ouvert,
     )
 
     create_historique_unite_legale_table = PythonOperator(
@@ -194,16 +194,16 @@ with DAG(
         python_callable=add_rne_data_to_unite_legale_table,
     )
 
-    create_siege_only_table = PythonOperator(
-        task_id="create_siege_only_table",
+    create_siege_table = PythonOperator(
+        task_id="create_siege_table",
         provide_context=True,
-        python_callable=create_siege_only_table,
+        python_callable=create_siege_table,
     )
 
-    replace_siege_only_table = PythonOperator(
-        task_id="replace_siege_only_table",
+    replace_siege_table = PythonOperator(
+        task_id="replace_siege_table",
         provide_context=True,
-        python_callable=replace_siege_only_table,
+        python_callable=replace_siege_table,
     )
 
     inject_rne_siege_data = PythonOperator(
@@ -260,10 +260,10 @@ with DAG(
         python_callable=create_immatriculation_table,
     )
 
-    create_bilan_financiers_table = PythonOperator(
-        task_id="create_bilan_financiers_table",
+    create_bilan_financier_table = PythonOperator(
+        task_id="create_bilan_financier_table",
         provide_context=True,
-        python_callable=create_bilan_financiers_table,
+        python_callable=create_bilan_financier_table,
     )
 
     create_convention_collective_table = PythonOperator(
@@ -368,17 +368,17 @@ with DAG(
     create_date_fermeture_unite_legale_table.set_upstream(
         create_historique_unite_legale_table
     )
-    create_etablissements_table.set_upstream(create_date_fermeture_unite_legale_table)
-    create_flux_unite_legale_table.set_upstream(create_etablissements_table)
-    create_flux_etablissements_table.set_upstream(create_flux_unite_legale_table)
-    replace_unite_legale_table.set_upstream(create_flux_etablissements_table)
+    create_etablissement_table.set_upstream(create_date_fermeture_unite_legale_table)
+    create_flux_unite_legale_table.set_upstream(create_etablissement_table)
+    create_flux_etablissement_table.set_upstream(create_flux_unite_legale_table)
+    replace_unite_legale_table.set_upstream(create_flux_etablissement_table)
     insert_date_fermeture_unite_legale.set_upstream(replace_unite_legale_table)
-    replace_etablissements_table.set_upstream(insert_date_fermeture_unite_legale)
-    count_nombre_etablissements.set_upstream(replace_etablissements_table)
-    count_nombre_etablissements_ouverts.set_upstream(count_nombre_etablissements)
-    create_siege_only_table.set_upstream(count_nombre_etablissements_ouverts)
-    replace_siege_only_table.set_upstream(create_siege_only_table)
-    add_ancien_siege_flux_data.set_upstream(replace_siege_only_table)
+    replace_etablissement_table.set_upstream(insert_date_fermeture_unite_legale)
+    count_nombre_etablissement.set_upstream(replace_etablissement_table)
+    count_nombre_etablissement_ouvert.set_upstream(count_nombre_etablissement)
+    create_siege_table.set_upstream(count_nombre_etablissement_ouvert)
+    replace_siege_table.set_upstream(create_siege_table)
+    add_ancien_siege_flux_data.set_upstream(replace_siege_table)
     create_historique_etablissement_table.set_upstream(add_ancien_siege_flux_data)
     create_date_fermeture_etablissement_table.set_upstream(
         create_historique_etablissement_table
@@ -395,8 +395,8 @@ with DAG(
     create_benef_table.set_upstream(create_dirig_pm_table)
     create_immatriculation_table.set_upstream(create_benef_table)
 
-    create_bilan_financiers_table.set_upstream(create_immatriculation_table)
-    create_convention_collective_table.set_upstream(create_bilan_financiers_table)
+    create_bilan_financier_table.set_upstream(create_immatriculation_table)
+    create_convention_collective_table.set_upstream(create_bilan_financier_table)
     create_ess_table.set_upstream(create_convention_collective_table)
     create_rge_table.set_upstream(create_ess_table)
     create_finess_table.set_upstream(create_rge_table)

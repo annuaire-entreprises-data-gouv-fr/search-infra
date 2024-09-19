@@ -61,19 +61,19 @@ def create_dirig_pp_table():
     sqlite_client_dirig = SqliteClient(RNE_DATABASE_LOCATION)
     chunk_size = int(100000)
     for row in sqlite_client_dirig.execute(
-        get_distinct_column_count("dirigeants_pp", "siren")
+        get_distinct_column_count("dirigeant_pp", "siren")
     ):
         nb_iter = int(int(row[0]) / chunk_size) + 1
-    sqlite_client_siren.execute(drop_table("dirigeants_pp"))
+    sqlite_client_siren.execute(drop_table("dirigeant_pp"))
     sqlite_client_siren.execute(create_table_dirigeant_pp_query)
-    sqlite_client_siren.execute(create_index("siren_pp", "dirigeants_pp", "siren"))
+    sqlite_client_siren.execute(create_index("siren_pp", "dirigeant_pp", "siren"))
     for i in range(nb_iter):
         query = sqlite_client_dirig.execute(
             get_chunk_dirig_pp_from_db_query(chunk_size, i)
         )
         dir_pp_clean = preprocess_personne_physique(query)
         dir_pp_clean.to_sql(
-            "dirigeants_pp",
+            "dirigeant_pp",
             sqlite_client_siren.db_conn,
             if_exists="append",
             index=False,
@@ -91,21 +91,21 @@ def create_dirig_pm_table():
 
     chunk_size = int(100000)
     for row in sqlite_client_dirig.execute(
-        get_distinct_column_count("dirigeants_pm", "siren")
+        get_distinct_column_count("dirigeant_pm", "siren")
     ):
         nb_iter = int(int(row[0]) / chunk_size) + 1
 
-    # Create table dirigeants_pm in siren database
-    sqlite_client_siren.execute(drop_table("dirigeants_pm"))
+    # Create table dirigeant_pm in siren database
+    sqlite_client_siren.execute(drop_table("dirigeant_pm"))
     sqlite_client_siren.execute(create_table_dirigeant_pm_query)
-    sqlite_client_siren.execute(create_index("siren_pm", "dirigeants_pm", "siren"))
+    sqlite_client_siren.execute(create_index("siren_pm", "dirigeant_pm", "siren"))
     for i in range(nb_iter):
         query = sqlite_client_dirig.execute(
             get_chunk_dirig_pm_from_db_query(chunk_size, i)
         )
         dir_pm_clean = preprocess_dirigeant_pm(query)
         dir_pm_clean.to_sql(
-            "dirigeants_pm",
+            "dirigeant_pm",
             sqlite_client_siren.db_conn,
             if_exists="append",
             index=False,
@@ -121,17 +121,17 @@ def create_benef_table():
     sqlite_client_rne = SqliteClient(RNE_DATABASE_LOCATION)
     chunk_size = int(100000)
     for row in sqlite_client_rne.execute(
-        get_distinct_column_count("beneficiaires", "siren")
+        get_distinct_column_count("beneficiaire", "siren")
     ):
         nb_iter = int(int(row[0]) / chunk_size) + 1
-    sqlite_client_siren.execute(drop_table("beneficiaires"))
+    sqlite_client_siren.execute(drop_table("beneficiaire"))
     sqlite_client_siren.execute(create_table_benef_query)
-    sqlite_client_siren.execute(create_index("siren_benef", "beneficiaires", "siren"))
+    sqlite_client_siren.execute(create_index("siren_benef", "beneficiaire", "siren"))
     for i in range(nb_iter):
         query = sqlite_client_rne.execute(get_chunk_benef_from_db_query(chunk_size, i))
         benef_clean = preprocess_personne_physique(query)
         benef_clean.to_sql(
-            "beneficiaires",
+            "beneficiaire",
             sqlite_client_siren.db_conn,
             if_exists="append",
             index=False,

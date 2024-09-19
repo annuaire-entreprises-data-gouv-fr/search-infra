@@ -178,7 +178,7 @@ def preprocess_historique_unite_legale_data(data_dir):
         yield df_unite_legale, siren_nic_df
 
 
-def process_anciens_sieges_flux(data_dir):
+def process_ancien_siege_flux(data_dir):
     """
     The function uses the 'extract_nic_list' function to extract the NIC from the
     'periodesUniteLegale' column. It then explodes the resulting

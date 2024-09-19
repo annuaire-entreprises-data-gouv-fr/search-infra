@@ -37,7 +37,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries import (
 )
 
 
-def create_bilan_financiers_table():
+def create_bilan_financier_table():
     create_and_fill_table_model(
         table_name="bilan_financier",
         create_table_query=q_bf.create_table_bilan_financier_query,

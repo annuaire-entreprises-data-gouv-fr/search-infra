@@ -127,16 +127,16 @@ replace_table_unite_legale_query = """
         ON a.siren = b.siren
     """
 
-# Update existing rows in unite_legale based on siren from rne.unites_legales
+# Update existing rows in unite_legale based on siren from rne.unite_legale
 update_main_table_fields_with_rne_data_query = """
             UPDATE unite_legale
             SET from_rne = TRUE,
                 date_mise_a_jour_rne = (
                     SELECT date_mise_a_jour
-                    FROM db_rne.unites_legales
-                    WHERE unite_legale.siren = db_rne.unites_legales.siren
+                    FROM db_rne.unite_legale
+                    WHERE unite_legale.siren = db_rne.unite_legale.siren
                     )
-            WHERE siren IN (SELECT siren FROM db_rne.unites_legales)
+            WHERE siren IN (SELECT siren FROM db_rne.unite_legale)
         """
 
 insert_remaining_rne_data_into_main_table_query = """
@@ -169,7 +169,7 @@ insert_remaining_rne_data_into_main_table_query = """
                 NULL AS date_mise_a_jour_insee,
                 date_mise_a_jour AS date_mise_a_jour_rne,
                 NULL AS date_fermeture_unite_legale
-            FROM db_rne.unites_legales
+            FROM db_rne.unite_legale
             WHERE siren NOT IN (SELECT siren FROM unite_legale)
         """
 
@@ -187,8 +187,8 @@ create_table_historique_unite_legale_query = """
         )
     """
 
-create_table_anciens_sieges_query = """
-        CREATE TABLE IF NOT EXISTS anciens_sieges
+create_table_ancien_siege_query = """
+        CREATE TABLE IF NOT EXISTS ancien_siege
         (
             siren TEXT,
             nic_siege TEXT,
@@ -196,9 +196,9 @@ create_table_anciens_sieges_query = """
         )
     """
 
-delete_current_siege_from_anciens_sieges_query = """
-        DELETE FROM anciens_sieges
-        WHERE siret IN (SELECT siret FROM siretsiege);
+delete_current_siege_from_ancien_siege_query = """
+        DELETE FROM ancien_siege
+        WHERE siret IN (SELECT siret FROM siege);
 """
 
 create_table_date_fermeture_unite_legale_query = """

@@ -17,7 +17,7 @@ from dag_datalake_sirene.workflows.data_pipelines.rne.database.map_rne import (
 def create_tables(cursor):
     cursor.execute(
         """
-        CREATE TABLE IF NOT EXISTS unites_legales
+        CREATE TABLE IF NOT EXISTS unite_legale
         (
             siren TEXT,
             denomination TEXT,
@@ -40,7 +40,7 @@ def create_tables(cursor):
     )
     cursor.execute(
         """
-        CREATE TABLE IF NOT EXISTS sieges
+        CREATE TABLE IF NOT EXISTS siege
         (
             siren TEXT,
             siret TEXT,
@@ -64,7 +64,7 @@ def create_tables(cursor):
     )
     cursor.execute(
         """
-        CREATE TABLE IF NOT EXISTS dirigeants_pp
+        CREATE TABLE IF NOT EXISTS dirigeant_pp
         (
             siren TEXT,
             date_mise_a_jour DATE,
@@ -82,7 +82,7 @@ def create_tables(cursor):
     )
     cursor.execute(
         """
-        CREATE TABLE IF NOT EXISTS dirigeants_pm
+        CREATE TABLE IF NOT EXISTS dirigeant_pm
         (
             siren TEXT,
             siren_dirigeant TEXT,
@@ -117,7 +117,7 @@ def create_tables(cursor):
     )
     cursor.execute(
         """
-        CREATE TABLE IF NOT EXISTS beneficiaires
+        CREATE TABLE IF NOT EXISTS beneficiaire
         (
             siren TEXT,
             date_mise_a_jour DATE,
@@ -140,31 +140,31 @@ def create_tables(cursor):
 
 def create_index_db(cursor):
     index_statements = [
-        "CREATE INDEX IF NOT EXISTS idx_siren_ul ON unites_legales (siren);",
-        "CREATE INDEX IF NOT EXISTS idx_siren_etab ON sieges (siren);",
-        "CREATE INDEX IF NOT EXISTS idx_siret_etab ON sieges (siret);",
-        "CREATE INDEX IF NOT EXISTS idx_siren_pp ON dirigeants_pp (siren);",
-        "CREATE INDEX IF NOT EXISTS idx_siren_pm ON dirigeants_pm (siren);",
-        "CREATE INDEX IF NOT EXISTS file_ul ON unites_legales (file_name);",
-        "CREATE INDEX IF NOT EXISTS file_etab ON sieges (file_name);",
-        "CREATE INDEX IF NOT EXISTS file_pp ON dirigeants_pp (file_name);",
-        "CREATE INDEX IF NOT EXISTS file_pm ON dirigeants_pm (file_name);",
+        "CREATE INDEX IF NOT EXISTS idx_siren_ul ON unite_legale (siren);",
+        "CREATE INDEX IF NOT EXISTS idx_siren_etab ON siege (siren);",
+        "CREATE INDEX IF NOT EXISTS idx_siret_etab ON siege (siret);",
+        "CREATE INDEX IF NOT EXISTS idx_siren_pp ON dirigeant_pp (siren);",
+        "CREATE INDEX IF NOT EXISTS idx_siren_pm ON dirigeant_pm (siren);",
+        "CREATE INDEX IF NOT EXISTS file_ul ON unite_legale (file_name);",
+        "CREATE INDEX IF NOT EXISTS file_etab ON siege (file_name);",
+        "CREATE INDEX IF NOT EXISTS file_pp ON dirigeant_pp (file_name);",
+        "CREATE INDEX IF NOT EXISTS file_pm ON dirigeant_pm (file_name);",
         "CREATE INDEX IF NOT EXISTS idx_siren_immat ON immatriculation (siren);",
-        "CREATE INDEX IF NOT EXISTS idx_siren_benef ON beneficiaires (siren);",
+        "CREATE INDEX IF NOT EXISTS idx_siren_benef ON beneficiaire (siren);",
         """CREATE INDEX IF NOT EXISTS idx_ul_siren_file_name
-        ON unites_legales (siren, file_name);""",
+        ON unite_legale (siren, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_etab_siren_file_name
-        ON sieges (siren, file_name);""",
+        ON siege (siren, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_etab_siret_file_name
-        ON sieges (siret, file_name);""",
+        ON siege (siret, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_pp_siren_file_name
-        ON dirigeants_pp (siren, file_name);""",
+        ON dirigeant_pp (siren, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_pm_siren_file_name
-        ON dirigeants_pm (siren, file_name);""",
+        ON dirigeant_pm (siren, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_siren_immat_file_name
         ON immatriculation (siren, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_siren_bene_file_name
-        ON beneficiaires (siren, file_name);""",
+        ON beneficiaire (siren, file_name);""",
     ]
 
     for statement in index_statements:
@@ -241,12 +241,12 @@ def find_and_delete_same_siren(cursor, siren, file_path):
         file_path (str): The file path to filter the rows.
     """
     tables = [
-        "dirigeants_pm",
-        "dirigeants_pp",
-        "unites_legales",
-        "sieges",
+        "dirigeant_pm",
+        "dirigeant_pp",
+        "unite_legale",
+        "siege",
         "immatriculation",
-        "beneficiaires",
+        "beneficiaire",
     ]
 
     for table in tables:
@@ -290,7 +290,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
 
         cursor.execute(
             f"""
-                INSERT INTO unites_legales ({', '.join(unite_legale_columns)})
+                INSERT INTO unite_legale ({', '.join(unite_legale_columns)})
                 VALUES ({', '.join(['?'] * len(unite_legale_columns))})
             """,
             (
@@ -314,8 +314,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
         )
         siege = unite_legale.siege
 
-        # Define the columns for the sieges table
-        sieges_columns = [
+        # Define the columns for the siege table
+        siege_columns = [
             "siren",
             "siret",
             "enseigne",
@@ -337,8 +337,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
 
         cursor.execute(
             f"""
-                INSERT INTO sieges ({', '.join(sieges_columns)})
-                VALUES ({', '.join(['?'] * len(sieges_columns))})
+                INSERT INTO siege ({', '.join(siege_columns)})
+                VALUES ({', '.join(['?'] * len(siege_columns))})
             """,
             (
                 unite_legale.siren,
@@ -364,8 +364,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
         list_dirigeants_pp, list_dirigeants_pm = unite_legale.get_dirigeants_list()
 
         for dirigeant_pp in list_dirigeants_pp:
-            # Define the columns for the dirigeants_pp table
-            dirigeants_pp_columns = [
+            # Define the columns for the dirigeant_pp table
+            dirigeant_pp_columns = [
                 "siren",
                 "date_mise_a_jour",
                 "nom",
@@ -380,8 +380,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             ]
             cursor.execute(
                 f"""
-                INSERT INTO dirigeants_pp ({', '.join(dirigeants_pp_columns)})
-                VALUES ({', '.join(['?'] * len(dirigeants_pp_columns))})
+                INSERT INTO dirigeant_pp ({', '.join(dirigeant_pp_columns)})
+                VALUES ({', '.join(['?'] * len(dirigeant_pp_columns))})
             """,
                 (
                     unite_legale.siren,
@@ -399,8 +399,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             )
 
         for dirigeant_pm in list_dirigeants_pm:
-            # Define the columns for the dirigeants_pm table
-            dirigeants_pm_columns = [
+            # Define the columns for the dirigeant_pm table
+            dirigeant_pm_columns = [
                 "siren",
                 "siren_dirigeant",
                 "date_mise_a_jour",
@@ -412,8 +412,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             ]
             cursor.execute(
                 f"""
-                INSERT INTO dirigeants_pm ({', '.join(dirigeants_pm_columns)})
-                VALUES ({', '.join(['?'] * len(dirigeants_pm_columns))})
+                INSERT INTO dirigeant_pm ({', '.join(dirigeant_pm_columns)})
+                VALUES ({', '.join(['?'] * len(dirigeant_pm_columns))})
             """,
                 (
                     unite_legale.siren,
@@ -469,7 +469,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
         )
 
         for beneficiaire in unite_legale.beneficiaires:
-            # Define the columns for the beneficiaires table
+            # Define the columns for the beneficiaire table
             beneficiaire_columns = [
                 "siren",
                 "date_mise_a_jour",
@@ -486,7 +486,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             ]
             cursor.execute(
                 f"""
-                INSERT INTO beneficiaires ({', '.join(beneficiaire_columns)})
+                INSERT INTO beneficiaire ({', '.join(beneficiaire_columns)})
                 VALUES ({', '.join(['?'] * len(beneficiaire_columns))})
             """,
                 (
@@ -505,31 +505,31 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 ),
             )
 
-    cursor.execute("SELECT COUNT(*) FROM dirigeants_pp")
+    cursor.execute("SELECT COUNT(*) FROM dirigeant_pp")
     count_pp = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM dirigeants_pm")
+    cursor.execute("SELECT COUNT(*) FROM dirigeant_pm")
     count_pm = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM unites_legales")
+    cursor.execute("SELECT COUNT(*) FROM unite_legale")
     count_ul = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM sieges")
-    count_sieges = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM siege")
+    count_siege = cursor.fetchone()[0]
 
     cursor.execute("SELECT COUNT(*) FROM immatriculation")
     count_immat = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM beneficiaires")
+    cursor.execute("SELECT COUNT(*) FROM beneficiaire")
     count_benef = cursor.fetchone()[0]
 
     logging.info(
-        f"************Count UL: {count_ul}, Count sieges: {count_sieges}, "
+        f"************Count UL: {count_ul}, Count siege: {count_siege}, "
         f"Count pp: {count_pp}, Count pm: {count_pm}, "
-        f"Count immat: {count_immat}, Count beneficiaires: {count_benef}."
+        f"Count immat: {count_immat}, Count beneficiaire: {count_benef}."
     )
 
-    cursor.execute("SELECT * FROM unites_legales ORDER BY rowid DESC LIMIT 1")
+    cursor.execute("SELECT * FROM unite_legale ORDER BY rowid DESC LIMIT 1")
     cursor.fetchone()
 
     connection.commit()
@@ -568,26 +568,26 @@ def remove_duplicates_from_tables(cursor, table_name):
 def get_tables_count(db_path):
     connection, cursor = connect_to_db(db_path)
 
-    cursor.execute("SELECT COUNT(*) FROM unites_legales")
+    cursor.execute("SELECT COUNT(*) FROM unite_legale")
     count_ul = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM sieges")
-    count_sieges = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM siege")
+    count_siege = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM dirigeants_pp")
+    cursor.execute("SELECT COUNT(*) FROM dirigeant_pp")
     count_pp = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM dirigeants_pm")
+    cursor.execute("SELECT COUNT(*) FROM dirigeant_pm")
     count_pm = cursor.fetchone()[0]
 
     cursor.execute("SELECT COUNT(*) FROM immatriculation")
     count_immat = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM beneficiaires")
+    cursor.execute("SELECT COUNT(*) FROM beneficiaire")
     count_benef = cursor.fetchone()[0]
 
     connection.close()
-    return count_ul, count_sieges, count_pp, count_pm, count_immat, count_benef
+    return count_ul, count_siege, count_pp, count_pm, count_immat, count_benef
 
 
 def extract_rne_data(entity, file_type="flux"):
