@@ -6,6 +6,7 @@ import os
 import gzip
 import pandas as pd
 from datetime import datetime, date
+
 from unicodedata import normalize
 from dag_datalake_sirene.config import AIRFLOW_ENV
 
@@ -221,3 +222,36 @@ def flatten_object(obj, prop):
     for item in obj:
         res += f",{item[prop]}"
     return res[1:]
+
+
+def get_last_modified(url):
+    """
+    Fetches the Last-Modified date of a file from a URL and
+    returns it in ISO 8601 format.
+
+    Args:
+        url (str): The URL of the file.
+
+    Returns:
+        str: The Last-Modified date in '%Y-%m-%dT%H:%M:%S' format,
+        or 'No date available' if not found.
+    """
+    try:
+        # Make a HEAD request to get the headers
+        response = requests.head(url)
+        response.raise_for_status()  # Raise an error for bad responses
+
+        # Check if the Last-Modified header is present
+        last_modified_raw = response.headers.get("Last-Modified", None)
+
+        if last_modified_raw:
+            # Parse the 'Last-Modified' date and convert it to ISO 8601 format
+            last_modified_dt = datetime.strptime(
+                last_modified_raw, "%a, %d %b %Y %H:%M:%S %Z"
+            )
+            return last_modified_dt.strftime("%Y-%m-%dT%H:%M:%S")
+        else:
+            return "No date available"
+    except requests.RequestException as e:
+        logging.error(f"Error fetching last modified date: {e}")
+        return "Error fetching date"
