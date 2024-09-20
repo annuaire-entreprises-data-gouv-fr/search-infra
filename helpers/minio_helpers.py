@@ -133,11 +133,11 @@ class MinIOClient:
             content_type=content_type,
         )
 
-    def get_latest_file_minio(
+    def get_latest_file(
         self,
         minio_path: str,
         local_path: str,
-    ) -> None:
+    ):
         """
         Download the latest .db.gz file from Minio to the local file system.
 
@@ -171,11 +171,19 @@ class MinIOClient:
             latest_db_file = sorted_db_files[0]
             logging.info(f"Latest dirigeants database: {latest_db_file}")
 
+            # Extract the date from the filename
+            latest_file_date_str = latest_db_file.split("_")[-1].split(".")[0]
+            latest_file_date = datetime.strptime(
+                latest_file_date_str, "%Y-%m-%d"
+            ).strftime("%Y-%m-%dT%H:%M:%S")
+            logging.info(f"Date of latest file: {latest_file_date}")
+
             self.client.fget_object(
                 self.bucket,
                 latest_db_file,
                 local_path,
             )
+            return latest_file_date
         else:
             logging.warning("No .gz files found in the specified path.")
 
@@ -287,6 +295,50 @@ class MinIOClient:
             logging.info(f"Deleted {old_object_name}")
 
         logging.info(f"Folder '{old_folder}' renamed to '{new_folder}'")
+
+    def get_date_last_modified(self, file_path: str) -> Optional[str]:
+        """
+        Get the last modified date of a specific file in MinIO in ISO 8601 format.
+
+        Args:
+            file_path (str): The path of the file in MinIO.
+
+        Returns:
+            str: The last modified date of the file in ISO 8601 format,
+            or None if an error occurs.
+        """
+        try:
+            stat = self.client.stat_object(self.bucket, f"ae/{AIRFLOW_ENV}/{file_path}")
+            # Format the datetime object to ISO 8601 format
+            last_modified_str = stat.last_modified.strftime("%Y-%m-%dT%H:%M:%S")
+            logging.info(f"Last modified date of '{file_path}': {last_modified_str}")
+            return last_modified_str
+        except S3Error as e:
+            logging.error(f"Error retrieving file metadata for {file_path}: {e}")
+            return None
+
+    def copy_file(self, source_path: str, dest_path: str):
+        """
+        Copy a file from one MinIO path to another.
+
+        Args:
+            source_path (str): The MinIO path of the source file.
+            dest_path (str): The MinIO path where the file should be copied.
+        """
+        try:
+            # Define the full MinIO path with environment prefix
+            source_full_path = f"ae/{AIRFLOW_ENV}/{source_path}"
+            dest_full_path = f"ae/{AIRFLOW_ENV}/{dest_path}"
+
+            # Copy object to the new location using CopySource
+            self.client.copy_object(
+                self.bucket,
+                dest_full_path,
+                CopySource(self.bucket, source_full_path),
+            )
+            logging.info(f"Copied {source_full_path} to {dest_full_path}")
+        except S3Error as e:
+            logging.error(f"Error copying file from {source_path} to {dest_path}: {e}")
 
 
 minio_client = MinIOClient()
