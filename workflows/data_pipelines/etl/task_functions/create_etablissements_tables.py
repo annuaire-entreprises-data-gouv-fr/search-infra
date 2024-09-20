@@ -18,22 +18,22 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.etablissements\
     import (
-    create_table_flux_etablissements_query,
-    create_table_etablissements_query,
+    create_table_flux_etablissement_query,
+    create_table_etablissement_query,
     create_table_historique_etablissement_query,
     create_table_date_fermeture_etablissement_query,
-    create_table_siret_siege_query,
+    create_table_siege_query,
     insert_date_fermeture_etablissement_query,
     insert_date_fermeture_siege_query,
-    populate_table_siret_siege_query,
+    populate_table_siege_query,
     replace_table_etablissement_query,
-    replace_table_siret_siege_query,
-    create_table_count_etablissements_query,
-    count_nombre_etablissements_query,
-    create_table_count_etablissements_ouverts_query,
-    count_nombre_etablissements_ouverts_query,
-    insert_remaining_rne_sieges_data_into_main_table_query,
-    update_sieges_table_fields_with_rne_data_query,
+    replace_table_siege_query,
+    create_table_count_etablissement_query,
+    count_nombre_etablissement_query,
+    create_table_count_etablissement_ouvert_query,
+    count_nombre_etablissement_ouvert_query,
+    insert_remaining_rne_siege_data_into_main_table_query,
+    update_siege_table_fields_with_rne_data_query,
 )
 # fmt: on
 from dag_datalake_sirene.helpers.labels.departements import all_deps
@@ -44,51 +44,53 @@ from dag_datalake_sirene.config import (
 )
 
 
-def create_etablissements_table():
+def create_etablissement_table():
     sqlite_client = create_table_model(
-        table_name="siret",
-        create_table_query=create_table_etablissements_query,
+        table_name="etablissement",
+        create_table_query=create_table_etablissement_query,
         create_index_func=create_index,
-        index_name="index_siret",
+        index_name="index_etablissement",
         index_column="siren",
     )
     # Upload geo data by departement
     for dep in all_deps:
         df_dep = preprocess_etablissement_data("stock", dep, None)
-        df_dep.to_sql("siret", sqlite_client.db_conn, if_exists="append", index=False)
-        for row in sqlite_client.execute(get_table_count("siret")):
+        df_dep.to_sql(
+            "etablissement", sqlite_client.db_conn, if_exists="append", index=False
+        )
+        for row in sqlite_client.execute(get_table_count("etablissement")):
             logging.debug(
                 f"************ {row} records have been added to the "
                 f"`établissements` table!"
             )
     del df_dep
 
-    for count_etablissements in sqlite_client.execute(get_table_count("siret")):
+    for count_etablissement in sqlite_client.execute(get_table_count("etablissement")):
         logging.info(
-            f"************ {count_etablissements} total records have been added to the "
+            f"************ {count_etablissement} total records have been added to the "
             f"siret table!"
         )
     sqlite_client.commit_and_close_conn()
 
 
-def create_flux_etablissements_table():
+def create_flux_etablissement_table():
     sqlite_client = create_table_model(
-        table_name="flux_siret",
-        create_table_query=create_table_flux_etablissements_query,
+        table_name="flux_etablissement",
+        create_table_query=create_table_flux_etablissement_query,
         create_index_func=create_index,
-        index_name="index_flux_siret",
+        index_name="index_flux_etablissement",
         index_column="siren",
     )
     # Upload flux data
     df_etablissement = preprocess_etablissement_data("flux", None, AIRFLOW_ETL_DATA_DIR)
     df_etablissement.to_sql(
-        "flux_siret",
+        "flux_etablissement",
         sqlite_client.db_conn,
         if_exists="append",
         index=False,
     )
     del df_etablissement
-    for row in sqlite_client.execute(get_table_count("flux_siret")):
+    for row in sqlite_client.execute(get_table_count("flux_etablissement")):
         logging.info(
             f"************ {row} total records have been added to the "
             f"`flux établissements` table!"
@@ -96,59 +98,59 @@ def create_flux_etablissements_table():
     sqlite_client.commit_and_close_conn()
 
 
-def create_siege_only_table(**kwargs):
+def create_siege_table(**kwargs):
     sqlite_client = create_table_model(
-        table_name="siretsiege",
-        create_table_query=create_table_siret_siege_query,
+        table_name="siege",
+        create_table_query=create_table_siege_query,
         create_index_func=create_index,
-        index_name="index_siret_siren",
+        index_name="index_siege_siren",
         index_column="siren",
     )
-    sqlite_client.execute(create_index("index_siret_siege", "siretsiege", "siret"))
-    sqlite_client.execute(populate_table_siret_siege_query)
-    for count_sieges in sqlite_client.execute(get_table_count("siretsiege")):
+    sqlite_client.execute(create_index("index_siege_siege", "siege", "siret"))
+    sqlite_client.execute(populate_table_siege_query)
+    for count_siege in sqlite_client.execute(get_table_count("siege")):
         logging.info(
-            f"************ {count_sieges} total records have been added to the "
-            f"sieges table!"
+            f"************ {count_siege} total records have been added to the "
+            f"siege table!"
         )
-    kwargs["ti"].xcom_push(key="count_sieges", value=count_sieges[0])
+    kwargs["ti"].xcom_push(key="count_siege", value=count_siege[0])
     sqlite_client.commit_and_close_conn()
 
 
-def replace_etablissements_table():
+def replace_etablissement_table():
     return execute_query(
         query=replace_table_etablissement_query,
     )
 
 
-def replace_siege_only_table():
+def replace_siege_table():
     return execute_query(
-        query=replace_table_siret_siege_query,
+        query=replace_table_siege_query,
     )
 
 
-def count_nombre_etablissements():
+def count_nombre_etablissement():
     sqlite_client = create_table_model(
-        table_name="count_etab",
-        create_table_query=create_table_count_etablissements_query,
+        table_name="count_etablissement",
+        create_table_query=create_table_count_etablissement_query,
         create_index_func=create_unique_index,
         index_name="index_count_siren",
         index_column="siren",
     )
 
-    sqlite_client.execute(count_nombre_etablissements_query)
+    sqlite_client.execute(count_nombre_etablissement_query)
     sqlite_client.commit_and_close_conn()
 
 
-def count_nombre_etablissements_ouverts():
+def count_nombre_etablissement_ouvert():
     sqlite_client = create_table_model(
-        table_name="count_etab_ouvert",
-        create_table_query=create_table_count_etablissements_ouverts_query,
+        table_name="count_etablissement_ouvert",
+        create_table_query=create_table_count_etablissement_ouvert_query,
         create_index_func=create_unique_index,
         index_name="index_count_ouvert_siren",
         index_column="siren",
     )
-    sqlite_client.execute(count_nombre_etablissements_ouverts_query)
+    sqlite_client.execute(count_nombre_etablissement_ouvert_query)
     sqlite_client.commit_and_close_conn()
 
 
@@ -160,12 +162,12 @@ def add_rne_data_to_siege_table(**kwargs):
     sqlite_client_siren.connect_to_another_db(RNE_DATABASE_LOCATION, "db_rne")
 
     try:
-        # Update existing rows in main sieges table based on siren from rne.sieges
-        sqlite_client_siren.execute(update_sieges_table_fields_with_rne_data_query)
+        # Update existing rows in main siege table based on siren from rne.siege
+        sqlite_client_siren.execute(update_siege_table_fields_with_rne_data_query)
 
         # Handling duplicates with INSERT OR IGNORE
         sqlite_client_siren.execute(
-            insert_remaining_rne_sieges_data_into_main_table_query
+            insert_remaining_rne_siege_data_into_main_table_query
         )
         sqlite_client_siren.db_conn.commit()
         sqlite_client_siren.detach_database("db_rne")
@@ -207,14 +209,14 @@ def create_historique_etablissement_table(**kwargs):
 
     del df_hist_etablissement
 
-    for count_etablissements in sqlite_client.execute(get_table_count(table_name)):
+    for count_etablissement in sqlite_client.execute(get_table_count(table_name)):
         logging.info(
-            f"************ {count_etablissements} total records have been added to the "
+            f"************ {count_etablissement} total records have been added to the "
             f"{table_name} table!"
         )
     sqlite_client.commit_and_close_conn()
     kwargs["ti"].xcom_push(
-        key="count_historique_etablissements", value=count_etablissements
+        key="count_historique_etablissement", value=count_etablissement
     )
 
 
@@ -228,14 +230,14 @@ def create_date_fermeture_etablissement_table(**kwargs):
         index_column="siret",
     )
 
-    for count_etablissements in sqlite_client.execute(get_table_count(table_name)):
+    for count_etablissement in sqlite_client.execute(get_table_count(table_name)):
         logging.info(
-            f"************ {count_etablissements} total records have been added to the "
+            f"************ {count_etablissement} total records have been added to the "
             f"{table_name} table!"
         )
     sqlite_client.commit_and_close_conn()
     kwargs["ti"].xcom_push(
-        key="count_date_fermeture_etablissements", value=count_etablissements
+        key="count_date_fermeture_etablissement", value=count_etablissement
     )
 
 

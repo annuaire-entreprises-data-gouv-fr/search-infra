@@ -1,4 +1,4 @@
-create_table_etablissements_query = """CREATE TABLE IF NOT EXISTS siret
+create_table_etablissement_query = """CREATE TABLE IF NOT EXISTS etablissement
             (
             siren TEXT,
             siret TEXT PRIMARY KEY,
@@ -56,7 +56,7 @@ create_table_etablissements_query = """CREATE TABLE IF NOT EXISTS siret
             )
             """
 
-create_table_siret_siege_query = """CREATE TABLE IF NOT EXISTS siretsiege
+create_table_siege_query = """CREATE TABLE IF NOT EXISTS siege
             (
             siren TEXT,
             siret TEXT PRIMARY KEY,
@@ -114,7 +114,7 @@ create_table_siret_siege_query = """CREATE TABLE IF NOT EXISTS siretsiege
             )
     """
 
-create_table_flux_etablissements_query = """CREATE TABLE IF NOT EXISTS flux_siret
+create_table_flux_etablissement_query = """CREATE TABLE IF NOT EXISTS flux_etablissement
             (
             siren TEXT,
             siret TEXT PRIMARY KEY,
@@ -170,34 +170,38 @@ create_table_flux_etablissements_query = """CREATE TABLE IF NOT EXISTS flux_sire
             """
 
 
-create_table_count_etablissements_query = """CREATE TABLE count_etab (siren VARCHAR(
-10), count INTEGER)"""
+create_table_count_etablissement_query = """
+        CREATE TABLE count_etablissement
+        (siren VARCHAR(10), count INTEGER)"""
 
-count_etablissements_ouverts_query = """
-        INSERT INTO count_etab_ouvert (siren, count)
+
+create_table_count_etablissement_ouvert_query = """
+        CREATE TABLE count_etablissement_ouvert (
+        siren VARCHAR(10), count INTEGER)
+        """
+
+count_etablissement_ouvert_query = """
+        INSERT INTO count_etablissement_ouvert (siren, count)
         SELECT siren, count(*) as count
-        FROM siret
+        FROM etablissement
         WHERE etat_administratif_etablissement = 'A' GROUP BY siren;
         """
 
-count_nombre_etablissements_ouverts_query = """
-        INSERT INTO count_etab_ouvert (siren, count)
+count_nombre_etablissement_ouvert_query = """
+        INSERT INTO count_etablissement_ouvert (siren, count)
         SELECT siren, count(*) as count
-        FROM siret
+        FROM etablissement
         WHERE etat_administratif_etablissement = 'A' GROUP BY siren;
         """
 
-count_nombre_etablissements_query = """
-        INSERT INTO count_etab (siren, count)
+count_nombre_etablissement_query = """
+        INSERT INTO count_etablissement (siren, count)
         SELECT siren, count(*) as count
-        FROM siret GROUP BY siren;
+        FROM etablissement GROUP BY siren;
         """
 
-create_table_count_etablissements_ouverts_query = """CREATE TABLE count_etab_ouvert (
-siren VARCHAR(10), count INTEGER)"""
 
-
-populate_table_siret_siege_query = """INSERT INTO siretsiege (
+populate_table_siege_query = """INSERT INTO siege (
             siren,
             siret,
             date_creation,
@@ -306,12 +310,12 @@ populate_table_siret_siege_query = """INSERT INTO siretsiege (
             date_mise_a_jour_insee,
             date_mise_a_jour_rne,
             date_fermeture_etablissement
-        FROM siret
+        FROM etablissement
         WHERE est_siege = 'true';
     """
 
-replace_table_siret_siege_query = """
-        REPLACE INTO siretsiege
+replace_table_siege_query = """
+        REPLACE INTO siege
         (
             siren,
             siret,
@@ -412,13 +416,13 @@ replace_table_siret_siege_query = """
             a.date_fermeture_etablissement,
             a.x,
             a.y
-        FROM flux_siret a LEFT JOIN siretsiege b
+        FROM flux_etablissement a LEFT JOIN siege b
         ON a.siret = b.siret
         WHERE a.est_siege = 'true'
     """
 
 replace_table_etablissement_query = """
-        REPLACE INTO siret
+        REPLACE INTO etablissement
         (
             siren,
             siret,
@@ -517,22 +521,22 @@ replace_table_etablissement_query = """
             a.date_fermeture_etablissement,
             a.x,
             a.y
-        FROM flux_siret a LEFT JOIN siret b
+        FROM flux_etablissement a LEFT JOIN etablissement b
         ON a.siret = b.siret
     """
 
-update_sieges_table_fields_with_rne_data_query = """
-            UPDATE siretsiege
+update_siege_table_fields_with_rne_data_query = """
+            UPDATE siege
             SET date_mise_a_jour_rne = (
                     SELECT date_mise_a_jour
-                    FROM db_rne.sieges
-                    WHERE siretsiege.siren = db_rne.sieges.siren
+                    FROM db_rne.siege
+                    WHERE siege.siren = db_rne.siege.siren
                     )
-            WHERE siren IN (SELECT siren FROM db_rne.sieges)
+            WHERE siren IN (SELECT siren FROM db_rne.siege)
         """
 
-insert_remaining_rne_sieges_data_into_main_table_query = """
-            INSERT OR IGNORE INTO siretsiege
+insert_remaining_rne_siege_data_into_main_table_query = """
+            INSERT OR IGNORE INTO siege
             SELECT DISTINCT
                 siren,
                 siret,
@@ -587,8 +591,8 @@ insert_remaining_rne_sieges_data_into_main_table_query = """
                 NULL as date_mise_a_jour_insee,
                 date_mise_a_jour AS date_mise_a_jour_rne,
                 NULL as date_fermeture_etablissement
-                FROM db_rne.sieges
-                WHERE siren NOT IN (SELECT siren FROM siretsiege)
+                FROM db_rne.siege
+                WHERE siren NOT IN (SELECT siren FROM siege)
         """
 
 create_table_historique_etablissement_query = """
@@ -614,21 +618,21 @@ create_table_date_fermeture_etablissement_query = """
 
 
 insert_date_fermeture_etablissement_query = """
-    UPDATE siret
+    UPDATE etablissement
     SET date_fermeture_etablissement = (
         SELECT date_fermeture_etablissement
         FROM date_fermeture_etablissement
-        WHERE siret.siret = date_fermeture_etablissement.siret
+        WHERE etablissement.siret = date_fermeture_etablissement.siret
     )
-    WHERE siret.etat_administratif_etablissement = 'F'
+    WHERE etablissement.etat_administratif_etablissement = 'F'
 """
 
 insert_date_fermeture_siege_query = """
-    UPDATE siretsiege
+    UPDATE siege
     SET date_fermeture_etablissement = (
         SELECT date_fermeture_etablissement
         FROM date_fermeture_etablissement
-        WHERE siretsiege.siret = date_fermeture_etablissement.siret
+        WHERE siege.siret = date_fermeture_etablissement.siret
     )
-    WHERE siretsiege.etat_administratif_etablissement = 'F'
+    WHERE siege.etat_administratif_etablissement = 'F'
 """

@@ -14,5 +14,5 @@ select_sitemap_fields_query = """SELECT
         FROM
             unite_legale ul
         JOIN
-            siretsiege st
+            siege st
         ON st.siren = ul.siren;"""  # noqa

@@ -7,16 +7,16 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.unite_leg
     import (
     preprocess_historique_unite_legale_data,
     preprocess_unite_legale_data,
-    process_anciens_sieges_flux,
+    process_ancien_siege_flux,
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.unite_legale\
     import (
     create_table_date_fermeture_unite_legale_query,
     create_table_flux_unite_legale_query,
     create_table_historique_unite_legale_query,
-    create_table_anciens_sieges_query,
+    create_table_ancien_siege_query,
     create_table_unite_legale_query,
-    delete_current_siege_from_anciens_sieges_query,
+    delete_current_siege_from_ancien_siege_query,
     insert_date_fermeture_unite_legale_query,
     replace_table_unite_legale_query,
     insert_remaining_rne_data_into_main_table_query,
@@ -59,13 +59,13 @@ def create_table(query, table_name, index, sirene_file_type):
 
     del df_unite_legale
 
-    for count_unites_legales in sqlite_client.execute(get_table_count(table_name)):
+    for count_unite_legale in sqlite_client.execute(get_table_count(table_name)):
         logging.info(
-            f"************ {count_unites_legales} total records have been added to the "
+            f"************ {count_unite_legale} total records have been added to the "
             f"{table_name} table!"
         )
     sqlite_client.commit_and_close_conn()
-    return count_unites_legales[0]
+    return count_unite_legale[0]
 
 
 def create_unite_legale_table(**kwargs):
@@ -75,7 +75,7 @@ def create_unite_legale_table(**kwargs):
         "index_siren",
         "stock",
     )
-    kwargs["ti"].xcom_push(key="count_unites_legales", value=counts)
+    kwargs["ti"].xcom_push(key="count_unite_legale", value=counts)
 
 
 def create_flux_unite_legale_table(**kwargs):
@@ -85,15 +85,15 @@ def create_flux_unite_legale_table(**kwargs):
         "index_flux_siren",
         "flux",
     )
-    kwargs["ti"].xcom_push(key="count_flux_unites_legales", value=counts)
+    kwargs["ti"].xcom_push(key="count_flux_unite_legale", value=counts)
 
 
 def add_ancien_siege_flux_data(**kwargs):
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
 
-    table_name = "anciens_sieges"
+    table_name = "ancien_siege"
 
-    for df_unite_legale in process_anciens_sieges_flux(AIRFLOW_ETL_DATA_DIR):
+    for df_unite_legale in process_ancien_siege_flux(AIRFLOW_ETL_DATA_DIR):
         df_unite_legale.to_sql(
             table_name, sqlite_client.db_conn, if_exists="append", index=False
         )
@@ -103,7 +103,7 @@ def add_ancien_siege_flux_data(**kwargs):
                 f"to the {table_name} table!"
             )
     del df_unite_legale
-    sqlite_client.execute(delete_current_siege_from_anciens_sieges_query)
+    sqlite_client.execute(delete_current_siege_from_ancien_siege_query)
     for row in sqlite_client.execute(get_table_count(table_name)):
         logging.info(
             f"************ {row} final records have been added "
@@ -152,10 +152,10 @@ def add_rne_data_to_unite_legale_table(**kwargs):
 def create_historique_unite_legale_tables(**kwargs):
 
     sqlite_client = create_table_model(
-        table_name="anciens_sieges",
-        create_table_query=create_table_anciens_sieges_query,
+        table_name="ancien_siege",
+        create_table_query=create_table_ancien_siege_query,
         create_index_func=create_index,
-        index_name="index_anciens_sieges",
+        index_name="index_ancien_siege",
         index_column="siret",
     )
     sqlite_client.commit_and_close_conn()
@@ -171,7 +171,7 @@ def create_historique_unite_legale_tables(**kwargs):
 
     for (
         df_hist_unite_legale,
-        df_anciens_sieges,
+        df_ancien_siege,
     ) in preprocess_historique_unite_legale_data(
         AIRFLOW_ETL_DATA_DIR,
     ):
@@ -179,8 +179,8 @@ def create_historique_unite_legale_tables(**kwargs):
             table_name, sqlite_client.db_conn, if_exists="append", index=False
         )
 
-        df_anciens_sieges.to_sql(
-            "anciens_sieges",
+        df_ancien_siege.to_sql(
+            "ancien_siege",
             sqlite_client.db_conn,
             if_exists="append",
             index=False,
@@ -191,22 +191,22 @@ def create_historique_unite_legale_tables(**kwargs):
                 f"************ {row} total records have been added "
                 f"to the {table_name} table!"
             )
-        for row in sqlite_client.execute(get_table_count("anciens_sieges")):
+        for row in sqlite_client.execute(get_table_count("ancien_siege")):
             logging.debug(
                 f"************ {row} total records have been added "
-                f"to the anciens_sieges table!"
+                f"to the ancien_siege table!"
             )
 
     del df_hist_unite_legale
 
-    for count_unites_legales in sqlite_client.execute(get_table_count(table_name)):
+    for count_unite_legale in sqlite_client.execute(get_table_count(table_name)):
         logging.info(
-            f"************ {count_unites_legales} total records have been added to the "
+            f"************ {count_unite_legale} total records have been added to the "
             f"{table_name} table!"
         )
     sqlite_client.commit_and_close_conn()
     kwargs["ti"].xcom_push(
-        key="count_historique_unites_legales", value=count_unites_legales
+        key="count_historique_unite_legale", value=count_unite_legale
     )
 
 
@@ -220,14 +220,14 @@ def create_date_fermeture_unite_legale_table(**kwargs):
         index_column="siren",
     )
 
-    for count_unites_legales in sqlite_client.execute(get_table_count(table_name)):
+    for count_unite_legale in sqlite_client.execute(get_table_count(table_name)):
         logging.info(
-            f"************ {count_unites_legales} total records have been added to the "
+            f"************ {count_unite_legale} total records have been added to the "
             f"{table_name} table!"
         )
     sqlite_client.commit_and_close_conn()
     kwargs["ti"].xcom_push(
-        key="count_date_fermeture_unites_legales", value=count_unites_legales
+        key="count_date_fermeture_unite_legale", value=count_unite_legale
     )
 
 

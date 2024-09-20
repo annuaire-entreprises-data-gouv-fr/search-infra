@@ -35,9 +35,9 @@ select_fields_to_index_query = """SELECT
                         siren = ul.siren) as sirets_par_idcc,
             (SELECT liste_idcc_unite_legale FROM convention_collective WHERE
                         siren = ul.siren) as liste_idcc_unite_legale,
-            (SELECT count FROM count_etab ce WHERE ce.siren = ul.siren) as
+            (SELECT count FROM count_etablissement ce WHERE ce.siren = ul.siren) as
             nombre_etablissements,
-            (SELECT count FROM count_etab_ouvert ceo WHERE ceo.siren = ul.siren) as
+            (SELECT count FROM count_etablissement_ouvert ceo WHERE ceo.siren = ul.siren) as
             nombre_etablissements_ouverts,
             (
                 SELECT json_object(
@@ -69,7 +69,7 @@ select_fields_to_index_query = """SELECT
                 (
                     SELECT siren, date_mise_a_jour, date_de_naissance, nom,
                     nom_usage, prenoms, nationalite, role_description
-                    FROM dirigeants_pp
+                    FROM dirigeant_pp
                     WHERE siren = ul.siren
                 )
             ) as dirigeants_pp,
@@ -86,7 +86,7 @@ select_fields_to_index_query = """SELECT
                     (
                         SELECT siren, date_mise_a_jour, denomination, siren_dirigeant,
                         role_description, forme_juridique
-                        FROM dirigeants_pm
+                        FROM dirigeant_pm
                         WHERE siren = ul.siren
                     )
                 ) as dirigeants_pm,
@@ -105,7 +105,7 @@ select_fields_to_index_query = """SELECT
                 (
                     SELECT siren, date_mise_a_jour, date_de_naissance, nom,
                     nom_usage, prenoms, nationalite, role_description
-                    FROM beneficiaires
+                    FROM beneficiaire
                     WHERE siren = ul.siren
                 )
             ) as beneficiaires_effectifs,
@@ -181,7 +181,7 @@ select_fields_to_index_query = """SELECT
                         CASE
                             WHEN EXISTS (
                                 SELECT 1
-                                FROM anciens_sieges
+                                FROM ancien_siege
                                 WHERE siret = s.siret
                                 )
                                 THEN TRUE
@@ -249,7 +249,7 @@ select_fields_to_index_query = """SELECT
                         s.type_voie_2 as type_voie_2,
                         s.x as x,
                         s.y as y
-                        FROM siret s
+                        FROM etablissement s
                         WHERE s.siren = ul.siren
                     )
                 ) as etablissements,
@@ -386,7 +386,7 @@ select_fields_to_index_query = """SELECT
                         s.date_mise_a_jour_rne as date_mise_a_jour_rne,
                         s.x as x,
                         s.y as y
-                        FROM siretsiege as s
+                        FROM siege as s
                         WHERE s.siren = st.siren
                     )
                 ) as siege,
@@ -452,7 +452,7 @@ select_fields_to_index_query = """SELECT
             FROM
                 unite_legale ul
             LEFT JOIN
-                siretsiege st
+                siege st
             ON
                 ul.siren = st.siren
             WHERE ul.siren IS NOT NULL;"""

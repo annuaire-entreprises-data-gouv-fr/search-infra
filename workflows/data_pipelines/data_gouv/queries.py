@@ -90,12 +90,12 @@ SELECT ul.etat_administratif_unite_legale as etat_administratif,
     ul.nom_usage as nom_usage,
     (
         SELECT count
-        FROM count_etab ce
+        FROM count_etablissement ce
         WHERE ce.siren = ul.siren
     ) as nombre_etablissements,
     (
         SELECT count
-        FROM count_etab_ouvert ceo
+        FROM count_etablissement_ouvert ceo
         WHERE ceo.siren = ul.siren
     ) as nombre_etablissements_ouverts,
     ul.prenom as prenom,
@@ -113,7 +113,7 @@ SELECT ul.etat_administratif_unite_legale as etat_administratif,
         WHERE siren = ul.siren
     ) as type_siae
 FROM unite_legale ul
-    LEFT JOIN siretsiege st ON ul.siren = st.siren
+    LEFT JOIN siege st ON ul.siren = st.siren
 WHERE ul.siren IS NOT NULL;
 """
 
@@ -123,7 +123,7 @@ etab_fields_to_select = """SELECT s.activite_principale as activite_principale,
     CASE
         WHEN EXISTS (
             SELECT 1
-            FROM anciens_sieges
+            FROM ancien_siege
             WHERE siret = s.siret
             )
             THEN TRUE
@@ -186,5 +186,5 @@ etab_fields_to_select = """SELECT s.activite_principale as activite_principale,
     s.type_voie as type_voie,
     s.x as x,
     s.y as y
-FROM siret s;
+FROM etablissement s;
                         """
