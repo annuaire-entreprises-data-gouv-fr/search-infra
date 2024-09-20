@@ -169,11 +169,16 @@ def download_historique(data_dir):
     return df_iterator
 
 
-def preprocess_etablissement_data(siret_file_type, departement=None, data_dir=None):
+def preprocess_etablissement_data(
+    siret_file_type, departement=None, data_dir=None, **kwargs
+):
     if siret_file_type == "stock":
         df_etablissement = download_stock(departement)
     if siret_file_type == "flux":
-        df_etablissement = download_flux(data_dir)
+        df_etablissement, date_last_modified = download_flux(data_dir)
+        kwargs["ti"].xcom_push(
+            key="sirene_etablissement_last_modified", value=date_last_modified
+        )
 
     # Insert rows in database
     df_etablissement["etablissementSiege"] = df_etablissement[
