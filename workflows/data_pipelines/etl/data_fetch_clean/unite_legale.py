@@ -71,11 +71,15 @@ def extract_nic_list(periods_data):
     return list(set(nic_list))
 
 
-def preprocess_unite_legale_data(data_dir, sirene_file_type):
+def preprocess_unite_legale_data(data_dir, sirene_file_type, **kwargs):
     if sirene_file_type == "stock":
         df_iterator = download_stock(data_dir)
+
     if sirene_file_type == "flux":
-        df_iterator = download_flux(data_dir)
+        df_iterator, date_last_modified = download_flux(data_dir)
+        kwargs["ti"].xcom_push(
+            key="sirene_unite_legale_last_modified", value=date_last_modified
+        )
 
     # Insert rows in database by chunk
     for _, df_unite_legale in enumerate(df_iterator):
@@ -187,7 +191,7 @@ def process_ancien_siege_flux(data_dir):
 
     The function is a generator, yielding the resulting DataFrame in chunks.
     """
-    df_iterator = download_flux(data_dir)
+    df_iterator, _ = download_flux(data_dir)
 
     for _, df_unite_legale in enumerate(df_iterator):
         df_expanded = (
