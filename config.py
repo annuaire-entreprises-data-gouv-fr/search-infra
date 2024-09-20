@@ -51,6 +51,7 @@ FORMATION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}formation/"
 ESS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}ess/"
 COLTER_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}colter/"
 CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
+MINIO_DATA_SOURCE_UPDATE_DATES_FILE = "data_source_updates.json"
 
 # Insee
 INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
@@ -214,7 +215,7 @@ URL_RGE = (
     "liste-des-entreprises-rge-2/lines?size=10000&select=siret%2Ccode_qualification"
 )
 URL_MINIO_RGE = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/rge" "/latest/rge.csv"
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/rge/latest/rge.csv"
 )
 URL_UAI = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/uai"
