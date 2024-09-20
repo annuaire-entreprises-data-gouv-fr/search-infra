@@ -72,7 +72,7 @@ select_fields_to_index_query = """SELECT
                     FROM dirigeant_pp
                     WHERE siren = ul.siren
                 )
-            ) as dirigeant_pp,
+            ) as dirigeants_pp,
             (SELECT json_group_array(
                     json_object(
                         'siren', siren,
@@ -89,7 +89,7 @@ select_fields_to_index_query = """SELECT
                         FROM dirigeant_pm
                         WHERE siren = ul.siren
                     )
-                ) as dirigeant_pm,
+                ) as dirigeants_pm,
             (SELECT json_group_array(
                 json_object(
                     'siren', siren,

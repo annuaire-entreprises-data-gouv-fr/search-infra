@@ -165,7 +165,7 @@ with DAG(
     )
 
     count_nombre_etablissement_ouvert = PythonOperator(
-        task_id="count_nombre_etablissement_ouverts",
+        task_id="count_nombre_etablissement_ouvert",
         provide_context=True,
         python_callable=count_nombre_etablissement_ouvert,
     )
