@@ -41,11 +41,12 @@ from dag_datalake_sirene.config import (
 )
 
 
-def get_latest_rne_database():
-    minio_client.get_latest_file_minio(
+def get_latest_rne_database(**kwargs):
+    latest_file_date = minio_client.get_latest_file(
         f"ae/{AIRFLOW_ENV}/rne/database/",
         f"{RNE_DATABASE_LOCATION}.gz",
     )
+    kwargs["ti"].xcom_push(key="rne_last_modified", value=latest_file_date)
 
     logging.info(f"******* Getting file : {RNE_DATABASE_LOCATION}.gz")
     # Unzip database file
