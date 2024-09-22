@@ -7,6 +7,7 @@ from dag_datalake_sirene.config import (
     URL_ESS_FRANCE,
 )
 from dag_datalake_sirene.helpers.tchap import send_message
+from dag_datalake_sirene.helpers.utils import get_date_last_modified, save_to_metadata
 
 
 def preprocess_ess_france_data(ti):
@@ -19,6 +20,10 @@ def preprocess_ess_france_data(ti):
     df_ess.to_csv(f"{ESS_TMP_FOLDER}ess_france.csv", index=False)
     ti.xcom_push(key="nb_siren_ess", value=str(df_ess["siren"].nunique()))
 
+    date_last_modified = get_date_last_modified(url=URL_ESS_FRANCE)
+    save_to_metadata(f"{ESS_TMP_FOLDER}metadata.json", "ess-france", date_last_modified)
+    logging.info(f"%%%%%%%% Last modified: {date_last_modified}")
+
 
 def send_file_to_minio():
     minio_client.send_files(
@@ -29,21 +34,35 @@ def send_file_to_minio():
                 "dest_path": "ess/new/",
                 "dest_name": "ess_france.csv",
             },
+            {
+                "source_path": ESS_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "ess/new/",
+                "dest_name": "metadata.json",
+            },
         ],
     )
 
 
 def compare_files_minio():
-    is_same = minio_client.compare_files(
+    are_files_identical = minio_client.compare_files(
         file_path_1="ess/new/",
         file_name_2="ess_france.csv",
         file_path_2="ess/latest/",
         file_name_1="ess_france.csv",
     )
-    if is_same:
+
+    are_metadata_identical = minio_client.compare_files(
+        file_path_1="ess/new/",
+        file_name_2="metadata.json",
+        file_path_2="ess/latest/",
+        file_name_1="metadata.json",
+    )
+
+    if are_files_identical and are_metadata_identical:
         return False
 
-    if is_same is None:
+    if are_files_identical is None:
         logging.info("First time in this Minio env. Creating")
 
     minio_client.send_files(
@@ -53,6 +72,12 @@ def compare_files_minio():
                 "source_name": "ess_france.csv",
                 "dest_path": "ess/latest/",
                 "dest_name": "ess_france.csv",
+            },
+            {
+                "source_path": ESS_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "ess/latest/",
+                "dest_name": "metadata.json",
             },
         ],
     )
