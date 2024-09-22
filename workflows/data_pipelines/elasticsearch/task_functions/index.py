@@ -18,16 +18,7 @@ from workflows.data_pipelines.elasticsearch.\
     index_unites_legales_by_chunk,
 )
 # fmt: on
-from config import (
-    AIRFLOW_ELK_DATA_DIR,
-    ELASTIC_URL,
-    ELASTIC_USER,
-    ELASTIC_PASSWORD,
-    ELASTIC_BULK_THREAD_COUNT,
-    ELASTIC_BULK_SIZE,
-    ELASTIC_MAX_LIVE_VERSIONS,
-)
-
+from helpers.settings import Settings
 
 def get_next_index_name(**kwargs):
     current_date = datetime.today().strftime("%Y%m%d%H%M%S")
@@ -41,11 +32,11 @@ def create_elastic_index(**kwargs):
     )
     logging.info(f"******************** Index to create: {elastic_index}")
     create_index = ElasticCreateIndex(
-        elastic_url=ELASTIC_URL,
+        elastic_url=Settings.ELASTIC_URL,
         elastic_index=elastic_index,
-        elastic_user=ELASTIC_USER,
-        elastic_password=ELASTIC_PASSWORD,
-        elastic_bulk_size=ELASTIC_BULK_SIZE,
+        elastic_user=Settings.ELASTIC_USER,
+        elastic_password=Settings.ELASTIC_PASSWORD,
+        elastic_bulk_size=Settings.ELASTIC_BULK_SIZE,
     )
     create_index.execute()
 
@@ -54,12 +45,12 @@ def fill_elastic_siren_index(**kwargs):
     elastic_index = kwargs["ti"].xcom_pull(
         key="elastic_index", task_ids="get_next_index_name"
     )
-    sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db")
+    sqlite_client = SqliteClient(Settings.AIRFLOW_ELK_DATA_DIR + "sirene.db")
     sqlite_client.execute(select_fields_to_index_query)
 
     connections.create_connection(
-        hosts=[ELASTIC_URL],
-        http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        hosts=[Settings.ELASTIC_URL],
+        http_auth=(Settings.ELASTIC_USER, Settings.ELASTIC_PASSWORD),
         retry_on_timeout=True,
     )
     elastic_connection = connections.get_connection()
@@ -67,8 +58,8 @@ def fill_elastic_siren_index(**kwargs):
     doc_count = index_unites_legales_by_chunk(
         cursor=sqlite_client.db_cursor,
         elastic_connection=elastic_connection,
-        elastic_bulk_thread_count=ELASTIC_BULK_THREAD_COUNT,
-        elastic_bulk_size=ELASTIC_BULK_SIZE,
+        elastic_bulk_thread_count=Settings.ELASTIC_BULK_THREAD_COUNT,
+        elastic_bulk_size=Settings.ELASTIC_BULK_SIZE,
         elastic_index=elastic_index,
     )
     kwargs["ti"].xcom_push(key="doc_count", value=doc_count)
@@ -90,8 +81,8 @@ def check_elastic_index(**kwargs):
 
 def delete_previous_elastic_indices(**kwargs):
     connections.create_connection(
-        hosts=[ELASTIC_URL],
-        http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        hosts=[Settings.ELASTIC_URL],
+        http_auth=(Settings.ELASTIC_USER, Settings.ELASTIC_PASSWORD),
         retry_on_timeout=True,
     )
 
@@ -105,7 +96,7 @@ def delete_previous_elastic_indices(**kwargs):
     ]
     indices = list(sorted(indices, key=lambda index: index["index"]))
 
-    to_remove = indices[:-ELASTIC_MAX_LIVE_VERSIONS]
+    to_remove = indices[:-Settings.ELASTIC_MAX_LIVE_VERSIONS]
 
     for index in to_remove:
         logging.info(f'Removing index {index["index"]}')
@@ -129,8 +120,8 @@ def update_elastic_alias(**kwargs):
     """
 
     connections.create_connection(
-        hosts=[ELASTIC_URL],
-        http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        hosts=[Settings.ELASTIC_URL],
+        http_auth=(Settings.ELASTIC_USER, Settings.ELASTIC_PASSWORD),
         retry_on_timeout=True,
     )
 

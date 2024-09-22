@@ -15,8 +15,7 @@ from elasticsearch_dsl import (
     token_filter,
     tokenizer,
 )
-from config import ELASTIC_SHARDS, ELASTIC_REPLICAS
-
+from helpers.settings import Settings
 # Define filters
 french_stop = token_filter("french_stop", type="stop", stopwords="_french_")
 french_stemmer = token_filter(
@@ -386,8 +385,8 @@ class StructureMapping(Document):
 
     class Index:
         settings = {
-            "number_of_shards": ELASTIC_SHARDS,
-            "number_of_replicas": ELASTIC_REPLICAS,
+            "number_of_shards": Settings.ELASTIC_SHARDS,
+            "number_of_replicas": Settings.ELASTIC_REPLICAS,
             "mapping": {"ignore_malformed": True},
             "index.mapping.nested_objects.limit": 20000,
         }

@@ -7,19 +7,13 @@ from helpers.flush_cache import flush_cache
 from helpers.execute_slow_queries import (
     execute_slow_requests,
 )
-from config import (
-    EMAIL_LIST,
-    REDIS_HOST,
-    REDIS_PORT,
-    REDIS_DB,
-    REDIS_PASSWORD,
-)
+from helpers.settings import Settings
 
 DAG_NAME = "flush_cache_and_execute_queries"
 
 default_args = {
     "depends_on_past": False,
-    "email": EMAIL_LIST,
+    "email": Settings.EMAIL_LIST,
     "email_on_failure": True,
 }
 
@@ -36,10 +30,10 @@ with DAG(
         provide_context=True,
         python_callable=flush_cache,
         op_args=(
-            REDIS_HOST,
-            REDIS_PORT,
-            REDIS_DB,
-            REDIS_PASSWORD,
+            Settings.REDIS_HOST,
+            Settings.REDIS_PORT,
+            Settings.REDIS_DB,
+            Settings.REDIS_PASSWORD,
         ),
     )
 

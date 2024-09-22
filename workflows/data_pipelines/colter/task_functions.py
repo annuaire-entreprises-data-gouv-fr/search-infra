@@ -5,22 +5,12 @@ import zipfile
 from helpers.minio_helpers import minio_client
 from helpers.tchap import send_message
 from helpers.utils import get_current_year
-from config import (
-    COLTER_TMP_FOLDER,
-    URL_COLTER_REGIONS,
-    URL_COLTER_DEP,
-    URL_COLTER_COMMUNES,
-    URL_ELUS_EPCI,
-    URL_CONSEILLERS_REGIONAUX,
-    URL_CONSEILLERS_DEPARTEMENTAUX,
-    URL_CONSEILLERS_MUNICIPAUX,
-    URL_ASSEMBLEE_COL_STATUT_PARTICULIER,
-)
+from helpers.settings import Settings
 
 
 def preprocess_colter_data():
     # Process Régions
-    df_regions = pd.read_csv(URL_COLTER_REGIONS, dtype=str, sep=";")
+    df_regions = pd.read_csv(Settings.URL_COLTER_REGIONS, dtype=str, sep=";")
     df_regions = df_regions[df_regions["exer"] == df_regions.exer.max()][
         ["reg_code", "siren"]
     ]
@@ -36,7 +26,7 @@ def preprocess_colter_data():
     df_colter = df_regions
 
     # Process Départements
-    df_deps = pd.read_csv(URL_COLTER_DEP, dtype=str, sep=";")
+    df_deps = pd.read_csv(Settings.URL_COLTER_DEP, dtype=str, sep=";")
     df_deps = df_deps[df_deps["exer"] == df_deps["exer"].max()]
     df_deps = df_deps[["dep_code", "siren"]]
     df_deps = df_deps.drop_duplicates(keep="first")
@@ -64,8 +54,8 @@ def preprocess_colter_data():
     df_colter = pd.concat([df_colter, df_deps])
 
     # Process EPCI
-    URL_COLTER_EPCI = get_epci_url()
-    df_epci = pd.read_excel(URL_COLTER_EPCI, dtype=str, engine="openpyxl")
+    url_colter_epci = get_epci_url()
+    df_epci = pd.read_excel(url_colter_epci, dtype=str, engine="openpyxl")
     df_epci["colter_code_insee"] = None
     df_epci["colter_code"] = df_epci["siren"]
     df_epci["colter_niveau"] = "epci"
@@ -73,14 +63,14 @@ def preprocess_colter_data():
     df_colter = pd.concat([df_colter, df_epci])
 
     # Process Communes
-    response = requests.get(URL_COLTER_COMMUNES)
-    open(f"{COLTER_TMP_FOLDER}siren-communes.zip", "wb").write(response.content)
+    response = requests.get(Settings.URL_COLTER_COMMUNES)
+    open(f"{Settings.COLTER_TMP_FOLDER}siren-communes.zip", "wb").write(response.content)
 
-    with zipfile.ZipFile(f"{COLTER_TMP_FOLDER}siren-communes.zip", "r") as zip_ref:
-        zip_ref.extractall(f"{COLTER_TMP_FOLDER}siren-communes")
+    with zipfile.ZipFile(f"{Settings.COLTER_TMP_FOLDER}siren-communes.zip", "r") as zip_ref:
+        zip_ref.extractall(f"{Settings.COLTER_TMP_FOLDER}siren-communes")
 
     df_communes = pd.read_excel(
-        f"{COLTER_TMP_FOLDER}siren-communes/Banatic_SirenInsee2022.xlsx",
+        f"{Settings.COLTER_TMP_FOLDER}siren-communes/Banatic_SirenInsee2022.xlsx",
         dtype=str,
         engine="openpyxl",
     )
@@ -96,22 +86,22 @@ def preprocess_colter_data():
     )
 
     df_colter = pd.concat([df_colter, df_communes])
-    df_colter.to_csv(f"{COLTER_TMP_FOLDER}colter-new.csv", index=False)
+    df_colter.to_csv(f"{Settings.COLTER_TMP_FOLDER}colter-new.csv", index=False)
     del df_communes
     del df_colter
 
 
 def preprocess_elus_data():
-    df_colter = pd.read_csv(f"{COLTER_TMP_FOLDER}colter-new.csv", dtype=str)
+    df_colter = pd.read_csv(f"{Settings.COLTER_TMP_FOLDER}colter-new.csv", dtype=str)
     # Conseillers régionaux
     elus = process_elus_files(
-        URL_CONSEILLERS_REGIONAUX,
+        Settings.URL_CONSEILLERS_REGIONAUX,
         "Code de la région",
     )
 
     # Conseillers départementaux
     df_elus_deps = process_elus_files(
-        URL_CONSEILLERS_DEPARTEMENTAUX,
+        Settings.URL_CONSEILLERS_DEPARTEMENTAUX,
         "Code du département",
     )
     df_elus_deps["colter_code"] = df_elus_deps["colter_code"] + "D"
@@ -120,7 +110,7 @@ def preprocess_elus_data():
 
     # membres des assemblées des collectivités à statut particulier
     df_elus_part = process_elus_files(
-        URL_ASSEMBLEE_COL_STATUT_PARTICULIER,
+        Settings.URL_ASSEMBLEE_COL_STATUT_PARTICULIER,
         "Code de la collectivité à statut particulier",
     )
     df_elus_part.loc[df_elus_part["colter_code"] == "972", "colter_code"] = "02"
@@ -129,14 +119,14 @@ def preprocess_elus_data():
 
     # Conseillers communautaires
     df_elus_epci = process_elus_files(
-        URL_ELUS_EPCI,
+        Settings.URL_ELUS_EPCI,
         "N° SIREN",
     )
     elus = pd.concat([elus, df_elus_epci])
 
     # Conseillers municipaux
     df_elus_epci = process_elus_files(
-        URL_CONSEILLERS_MUNICIPAUX,
+        Settings.URL_CONSEILLERS_MUNICIPAUX,
         "Code de la commune",
     )
     df_elus_epci.loc[df_elus_epci["colter_code"] == "75056", "colter_code"] = "75C"
@@ -156,7 +146,7 @@ def preprocess_elus_data():
     for col in df_colter_elus.columns:
         df_colter_elus = df_colter_elus.rename(columns={col: col.replace("_elu", "")})
 
-    df_colter_elus.to_csv(f"{COLTER_TMP_FOLDER}colter-elus-new.csv", index=False)
+    df_colter_elus.to_csv(f"{Settings.COLTER_TMP_FOLDER}colter-elus-new.csv", index=False)
 
     del elus
     del df_elus_part
@@ -221,13 +211,13 @@ def send_file_to_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": COLTER_TMP_FOLDER,
+                "source_path": Settings.COLTER_TMP_FOLDER,
                 "source_name": "colter-elus-new.csv",
                 "dest_path": "colter/new/",
                 "dest_name": "elus.csv",
             },
             {
-                "source_path": COLTER_TMP_FOLDER,
+                "source_path": Settings.COLTER_TMP_FOLDER,
                 "source_name": "colter-new.csv",
                 "dest_path": "colter/new/",
                 "dest_name": "colter.csv",
@@ -252,7 +242,7 @@ def compare_files_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": COLTER_TMP_FOLDER,
+                "source_path": Settings.COLTER_TMP_FOLDER,
                 "source_name": "colter-new.csv",
                 "dest_path": "colter/latest/",
                 "dest_name": "colter.csv",
@@ -275,7 +265,7 @@ def compare_files_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": COLTER_TMP_FOLDER,
+                "source_path": Settings.COLTER_TMP_FOLDER,
                 "source_name": "colter-elus-new.csv",
                 "dest_path": "colter/latest/",
                 "dest_name": "elus.csv",

@@ -76,18 +76,11 @@ from workflows.data_pipelines.etl.task_functions.send_notification\
 from workflows.data_pipelines.etl.task_functions.upload_db import (
     upload_db_to_minio,
 )
-from config import (
-    AIRFLOW_DAG_TMP,
-    AIRFLOW_ETL_DAG_NAME,
-    AIRFLOW_DAG_FOLDER,
-    AIRFLOW_ELK_DAG_NAME,
-    EMAIL_LIST,
-)
-
+from helpers.settings import Settings
 
 default_args = {
     "depends_on_past": False,
-    "email": EMAIL_LIST,
+    "email": Settings.EMAIL_LIST,
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,
@@ -95,7 +88,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id=AIRFLOW_ETL_DAG_NAME,
+    dag_id=Settings.AIRFLOW_ETL_DAG_NAME,
     default_args=default_args,
     schedule_interval="0 9 * * *",  # Run everyday at 9 am
     start_date=datetime(2023, 12, 27),
@@ -107,7 +100,7 @@ with DAG(
 ) as dag:
     clean_previous_folder = CleanFolderOperator(
         task_id="clean_previous_folder",
-        folder_path=(f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ETL_DAG_NAME}"),
+        folder_path=(f"{Settings.AIRFLOW_DAG_TMP}{Settings.AIRFLOW_DAG_FOLDER}{Settings.AIRFLOW_ETL_DAG_NAME}"),
     )
 
     create_sqlite_database = PythonOperator(
@@ -346,12 +339,12 @@ with DAG(
 
     clean_folder = CleanFolderOperator(
         task_id="clean_folder",
-        folder_path=(f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ETL_DAG_NAME}"),
+        folder_path=(f"{Settings.AIRFLOW_DAG_TMP}{Settings.AIRFLOW_DAG_FOLDER}{Settings.AIRFLOW_ETL_DAG_NAME}"),
     )
 
     trigger_indexing_dag = TriggerDagRunOperator(
         task_id="trigger_indexing_dag",
-        trigger_dag_id=AIRFLOW_ELK_DAG_NAME,
+        trigger_dag_id=Settings.AIRFLOW_ELK_DAG_NAME,
         wait_for_completion=False,
         deferrable=False,
     )

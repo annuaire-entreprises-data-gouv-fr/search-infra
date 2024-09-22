@@ -1,13 +1,10 @@
 from typing import Optional, TypedDict
 import requests
 import os
-from config import (
-    DATAGOUV_URL,
-    DATAGOUV_SECRET_API_KEY,
-)
+from helpers.settings import Settings
 
 datagouv_session = requests.Session()
-datagouv_session.headers.update({"X-API-KEY": DATAGOUV_SECRET_API_KEY})
+datagouv_session.headers.update({"X-API-KEY": Settings.DATAGOUV_SECRET_API_KEY})
 
 
 class File(TypedDict):
@@ -28,7 +25,7 @@ def get_resource(
 
     """
     with datagouv_session.get(
-        f"{DATAGOUV_URL}/fr/datasets/r/{resource_id}", stream=True
+        f"{Settings.DATAGOUV_URL}/fr/datasets/r/{resource_id}", stream=True
     ) as r:
         r.raise_for_status()
         os.makedirs(os.path.dirname(file_to_store["dest_path"]), exist_ok=True)
@@ -55,9 +52,9 @@ def get_dataset_or_resource_metadata(
        json: return API result in a dictionnary containing metadatas
     """
     if resource_id:
-        url = f"{DATAGOUV_URL}/api/1/datasets/{dataset_id}/resources/{resource_id}/"
+        url = f"{Settings.DATAGOUV_URL}/api/1/datasets/{dataset_id}/resources/{resource_id}/"
     else:
-        url = f"{DATAGOUV_URL}/api/1/datasets/{dataset_id}"
+        url = f"{Settings.DATAGOUV_URL}/api/1/datasets/{dataset_id}"
     r = datagouv_session.get(url)
     if r.status_code == 200:
         return r.json()
@@ -97,18 +94,18 @@ def post_resource(
     }
     if resource_id:
         url = (
-            f"{DATAGOUV_URL}/api/1/datasets/{dataset_id}/resources/{resource_id}/"
+            f"{Settings.DATAGOUV_URL}/api/1/datasets/{dataset_id}/resources/{resource_id}/"
             "upload/"
         )
     else:
-        url = f"{DATAGOUV_URL}/api/1/datasets/{dataset_id}/upload/"
+        url = f"{Settings.DATAGOUV_URL}/api/1/datasets/{dataset_id}/upload/"
     r = datagouv_session.post(url, files=files)
     r.raise_for_status()
     if not resource_id:
         resource_id = r.json()["id"]
         print("Resource was given this id:", resource_id)
         url = (
-            f"{DATAGOUV_URL}/api/1/datasets/{dataset_id}/resources/{resource_id}/"
+            f"{Settings.DATAGOUV_URL}/api/1/datasets/{dataset_id}/resources/{resource_id}/"
             "upload/"
         )
     if resource_id and resource_payload:

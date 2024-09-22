@@ -31,24 +31,13 @@ from workflows.data_pipelines.elasticsearch.task_functions.\
 )
 # fmt: on
 from tests.e2e_tests.run_tests import run_e2e_tests
-from config import (
-    AIRFLOW_DAG_TMP,
-    AIRFLOW_ELK_DAG_NAME,
-    AIRFLOW_SNAPSHOT_DAG_NAME,
-    AIRFLOW_DAG_FOLDER,
-    EMAIL_LIST,
-    REDIS_HOST,
-    REDIS_PORT,
-    REDIS_DB,
-    REDIS_PASSWORD,
-    API_IS_REMOTE,
-)
+from helpers.settings import Settings
 from operators.clean_folder import CleanFolderOperator
 
 
 default_args = {
     "depends_on_past": False,
-    "email": EMAIL_LIST,
+    "email": Settings.EMAIL_LIST,
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,
@@ -56,7 +45,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id=AIRFLOW_ELK_DAG_NAME,
+    dag_id=Settings.AIRFLOW_ELK_DAG_NAME,
     default_args=default_args,
     schedule_interval=None,  # Triggered by database etl
     start_date=datetime(2023, 9, 4),
@@ -74,7 +63,7 @@ with DAG(
 
     clean_previous_folder = CleanFolderOperator(
         task_id="clean_previous_folder",
-        folder_path=f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ELK_DAG_NAME}",
+        folder_path=f"{Settings.AIRFLOW_DAG_TMP}{Settings.AIRFLOW_DAG_FOLDER}{Settings.AIRFLOW_ELK_DAG_NAME}",
     )
 
     get_latest_sqlite_database = create_sqlite_database = PythonOperator(
@@ -147,17 +136,17 @@ with DAG(
     create_sitemap.set_upstream(update_elastic_alias)
     update_sitemap.set_upstream(create_sitemap)
 
-    if API_IS_REMOTE:
+    if Settings.API_IS_REMOTE:
         trigger_snapshot_dag = TriggerDagRunOperator(
             task_id="trigger_snapshot_dag",
-            trigger_dag_id=AIRFLOW_SNAPSHOT_DAG_NAME,
+            trigger_dag_id=Settings.AIRFLOW_SNAPSHOT_DAG_NAME,
             wait_for_completion=True,
             deferrable=False,
         )
 
         clean_folder = CleanFolderOperator(
             task_id="clean_folder",
-            folder_path=f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ELK_DAG_NAME}",
+            folder_path=f"{Settings.AIRFLOW_DAG_TMP}{Settings.AIRFLOW_DAG_FOLDER}{Settings.AIRFLOW_ELK_DAG_NAME}",
         )
 
         trigger_snapshot_dag.set_upstream(update_elastic_alias)
@@ -170,15 +159,15 @@ with DAG(
             provide_context=True,
             python_callable=flush_cache,
             op_args=(
-                REDIS_HOST,
-                REDIS_PORT,
-                REDIS_DB,
-                REDIS_PASSWORD,
+                Settings.REDIS_HOST,
+                Settings.REDIS_PORT,
+                Settings.REDIS_DB,
+                Settings.REDIS_PASSWORD,
             ),
         )
         clean_folder = CleanFolderOperator(
             task_id="clean_folder",
-            folder_path=f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ELK_DAG_NAME}",
+            folder_path=f"{Settings.AIRFLOW_DAG_TMP}{Settings.AIRFLOW_DAG_FOLDER}{Settings.AIRFLOW_ELK_DAG_NAME}",
         )
         test_api.set_upstream(update_elastic_alias)
         clean_folder.set_upstream([test_api, update_sitemap])

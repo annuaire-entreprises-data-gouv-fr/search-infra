@@ -2,9 +2,7 @@ import pandas as pd
 import logging
 from datetime import datetime
 
-from config import (
-    BILANS_FINANCIERS_TMP_FOLDER,
-)
+from helpers.settings import Settings
 from helpers.datagouv import get_resource
 from helpers.tchap import send_message
 from helpers.utils import get_fiscal_year
@@ -16,7 +14,7 @@ def download_bilans_financiers():
     get_resource(
         resource_id="9d213815-1649-4527-9eb4-427146ef2e5b",
         file_to_store={
-            "dest_path": BILANS_FINANCIERS_TMP_FOLDER,
+            "dest_path": Settings.BILANS_FINANCIERS_TMP_FOLDER,
             "dest_name": "bilans_entreprises.csv",
         },
     )
@@ -32,7 +30,7 @@ def process_bilans_financiers(ti):
         "type_bilan",
     ]
     df_bilan = pd.read_csv(
-        f"{BILANS_FINANCIERS_TMP_FOLDER}bilans_entreprises.csv",
+        f"{Settings.BILANS_FINANCIERS_TMP_FOLDER}bilans_entreprises.csv",
         dtype=str,
         sep=";",
         usecols=fields,
@@ -42,6 +40,9 @@ def process_bilans_financiers(ti):
     )
     # Get the current fiscal year
     current_fiscal_year = get_fiscal_year(datetime.now())
+
+    # Convert 'date_cloture_exercice' to datetime
+    df_bilan['date_cloture_exercice'] = pd.to_datetime(df_bilan['date_cloture_exercice'], format='%Y-%m-%d', errors='coerce')
 
     # Filter out rows with fiscal years greater than the current fiscal year
     df_bilan["annee_cloture_exercice"] = df_bilan["date_cloture_exercice"].apply(
@@ -97,7 +98,7 @@ def process_bilans_financiers(ti):
     ]
 
     df_bilan.to_csv(
-        f"{BILANS_FINANCIERS_TMP_FOLDER}synthese_bilans.csv",
+        f"{Settings.BILANS_FINANCIERS_TMP_FOLDER}synthese_bilans.csv",
         index=False,
     )
 
@@ -108,7 +109,7 @@ def send_file_to_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": BILANS_FINANCIERS_TMP_FOLDER,
+                "source_path": Settings.BILANS_FINANCIERS_TMP_FOLDER,
                 "source_name": "synthese_bilans.csv",
                 "dest_path": "bilans_financiers/new/",
                 "dest_name": "synthese_bilans.csv",
@@ -133,7 +134,7 @@ def compare_files_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": BILANS_FINANCIERS_TMP_FOLDER,
+                "source_path": Settings.BILANS_FINANCIERS_TMP_FOLDER,
                 "source_name": "synthese_bilans.csv",
                 "dest_path": "bilans_financiers/latest/",
                 "dest_name": "synthese_bilans.csv",

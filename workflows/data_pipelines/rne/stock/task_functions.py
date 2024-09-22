@@ -3,24 +3,21 @@ import zipfile
 import logging
 from helpers.tchap import send_message
 from helpers.minio_helpers import minio_client
-from config import (
-    RNE_STOCK_ZIP_FILE_PATH,
-    RNE_STOCK_EXTRACTED_FILES_PATH,
-)
+from helpers.settings import Settings
 
 
 def unzip_files_and_upload_minio(**kwargs):
-    with zipfile.ZipFile(RNE_STOCK_ZIP_FILE_PATH, mode="r") as z:
+    with zipfile.ZipFile(Settings.RNE_STOCK_ZIP_FILE_PATH, mode="r") as z:
         sent_files = 0
         for file_info in z.infolist():
             # Extract each file one by one
-            z.extract(file_info, path=RNE_STOCK_EXTRACTED_FILES_PATH)
+            z.extract(file_info, path=Settings.RNE_STOCK_EXTRACTED_FILES_PATH)
 
             logging.info(f"Saving file {file_info.filename} in MinIO.....")
             minio_client.send_files(
                 list_files=[
                     {
-                        "source_path": RNE_STOCK_EXTRACTED_FILES_PATH,
+                        "source_path": Settings.RNE_STOCK_EXTRACTED_FILES_PATH,
                         "source_name": file_info.filename,
                         "dest_path": "rne/stock/",
                         "dest_name": file_info.filename,
@@ -30,7 +27,7 @@ def unzip_files_and_upload_minio(**kwargs):
             sent_files += 1
             # Delete the extracted file
             extracted_file_path = os.path.join(
-                RNE_STOCK_EXTRACTED_FILES_PATH, file_info.filename
+                Settings.RNE_STOCK_EXTRACTED_FILES_PATH, file_info.filename
             )
             os.remove(extracted_file_path)
 

@@ -7,17 +7,13 @@ from workflows.data_pipelines.sirene.flux.insee_client import (
     INSEEAPIClient,
 )
 from helpers.tchap import send_message
-from config import (
-    INSEE_API_URL,
-    INSEE_FLUX_TMP_FOLDER,
-    INSEE_SECRET_BEARER,
-)
+from helpers.settings import Settings
 
 
 CURRENT_MONTH = datetime.today().strftime("%Y-%m")
 
 
-INSEEAPIClient = INSEEAPIClient(INSEE_API_URL, INSEE_SECRET_BEARER)
+INSEEAPIClient = INSEEAPIClient(Settings.INSEE_API_URL, Settings.INSEE_SECRET_BEARER)
 
 
 def get_current_flux_unite_legale(ti):
@@ -44,7 +40,7 @@ def get_current_flux_unite_legale(ti):
     ]
     df = pd.DataFrame(flux)
 
-    file_path = f"{INSEE_FLUX_TMP_FOLDER}flux_unite_legale_{CURRENT_MONTH}.csv"
+    file_path = f"{Settings.INSEE_FLUX_TMP_FOLDER}flux_unite_legale_{CURRENT_MONTH}.csv"
     save_dataframe(df, file_path)
 
     logging.info(f"******** Nombre flux unités légales : {str(df.shape[0])}")
@@ -58,7 +54,7 @@ def get_stock_non_diffusible(ti):
     )
     df = pd.DataFrame(data)
 
-    file_path = f"{INSEE_FLUX_TMP_FOLDER}stock_non_diffusible.csv"
+    file_path = f"{Settings.INSEE_FLUX_TMP_FOLDER}stock_non_diffusible.csv"
     save_dataframe(df, file_path)
     logging.info(f"******** Nombre stock ul non diffusibles : {str(df.shape[0])}")
     ti.xcom_push(key="nb_stock_non_diffusible", value=str(df.shape[0]))
@@ -73,7 +69,7 @@ def get_current_flux_non_diffusible(ti):
     data = INSEEAPIClient.call_insee_api(endpoint, "unitesLegales")
     df = pd.DataFrame(data)
 
-    file_path = f"{INSEE_FLUX_TMP_FOLDER}flux_non_diffusible_{CURRENT_MONTH}.csv"
+    file_path = f"{Settings.INSEE_FLUX_TMP_FOLDER}flux_non_diffusible_{CURRENT_MONTH}.csv"
     save_dataframe(df, file_path)
 
     logging.info(f"******** Nombre flux ul non diffusibles : {str(df.shape[0])}")
@@ -120,7 +116,7 @@ def get_current_flux_etablissement(ti):
             col.replace(prefix, "") if prefix in col else col for col in df.columns
         ]
 
-    file_path = f"{INSEE_FLUX_TMP_FOLDER}flux_etablissement_{CURRENT_MONTH}.csv"
+    file_path = f"{Settings.INSEE_FLUX_TMP_FOLDER}flux_etablissement_{CURRENT_MONTH}.csv"
     save_dataframe(df, file_path)
 
     logging.info(f"******** Nombre flux établissements : {str(df.shape[0])}")
@@ -131,19 +127,19 @@ def send_flux_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": INSEE_FLUX_TMP_FOLDER,
+                "source_path": Settings.INSEE_FLUX_TMP_FOLDER,
                 "source_name": f"flux_unite_legale_{CURRENT_MONTH}.csv.gz",
                 "dest_path": "insee/sirene/flux/",
                 "dest_name": f"flux_unite_legale_{CURRENT_MONTH}.csv.gz",
             },
             {
-                "source_path": INSEE_FLUX_TMP_FOLDER,
+                "source_path": Settings.INSEE_FLUX_TMP_FOLDER,
                 "source_name": f"flux_etablissement_{CURRENT_MONTH}.csv.gz",
                 "dest_path": "insee/sirene/flux/",
                 "dest_name": f"flux_etablissement_{CURRENT_MONTH}.csv.gz",
             },
             {
-                "source_path": INSEE_FLUX_TMP_FOLDER,
+                "source_path": Settings.INSEE_FLUX_TMP_FOLDER,
                 "source_name": f"flux_non_diffusible_{CURRENT_MONTH}.csv.gz",
                 "dest_path": "insee/sirene/flux/",
                 "dest_name": f"flux_non_diffusible_{CURRENT_MONTH}.csv.gz",
@@ -156,7 +152,7 @@ def send_stock_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": INSEE_FLUX_TMP_FOLDER,
+                "source_path": Settings.INSEE_FLUX_TMP_FOLDER,
                 "source_name": "stock_non_diffusible.csv.gz",
                 "dest_path": "insee/sirene/flux/",
                 "dest_name": "stock_non_diffusible.csv.gz",

@@ -1,10 +1,10 @@
 import pandas as pd
-from config import URL_MINIO_MARCHE_INCLUSION
+from helpers.settings import Settings
 
 
 def preprocess_marche_inclusion_data(data_dir):
     df_siae = pd.read_csv(
-        URL_MINIO_MARCHE_INCLUSION,
+        Settings.URL_MINIO_MARCHE_INCLUSION,
         dtype=str,
     )
     df_siae["siren"] = df_siae["siret"].str[0:9]

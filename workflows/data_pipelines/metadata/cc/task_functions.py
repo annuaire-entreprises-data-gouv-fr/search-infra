@@ -5,12 +5,7 @@ import json
 from datetime import datetime
 from helpers.tchap import send_message
 from helpers.minio_helpers import minio_client
-from config import (
-    URL_CC_DARES,
-    URL_CC_KALI,
-    METADATA_CC_MINIO_PATH,
-    METADATA_CC_TMP_FOLDER,
-)
+from helpers.settings import Settings
 
 
 def get_month_year_french():
@@ -42,26 +37,26 @@ def get_month_year_french():
 
 def create_metadata_concollective_json():
     current_cc_dares_extension = f"{get_month_year_french()}.xlsx"
-    current_url_cc_dares = URL_CC_DARES + current_cc_dares_extension
+    current_url_cc_dares = Settings.URL_CC_DARES + current_cc_dares_extension
     logging.info(f"Current CC Dares URL: {current_url_cc_dares}")
     r = requests.get(current_url_cc_dares, allow_redirects=True)
-    with open(METADATA_CC_TMP_FOLDER + "dares-download.xlsx", "wb") as f:
+    with open(Settings.METADATA_CC_TMP_FOLDER + "dares-download.xlsx", "wb") as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)
     df_dares = pd.read_excel(
-        METADATA_CC_TMP_FOLDER + "dares-download.xlsx",
+        Settings.METADATA_CC_TMP_FOLDER + "dares-download.xlsx",
         dtype=str,
         header=0,
         skiprows=3,
         engine="openpyxl",
     )
     # Get Kali list
-    r = requests.get(URL_CC_KALI, allow_redirects=True)
-    with open(METADATA_CC_TMP_FOLDER + "kali-download.xlsx", "wb") as f:
+    r = requests.get(Settings.URL_CC_KALI, allow_redirects=True)
+    with open(Settings.METADATA_CC_TMP_FOLDER + "kali-download.xlsx", "wb") as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)
     df_kali = pd.read_excel(
-        METADATA_CC_TMP_FOLDER + "kali-download.xlsx",
+        Settings.METADATA_CC_TMP_FOLDER + "kali-download.xlsx",
         header=0,
         skiprows=3,
         dtype=str,
@@ -94,7 +89,7 @@ def create_metadata_concollective_json():
     metadata_dict = merged_df.to_dict(orient="index")
     metadata_json = {str(key): value for key, value in metadata_dict.items()}
 
-    with open(METADATA_CC_TMP_FOLDER + "metadata-cc-kali.json", "w") as json_file:
+    with open(Settings.METADATA_CC_TMP_FOLDER + "metadata-cc-kali.json", "w") as json_file:
         json.dump(metadata_json, json_file)
 
 
@@ -102,9 +97,9 @@ def upload_json_file_to_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": METADATA_CC_TMP_FOLDER,
+                "source_path": Settings.METADATA_CC_TMP_FOLDER,
                 "source_name": "metadata-cc-kali.json",
-                "dest_path": METADATA_CC_MINIO_PATH,
+                "dest_path": Settings.METADATA_CC_MINIO_PATH,
                 "dest_name": "cc_kali.json",
             }
         ],

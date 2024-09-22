@@ -2,20 +2,13 @@ import requests
 import time
 import logging
 
-from config import (
-    AIRFLOW_ELK_DAG_NAME,
-    ELASTIC_DOWNSTREAM_URLS,
-    ELASTIC_DOWNSTREAM_USER,
-    ELASTIC_DOWNSTREAM_PASSWORD,
-    ELASTIC_DOWNSTREAM_ALIAS,
-)
-
+from helpers.settings import Settings
 
 def wait_for_downstream_import(**kwargs):
     elastic_index = kwargs["ti"].xcom_pull(
         key="elastic_index",
         task_ids="get_next_index_name",
-        dag_id=AIRFLOW_ELK_DAG_NAME,
+        dag_id=Settings.AIRFLOW_ELK_DAG_NAME,
         include_prior_dates=True,
     )
 
@@ -32,7 +25,7 @@ def wait_for_downstream_rollback_import(**kwargs):
 
 
 def wait_for_downstream_index_import(elastic_index):
-    downstream_urls = ELASTIC_DOWNSTREAM_URLS.split(",")
+    downstream_urls = Settings.ELASTIC_DOWNSTREAM_URLS.split(",")
 
     if len(downstream_urls) == 0:
         return
@@ -48,8 +41,8 @@ def wait_for_downstream_index_import(elastic_index):
     while len(pending) > 0 and waited_for < timeout:
         for url in pending:
             response = requests.get(
-                f"{ url }/{ELASTIC_DOWNSTREAM_ALIAS}",
-                auth=(ELASTIC_DOWNSTREAM_USER, ELASTIC_DOWNSTREAM_PASSWORD),
+                f"{ url }/{Settings.ELASTIC_DOWNSTREAM_ALIAS}",
+                auth=(Settings.ELASTIC_DOWNSTREAM_USER, Settings.ELASTIC_DOWNSTREAM_PASSWORD),
             )
 
             if response.status_code == 404:

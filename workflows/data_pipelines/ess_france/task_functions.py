@@ -2,21 +2,27 @@ import pandas as pd
 import logging
 
 from helpers.minio_helpers import minio_client
-from config import (
-    ESS_TMP_FOLDER,
-    URL_ESS_FRANCE,
-)
+from helpers.settings import Settings
 from helpers.tchap import send_message
 
 
 def preprocess_ess_france_data(ti):
-    df_ess = pd.read_csv(URL_ESS_FRANCE, dtype=str)
+    df_ess = pd.read_csv(Settings.URL_ESS_FRANCE, dtype=str)
     df_ess["SIREN"] = df_ess["SIREN"].str.zfill(9)
-    df_ess.rename(columns={"SIREN": "siren"}, inplace=True)
+    df_ess.rename(columns={
+        "SIREN": "siren",
+        "Nom ou raison sociale de l'entreprise": "nom_raison_sociale",
+        "Famille juridique de l'entreprise": "famille_juridique",
+        "Code postal": "code_postal",
+        "Libellé de la commune de l'établissement": "commune",
+        "Code du département de l'établissement": "code_departement",
+        "Département de l'établissement": "departement",
+        "Région de l'établissement": "region"
+    }, inplace=True)
     df_ess["est_ess_france"] = True
-    df_ess = df_ess[["siren", "est_ess_france"]]
+    df_ess = df_ess[["siren", "nom_raison_sociale", "famille_juridique", "code_postal", "commune", "code_departement", "departement", "region", "est_ess_france"]]
 
-    df_ess.to_csv(f"{ESS_TMP_FOLDER}ess_france.csv", index=False)
+    df_ess.to_csv(f"{Settings.ESS_TMP_FOLDER}ess_france.csv", index=False)
     ti.xcom_push(key="nb_siren_ess", value=str(df_ess["siren"].nunique()))
 
 
@@ -24,7 +30,7 @@ def send_file_to_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": ESS_TMP_FOLDER,
+                "source_path": Settings.ESS_TMP_FOLDER,
                 "source_name": "ess_france.csv",
                 "dest_path": "ess/new/",
                 "dest_name": "ess_france.csv",
@@ -49,7 +55,7 @@ def compare_files_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": ESS_TMP_FOLDER,
+                "source_path": Settings.ESS_TMP_FOLDER,
                 "source_name": "ess_france.csv",
                 "dest_path": "ess/latest/",
                 "dest_name": "ess_france.csv",

@@ -39,8 +39,8 @@ with DAG(
     get_rne_latest_stock = BashOperator(
         task_id="get_latest_stock",
         bash_command=(
-            f"{Settings.AIRFLOW_DAG_HOME}{Settings.RNE_DAG_FOLDER}rne/stock/get_stock.sh "
-            f"{Settings.RNE_STOCK_TMP_FOLDER} {Settings.RNE_FTP_URL} "
+            f"{Settings.RNE_DAG_FOLDER}rne/stock/get_stock.sh "
+            f"{Settings.RNE_STOCK_TMP_FOLDER} {Settings.RNE_FTP_URL}"
         ),
     )
 

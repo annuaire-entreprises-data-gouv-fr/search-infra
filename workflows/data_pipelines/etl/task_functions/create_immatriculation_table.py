@@ -1,16 +1,13 @@
-from config import (
-    SIRENE_DATABASE_LOCATION,
-    RNE_DATABASE_LOCATION,
-)
+from helpers.settings import Settings
 from helpers.sqlite_client import SqliteClient
 
 
 def create_immatriculation_table():
     # Connect to the destination database
-    sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
+    sqlite_client_siren = SqliteClient(Settings.SIRENE_DATABASE_LOCATION)
 
     # Attach the RNE database
-    sqlite_client_siren.connect_to_another_db(RNE_DATABASE_LOCATION, "db_rne")
+    sqlite_client_siren.connect_to_another_db(Settings.RNE_DATABASE_LOCATION, "db_rne")
 
     table_name = "immatriculation"
 

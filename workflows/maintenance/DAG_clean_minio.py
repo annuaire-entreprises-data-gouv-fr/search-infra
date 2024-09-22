@@ -3,10 +3,7 @@ from airflow.operators.python import PythonOperator
 from airflow.models import DAG
 from datetime import datetime, timedelta, timezone
 from helpers.minio_helpers import minio_client
-from config import (
-    AIRFLOW_ENV,
-    EMAIL_LIST,
-)
+from helpers.settings import Settings
 
 
 def delete_old_files(
@@ -43,7 +40,7 @@ default_args = {
     "depends_on_past": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "email": EMAIL_LIST,
+    "email": Settings.EMAIL_LIST,
     "email_on_failure": True,
 }
 
@@ -64,7 +61,7 @@ with DAG(
         python_callable=delete_old_files,
         provide_context=True,
         op_kwargs={
-            "prefix": f"ae/{AIRFLOW_ENV}/rne/database/",
+            "prefix": f"ae/{Settings.AIRFLOW_ENV}/rne/database/",
             "keep_latest": 5,
             "retention_days": 3,
         },
@@ -76,7 +73,7 @@ with DAG(
         python_callable=delete_old_files,
         provide_context=True,
         op_kwargs={
-            "prefix": f"ae/{AIRFLOW_ENV}/sirene/database/",
+            "prefix": f"ae/{Settings.AIRFLOW_ENV}/sirene/database/",
             "keep_latest": 2,
             "retention_days": 3,
         },

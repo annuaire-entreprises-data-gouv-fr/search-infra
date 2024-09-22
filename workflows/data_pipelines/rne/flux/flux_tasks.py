@@ -9,17 +9,12 @@ from helpers.tchap import send_message
 from helpers.minio_helpers import minio_client
 from helpers.utils import get_last_line
 from workflows.data_pipelines.rne.flux.rne_api import ApiRNEClient
-from config import (
-    AIRFLOW_ENV,
-    RNE_FLUX_DATADIR,
-    RNE_MINIO_FLUX_DATA_PATH,
-    RNE_DEFAULT_START_DATE,
-)
+from helpers.settings import Settings
 
 
 def get_last_json_file_date():
     json_daily_flux_files = minio_client.get_files_from_prefix(
-        prefix=RNE_MINIO_FLUX_DATA_PATH,
+        prefix=Settings.RNE_MINIO_FLUX_DATA_PATH,
     )
 
     if not json_daily_flux_files:
@@ -40,9 +35,9 @@ def get_last_json_file_date():
 
 def get_latest_json_file(ti):
     start_date = compute_start_date()
-    last_json_file_path = f"{RNE_FLUX_DATADIR}/rne_flux_{start_date}.json"
+    last_json_file_path = f"{Settings.RNE_FLUX_DATADIR}/rne_flux_{start_date}.json"
     minio_client.get_object_minio(
-        f"ae/{AIRFLOW_ENV}/{RNE_MINIO_FLUX_DATA_PATH}",
+        f"ae/{Settings.AIRFLOW_ENV}/{Settings.RNE_MINIO_FLUX_DATA_PATH}",
         f"rne_flux_{start_date}.json.gz",
         f"{last_json_file_path}.gz",
     )
@@ -108,7 +103,7 @@ def compute_start_date():
         start_date = last_date_obj.strftime("%Y-%m-%d")
         logging.info(f"++++++++Start date: {start_date}")
     else:
-        start_date = RNE_DEFAULT_START_DATE
+        start_date = Settings.RNE_DEFAULT_START_DATE
 
     return start_date
 
@@ -131,11 +126,11 @@ def get_and_save_daily_flux_rne(
         None
     """
     json_file_name = f"rne_flux_{start_date}.json"
-    json_file_path = f"{RNE_FLUX_DATADIR}/{json_file_name}"
+    json_file_path = f"{Settings.RNE_FLUX_DATADIR}/{json_file_name}"
 
-    if not os.path.exists(RNE_FLUX_DATADIR):
-        logging.info(f"********** Creating {RNE_FLUX_DATADIR}")
-        os.makedirs(RNE_FLUX_DATADIR)
+    if not os.path.exists(Settings.RNE_FLUX_DATADIR):
+        logging.info(f"********** Creating {Settings.RNE_FLUX_DATADIR}")
+        os.makedirs(Settings.RNE_FLUX_DATADIR)
 
     if first_exec:
         last_siren = get_last_siren(ti)
@@ -167,9 +162,9 @@ def get_and_save_daily_flux_rne(
                     minio_client.send_files(
                         list_files=[
                             {
-                                "source_path": f"{RNE_FLUX_DATADIR}/",
+                                "source_path": f"{Settings.RNE_FLUX_DATADIR}/",
                                 "source_name": f"{json_file_name}.gz",
-                                "dest_path": RNE_MINIO_FLUX_DATA_PATH,
+                                "dest_path": Settings.RNE_MINIO_FLUX_DATA_PATH,
                                 "dest_name": f"{json_file_name}.gz",
                             },
                         ],
@@ -191,9 +186,9 @@ def get_and_save_daily_flux_rne(
         minio_client.send_files(
             list_files=[
                 {
-                    "source_path": f"{RNE_FLUX_DATADIR}/",
+                    "source_path": f"{Settings.RNE_FLUX_DATADIR}/",
                     "source_name": f"{json_file_name}.gz",
-                    "dest_path": RNE_MINIO_FLUX_DATA_PATH,
+                    "dest_path": Settings.RNE_MINIO_FLUX_DATA_PATH,
                     "dest_name": f"{json_file_name}.gz",
                 },
             ],

@@ -33,10 +33,7 @@ from helpers.geolocalisation import (
     transform_coordinates,
 )
 from helpers.tchap import send_message
-from config import (
-    SIRENE_MINIO_DATA_PATH,
-    AIRFLOW_DATAGOUV_DATA_DIR,
-)
+from helpers.settings import Settings
 
 current_date = datetime.now().date()
 today_date = datetime.today().strftime("%Y-%m-%d")
@@ -44,11 +41,11 @@ today_date = datetime.today().strftime("%Y-%m-%d")
 
 def get_latest_database(**kwargs):
     database_files = minio_client.get_files_from_prefix(
-        prefix=SIRENE_MINIO_DATA_PATH,
+        prefix=Settings.SIRENE_MINIO_DATA_PATH,
     )
 
     if not database_files:
-        raise Exception(f"No database files were found in : {SIRENE_MINIO_DATA_PATH}")
+        raise Exception(f"No database files were found in : {Settings.SIRENE_MINIO_DATA_PATH}")
 
     # Extract dates from the db file names and sort them
     dates = sorted(re.findall(r"sirene_(\d{4}-\d{2}-\d{2})", " ".join(database_files)))
@@ -59,15 +56,15 @@ def get_latest_database(**kwargs):
         minio_client.get_files(
             list_files=[
                 {
-                    "source_path": SIRENE_MINIO_DATA_PATH,
+                    "source_path": Settings.SIRENE_MINIO_DATA_PATH,
                     "source_name": f"sirene_{last_date}.db.gz",
-                    "dest_path": AIRFLOW_DATAGOUV_DATA_DIR,
+                    "dest_path": Settings.AIRFLOW_DATAGOUV_DATA_DIR,
                     "dest_name": "sirene.db.gz",
                 }
             ],
         )
         # Unzip database file
-        db_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}sirene.db"
+        db_path = f"{Settings.AIRFLOW_DATAGOUV_DATA_DIR}sirene.db"
         with gzip.open(f"{db_path}.gz", "rb") as f_in:
             with open(db_path, "wb") as f_out:
                 shutil.copyfileobj(f_in, f_out)
@@ -75,7 +72,7 @@ def get_latest_database(**kwargs):
 
     else:
         raise Exception(
-            f"No dates in database files were found : {SIRENE_MINIO_DATA_PATH}"
+            f"No dates in database files were found : {Settings.SIRENE_MINIO_DATA_PATH}"
         )
 
 
@@ -145,9 +142,9 @@ def process_ul_chunk(chunk):
 
 def fill_ul_file():
     chunk_size = 100000
-    sqlite_client = SqliteClient(AIRFLOW_DATAGOUV_DATA_DIR + "sirene.db")
+    sqlite_client = SqliteClient(Settings.AIRFLOW_DATAGOUV_DATA_DIR + "sirene.db")
 
-    ul_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{today_date}.csv"
+    ul_csv_path = f"{Settings.AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{today_date}.csv"
 
     columns = [
         "siren",
@@ -208,7 +205,7 @@ def send_to_minio(list_files):
 
 
 def upload_ul_to_minio(**kwargs):
-    ul_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{today_date}.csv"
+    ul_csv_path = f"{Settings.AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{today_date}.csv"
 
     with open(ul_csv_path, "rb") as f_in:
         with gzip.open(f"{ul_csv_path}.gz", "wb") as f_out:
@@ -217,7 +214,7 @@ def upload_ul_to_minio(**kwargs):
     send_to_minio(
         [
             {
-                "source_path": AIRFLOW_DATAGOUV_DATA_DIR,
+                "source_path": Settings.AIRFLOW_DATAGOUV_DATA_DIR,
                 "source_name": f"unites_legales_{today_date}.csv.gz",
                 "dest_path": "data_gouv/",
                 "dest_name": f"unites_legales_{today_date}.csv.gz",
@@ -267,9 +264,9 @@ def process_etablissement_chunk(chunk):
 
 def fill_etab_file():
     chunk_size = 100000
-    sqlite_client = SqliteClient(AIRFLOW_DATAGOUV_DATA_DIR + "sirene.db")
+    sqlite_client = SqliteClient(Settings.AIRFLOW_DATAGOUV_DATA_DIR + "sirene.db")
 
-    etab_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}etablissements_{today_date}.csv"
+    etab_csv_path = f"{Settings.AIRFLOW_DATAGOUV_DATA_DIR}etablissements_{today_date}.csv"
 
     columns = [
         "siren",
@@ -311,7 +308,7 @@ def fill_etab_file():
 
 
 def upload_etab_to_minio(**kwargs):
-    ul_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}etablissements_{today_date}.csv"
+    ul_csv_path = f"{Settings.AIRFLOW_DATAGOUV_DATA_DIR}etablissements_{today_date}.csv"
 
     with open(ul_csv_path, "rb") as f_in:
         with gzip.open(f"{ul_csv_path}.gz", "wb") as f_out:
@@ -320,7 +317,7 @@ def upload_etab_to_minio(**kwargs):
     send_to_minio(
         [
             {
-                "source_path": AIRFLOW_DATAGOUV_DATA_DIR,
+                "source_path": Settings.AIRFLOW_DATAGOUV_DATA_DIR,
                 "source_name": f"etablissements_{today_date}.csv.gz",
                 "dest_path": "data_gouv/",
                 "dest_name": f"etablissements_{today_date}.csv.gz",
@@ -332,7 +329,7 @@ def upload_etab_to_minio(**kwargs):
 def publish_data(**kwargs):
     response_ul = post_resource(
         file_to_upload={
-            "dest_path": AIRFLOW_DATAGOUV_DATA_DIR,
+            "dest_path": Settings.AIRFLOW_DATAGOUV_DATA_DIR,
             "dest_name": f"unites_legales_{today_date}.csv.gz",
         },
         dataset_id="667ebdd4547ab9bd6e4682d3",
@@ -343,7 +340,7 @@ def publish_data(**kwargs):
 
     response_etab = post_resource(
         file_to_upload={
-            "dest_path": AIRFLOW_DATAGOUV_DATA_DIR,
+            "dest_path": Settings.AIRFLOW_DATAGOUV_DATA_DIR,
             "dest_name": f"etablissements_{today_date}.csv.gz",
         },
         dataset_id="667ebdd4547ab9bd6e4682d3",

@@ -149,4 +149,6 @@ class APIClient:
 
             time.sleep(max(0, sleep_time - response_time))
 
+            break
+
         return all_data

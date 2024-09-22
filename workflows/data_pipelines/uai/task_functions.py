@@ -1,8 +1,6 @@
 import pandas as pd
 import logging
-from config import (
-    UAI_TMP_FOLDER,
-)
+from helpers.settings import Settings
 from helpers.tchap import send_message
 from helpers.datagouv import (
     get_dataset_or_resource_metadata,
@@ -15,11 +13,11 @@ from helpers.minio_helpers import minio_client
 def download_latest_data(ti):
     get_resource(
         resource_id="85aefd85-3025-400f-90ff-ccfd17ca588e",
-        file_to_store={"dest_path": UAI_TMP_FOLDER, "dest_name": "menj.csv"},
+        file_to_store={"dest_path": Settings.UAI_TMP_FOLDER, "dest_name": "menj.csv"},
     )
     get_resource(
         resource_id="bcc3229a-beb2-4077-a8d8-50a065dfbbfa",
-        file_to_store={"dest_path": UAI_TMP_FOLDER, "dest_name": "mesr.csv"},
+        file_to_store={"dest_path": Settings.UAI_TMP_FOLDER, "dest_name": "mesr.csv"},
     )
 
     # Les ressources du JDD ONISEP https://www.data.gouv.fr/fr/
@@ -32,7 +30,7 @@ def download_latest_data(ti):
         if res["format"] == "csv":
             get_resource(
                 resource_id=res["id"],
-                file_to_store={"dest_path": UAI_TMP_FOLDER, "dest_name": "onisep.csv"},
+                file_to_store={"dest_path": Settings.UAI_TMP_FOLDER, "dest_name": "onisep.csv"},
             )
 
 
@@ -52,7 +50,7 @@ def process_uai(ti):
         "type",
     ]
     df_menj = pd.read_csv(
-        f"{UAI_TMP_FOLDER}menj.csv", dtype=str, sep=";", encoding="Latin-1"
+        f"{Settings.UAI_TMP_FOLDER}menj.csv", dtype=str, sep=";", encoding="Latin-1"
     )
     df_menj = df_menj.rename(
         columns={
@@ -71,7 +69,7 @@ def process_uai(ti):
     df_menj["sigle"] = None
     df_menj["siren"] = df_menj["siret"].str[:9]
     df_menj = df_menj[target_columns]
-    df_mesr = pd.read_csv(f"{UAI_TMP_FOLDER}mesr.csv", dtype=str, sep=";")
+    df_mesr = pd.read_csv(f"{Settings.UAI_TMP_FOLDER}mesr.csv", dtype=str, sep=";")
     df_mesr = df_mesr.rename(
         columns={
             "uai": "uai",
@@ -89,7 +87,7 @@ def process_uai(ti):
     )
     df_mesr["statut_prive"] = None
     df_mesr = df_mesr[target_columns]
-    df_onisep = pd.read_csv(f"{UAI_TMP_FOLDER}onisep.csv", dtype=str, sep=";")
+    df_onisep = pd.read_csv(f"{Settings.UAI_TMP_FOLDER}onisep.csv", dtype=str, sep=";")
     df_onisep = df_onisep.rename(
         columns={
             "code UAI": "uai",
@@ -110,7 +108,7 @@ def process_uai(ti):
     annuaire_uai = pd.concat([df_menj, df_mesr])
     annuaire_uai = pd.concat([annuaire_uai, df_onisep])
     annuaire_uai = annuaire_uai.drop_duplicates(subset=["uai"], keep="first")
-    annuaire_uai.to_csv(f"{UAI_TMP_FOLDER}annuaire_uai.csv", index=False)
+    annuaire_uai.to_csv(f"{Settings.UAI_TMP_FOLDER}annuaire_uai.csv", index=False)
 
     ti.xcom_push(key="nb_uai", value=str(annuaire_uai["uai"].nunique()))
     ti.xcom_push(key="nb_siret", value=str(annuaire_uai["siret"].nunique()))
@@ -120,7 +118,7 @@ def send_file_to_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": UAI_TMP_FOLDER,
+                "source_path": Settings.UAI_TMP_FOLDER,
                 "source_name": "annuaire_uai.csv",
                 "dest_path": "uai/new/",
                 "dest_name": "annuaire_uai.csv",
@@ -145,7 +143,7 @@ def compare_files_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": UAI_TMP_FOLDER,
+                "source_path": Settings.UAI_TMP_FOLDER,
                 "source_name": "annuaire_uai.csv",
                 "dest_path": "uai/latest/",
                 "dest_name": "annuaire_uai.csv",

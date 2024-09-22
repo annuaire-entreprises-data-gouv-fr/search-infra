@@ -30,12 +30,7 @@ from workflows.data_pipelines.etl.sqlite.helpers import (
     execute_query,
     get_table_count,
 )
-from config import AIRFLOW_ETL_DATA_DIR
-from config import (
-    SIRENE_DATABASE_LOCATION,
-    RNE_DATABASE_LOCATION,
-)
-
+from helpers.settings import Settings
 
 def create_table(query, table_name, index, sirene_file_type):
     sqlite_client = create_table_model(
@@ -46,7 +41,7 @@ def create_table(query, table_name, index, sirene_file_type):
         index_column="siren",
     )
     for df_unite_legale in preprocess_unite_legale_data(
-        AIRFLOW_ETL_DATA_DIR, sirene_file_type
+        Settings.AIRFLOW_ETL_DATA_DIR, sirene_file_type
     ):
         df_unite_legale.to_sql(
             table_name, sqlite_client.db_conn, if_exists="append", index=False
@@ -89,11 +84,11 @@ def create_flux_unite_legale_table(**kwargs):
 
 
 def add_ancien_siege_flux_data(**kwargs):
-    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
+    sqlite_client = SqliteClient(Settings.SIRENE_DATABASE_LOCATION)
 
     table_name = "anciens_sieges"
 
-    for df_unite_legale in process_anciens_sieges_flux(AIRFLOW_ETL_DATA_DIR):
+    for df_unite_legale in process_anciens_sieges_flux(Settings.AIRFLOW_ETL_DATA_DIR):
         df_unite_legale.to_sql(
             table_name, sqlite_client.db_conn, if_exists="append", index=False
         )
@@ -122,10 +117,10 @@ def add_rne_data_to_unite_legale_table(**kwargs):
 
     try:
         # Connect to the main database (SIRENE)
-        sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
+        sqlite_client_siren = SqliteClient(Settings.SIRENE_DATABASE_LOCATION)
 
         # Attach the RNE database
-        sqlite_client_siren.connect_to_another_db(RNE_DATABASE_LOCATION, "db_rne")
+        sqlite_client_siren.connect_to_another_db(Settings.RNE_DATABASE_LOCATION, "db_rne")
 
         sqlite_client_siren.execute(update_main_table_fields_with_rne_data_query)
         # (handling duplicates with INSERT OR IGNORE)
@@ -173,7 +168,7 @@ def create_historique_unite_legale_tables(**kwargs):
         df_hist_unite_legale,
         df_anciens_sieges,
     ) in preprocess_historique_unite_legale_data(
-        AIRFLOW_ETL_DATA_DIR,
+        Settings.AIRFLOW_ETL_DATA_DIR,
     ):
         df_hist_unite_legale.to_sql(
             table_name, sqlite_client.db_conn, if_exists="append", index=False
@@ -232,6 +227,6 @@ def create_date_fermeture_unite_legale_table(**kwargs):
 
 
 def insert_date_fermeture_unite_legale(**kwargs):
-    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
+    sqlite_client = SqliteClient(Settings.SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(insert_date_fermeture_unite_legale_query)
     sqlite_client.commit_and_close_conn()

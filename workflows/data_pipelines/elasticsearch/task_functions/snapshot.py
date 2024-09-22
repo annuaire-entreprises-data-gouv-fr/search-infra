@@ -3,15 +3,7 @@ import time
 from datetime import datetime
 from elasticsearch_dsl import connections
 
-from config import (
-    AIRFLOW_ELK_DAG_NAME,
-    ELASTIC_URL,
-    ELASTIC_USER,
-    ELASTIC_PASSWORD,
-    ELASTIC_SNAPSHOT_REPOSITORY,
-    ELASTIC_SNAPSHOT_MAX_REVISIONS,
-    ELASTIC_SNAPSHOT_MINIO_STATE_PATH,
-)
+from helpers.settings import Settings
 from helpers.minio_helpers import minio_client
 
 from helpers.filesystem import (
@@ -21,7 +13,7 @@ from helpers.filesystem import (
 
 filesystem = Filesystem(
     minio_client,
-    f"{minio_client.get_root_dirpath()}/{ELASTIC_SNAPSHOT_MINIO_STATE_PATH}/",
+    f"{minio_client.get_root_dirpath()}/{Settings.ELASTIC_SNAPSHOT_MINIO_STATE_PATH}/",
     JsonSerializer(),
 )
 
@@ -65,7 +57,7 @@ def update_minio_current_index_version(**kwargs):
         "index": kwargs["ti"].xcom_pull(
             key="elastic_index",
             task_ids="get_next_index_name",
-            dag_id=AIRFLOW_ELK_DAG_NAME,
+            dag_id=Settings.AIRFLOW_ELK_DAG_NAME,
             include_prior_dates=True,
         ),
         "snapshot": kwargs["ti"].xcom_pull(
@@ -92,7 +84,7 @@ def rollback_minio_current_index_version(**kwargs):
     elastic_connection = connections.get_connection()
 
     snapshots = elastic_connection.snapshot.get(
-        repository=ELASTIC_SNAPSHOT_REPOSITORY,
+        repository=Settings.ELASTIC_SNAPSHOT_REPOSITORY,
         snapshot=previous["current"]["snapshot"],
         ignore_unavailable=True,
     )
@@ -118,7 +110,7 @@ def snapshot_elastic_index(**kwargs):
     elastic_index = kwargs["ti"].xcom_pull(
         key="elastic_index",
         task_ids="get_next_index_name",
-        dag_id=AIRFLOW_ELK_DAG_NAME,
+        dag_id=Settings.AIRFLOW_ELK_DAG_NAME,
         include_prior_dates=True,
     )
 
@@ -126,19 +118,19 @@ def snapshot_elastic_index(**kwargs):
     snapshot_name = f"siren-{current_date}"
 
     logging.info(
-        f"Snapshot {elastic_index} into {ELASTIC_SNAPSHOT_REPOSITORY}/{snapshot_name}"
+        f"Snapshot {elastic_index} into {Settings.ELASTIC_SNAPSHOT_REPOSITORY}/{snapshot_name}"
     )
 
     connections.create_connection(
-        hosts=[ELASTIC_URL],
-        http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        hosts=[Settings.ELASTIC_URL],
+        http_auth=(Settings.ELASTIC_USER, Settings.ELASTIC_PASSWORD),
         retry_on_timeout=True,
     )
 
     elastic_connection = connections.get_connection()
 
     elastic_connection.snapshot.create(
-        repository=ELASTIC_SNAPSHOT_REPOSITORY,
+        repository=Settings.ELASTIC_SNAPSHOT_REPOSITORY,
         snapshot=snapshot_name,
         body={"indices": [elastic_index], "include_global_state": False},
         wait_for_completion=False,
@@ -153,7 +145,7 @@ def snapshot_elastic_index(**kwargs):
         waited_for += interval
 
         snapshots = elastic_connection.snapshot.get(
-            repository=ELASTIC_SNAPSHOT_REPOSITORY,
+            repository=Settings.ELASTIC_SNAPSHOT_REPOSITORY,
             snapshot=snapshot_name,
             ignore_unavailable=True,
         )
@@ -172,15 +164,15 @@ def snapshot_elastic_index(**kwargs):
 
 def delete_old_snapshots(**kwargs):
     connections.create_connection(
-        hosts=[ELASTIC_URL],
-        http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        hosts=[Settings.ELASTIC_URL],
+        http_auth=(Settings.ELASTIC_USER, Settings.ELASTIC_PASSWORD),
         retry_on_timeout=True,
     )
 
     elastic_connection = connections.get_connection()
 
     snapshots = elastic_connection.snapshot.get(
-        repository=ELASTIC_SNAPSHOT_REPOSITORY,
+        repository=Settings.ELASTIC_SNAPSHOT_REPOSITORY,
         snapshot="*",
         ignore_unavailable=True,
     )
@@ -188,16 +180,16 @@ def delete_old_snapshots(**kwargs):
     snapshots = list(
         sorted(snapshots["snapshots"], key=lambda snapshot: snapshot["start_time"])
     )
-    snapshots_to_remove = snapshots[:-ELASTIC_SNAPSHOT_MAX_REVISIONS]
+    snapshots_to_remove = snapshots[:-Settings.ELASTIC_SNAPSHOT_MAX_REVISIONS]
 
     for snapshot in snapshots_to_remove:
         logging.info(
-            f"Deleting snapshot {snapshot['snapshot']} from {ELASTIC_SNAPSHOT_REPOSITORY}"
+            f"Deleting snapshot {snapshot['snapshot']} from {Settings.ELASTIC_SNAPSHOT_REPOSITORY}"
         )
 
         try:
             elastic_connection.snapshot.delete(
-                repository=ELASTIC_SNAPSHOT_REPOSITORY, snapshot=snapshot["snapshot"]
+                repository=Settings.ELASTIC_SNAPSHOT_REPOSITORY, snapshot=snapshot["snapshot"]
             )
         except Exception as e:
             logging.error(f"Failed to delete the snapshot {snapshot['snapshot']}: {e}")

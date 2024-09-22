@@ -3,21 +3,18 @@ import logging
 import requests
 
 from helpers.minio_helpers import minio_client
-from config import (
-    CC_TMP_FOLDER,
-    URL_CONVENTION_COLLECTIVE,
-)
+from helpers.settings import Settings
 from helpers.tchap import send_message
 
 
 def preprocess_convcollective_data(ti):
-    r = requests.get(URL_CONVENTION_COLLECTIVE, allow_redirects=True)
-    with open(f"{CC_TMP_FOLDER}convcollective-download.csv", "wb") as f:
+    r = requests.get(Settings.URL_CONVENTION_COLLECTIVE, allow_redirects=True)
+    with open(f"{Settings.CC_TMP_FOLDER}convcollective-download.csv", "wb") as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)
 
     df_conv_coll = pd.read_csv(
-        f"{CC_TMP_FOLDER}convcollective-download.csv",
+        f"{Settings.CC_TMP_FOLDER}convcollective-download.csv",
         dtype=str,
         names=["mois", "siret", "idcc", "date_maj"],
         header=0,
@@ -67,7 +64,7 @@ def preprocess_convcollective_data(ti):
     df_cc = merged_df.merge(df_list_cc, on="siren", how="left")
     df_cc["sirets_par_idcc"] = df_cc["sirets_par_idcc"].astype(str)
     df_cc["liste_idcc_unite_legale"] = df_cc["liste_idcc_unite_legale"].astype(str)
-    df_cc.to_csv(f"{CC_TMP_FOLDER}cc.csv", index=False)
+    df_cc.to_csv(f"{Settings.CC_TMP_FOLDER}cc.csv", index=False)
     ti.xcom_push(key="nb_siren_cc", value=str(df_cc["siren"].nunique()))
 
     del df_list_cc_per_siren
@@ -80,7 +77,7 @@ def send_file_to_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": CC_TMP_FOLDER,
+                "source_path": Settings.CC_TMP_FOLDER,
                 "source_name": "cc.csv",
                 "dest_path": "convention_collective/new/",
                 "dest_name": "cc.csv",
@@ -105,7 +102,7 @@ def compare_files_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": CC_TMP_FOLDER,
+                "source_path": Settings.CC_TMP_FOLDER,
                 "source_name": "cc.csv",
                 "dest_path": "convention_collective/latest/",
                 "dest_name": "cc.csv",

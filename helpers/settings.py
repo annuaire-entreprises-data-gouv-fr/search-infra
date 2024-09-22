@@ -1,5 +1,11 @@
+import os
+from typing import Dict, List
+from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import json
+
+class RneAuth(BaseModel):
+    username: str
+    password: str
 
 class EnvSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
@@ -30,19 +36,17 @@ class EnvSettings(BaseSettings):
 
     # RNE configuration
     RNE_FTP_URL: str = ""
-    RNE_AUTH: list = []
-    RNE_DEFAULT_START_DATE: str = "2024-09-03"
+    RNE_AUTH: List[Dict[str, str]] = []
+    RNE_DEFAULT_START_DATE: str
 
     # Marche Inclusion configuration
     SECRET_TOKEN_MARCHE_INCLUSION: str = ""
-
-    # AIO configuration
-    PATH_AIO: str = ""
 
     # Redis configuration
     REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
+    REDIS_PASSWORD: str = "TOTO"
 
     # ElasticSearch configuration
     ELASTIC_PASSWORD: str = ""
@@ -106,15 +110,14 @@ class Settings:
     RNE_MINIO_DATA_PATH: str = "rne/database/"
     RNE_LATEST_DATE_FILE: str = "latest_rne_date.json"
     RNE_MINIO_FLUX_DATA_PATH: str = "rne/flux/"
-    RNE_MINIO_STOCK_DATA_PATH: str = "rne/stock/"
+    RNE_MINIO_STOCK_DATA_PATH: str = f"{AIRFLOW_DAG_TMP}rne/stock/"
     RNE_FLUX_TMP_FOLDER: str = f"{AIRFLOW_DAG_TMP}rne/flux/"
     RNE_FLUX_DATADIR: str = f"{RNE_FLUX_TMP_FOLDER}data"
-    RNE_DEFAULT_START_DATE: str = "2024-09-03"
+    RNE_DEFAULT_START_DATE: str = env_settings.RNE_DEFAULT_START_DATE
     RNE_STOCK_TMP_FOLDER: str = f"{AIRFLOW_DAG_TMP}rne/stock/"
     RNE_STOCK_ZIP_FILE_PATH: str = f"{RNE_STOCK_TMP_FOLDER}stock_rne.zip"
     RNE_STOCK_EXTRACTED_FILES_PATH: str = f"{RNE_STOCK_TMP_FOLDER}extracted/"
-    RNE_STOCK_DATADIR: str = f"{RNE_STOCK_TMP_FOLDER}data"
-    RNE_DAG_FOLDER: str = "dag_datalake_sirene/workflows/data_pipelines/"
+    RNE_DAG_FOLDER: str = "/opt/airflow/workflows/data_pipelines/"
     METADATA_CC_TMP_FOLDER: str = f"{AIRFLOW_DAG_TMP}metadata/cc/"
     METADATA_CC_MINIO_PATH: str = "metadata/cc/"
     INSEE_FLUX_TMP_FOLDER: str = f"{AIRFLOW_DAG_TMP}sirene/flux/"
@@ -149,7 +152,7 @@ class Settings:
 
     # RNE configuration
     RNE_FTP_URL: str = env_settings.RNE_FTP_URL
-    RNE_AUTH: list = json.loads(env_settings.RNE_AUTH)
+    RNE_AUTH: list = [i for i in env_settings.RNE_AUTH]
     RNE_API_TOKEN_URL: str = "https://registre-national-entreprises.inpi.fr/api/sso/login"
     RNE_API_DIFF_URL: str = "https://registre-national-entreprises.inpi.fr/api/companies/diff?"
 
@@ -158,10 +161,6 @@ class Settings:
     SECRET_TOKEN_MARCHE_INCLUSION: str = env_settings.SECRET_TOKEN_MARCHE_INCLUSION
     URL_MINIO_MARCHE_INCLUSION: str = f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/marche_inclusion/stock_marche_inclusion.csv"
 
-    # AIO configuration
-    AIO_URL: str = env_settings.AIO_URL
-    COLOR_URL: str = env_settings.COLOR_URL
-    PATH_AIO: str = env_settings.PATH_AIO
 
     # Redis configuration
     REDIS_HOST: str = env_settings.REDIS_HOST
@@ -188,7 +187,7 @@ class Settings:
 
     # API configuration
     API_URL: str = env_settings.API_URL
-    API_IS_REMOTE: bool = env_settings.API_IS_REMOTE.lower() not in ["false", "0"]
+    API_IS_REMOTE: bool = env_settings.API_IS_REMOTE
 
     # Datasets URLs
     URL_AGENCE_BIO: str = f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/agence_bio/latest/agence_bio_certifications.csv"
@@ -233,3 +232,33 @@ class Settings:
     DATAGOUV_URL: str = "https://www.data.gouv.fr"
     ORGA_REFERENCE: str = "646b7187b50b2a93b1ae3d45"
     DATAGOUV_SECRET_API_KEY: str = env_settings.DATAGOUV_SECRET_API_KEY
+
+
+
+def create_folders():
+    # loop to create all folders
+    folders = [
+        Settings.AIRFLOW_DAG_TMP,
+        Settings.RNE_DB_TMP_FOLDER,
+        Settings.RNE_FLUX_TMP_FOLDER,
+        Settings.RNE_STOCK_TMP_FOLDER,
+        Settings.METADATA_CC_TMP_FOLDER,
+        Settings.INSEE_FLUX_TMP_FOLDER,
+        Settings.UAI_TMP_FOLDER,
+        Settings.BILANS_FINANCIERS_TMP_FOLDER,
+        Settings.SPECTACLE_TMP_FOLDER,
+        Settings.FINESS_TMP_FOLDER,
+        Settings.RGE_TMP_FOLDER,
+        Settings.FORMATION_TMP_FOLDER,
+        Settings.ESS_TMP_FOLDER,
+        Settings.COLTER_TMP_FOLDER,
+        Settings.CC_TMP_FOLDER,
+        Settings.MARCHE_INCLUSION_TMP_FOLDER,
+        Settings.AGENCE_BIO_TMP_FOLDER,
+        Settings.EGAPRO_TMP_FOLDER,
+    ]
+    for folder in folders:
+        os.makedirs(folder, exist_ok=True)
+
+
+create_folders()

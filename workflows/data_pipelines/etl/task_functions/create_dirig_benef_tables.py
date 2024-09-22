@@ -34,31 +34,27 @@ from workflows.data_pipelines.etl.sqlite.queries.dirigeants import (
 from helpers.minio_helpers import minio_client
 
 
-from config import (
-    SIRENE_DATABASE_LOCATION,
-    AIRFLOW_ENV,
-    RNE_DATABASE_LOCATION,
-)
+from helpers.settings import Settings
 
 
 def get_latest_rne_database():
     minio_client.get_latest_file_minio(
-        f"ae/{AIRFLOW_ENV}/rne/database/",
-        f"{RNE_DATABASE_LOCATION}.gz",
+        f"ae/{Settings.AIRFLOW_ENV}/rne/database/",
+        f"{Settings.RNE_DATABASE_LOCATION}.gz",
     )
 
-    logging.info(f"******* Getting file : {RNE_DATABASE_LOCATION}.gz")
+    logging.info(f"******* Getting file : {Settings.RNE_DATABASE_LOCATION}.gz")
     # Unzip database file
-    with gzip.open(f"{RNE_DATABASE_LOCATION}.gz", "rb") as f_in:
-        with open(RNE_DATABASE_LOCATION, "wb") as f_out:
+    with gzip.open(f"{Settings.RNE_DATABASE_LOCATION}.gz", "rb") as f_in:
+        with open(Settings.RNE_DATABASE_LOCATION, "wb") as f_out:
             shutil.copyfileobj(f_in, f_out)
 
-    os.remove(f"{RNE_DATABASE_LOCATION}.gz")
+    os.remove(f"{Settings.RNE_DATABASE_LOCATION}.gz")
 
 
 def create_dirig_pp_table():
-    sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
-    sqlite_client_dirig = SqliteClient(RNE_DATABASE_LOCATION)
+    sqlite_client_siren = SqliteClient(Settings.SIRENE_DATABASE_LOCATION)
+    sqlite_client_dirig = SqliteClient(Settings.RNE_DATABASE_LOCATION)
     chunk_size = int(100000)
     for row in sqlite_client_dirig.execute(
         get_distinct_column_count("dirigeants_pp", "siren")
@@ -86,8 +82,8 @@ def create_dirig_pp_table():
 
 
 def create_dirig_pm_table():
-    sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
-    sqlite_client_dirig = SqliteClient(RNE_DATABASE_LOCATION)
+    sqlite_client_siren = SqliteClient(Settings.SIRENE_DATABASE_LOCATION)
+    sqlite_client_dirig = SqliteClient(Settings.RNE_DATABASE_LOCATION)
 
     chunk_size = int(100000)
     for row in sqlite_client_dirig.execute(
@@ -117,8 +113,8 @@ def create_dirig_pm_table():
 
 
 def create_benef_table():
-    sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
-    sqlite_client_rne = SqliteClient(RNE_DATABASE_LOCATION)
+    sqlite_client_siren = SqliteClient(Settings.SIRENE_DATABASE_LOCATION)
+    sqlite_client_rne = SqliteClient(Settings.RNE_DATABASE_LOCATION)
     chunk_size = int(100000)
     for row in sqlite_client_rne.execute(
         get_distinct_column_count("beneficiaires", "siren")

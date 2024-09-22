@@ -7,11 +7,10 @@ import gzip
 import pandas as pd
 from datetime import datetime, date
 from unicodedata import normalize
-from config import AIRFLOW_ENV
-
+from helpers.settings import Settings
 
 def check_if_prod():
-    return AIRFLOW_ENV == "prod"
+    return Settings.AIRFLOW_ENV == "prod"
 
 
 def is_valid_number(value):
@@ -109,8 +108,8 @@ def drop_exact_duplicates(list_dict):
 def publish_mattermost(
     text,
 ) -> None:
-    data = {"text": f"{text} ({AIRFLOW_ENV})"}
-    if AIRFLOW_ENV == "prod" or AIRFLOW_ENV == "staging":
+    data = {"text": f"{text} ({Settings.AIRFLOW_ENV})"}
+    if Settings.AIRFLOW_ENV == "prod" or Settings.AIRFLOW_ENV == "staging":
         r = requests.post(
             "https://mattermost.incubateur.net/hooks/z4k8a159yjnx584idit1ubf74r",
             json=data,

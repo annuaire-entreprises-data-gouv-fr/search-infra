@@ -1,9 +1,9 @@
 import pandas as pd
-from config import URL_UAI
+from helpers.settings import Settings
 
 
 def preprocess_uai_data(data_dir):
-    df_uai = pd.read_csv(URL_UAI, dtype=str)
+    df_uai = pd.read_csv(Settings.URL_UAI, dtype=str)
     df_list_uai = (
         df_uai.groupby(["siret"])["uai"].apply(list).reset_index(name="liste_uai")
     )

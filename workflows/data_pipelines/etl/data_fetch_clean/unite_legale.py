@@ -5,14 +5,11 @@ import logging
 import pandas as pd
 import requests
 from helpers.minio_helpers import minio_client
-from config import (
-    URL_MINIO_UNITE_LEGALE,
-    URL_MINIO_UNITE_LEGALE_HISTORIQUE,
-)
+from helpers.settings import Settings
 
 
 def download_historique(data_dir):
-    r = requests.get(URL_MINIO_UNITE_LEGALE_HISTORIQUE, allow_redirects=True)
+    r = requests.get(Settings.URL_MINIO_UNITE_LEGALE_HISTORIQUE, allow_redirects=True)
     open(data_dir + "StockUniteLegaleHistorique_utf8.zip", "wb").write(r.content)
     shutil.unpack_archive(data_dir + "StockUniteLegaleHistorique_utf8.zip", data_dir)
     df_iterator = pd.read_csv(
@@ -24,7 +21,7 @@ def download_historique(data_dir):
 
 
 def download_stock(data_dir):
-    r = requests.get(URL_MINIO_UNITE_LEGALE, allow_redirects=True)
+    r = requests.get(Settings.URL_MINIO_UNITE_LEGALE, allow_redirects=True)
     open(data_dir + "StockUniteLegale_utf8.zip", "wb").write(r.content)
     shutil.unpack_archive(data_dir + "StockUniteLegale_utf8.zip", data_dir)
     df_iterator = pd.read_csv(

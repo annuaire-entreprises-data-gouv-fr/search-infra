@@ -17,17 +17,14 @@ from workflows.data_pipelines.data_gouv.task_functions import (
 )
 from helpers.utils import check_if_prod
 
-from config import (
-    AIRFLOW_DAG_TMP,
-    EMAIL_LIST,
-    AIRFLOW_PUBLISH_DAG_NAME,
-)
+from helpers.settings import Settings
+
 from operators.clean_folder import CleanFolderOperator
 
 
 default_args = {
     "depends_on_past": False,
-    "email": EMAIL_LIST,
+    "email": Settings.EMAIL_LIST,
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
@@ -35,7 +32,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id=AIRFLOW_PUBLISH_DAG_NAME,
+    dag_id=Settings.AIRFLOW_PUBLISH_DAG_NAME,
     default_args=default_args,
     schedule_interval="0 17 * * *",  # Executes daily at 5 PM
     start_date=datetime(2023, 9, 4),
@@ -52,7 +49,7 @@ with DAG(
 
     clean_previous_folder = CleanFolderOperator(
         task_id="clean_previous_folder",
-        folder_path=f"{AIRFLOW_DAG_TMP}{AIRFLOW_PUBLISH_DAG_NAME}",
+        folder_path=f"{Settings.AIRFLOW_DAG_TMP}{Settings.AIRFLOW_PUBLISH_DAG_NAME}",
     )
 
     get_latest_sqlite_database = create_sqlite_database = PythonOperator(
@@ -85,7 +82,7 @@ with DAG(
     )
     clean_outputs = BashOperator(
         task_id="clean_outputs",
-        bash_command=f"rm -rf {AIRFLOW_DAG_TMP}{AIRFLOW_PUBLISH_DAG_NAME}",
+        bash_command=f"rm -rf {Settings.AIRFLOW_DAG_TMP}{Settings.AIRFLOW_PUBLISH_DAG_NAME}",
     )
     notification_tchap = PythonOperator(
         task_id="notification_tchap", python_callable=notification_tchap

@@ -1,6 +1,5 @@
 import pandas as pd
-from config import URL_AGENCE_BIO
-
+from helpers.settings import Settings
 
 def get_statut(statuts):
     if statuts:
@@ -11,7 +10,7 @@ def get_statut(statuts):
 
 
 def preprocess_agence_bio_data(data_dir):
-    df_agence_bio = pd.read_csv(URL_AGENCE_BIO, dtype=str)
+    df_agence_bio = pd.read_csv(Settings.URL_AGENCE_BIO, dtype=str)
 
     df_agence_bio = df_agence_bio[["siret", "id_bio", "etat_certification"]]
     df_agence_bio = df_agence_bio[df_agence_bio["siret"].str.len() == 14]

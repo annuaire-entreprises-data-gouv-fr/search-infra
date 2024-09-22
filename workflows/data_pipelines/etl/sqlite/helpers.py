@@ -3,11 +3,7 @@ import logging
 
 from helpers.sqlite_client import SqliteClient
 
-
-from config import (
-    AIRFLOW_ETL_DATA_DIR,
-    SIRENE_DATABASE_LOCATION,
-)
+from helpers.settings import Settings
 
 
 def drop_table(name):
@@ -40,11 +36,11 @@ def create_and_fill_table_model(
     index_column,
     preprocess_table_data,
 ):
-    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
+    sqlite_client = SqliteClient(Settings.SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(drop_table(table_name))
     sqlite_client.execute(create_table_query)
     sqlite_client.execute(create_index_func(index_name, table_name, index_column))
-    df_table = preprocess_table_data(data_dir=AIRFLOW_ETL_DATA_DIR)
+    df_table = preprocess_table_data(data_dir=Settings.AIRFLOW_ETL_DATA_DIR)
     df_table.to_sql(table_name, sqlite_client.db_conn, if_exists="append", index=False)
     del df_table
     for row in sqlite_client.execute(get_table_count(table_name)):
@@ -62,7 +58,7 @@ def create_table_model(
     index_name,
     index_column,
 ):
-    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
+    sqlite_client = SqliteClient(Settings.SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(drop_table(table_name))
     sqlite_client.execute(create_table_query)
     sqlite_client.execute(create_index_func(index_name, table_name, index_column))
@@ -75,7 +71,7 @@ def create_only_index(
     index_name,
     index_column,
 ):
-    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
+    sqlite_client = SqliteClient(Settings.SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(create_index_func(index_name, table_name, index_column))
     sqlite_client.commit_and_close_conn()
 
@@ -83,6 +79,6 @@ def create_only_index(
 def execute_query(
     query,
 ):
-    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
+    sqlite_client = SqliteClient(Settings.SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(query)
     sqlite_client.commit_and_close_conn()

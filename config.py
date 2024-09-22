@@ -33,7 +33,6 @@ RNE_DEFAULT_START_DATE = "2024-09-03"
 RNE_STOCK_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rne/stock/"
 RNE_STOCK_ZIP_FILE_PATH = f"{RNE_STOCK_TMP_FOLDER}stock_rne.zip"
 RNE_STOCK_EXTRACTED_FILES_PATH = f"{RNE_STOCK_TMP_FOLDER}extracted/"
-RNE_STOCK_DATADIR = f"{RNE_STOCK_TMP_FOLDER}data"
 RNE_DAG_FOLDER = "dag_datalake_sirene/workflows/data_pipelines/"
 METADATA_CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}metadata/cc/"
 METADATA_CC_MINIO_PATH = "metadata/cc/"
@@ -82,9 +81,6 @@ URL_MINIO_MARCHE_INCLUSION = (
     "/stock_marche_inclusion.csv"
 )
 # AIO
-AIO_URL = Variable.get("AIO_URL", None)
-COLOR_URL = Variable.get("COLOR_URL", None)
-PATH_AIO = Variable.get("PATH_AIO", None)
 COLOR_IS_DAILY = bool(Variable.get("COLOR_IS_DAILY", "False"))
 
 # Redis

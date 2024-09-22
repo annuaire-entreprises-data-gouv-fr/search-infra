@@ -3,34 +3,74 @@ import logging
 import requests
 
 from helpers.minio_helpers import minio_client
-from config import (
-    FORMATION_TMP_FOLDER,
-    URL_ORGANISME_FORMATION,
-)
+from helpers.settings import Settings
 from helpers.tchap import send_message
 
 
 def preprocess_organisme_formation_data(ti):
     # get dataset directly from dge website
-    r = requests.get(URL_ORGANISME_FORMATION)
-    with open(FORMATION_TMP_FOLDER + "qualiopi-download.csv", "wb") as f:
+    r = requests.get(Settings.URL_ORGANISME_FORMATION)
+    with open(Settings.FORMATION_TMP_FOLDER + "qualiopi-download.csv", "wb") as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)
     df_organisme_formation = pd.read_csv(
-        FORMATION_TMP_FOLDER + "qualiopi-download.csv", dtype=str, sep=";"
+        Settings.FORMATION_TMP_FOLDER + "qualiopi-download.csv", dtype=str, sep=";"
     )
+
+    # Renommage des colonnes
     df_organisme_formation = df_organisme_formation.rename(
         columns={
-            "Numéro Déclaration Activité": "id_nda",
-            "Code SIREN": "siren",
-            "Siret Etablissement Déclarant": "siret",
-            "Actions de formations": "cert_adf",
-            "Bilans de compétences": "cert_bdc",
-            "VAE": "cert_vae",
-            "Actions de formations par apprentissage": "cert_app",
-            "Certifications": "certifications",
+            "id_nda": "id_nda",
+            "id_nda_precedent": "id_nda_precedent",
+            "denomination": "denomination",
+            "siren": "siren",
+            "siret": "siret",
+            "adresse": "adresse",
+            "code_postal": "code_postal",
+            "ville": "ville",
+            "code_region": "code_region",
+            "geocodageban": "geocodageban",
+            "cert_adf": "cert_adf",
+            "cert_bdc": "cert_bdc",
+            "cert_vae": "cert_vae",
+            "cert_app": "cert_app",
+            "Dénomination Organisme Etranger Représenté": "denomination_organisme_etranger",
+            "Adresse Organisme Etranger Représenté": "adresse_organisme_etranger",
+            "Code Postal Organisme Etranger Représenté": "code_postal_organisme_etranger",
+            "Ville Organisme Etranger Représenté": "ville_organisme_etranger",
+            "Pays Organisme Etranger Représenté": "pays_organisme_etranger",
+            "Date dernière déclaration": "date_derniere_declaration",
+            "Début d'exercice": "debut_exercice",
+            "Fin d'exercice": "fin_exercice",
+            "Code Spécialité 1": "code_specialite_1",
+            "Libellé Spécialité 1": "libelle_specialite_1",
+            "Code Spécialité 2": "code_specialite_2",
+            "Libellé Spécialité 2": "libelle_specialite_2",
+            "Code Spécialité 3": "code_specialite_3",
+            "Libellé Spécialité 3": "libelle_specialite_3",
+            "Nombre de stagiaires": "nombre_stagiaires",
+            "Nombre de stagiaires confiés par un autre Organisme de formation": "nombre_stagiaires_confies",
+            "Effectifs de formateurs": "effectifs_formateurs",
+            "Code Commune": "code_commune",
+            "Nom Officiel Commune / Arrondissement Municipal": "nom_commune",
+            "Code Officiel EPCI": "code_epci",
+            "Nom Officiel EPCI": "nom_epci",
+            "Code Officiel Département": "code_departement",
+            "Nom Officiel Département": "nom_departement",
+            "Nom Officiel Région": "nom_region",
+            "Code Officiel Région": "code_region_officiel",
+            "Toutes spécialités de l'organisme de formation": "toutes_specialites",
+            "Organisme Formation Géocodé": "organisme_formation_geocode",
+            "certifications": "certifications",
+            "random_id": "random_id"
         }
     )
+
+    # Sauvegarde de la version 2 après renommage
+    df_organisme_formation.to_csv(
+        Settings.FORMATION_TMP_FOLDER + "qualiopi-download-v2.csv", index=False, sep=";"
+    )
+
     df_organisme_formation = df_organisme_formation[
         [
             "id_nda",
@@ -76,7 +116,7 @@ def preprocess_organisme_formation_data(ti):
     )
 
     df_liste_organisme_formation.to_csv(
-        f"{FORMATION_TMP_FOLDER}formation.csv", index=False
+        f"{Settings.FORMATION_TMP_FOLDER}formation.csv", index=False
     )
     ti.xcom_push(
         key="nb_siren_formation",
@@ -91,7 +131,7 @@ def send_file_to_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": FORMATION_TMP_FOLDER,
+                "source_path": Settings.FORMATION_TMP_FOLDER,
                 "source_name": "formation.csv",
                 "dest_path": "formation/new/",
                 "dest_name": "formation.csv",
@@ -116,7 +156,7 @@ def compare_files_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": FORMATION_TMP_FOLDER,
+                "source_path": Settings.FORMATION_TMP_FOLDER,
                 "source_name": "formation.csv",
                 "dest_path": "formation/latest/",
                 "dest_name": "formation.csv",

@@ -6,9 +6,7 @@ from airflow.settings import Session
 import os
 import logging
 import shutil
-from config import (
-    EMAIL_LIST,
-)
+from helpers.settings import Settings
 
 
 # Define the Python function to delete old logs and directories
@@ -70,7 +68,7 @@ default_args = {
     "depends_on_past": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "email": EMAIL_LIST,
+    "email": Settings.EMAIL_LIST,
     "email_on_failure": True,
 }
 

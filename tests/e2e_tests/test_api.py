@@ -2,7 +2,7 @@ import re
 
 import pytest
 from tests.e2e_tests.response_tester import APIResponseTester
-from config import API_URL
+from helpers.settings import Settings
 
 min_total_results = 10
 min_total_results_filters = 1000
@@ -10,7 +10,7 @@ min_total_results_filters = 1000
 
 @pytest.fixture
 def api_response_tester():
-    return APIResponseTester(API_URL)
+    return APIResponseTester(Settings.API_URL)
 
 
 def test_fetch_company(api_response_tester):

@@ -4,9 +4,7 @@ from airflow.operators.bash import BashOperator
 
 from airflow.utils.dates import days_ago
 from datetime import timedelta
-from config import (
-    UAI_TMP_FOLDER,
-)
+from helpers.settings import Settings
 from workflows.data_pipelines.uai.task_functions import (
     download_latest_data,
     process_uai,
@@ -26,7 +24,7 @@ with DAG(
 ) as dag:
     clean_previous_outputs = BashOperator(
         task_id="clean_previous_outputs",
-        bash_command=f"rm -rf {UAI_TMP_FOLDER} && mkdir -p {UAI_TMP_FOLDER}",
+        bash_command=f"rm -rf {Settings.UAI_TMP_FOLDER} && mkdir -p {Settings.UAI_TMP_FOLDER}",
     )
 
     download_latest_data = PythonOperator(

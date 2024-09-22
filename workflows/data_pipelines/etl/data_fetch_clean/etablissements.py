@@ -4,14 +4,11 @@ import requests
 import shutil
 from datetime import datetime, timedelta
 from helpers.minio_helpers import minio_client
-from config import (
-    URL_ETABLISSEMENTS,
-    URL_MINIO_ETABLISSEMENTS_HISTORIQUE,
-)
+from helpers.settings import Settings
 
 
 def download_stock(departement):
-    url = f"{URL_ETABLISSEMENTS}_{departement}.csv.gz"
+    url = f"{Settings.URL_ETABLISSEMENTS}_{departement}.csv.gz"
     logging.info(f"Dep file url: {url}")
     df_dep = pd.read_csv(
         url,
@@ -152,7 +149,7 @@ def download_flux(data_dir):
 
 
 def download_historique(data_dir):
-    r = requests.get(URL_MINIO_ETABLISSEMENTS_HISTORIQUE, allow_redirects=True)
+    r = requests.get(Settings.URL_MINIO_ETABLISSEMENTS_HISTORIQUE, allow_redirects=True)
     open(data_dir + "StockEtablissementHistorique_utf8.zip", "wb").write(r.content)
     shutil.unpack_archive(data_dir + "StockEtablissementHistorique_utf8.zip", data_dir)
     df_iterator = pd.read_csv(

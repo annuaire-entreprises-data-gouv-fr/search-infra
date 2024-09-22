@@ -1,16 +1,14 @@
 from airflow.models import DAG
 from datetime import timedelta, datetime
 from airflow.operators.python import PythonOperator
-from config import (
-    EMAIL_LIST,
-)
+from helpers.settings import Settings
 from workflows.data_pipelines.rne.maintenance.task_functions import (
     rename_old_rne_folders,
 )
 
 default_args = {
     "depends_on_past": False,
-    "email": EMAIL_LIST,
+    "email": Settings.EMAIL_LIST,
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,

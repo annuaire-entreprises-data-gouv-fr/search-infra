@@ -1,13 +1,12 @@
 import logging
 import requests
 
-from config import API_URL
 from helpers.slow_requests import SLOW_REQUESTS
-
+from helpers.settings import Settings
 
 def execute_slow_requests():
     session = requests.Session()
-    base_url = API_URL
+    base_url = Settings.API_URL
     for query in SLOW_REQUESTS:
         try:
             path = f"/search?{query}"

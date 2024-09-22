@@ -6,14 +6,7 @@ from minio import Minio, S3Error
 from minio.commonconfig import CopySource
 from typing import List, TypedDict, Optional
 import os
-from config import (
-    AIRFLOW_ENV,
-    MINIO_BUCKET,
-    MINIO_URL,
-    MINIO_USER,
-    MINIO_PASSWORD,
-)
-
+from helpers.settings import Settings
 
 class File(TypedDict):
     source_path: str
@@ -25,22 +18,22 @@ class File(TypedDict):
 
 class MinIOClient:
     def __init__(self):
-        self.url = MINIO_URL
-        self.user = MINIO_USER
-        self.password = MINIO_PASSWORD
-        self.bucket = MINIO_BUCKET
+        self.url = Settings.MINIO_URL
+        self.user = Settings.MINIO_USER
+        self.password = Settings.MINIO_PASSWORD
+        self.bucket = Settings.MINIO_BUCKET
         self.client = Minio(
-            self.url,
+            self.url if not self.url.startswith("http") or self.url.startswith("https") else self.url.replace("http://", "").replace("https://", ""),
             access_key=self.user,
             secret_key=self.password,
-            secure=True,
+            secure=False,
         )
         self.bucket_exists = self.client.bucket_exists(self.bucket)
         if not self.bucket_exists:
             raise ValueError(f"Bucket '{self.bucket}' does not exist.")
 
     def get_root_dirpath(self) -> str:
-        return f"ae/{AIRFLOW_ENV}"
+        return f"ae/{Settings.AIRFLOW_ENV}"
 
     def send_files(
         self,
@@ -65,7 +58,7 @@ class MinIOClient:
             if is_file:
                 self.client.fput_object(
                     self.bucket,
-                    f"ae/{AIRFLOW_ENV}/{file['dest_path']}{file['dest_name']}",
+                    f"ae/{Settings.AIRFLOW_ENV}/{file['dest_path']}{file['dest_name']}",
                     os.path.join(file["source_path"], file["source_name"]),
                     content_type=(
                         file["content_type"] if "content_type" in file else None
@@ -84,12 +77,12 @@ class MinIOClient:
         """
         list_objects = []
         objects = self.client.list_objects(
-            self.bucket, prefix=f"ae/{AIRFLOW_ENV}/{prefix}"
+            self.bucket, prefix=f"ae/{Settings.AIRFLOW_ENV}/{prefix}"
         )
         for obj in objects:
             if not obj.object_name.endswith("/"):  # Exclude folders
                 logging.info(obj.object_name)
-                list_objects.append(obj.object_name.replace(f"ae/{AIRFLOW_ENV}/", ""))
+                list_objects.append(obj.object_name.replace(f"ae/{Settings.AIRFLOW_ENV}/", ""))
         return list_objects
 
     def get_files(self, list_files: List[File]):
@@ -103,7 +96,7 @@ class MinIOClient:
         for file in list_files:
             self.client.fget_object(
                 self.bucket,
-                f"ae/{AIRFLOW_ENV}/{file['source_path']}{file['source_name']}",
+                f"ae/{Settings.AIRFLOW_ENV}/{file['source_path']}{file['source_name']}",
                 f"{file['dest_path']}{file['dest_name']}",
             )
 
@@ -225,19 +218,19 @@ class MinIOClient:
             raise AttributeError("A bucket has to be specified.")
         s3 = boto3.client(
             "s3",
-            endpoint_url=f"https://{self.url}",
+            endpoint_url=self.url,
             aws_access_key_id=self.user,
             aws_secret_access_key=self.password,
         )
 
         try:
-            logging.info(f"ae/{AIRFLOW_ENV}/{file_path_1}{file_name_1}")
-            logging.info(f"ae/{AIRFLOW_ENV}/{file_path_2}{file_name_2}")
+            logging.info(f"ae/{Settings.AIRFLOW_ENV}/{file_path_1}{file_name_1}")
+            logging.info(f"ae/{Settings.AIRFLOW_ENV}/{file_path_2}{file_name_2}")
             file_1 = s3.head_object(
-                Bucket=self.bucket, Key=f"ae/{AIRFLOW_ENV}/{file_path_1}{file_name_1}"
+                    Bucket=self.bucket, Key=f"ae/{Settings.AIRFLOW_ENV}/{file_path_1}{file_name_1}"
             )
             file_2 = s3.head_object(
-                Bucket=self.bucket, Key=f"ae/{AIRFLOW_ENV}/{file_path_2}{file_name_2}"
+                Bucket=self.bucket, Key=f"ae/{Settings.AIRFLOW_ENV}/{file_path_2}{file_name_2}"
             )
             logging.info(f"Hash file 1 : {file_1['ETag']}")
             logging.info(f"Hash file 2 : {file_2['ETag']}")
@@ -257,8 +250,8 @@ class MinIOClient:
             old_folder_suffix (str): The folder suffix to rename (after 'ae/{env}/').
             new_folder_suffix (str): The new folder suffix (after 'ae/{env}/').
         """
-        old_folder = f"ae/{AIRFLOW_ENV}/{old_folder_suffix}"
-        new_folder = f"ae/{AIRFLOW_ENV}/{new_folder_suffix}"
+        old_folder = f"ae/{Settings.AIRFLOW_ENV}/{old_folder_suffix}"
+        new_folder = f"ae/{Settings.AIRFLOW_ENV}/{new_folder_suffix}"
 
         # Ensure folder suffixes end with '/'
         if not old_folder.endswith("/"):

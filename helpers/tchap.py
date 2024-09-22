@@ -1,10 +1,7 @@
 import requests
 import logging
-from config import (
-    AIRFLOW_ENV,
-    TCHAP_ANNUAIRE_WEBHOOK,
-    TCHAP_ANNUAIRE_ROOM_ID,
-)
+from helpers.settings import Settings
+
 
 
 def send_message(
@@ -21,11 +18,11 @@ def send_message(
         with your text. Defaults to None.
     """
     if not endpoint_url:
-        if AIRFLOW_ENV == "prod":
-            endpoint_url = TCHAP_ANNUAIRE_WEBHOOK
+        if Settings.AIRFLOW_ENV == "prod":
+            endpoint_url = Settings.TCHAP_ANNUAIRE_WEBHOOK
         else:
             return None
-    data = {"roomId": TCHAP_ANNUAIRE_ROOM_ID, "message": text}
+    data = {"roomId": Settings.TCHAP_ANNUAIRE_ROOM_ID, "message": text}
     if image_url:
         data["attachments"] = [{"image_url": image_url}]
 

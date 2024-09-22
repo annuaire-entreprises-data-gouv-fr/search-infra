@@ -3,21 +3,18 @@ import logging
 import requests
 
 from helpers.minio_helpers import minio_client
-from config import (
-    FINESS_TMP_FOLDER,
-    URL_FINESS,
-)
+from helpers.settings import Settings
 from helpers.tchap import send_message
 
 
 def preprocess_finess_data(ti):
-    r = requests.get(URL_FINESS)
-    with open(FINESS_TMP_FOLDER + "finess-download.csv", "wb") as f:
+    r = requests.get(Settings.URL_FINESS)
+    with open(Settings.FINESS_TMP_FOLDER + "finess-download.csv", "wb") as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)
 
     df_finess = pd.read_csv(
-        FINESS_TMP_FOLDER + "finess-download.csv",
+        Settings.FINESS_TMP_FOLDER + "finess-download.csv",
         dtype=str,
         sep=";",
         encoding="Latin-1",
@@ -37,7 +34,7 @@ def preprocess_finess_data(ti):
     )
     df_list_finess = df_list_finess[["siret", "liste_finess"]]
     df_list_finess["liste_finess"] = df_list_finess["liste_finess"].astype(str)
-    df_list_finess.to_csv(f"{FINESS_TMP_FOLDER}finess.csv", index=False)
+    df_list_finess.to_csv(f"{Settings.FINESS_TMP_FOLDER}finess.csv", index=False)
     ti.xcom_push(
         key="nb_siret_finess",
         value=str(df_list_finess["siret"].nunique()),
@@ -50,7 +47,7 @@ def send_file_to_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": FINESS_TMP_FOLDER,
+                "source_path": Settings.FINESS_TMP_FOLDER,
                 "source_name": "finess.csv",
                 "dest_path": "finess/new/",
                 "dest_name": "finess.csv",
@@ -75,7 +72,7 @@ def compare_files_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": FINESS_TMP_FOLDER,
+                "source_path": Settings.FINESS_TMP_FOLDER,
                 "source_name": "finess.csv",
                 "dest_path": "finess/latest/",
                 "dest_name": "finess.csv",

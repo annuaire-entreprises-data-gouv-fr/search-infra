@@ -4,10 +4,7 @@ import logging
 import shutil
 import os
 
-from config import (
-    SIRENE_MINIO_DATA_PATH,
-    AIRFLOW_ETL_DATA_DIR,
-)
+from helpers.settings import Settings
 from helpers.minio_helpers import minio_client
 
 current_date = datetime.now().date()
@@ -21,7 +18,7 @@ def send_to_minio(list_files):
 
 def upload_db_to_minio(**kwargs):
     # Zip database
-    database_file_path = os.path.join(AIRFLOW_ETL_DATA_DIR, "sirene.db")
+    database_file_path = os.path.join(Settings.AIRFLOW_ETL_DATA_DIR, "sirene.db")
 
     with open(database_file_path, "rb") as f_in:
         with gzip.open(f"{database_file_path}.gz", "wb") as f_out:
@@ -30,9 +27,9 @@ def upload_db_to_minio(**kwargs):
     send_to_minio(
         [
             {
-                "source_path": AIRFLOW_ETL_DATA_DIR,
+                "source_path": Settings.AIRFLOW_ETL_DATA_DIR,
                 "source_name": "sirene.db.gz",
-                "dest_path": SIRENE_MINIO_DATA_PATH,
+                "dest_path": Settings.SIRENE_MINIO_DATA_PATH,
                 "dest_name": f"sirene_{current_date}.db.gz",
             }
         ]

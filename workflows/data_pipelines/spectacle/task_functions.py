@@ -3,21 +3,18 @@ import logging
 import requests
 
 from helpers.minio_helpers import minio_client
-from config import (
-    SPECTACLE_TMP_FOLDER,
-    URL_ENTREPRENEUR_SPECTACLE,
-)
+from helpers.settings import Settings
 from helpers.tchap import send_message
 
 
 def preprocess_spectacle_data(ti):
-    r = requests.get(URL_ENTREPRENEUR_SPECTACLE)
-    with open(SPECTACLE_TMP_FOLDER + "spectacle-download.csv", "wb") as f:
+    r = requests.get(Settings.URL_ENTREPRENEUR_SPECTACLE)
+    with open(Settings.SPECTACLE_TMP_FOLDER + "spectacle-download.csv", "wb") as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)
 
     df_spectacle = pd.read_csv(
-        SPECTACLE_TMP_FOLDER + "spectacle-download.csv", dtype=str, sep=";"
+        Settings.SPECTACLE_TMP_FOLDER + "spectacle-download.csv", dtype=str, sep=";"
     )
     df_spectacle["siren"] = df_spectacle[
         "siren_personne_physique_siret_personne_morale"
@@ -37,7 +34,7 @@ def preprocess_spectacle_data(ti):
     ].apply(lambda list_statuts: "valide" if "valide" in list_statuts else "invalide")
     df_spectacle_clean["est_entrepreneur_spectacle"] = True
     df_spectacle_clean.drop("statut_du_recepisse", axis=1, inplace=True)
-    df_spectacle_clean.to_csv(f"{SPECTACLE_TMP_FOLDER}spectacle.csv", index=False)
+    df_spectacle_clean.to_csv(f"{Settings.SPECTACLE_TMP_FOLDER}spectacle.csv", index=False)
     ti.xcom_push(
         key="nb_siren_entrepreneur_spectacle",
         value=str(df_spectacle_clean["siren"].nunique()),
@@ -49,7 +46,7 @@ def send_file_to_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": SPECTACLE_TMP_FOLDER,
+                "source_path": Settings.SPECTACLE_TMP_FOLDER,
                 "source_name": "spectacle.csv",
                 "dest_path": "spectacle/new/",
                 "dest_name": "spectacle.csv",
@@ -74,7 +71,7 @@ def compare_files_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": SPECTACLE_TMP_FOLDER,
+                "source_path": Settings.SPECTACLE_TMP_FOLDER,
                 "source_name": "spectacle.csv",
                 "dest_path": "spectacle/latest/",
                 "dest_name": "spectacle.csv",

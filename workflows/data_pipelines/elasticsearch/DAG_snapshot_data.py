@@ -17,14 +17,11 @@ from workflows.data_pipelines.elasticsearch.\
 )
 # fmt: on
 
-from config import (
-    EMAIL_LIST,
-    AIRFLOW_SNAPSHOT_DAG_NAME,
-)
+from helpers.settings import Settings
 
 default_args = {
     "depends_on_past": False,
-    "email": EMAIL_LIST,
+    "email": Settings.EMAIL_LIST,
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 0,
@@ -32,7 +29,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id=AIRFLOW_SNAPSHOT_DAG_NAME,
+    dag_id=Settings.AIRFLOW_SNAPSHOT_DAG_NAME,
     default_args=default_args,
     schedule_interval=None,
     start_date=datetime(2024, 1, 1),

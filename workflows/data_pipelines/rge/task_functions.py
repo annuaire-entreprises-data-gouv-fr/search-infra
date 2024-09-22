@@ -3,16 +3,13 @@ import logging
 import requests
 
 from helpers.minio_helpers import minio_client
-from config import (
-    RGE_TMP_FOLDER,
-    URL_RGE,
-)
+from helpers.settings import Settings
 from helpers.tchap import send_message
 from typing import List
 
 
 def preprocess_rge_data(ti):
-    r = requests.get(URL_RGE, allow_redirects=True)
+    r = requests.get(Settings.URL_RGE, allow_redirects=True)
     data = r.json()
     list_rge: List[str] = []
     list_rge = list_rge + data["results"]
@@ -32,7 +29,7 @@ def preprocess_rge_data(ti):
     df_list_rge = df_list_rge[["siret", "liste_rge"]]
     df_list_rge["liste_rge"] = df_list_rge["liste_rge"].astype(str)
 
-    df_list_rge.to_csv(f"{RGE_TMP_FOLDER}rge.csv", index=False)
+    df_list_rge.to_csv(f"{Settings.RGE_TMP_FOLDER}rge.csv", index=False)
     ti.xcom_push(key="nb_siret_rge", value=str(df_rge["siret"].nunique()))
 
     del df_rge
@@ -43,7 +40,7 @@ def send_file_to_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": RGE_TMP_FOLDER,
+                "source_path": Settings.RGE_TMP_FOLDER,
                 "source_name": "rge.csv",
                 "dest_path": "rge/new/",
                 "dest_name": "rge.csv",
@@ -68,7 +65,7 @@ def compare_files_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": RGE_TMP_FOLDER,
+                "source_path": Settings.RGE_TMP_FOLDER,
                 "source_name": "rge.csv",
                 "dest_path": "rge/latest/",
                 "dest_name": "rge.csv",

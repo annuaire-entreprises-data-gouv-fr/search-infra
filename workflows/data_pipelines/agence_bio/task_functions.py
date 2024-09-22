@@ -4,13 +4,13 @@ from typing import Any
 
 from helpers.minio_helpers import minio_client
 from helpers.utils import flatten_object
-from config import (
-    AGENCE_BIO_TMP_FOLDER,
-)
+
 from helpers.tchap import send_message
 from workflows.data_pipelines.agence_bio.bio_client import (
     BIOAPIClient,
 )
+
+from helpers.settings import Settings
 
 
 def process_agence_bio_data(data: list[dict[str, Any]]) -> dict[str, pd.DataFrame]:
@@ -159,7 +159,7 @@ def process_agence_bio(ti):
 
     # Save to CSV
     for name, df in processed_data.items():
-        file_path = f"{AGENCE_BIO_TMP_FOLDER}agence_bio_{name}.csv"
+        file_path = f"{Settings.AGENCE_BIO_TMP_FOLDER}agence_bio_{name}.csv"
         df.to_csv(file_path, index=False)
         logging.info(f"Saved {name} data to {file_path}")
 
@@ -175,25 +175,25 @@ def send_file_to_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": AGENCE_BIO_TMP_FOLDER,
+                "source_path": Settings.AGENCE_BIO_TMP_FOLDER,
                 "source_name": "agence_bio_principal.csv",
                 "dest_path": "agence_bio/new/",
                 "dest_name": "agence_bio_principal.csv",
             },
             {
-                "source_path": AGENCE_BIO_TMP_FOLDER,
+                "source_path": Settings.AGENCE_BIO_TMP_FOLDER,
                 "source_name": "agence_bio_certifications.csv",
                 "dest_path": "agence_bio/new/",
                 "dest_name": "agence_bio_certifications.csv",
             },
             {
-                "source_path": AGENCE_BIO_TMP_FOLDER,
+                "source_path": Settings.AGENCE_BIO_TMP_FOLDER,
                 "source_name": "agence_bio_productions.csv",
                 "dest_path": "agence_bio/new/",
                 "dest_name": "agence_bio_productions.csv",
             },
             {
-                "source_path": AGENCE_BIO_TMP_FOLDER,
+                "source_path": Settings.AGENCE_BIO_TMP_FOLDER,
                 "source_name": "agence_bio_adresses.csv",
                 "dest_path": "agence_bio/new/",
                 "dest_name": "agence_bio_adresses.csv",
@@ -218,25 +218,25 @@ def compare_files_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": AGENCE_BIO_TMP_FOLDER,
+                "source_path": Settings.AGENCE_BIO_TMP_FOLDER,
                 "source_name": "agence_bio_principal.csv",
                 "dest_path": "agence_bio/latest/",
                 "dest_name": "agence_bio_principal.csv",
             },
             {
-                "source_path": AGENCE_BIO_TMP_FOLDER,
+                "source_path": Settings.AGENCE_BIO_TMP_FOLDER,
                 "source_name": "agence_bio_certifications.csv",
                 "dest_path": "agence_bio/latest/",
                 "dest_name": "agence_bio_certifications.csv",
             },
             {
-                "source_path": AGENCE_BIO_TMP_FOLDER,
+                "source_path": Settings.AGENCE_BIO_TMP_FOLDER,
                 "source_name": "agence_bio_productions.csv",
                 "dest_path": "agence_bio/latest/",
                 "dest_name": "agence_bio_productions.csv",
             },
             {
-                "source_path": AGENCE_BIO_TMP_FOLDER,
+                "source_path": Settings.AGENCE_BIO_TMP_FOLDER,
                 "source_name": "agence_bio_adresses.csv",
                 "dest_path": "agence_bio/latest/",
                 "dest_name": "agence_bio_adresses.csv",

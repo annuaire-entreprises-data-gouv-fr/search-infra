@@ -2,17 +2,13 @@ import csv
 import requests
 import logging
 from helpers.minio_helpers import minio_client
-from config import (
-    MARCHE_INCLUSION_API_URL,
-    MARCHE_INCLUSION_TMP_FOLDER,
-    SECRET_TOKEN_MARCHE_INCLUSION,
-)
+from helpers.settings import Settings
 
 
 def call_api_marche_inclusion(number_of_strctures):
-    query_params = f"token={SECRET_TOKEN_MARCHE_INCLUSION}&limit={number_of_strctures}"
+    query_params = f"token={Settings.SECRET_TOKEN_MARCHE_INCLUSION}&limit={number_of_strctures}"
 
-    endpoint = f"{MARCHE_INCLUSION_API_URL}{query_params}"
+    endpoint = f"{Settings.MARCHE_INCLUSION_API_URL}{query_params}"
 
     response = requests.get(endpoint)
     data = response.json()
@@ -37,7 +33,7 @@ def get_structures_siae():
         number_of_structures = actual_number_of_structures
         response_data = call_api_marche_inclusion(number_of_structures)
 
-    file_path = f"{MARCHE_INCLUSION_TMP_FOLDER}marche_inclusion.csv"
+    file_path = f"{Settings.MARCHE_INCLUSION_TMP_FOLDER}marche_inclusion.csv"
     save_siae_to_csv(response_data, file_path)
 
 
@@ -45,7 +41,7 @@ def send_file_minio():
     minio_client.send_files(
         list_files=[
             {
-                "source_path": MARCHE_INCLUSION_TMP_FOLDER,
+                "source_path": Settings.MARCHE_INCLUSION_TMP_FOLDER,
                 "source_name": "marche_inclusion.csv",
                 "dest_path": "marche_inclusion/",
                 "dest_name": "stock_marche_inclusion.csv",

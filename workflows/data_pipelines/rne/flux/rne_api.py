@@ -5,7 +5,7 @@ from typing import Union
 import requests
 from requests.adapters import HTTPAdapter
 from requests.exceptions import SSLError
-from config import RNE_AUTH, RNE_API_TOKEN_URL, RNE_API_DIFF_URL
+from helpers.settings import Settings
 
 
 class ApiRNEClient:
@@ -22,7 +22,7 @@ class ApiRNEClient:
             token (str): The API token used for authentication.
             max_retries (int): Maximum number of retries for API requests.
         """
-        self.auth = RNE_AUTH
+        self.auth = Settings.RNE_AUTH
         self.session = self.create_persistent_session()
         self.token = self.get_new_token()
         self.max_retries = max_retries
@@ -44,7 +44,7 @@ class ApiRNEClient:
         try:
             selected_auth = random.choice(self.auth)
             logging.info(f"Authentification account used: {selected_auth['username']}")
-            response = self.session.post(RNE_API_TOKEN_URL, json=selected_auth)
+            response = self.session.post(Settings.RNE_API_TOKEN_URL, json=selected_auth)
             response.raise_for_status()
             token = response.json()["token"]
             logging.info("New token received...")
@@ -76,7 +76,7 @@ class ApiRNEClient:
             response and the last SIREN number.
         """
 
-        url = f"{RNE_API_DIFF_URL}from={start_date}&to={end_date}&pageSize=100"
+        url = f"{Settings.RNE_API_DIFF_URL}from={start_date}&to={end_date}&pageSize=100"
         if last_siren:
             url += f"&searchAfter={last_siren}"
 

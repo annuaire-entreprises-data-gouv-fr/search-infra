@@ -21,7 +21,7 @@ from helpers.geolocalisation import (
     transform_coordinates,
 )
 
-labels_file_path = "dags/dag_datalake_sirene/helpers/labels/"
+labels_file_path = "helpers/labels/"
 
 
 def load_file(file_name: str):
