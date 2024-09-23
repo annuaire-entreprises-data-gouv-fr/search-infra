@@ -106,7 +106,7 @@ def test_organisme_formation(api_response_tester):
     api_response_tester.test_max_number_of_results(path, 0)
     path = "/search?q=196716856"
     api_response_tester.test_field_value(path, "complements.est_qualiopi", True)
-    path = "/search?q=356000000"
+    path = "/search?q=552120222"
     api_response_tester.test_field_value(path, "complements.est_qualiopi", False)
     api_response_tester.test_field_value(
         path, "complements.est_organisme_formation", True
