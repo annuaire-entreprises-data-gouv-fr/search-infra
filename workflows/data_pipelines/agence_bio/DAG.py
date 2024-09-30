@@ -14,6 +14,7 @@ from dag_datalake_sirene.workflows.data_pipelines.agence_bio.task_functions impo
     compare_files_minio,
     send_notification,
 )
+from dag_datalake_sirene.helpers.tchap import send_notification_failure_tchap
 
 default_args = {
     "depends_on_past": False,
@@ -32,6 +33,7 @@ with DAG(
     tags=["agence bio", "certifications"],
     params={},
     catchup=False,
+    on_failure_callback=send_notification_failure_tchap,
 ) as dag:
     clean_previous_outputs = BashOperator(
         task_id="clean_previous_outputs",
