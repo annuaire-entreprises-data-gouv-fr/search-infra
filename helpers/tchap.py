@@ -35,3 +35,9 @@ def send_message(
     except requests.exceptions.RequestException as e:
         logging.error(f"Failed to send message: {e}")
         raise Exception(f"Failed to send message: {e}")
+
+
+def send_notification_failure_tchap(context):
+    dag_id = context["dag"].dag_id  # Get the dag_id from the context
+    message = f"\U0001F534 Fail DAG: {dag_id}!!!!"
+    send_message(message)
