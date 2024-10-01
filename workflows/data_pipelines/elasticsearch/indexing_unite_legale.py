@@ -1,4 +1,5 @@
 import logging
+import time
 from elasticsearch.helpers import parallel_bulk
 
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.mapping_index import (
@@ -120,12 +121,34 @@ def index_unites_legales_by_chunk(
 
     # Indexing performance :
     #
-    # The _/cat/count/{index} is called only once at the end of the indexing process and not after each pushed bulk
+    # The _/cat/count/{index} is called only once at the end of the indexing process
+    # and not after each pushed bulk
     #
-    # i.e. the _cat/count/{index} produce a query that may force Lucene to refresh the last bulk into a segment
-    # meaning that it would amplify the amount of segment merge and slowdown the indexing process
-    doc_count = elastic_connection.cat.count(
-        index=elastic_index, params={"format": "json"}
-    )[0]["count"]
+    # i.e. the _cat/count/{index} produce a query that may force Lucene to refresh the
+    # last bulk into a segment
+    # meaning that it would amplify the amount of segment merge and slowdown the
+    # indexing process
+
+    # Add wait and retry mechanism for zero count
+    max_retries = 5
+    retry_interval = 5  # seconds
+
+    for attempt in range(max_retries):
+        doc_count = int(
+            elastic_connection.cat.count(
+                index=elastic_index, params={"format": "json"}
+            )[0]["count"]
+        )
+
+        if doc_count > 0:
+            break
+
+        if attempt < max_retries - 1:
+            logging.warning(
+                f"Document count is zero. Retrying in {retry_interval} seconds..."
+            )
+            time.sleep(retry_interval)
+        else:
+            logging.error("Max retries reached. Document count is still zero.")
 
     return doc_count
