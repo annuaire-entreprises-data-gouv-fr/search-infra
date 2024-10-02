@@ -88,7 +88,7 @@ def format_slug(
     else:
         denomination_usuelle = " ".join(
             filter(
-                None,
+                lambda x: x and x != "SUPPRESSION DU NOM COMMERCIAL",
                 [
                     denomination_usuelle_1,
                     denomination_usuelle_2,
