@@ -86,9 +86,12 @@ def format_slug(
     if nom_commercial_siege:
         slug_parts.append(nom_commercial_siege)
     else:
+        # When a company removes a commercial name,
+        # INSEE sets its old "denomination usuelle" to "SUPPRESSION DU NOM COMMERCIAL".
+        # Removing said mention.
         denomination_usuelle = " ".join(
             filter(
-                None,
+                lambda x: x and x != "SUPPRESSION DU NOM COMMERCIAL",
                 [
                     denomination_usuelle_1,
                     denomination_usuelle_2,
