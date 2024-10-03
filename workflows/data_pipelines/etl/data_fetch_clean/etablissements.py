@@ -1,8 +1,10 @@
 import logging
 import pandas as pd
 import requests
+import minio
 import shutil
-from datetime import datetime, timedelta
+from datetime import datetime
+from airflow.exceptions import AirflowSkipException
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.config import (
     URL_ETABLISSEMENTS,
@@ -76,79 +78,83 @@ def download_stock(departement):
 
 
 def download_flux(data_dir):
-    today = datetime.today()
-    if today.day == 1:
-        # Calculate the first day of the previous month
-        first_day_of_previous_month = today - timedelta(days=1)
-        year_month = first_day_of_previous_month.strftime("%Y-%m")
-    else:
-        year_month = datetime.today().strftime("%Y-%m")
+    year_month = datetime.today().strftime("%Y-%m")
     logging.info(f"Downloading flux for : {year_month}")
-    minio_client.get_files(
-        list_files=[
-            {
-                "source_path": "insee/sirene/flux/",
-                "source_name": f"flux_etablissement_{year_month}.csv.gz",
-                "dest_path": f"{data_dir}",
-                "dest_name": f"flux_etablissement_{year_month}.csv.gz",
-            }
-        ],
-    )
-    df_flux = pd.read_csv(
-        f"{data_dir}flux_etablissement_{year_month}.csv.gz",
-        dtype=str,
-        compression="gzip",
-        usecols=[
-            "siren",
-            "siret",
-            "dateCreationEtablissement",
-            "trancheEffectifsEtablissement",
-            "caractereEmployeurEtablissement",
-            "anneeEffectifsEtablissement",
-            "dateDernierTraitementEtablissement",
-            "activitePrincipaleRegistreMetiersEtablissement",
-            "etablissementSiege",
-            "numeroVoieEtablissement",
-            "libelleVoieEtablissement",
-            "codePostalEtablissement",
-            "libelleCommuneEtablissement",
-            "libelleCedexEtablissement",
-            "typeVoieEtablissement",
-            "codeCommuneEtablissement",
-            "codeCedexEtablissement",
-            "complementAdresseEtablissement",
-            "distributionSpecialeEtablissement",
-            "complementAdresse2Etablissement",
-            "indiceRepetition2Etablissement",
-            "libelleCedex2Etablissement",
-            "codeCedex2Etablissement",
-            "numeroVoie2Etablissement",
-            "typeVoie2Etablissement",
-            "libelleVoie2Etablissement",
-            "codeCommune2Etablissement",
-            "libelleCommune2Etablissement",
-            "distributionSpeciale2Etablissement",
-            "dateDebut",
-            "etatAdministratifEtablissement",
-            "enseigne1Etablissement",
-            "enseigne1Etablissement",
-            "enseigne2Etablissement",
-            "enseigne3Etablissement",
-            "denominationUsuelleEtablissement",
-            "activitePrincipaleEtablissement",
-            "indiceRepetitionEtablissement",
-            "libelleCommuneEtrangerEtablissement",
-            "codePaysEtrangerEtablissement",
-            "libellePaysEtrangerEtablissement",
-            "libelleCommuneEtranger2Etablissement",
-            "codePaysEtranger2Etablissement",
-            "libellePaysEtranger2Etablissement",
-            "statutDiffusionEtablissement",
-            "coordonneeLambertAbscisseEtablissement",
-            "coordonneeLambertOrdonneeEtablissement",
-        ],
-    )
-    return df_flux
+    try:
+        minio_client.get_files(
+            list_files=[
+                {
+                    "source_path": "insee/sirene/flux/",
+                    "source_name": f"flux_etablissement_{year_month}.csv.gz",
+                    "dest_path": f"{data_dir}",
+                    "dest_name": f"flux_etablissement_{year_month}.csv.gz",
+                }
+            ],
+        )
+        df_flux = pd.read_csv(
+            f"{data_dir}flux_etablissement_{year_month}.csv.gz",
+            dtype=str,
+            compression="gzip",
+            usecols=[
+                "siren",
+                "siret",
+                "dateCreationEtablissement",
+                "trancheEffectifsEtablissement",
+                "caractereEmployeurEtablissement",
+                "anneeEffectifsEtablissement",
+                "dateDernierTraitementEtablissement",
+                "activitePrincipaleRegistreMetiersEtablissement",
+                "etablissementSiege",
+                "numeroVoieEtablissement",
+                "libelleVoieEtablissement",
+                "codePostalEtablissement",
+                "libelleCommuneEtablissement",
+                "libelleCedexEtablissement",
+                "typeVoieEtablissement",
+                "codeCommuneEtablissement",
+                "codeCedexEtablissement",
+                "complementAdresseEtablissement",
+                "distributionSpecialeEtablissement",
+                "complementAdresse2Etablissement",
+                "indiceRepetition2Etablissement",
+                "libelleCedex2Etablissement",
+                "codeCedex2Etablissement",
+                "numeroVoie2Etablissement",
+                "typeVoie2Etablissement",
+                "libelleVoie2Etablissement",
+                "codeCommune2Etablissement",
+                "libelleCommune2Etablissement",
+                "distributionSpeciale2Etablissement",
+                "dateDebut",
+                "etatAdministratifEtablissement",
+                "enseigne1Etablissement",
+                "enseigne1Etablissement",
+                "enseigne2Etablissement",
+                "enseigne3Etablissement",
+                "denominationUsuelleEtablissement",
+                "activitePrincipaleEtablissement",
+                "indiceRepetitionEtablissement",
+                "libelleCommuneEtrangerEtablissement",
+                "codePaysEtrangerEtablissement",
+                "libellePaysEtrangerEtablissement",
+                "libelleCommuneEtranger2Etablissement",
+                "codePaysEtranger2Etablissement",
+                "libellePaysEtranger2Etablissement",
+                "statutDiffusionEtablissement",
+                "coordonneeLambertAbscisseEtablissement",
+                "coordonneeLambertOrdonneeEtablissement",
+            ],
+        )
+        return df_flux
+    # At the start of each month, a new stock file is published on data.gouv.
+    # API Sirene returns an error when trying to get flux data for the new month
+    # which means it not yet available on MinIO.
+    # This exception handling ensures that we skip downloading the flux data
+    # if it hasn't been uploaded to MinIO yet.
+    except minio.error.S3Error as e:
+        logging.warning(f"No flux data has been found for: {year_month}")
+        if e.code == "NoSuchKey":
+            raise AirflowSkipException("Skipping this task")
 
 
 def download_historique(data_dir):

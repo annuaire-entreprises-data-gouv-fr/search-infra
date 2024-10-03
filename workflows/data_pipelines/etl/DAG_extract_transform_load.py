@@ -144,12 +144,14 @@ with DAG(
         task_id="create_flux_etablissement_table",
         provide_context=True,
         python_callable=create_flux_etablissement_table,
+        trigger_rule="all_done",
     )
 
     replace_unite_legale_table = PythonOperator(
         task_id="replace_unite_legale_table",
         provide_context=True,
         python_callable=replace_unite_legale_table,
+        trigger_rule="all_done",
     )
 
     replace_etablissement_table = PythonOperator(
@@ -216,6 +218,7 @@ with DAG(
         task_id="create_historique_etablissement_table",
         provide_context=True,
         python_callable=create_historique_etablissement_table,
+        trigger_rule="all_done",
     )
 
     create_date_fermeture_etablissement_table = PythonOperator(
