@@ -125,33 +125,39 @@ URL_AGENCE_BIO = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/agence_bio"
     "/latest/agence_bio_certifications.csv"
 )
+RESSOURCE_ID_BILANS_FINANCIERS = "9d213815-1649-4527-9eb4-427146ef2e5b"
 URL_BILANS_FINANCIERS = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/bilans_financiers"
     "/latest/synthese_bilans.csv"
 )
+RESSOURCE_ID_COLTER_REGIONS = "619ee62e-8f9e-4c62-b166-abc6f2b86201"
 URL_COLTER_REGIONS = (
-    "https://www.data.gouv.fr/fr/datasets/r/619ee62e-8f9e-4c62-b166-abc6f2b86201"
+    f"https://www.data.gouv.fr/fr/datasets/r/{RESSOURCE_ID_COLTER_REGIONS}"
 )
-URL_COLTER_DEP = (
-    "https://www.data.gouv.fr/fr/datasets/r/2f4f901d-e3ce-4760-b122-56a311340fc4"
-)
+RESSOURCE_ID_COLTER_DEP = "2f4f901d-e3ce-4760-b122-56a311340fc4"
+URL_COLTER_DEP = f"https://www.data.gouv.fr/fr/datasets/r/{RESSOURCE_ID_COLTER_DEP}"
+RESSOURCE_ID_COLTER_COMMUNES = "42b16d68-958e-4518-8551-93e095fe8fda"
 URL_COLTER_COMMUNES = (
-    "https://www.data.gouv.fr/fr/datasets/r/42b16d68-958e-4518-8551-93e095fe8fda"
+    f"https://www.data.gouv.fr/fr/datasets/r/{RESSOURCE_ID_COLTER_COMMUNES}"
 )
-URL_ELUS_EPCI = (
-    "https://www.data.gouv.fr/fr/datasets/r/41d95d7d-b172-4636-ac44-32656367cdc7"
-)
+RESSOURCE_ID_ELUS_EPCI = "41d95d7d-b172-4636-ac44-32656367cdc7"
+URL_ELUS_EPCI = f"https://www.data.gouv.fr/fr/datasets/r/{RESSOURCE_ID_ELUS_EPCI}"
+RESSOURCE_ID_CONSEILLERS_REGIONAUX = "430e13f9-834b-4411-a1a8-da0b4b6e715c"
 URL_CONSEILLERS_REGIONAUX = (
-    "https://www.data.gouv.fr/fr/datasets/r/430e13f9-834b-4411-a1a8-da0b4b6e715c"
+    f"https://www.data.gouv.fr/fr/datasets/r/{RESSOURCE_ID_CONSEILLERS_REGIONAUX}"
 )
+RESSOURCE_ID_CONSEILLERS_DEPARTEMENTAUX = "601ef073-d986-4582-8e1a-ed14dc857fba"
 URL_CONSEILLERS_DEPARTEMENTAUX = (
-    "https://www.data.gouv.fr/fr/datasets/r/601ef073-d986-4582-8e1a-ed14dc857fba"
+    f"https://www.data.gouv.fr/fr/datasets/r/{RESSOURCE_ID_CONSEILLERS_DEPARTEMENTAUX}"
 )
+RESSOURCE_ID_CONSEILLERS_MUNICIPAUX = "d5f400de-ae3f-4966-8cb6-a85c70c6c24a"
 URL_CONSEILLERS_MUNICIPAUX = (
-    "https://www.data.gouv.fr/fr/datasets/r/d5f400de-ae3f-4966-8cb6-a85c70c6c24a"
+    f"https://www.data.gouv.fr/fr/datasets/r/{RESSOURCE_ID_CONSEILLERS_MUNICIPAUX}"
 )
+RESSOURCE_ID_ASSEMBLEE_COL_STATUT_PARTICULIER = "a595be27-cfab-4810-b9d4-22e193bffe35"
 URL_ASSEMBLEE_COL_STATUT_PARTICULIER = (
-    "https://www.data.gouv.fr/fr/datasets/r/a595be27-cfab-4810-b9d4-22e193bffe35"
+    "https://www.data.gouv.fr/fr/datasets/"
+    f"r/{RESSOURCE_ID_ASSEMBLEE_COL_STATUT_PARTICULIER}"
 )
 URL_MINIO_COLTER = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/colter"
@@ -161,8 +167,9 @@ URL_MINIO_ELUS = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/colter"
     "/latest/elus.csv"
 )
+RESSOURCE_ID_CONVENTION_COLLECTIVE = "a22e54f7-b937-4483-9a72-aad2ea1316f1"
 URL_CONVENTION_COLLECTIVE = (
-    "https://www.data.gouv.fr/fr/datasets/r/a22e54f7-b937-4483-9a72-aad2ea1316f1"
+    f"https://www.data.gouv.fr/fr/datasets/r/{RESSOURCE_ID_CONVENTION_COLLECTIVE}"
 )
 URL_MINIO_CONVENTION_COLLECTIVE = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/convention_collective"
@@ -251,5 +258,6 @@ URL_CC_KALI = (
 
 # DataGouv
 DATAGOUV_URL = "https://www.data.gouv.fr"
+DATAGOUV_RESSOURCE_PATH = "/fr/datasets/r/"
 ORGA_REFERENCE = "646b7187b50b2a93b1ae3d45"
 DATAGOUV_SECRET_API_KEY = Variable.get("DATAGOUV_SECRET_API_KEY", "")
