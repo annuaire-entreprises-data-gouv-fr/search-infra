@@ -12,6 +12,7 @@ from dag_datalake_sirene.workflows.data_pipelines.agence_bio.task_functions impo
     process_agence_bio,
     send_file_to_minio,
     compare_files_minio,
+    save_date_last_modified,
     send_notification,
 )
 from dag_datalake_sirene.helpers.tchap import send_notification_failure_tchap
@@ -46,6 +47,10 @@ with DAG(
         task_id="process_agence_bio", python_callable=process_agence_bio
     )
 
+    save_date_last_modified = PythonOperator(
+        task_id="save_date_last_modified", python_callable=save_date_last_modified
+    )
+
     send_file_to_minio = PythonOperator(
         task_id="send_file_to_minio", python_callable=send_file_to_minio
     )
@@ -59,6 +64,7 @@ with DAG(
     )
 
     process_agence_bio.set_upstream(clean_previous_outputs)
-    send_file_to_minio.set_upstream(process_agence_bio)
+    save_date_last_modified.set_upstream(process_agence_bio)
+    send_file_to_minio.set_upstream(save_date_last_modified)
     compare_files_minio.set_upstream(send_file_to_minio)
     send_notification.set_upstream(compare_files_minio)
