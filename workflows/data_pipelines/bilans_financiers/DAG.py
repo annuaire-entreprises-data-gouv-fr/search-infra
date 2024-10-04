@@ -15,6 +15,7 @@ from dag_datalake_sirene.workflows.data_pipelines.bilans_financiers.task_functio
     process_bilans_financiers,
     send_file_to_minio,
     compare_files_minio,
+    save_date_last_modified,
     send_notification,
 )
 # fmt: on
@@ -54,6 +55,10 @@ with DAG(
         task_id="process_bilans_financiers", python_callable=process_bilans_financiers
     )
 
+    save_date_last_modified = PythonOperator(
+        task_id="save_date_last_modified", python_callable=save_date_last_modified
+    )
+
     send_file_to_minio = PythonOperator(
         task_id="send_file_to_minio", python_callable=send_file_to_minio
     )
@@ -67,6 +72,7 @@ with DAG(
     )
     download_bilans_financiers.set_upstream(clean_previous_outputs)
     process_bilans_financiers.set_upstream(download_bilans_financiers)
-    send_file_to_minio.set_upstream(process_bilans_financiers)
+    save_date_last_modified.set_upstream(process_bilans_financiers)
+    send_file_to_minio.set_upstream(save_date_last_modified)
     compare_files_minio.set_upstream(send_file_to_minio)
     send_notification.set_upstream(compare_files_minio)
