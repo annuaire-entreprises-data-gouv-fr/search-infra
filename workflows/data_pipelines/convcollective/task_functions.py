@@ -3,9 +3,11 @@ import logging
 import requests
 
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.utils import fetch_and_store_last_modified_metadata
 from dag_datalake_sirene.config import (
     CC_TMP_FOLDER,
     URL_CONVENTION_COLLECTIVE,
+    RESSOURCE_ID_CONVENTION_COLLECTIVE,
 )
 from dag_datalake_sirene.helpers.tchap import send_message
 
@@ -76,6 +78,12 @@ def preprocess_convcollective_data(ti):
     del df_cc
 
 
+def save_date_last_modified():
+    fetch_and_store_last_modified_metadata(
+        RESSOURCE_ID_CONVENTION_COLLECTIVE, CC_TMP_FOLDER
+    )
+
+
 def send_file_to_minio():
     minio_client.send_files(
         list_files=[
@@ -84,6 +92,12 @@ def send_file_to_minio():
                 "source_name": "cc.csv",
                 "dest_path": "convention_collective/new/",
                 "dest_name": "cc.csv",
+            },
+            {
+                "source_path": CC_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "convention_collective/new/",
+                "dest_name": "metadata.json",
             },
         ],
     )
@@ -109,6 +123,12 @@ def compare_files_minio():
                 "source_name": "cc.csv",
                 "dest_path": "convention_collective/latest/",
                 "dest_name": "cc.csv",
+            },
+            {
+                "source_path": CC_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "convention_collective/latest/",
+                "dest_name": "metadata.json",
             },
         ],
     )
