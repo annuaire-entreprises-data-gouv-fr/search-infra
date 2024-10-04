@@ -10,7 +10,7 @@ from dag_datalake_sirene.helpers.datagouv import get_resource
 from dag_datalake_sirene.helpers.tchap import send_message
 from dag_datalake_sirene.helpers.utils import (
     get_fiscal_year,
-    store_last_modified_metadata,
+    fetch_and_store_last_modified_metadata,
 )
 
 
@@ -29,7 +29,7 @@ def download_bilans_financiers():
 
 
 def save_date_last_modified():
-    store_last_modified_metadata(
+    fetch_and_store_last_modified_metadata(
         RESSOURCE_ID_BILANS_FINANCIERS, BILANS_FINANCIERS_TMP_FOLDER
     )
 
