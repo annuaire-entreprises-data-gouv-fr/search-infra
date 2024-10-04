@@ -4,23 +4,34 @@ from datetime import datetime
 
 from dag_datalake_sirene.config import (
     BILANS_FINANCIERS_TMP_FOLDER,
+    RESSOURCE_ID_BILANS_FINANCIERS,
 )
 from dag_datalake_sirene.helpers.datagouv import get_resource
 from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.utils import get_fiscal_year
+from dag_datalake_sirene.helpers.utils import (
+    get_fiscal_year,
+    store_last_modified_metadata,
+)
+
 
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 
 
 def download_bilans_financiers():
     get_resource(
-        resource_id="9d213815-1649-4527-9eb4-427146ef2e5b",
+        resource_id=RESSOURCE_ID_BILANS_FINANCIERS,
         file_to_store={
             "dest_path": BILANS_FINANCIERS_TMP_FOLDER,
             "dest_name": "bilans_entreprises.csv",
         },
     )
     logging.info("download done!")
+
+
+def save_date_last_modified():
+    store_last_modified_metadata(
+        RESSOURCE_ID_BILANS_FINANCIERS, BILANS_FINANCIERS_TMP_FOLDER
+    )
 
 
 def process_bilans_financiers(ti):
@@ -31,6 +42,7 @@ def process_bilans_financiers(ti):
         "date_cloture_exercice",
         "type_bilan",
     ]
+    # Get lastest csv file, because we have no knowledge of the date
     df_bilan = pd.read_csv(
         f"{BILANS_FINANCIERS_TMP_FOLDER}bilans_entreprises.csv",
         dtype=str,
@@ -107,11 +119,10 @@ def process_bilans_financiers(ti):
         f"{BILANS_FINANCIERS_TMP_FOLDER}synthese_bilans.csv",
         index=False,
     )
-
     ti.xcom_push(key="nb_siren", value=str(df_bilan.shape[0]))
 
 
-def send_file_to_minio():
+def send_file_to_minio(ti):
     minio_client.send_files(
         list_files=[
             {
@@ -120,21 +131,28 @@ def send_file_to_minio():
                 "dest_path": "bilans_financiers/new/",
                 "dest_name": "synthese_bilans.csv",
             },
+            {
+                "source_path": BILANS_FINANCIERS_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "bilans_financiers/new/",
+                "dest_name": "metadata.json",
+            },
         ],
     )
 
 
 def compare_files_minio():
-    is_same = minio_client.compare_files(
+    are_files_identical = minio_client.compare_files(
         file_path_1="bilans_financiers/new/",
         file_name_2="synthese_bilans.csv",
         file_path_2="bilans_financiers/latest/",
         file_name_1="synthese_bilans.csv",
     )
-    if is_same:
+
+    if are_files_identical:
         return False
 
-    if is_same is None:
+    if are_files_identical is None:
         logging.info("First time in this Minio env. Creating")
 
     minio_client.send_files(
@@ -144,6 +162,12 @@ def compare_files_minio():
                 "source_name": "synthese_bilans.csv",
                 "dest_path": "bilans_financiers/latest/",
                 "dest_name": "synthese_bilans.csv",
+            },
+            {
+                "source_path": BILANS_FINANCIERS_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "bilans_financiers/latest/",
+                "dest_name": "metadata.json",
             },
         ],
     )
