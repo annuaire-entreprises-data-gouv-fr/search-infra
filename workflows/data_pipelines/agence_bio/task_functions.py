@@ -200,6 +200,12 @@ def send_file_to_minio():
                 "dest_path": "agence_bio/new/",
                 "dest_name": "agence_bio_adresses.csv",
             },
+            {
+                "source_path": AGENCE_BIO_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "agence_bio/new/",
+                "dest_name": "metadata.json",
+            },
         ],
     )
 
