@@ -5,7 +5,7 @@ import requests
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.helpers.utils import fetch_and_store_last_modified_metadata
 from dag_datalake_sirene.config import (
-    RESSOURCE_ID_ENTREPRENEUR_SPECTACLE,
+    RESOURCE_ID_ENTREPRENEUR_SPECTACLE,
     SPECTACLE_TMP_FOLDER,
     URL_ENTREPRENEUR_SPECTACLE,
 )
@@ -52,7 +52,7 @@ def preprocess_spectacle_data(ti):
 
 def save_date_last_modified():
     fetch_and_store_last_modified_metadata(
-        RESSOURCE_ID_ENTREPRENEUR_SPECTACLE, SPECTACLE_TMP_FOLDER
+        RESOURCE_ID_ENTREPRENEUR_SPECTACLE, SPECTACLE_TMP_FOLDER
     )
 
 

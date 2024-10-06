@@ -7,7 +7,7 @@ from dag_datalake_sirene.helpers.utils import fetch_and_store_last_modified_meta
 from dag_datalake_sirene.config import (
     CC_TMP_FOLDER,
     URL_CONVENTION_COLLECTIVE,
-    RESSOURCE_ID_CONVENTION_COLLECTIVE,
+    RESOURCE_ID_CONVENTION_COLLECTIVE,
 )
 from dag_datalake_sirene.helpers.tchap import send_message
 
@@ -80,7 +80,7 @@ def preprocess_convcollective_data(ti):
 
 def save_date_last_modified():
     fetch_and_store_last_modified_metadata(
-        RESSOURCE_ID_CONVENTION_COLLECTIVE, CC_TMP_FOLDER
+        RESOURCE_ID_CONVENTION_COLLECTIVE, CC_TMP_FOLDER
     )
 
 
