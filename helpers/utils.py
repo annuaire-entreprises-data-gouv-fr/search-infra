@@ -4,11 +4,16 @@ import logging
 import requests
 import os
 import gzip
+import re
+import json
 import pandas as pd
 from datetime import datetime, date
+from pathlib import Path
 
 from unicodedata import normalize
 from dag_datalake_sirene.config import AIRFLOW_ENV
+
+from dag_datalake_sirene.helpers.datagouv import fetch_last_modified_date
 
 
 def check_if_prod():
@@ -224,34 +229,191 @@ def flatten_object(obj, prop):
     return res[1:]
 
 
-def get_last_modified(url):
+def get_date_last_modified(response=None, url=None) -> str:
     """
-    Fetches the Last-Modified date of a file from a URL and
-    returns it in ISO 8601 format.
+    Fetches the Last-Modified date from either a response object or a URL.
+    Returns it in ISO 8601 format using `parse_date_string`.
 
     Args:
-        url (str): The URL of the file.
+        response (requests.Response, optional): The HTTP response object if
+        already available.
+        url (str, optional): The URL of the file if no response is available.
 
     Returns:
         str: The Last-Modified date in '%Y-%m-%dT%H:%M:%S' format,
-        or 'No date available' if not found.
+             or 'No date available' if not found.
     """
     try:
-        # Make a HEAD request to get the headers
-        response = requests.head(url)
-        response.raise_for_status()  # Raise an error for bad responses
+        if response:
+            # If we already have a response object, use its headers
+            last_modified_raw = response.headers.get("Last-Modified", None)
+        elif url:
+            # Make a HEAD request to get the headers
+            head_response = requests.head(url)
+            head_response.raise_for_status()
+            last_modified_raw = head_response.headers.get("Last-Modified", None)
 
-        # Check if the Last-Modified header is present
-        last_modified_raw = response.headers.get("Last-Modified", None)
-
-        if last_modified_raw:
-            # Parse the 'Last-Modified' date and convert it to ISO 8601 format
-            last_modified_dt = datetime.strptime(
-                last_modified_raw, "%a, %d %b %Y %H:%M:%S %Z"
-            )
-            return last_modified_dt.strftime("%Y-%m-%dT%H:%M:%S")
+            # If not found in HEAD response, fallback to GET
+            if last_modified_raw is None:
+                get_response = requests.get(url)
+                get_response.raise_for_status()
+                last_modified_raw = get_response.headers.get("Last-Modified", None)
+                print(get_response.headers)
         else:
-            return "No date available"
+            raise ValueError("Either a response or URL must be provided")
+
+        # Use parse_date_string to convert the Last-Modified date to ISO 8601 format
+        return (
+            parse_date_string(last_modified_raw)
+            if last_modified_raw
+            else "No date available"
+        )
     except requests.RequestException as e:
         logging.error(f"Error fetching last modified date: {e}")
         return "Error fetching date"
+    except Exception as e:
+        logging.error(f"Error parsing date: {e}")
+        return "Error parsing date"
+
+
+def parse_date_string(
+    date_string: str | None,
+    input_formats: str | list[str] = [
+        "%a, %d %b %Y %H:%M:%S %Z",
+        "%Y-%m-%d",
+        "%Y-%m-%dT%H:%M:%S",
+        "%Y-%m-%d %H:%M:%S",
+    ],
+    output_format: str = "%Y-%m-%d",
+    default_value: str = "No date available",
+) -> str:
+    """
+    Parse a date string from various formats and return it in a specified format.
+
+    Args:
+        date_string (Optional[str]): The date string to parse.
+        input_formats (Union[str, list[str]]): Format(s) to parse the input string.
+                                               Can be a single format string or
+                                               a list of format strings.
+        output_format (str): The desired output format.
+        default_value (str): The value to return if parsing fails.
+
+    Returns:
+        str: The parsed and formatted date string, or
+        the default value if parsing fails.
+
+    Examples:
+        >>> parse_date_string("Mon, 01 Jan 2024 12:00:00 GMT")
+        '2024-01-01'
+        >>> parse_date_string("2024-01-01")
+        '2024-01-01'
+        >>> parse_date_string(None)
+        'No date available'
+        >>> parse_date_string("2024-01-01 15:30:00", output_format="%Y-%m-%d")
+        '2024-01-01'
+    """
+    if not date_string:
+        return default_value
+
+    if isinstance(input_formats, str):
+        input_formats = [input_formats]
+
+    for format in input_formats:
+        try:
+            parsed_date = datetime.strptime(date_string, format)
+            return parsed_date.strftime(output_format)
+        except ValueError:
+            continue
+
+    return default_value
+
+
+def extract_date_from_filename(filename):
+    # Use regex to find a date pattern in the filename
+    match = re.search(r"(\d{4}-\d{2}-\d{2})", filename)
+
+    if match:
+        date_string = match.group(1)
+        # Parse the date string into a datetime object
+        return datetime.strptime(date_string, "%Y-%m-%d").date().isoformat()
+    else:
+        return None
+
+
+def fetch_latest_file_from_folder(
+    folder_path: str, extension: str = None
+) -> Path | None:
+    """
+    Fetches the latest file from the specified folder.
+
+    Parameters:
+        folder_path (str): The path to the folder to search.
+        extension (str, optional): File extension to filter by (e.g., '.csv').
+                                   If None, all files are considered.
+
+    Returns:
+        Optional[Path]: The path of the latest file, or None if no files are found.
+    """
+    path = Path(folder_path)
+
+    if not path.is_dir():
+        raise ValueError(f"The path '{folder_path}' is not a valid directory.")
+
+    # Get files matching the extension or all files if no extension is specified
+    files = list(path.glob(f"*{extension}")) if extension else list(path.glob("*"))
+
+    if not files:
+        return None  # No files found
+
+    # Return the latest file based on modification time
+    latest_file = max(files, key=lambda f: f.stat().st_mtime)
+    logging.info(f"********Latest file found in folder: {latest_file}")
+    return latest_file
+
+
+def save_to_metadata(metadata_file: str, key: str, value: str) -> None:
+    """
+    Saves a key-value pair in a metadata JSON file.
+
+    Args:
+        metadata_file (str): The path to the metadata JSON file.
+        key (str): The key to store in the metadata.
+        value (str): The value to associate with the key.
+
+    Returns:
+        None
+    """
+    # Ensure the metadata file exists
+    if not os.path.exists(metadata_file):
+        with open(metadata_file, "w") as f:
+            json.dump({}, f)
+
+    # Load existing metadata
+    with open(metadata_file, "r") as f:
+        metadata = json.load(f)
+
+    # Update the metadata with the new key-value pair
+    metadata[key] = value
+
+    # Save the updated metadata back to the file
+    with open(metadata_file, "w") as f:
+        json.dump(metadata, f, indent=4)
+
+
+def fetch_and_store_last_modified_metadata(resource_id: str, file_path: str) -> None:
+    """
+    Fetch 'last_modified' from resource and save the date to a metadata file.
+    """
+    try:
+        # Define the metadata file path
+        metadata_path = os.path.join(file_path, "metadata.json")
+
+        # Save the 'last_modified' date to the metadata file
+        save_to_metadata(
+            metadata_path, "last_modified", fetch_last_modified_date(resource_id)
+        )
+
+        logging.info(f"Last modified date saved successfully to {metadata_path}")
+
+    except Exception as e:
+        raise RuntimeError(f"Failed to save last modified metadata: {e}")
