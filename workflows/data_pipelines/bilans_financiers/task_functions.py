@@ -4,7 +4,7 @@ from datetime import datetime
 
 from dag_datalake_sirene.config import (
     BILANS_FINANCIERS_TMP_FOLDER,
-    RESSOURCE_ID_BILANS_FINANCIERS,
+    RESOURCE_ID_BILANS_FINANCIERS,
 )
 from dag_datalake_sirene.helpers.datagouv import get_resource
 from dag_datalake_sirene.helpers.tchap import send_message
@@ -19,7 +19,7 @@ from dag_datalake_sirene.helpers.minio_helpers import minio_client
 
 def download_bilans_financiers():
     get_resource(
-        resource_id=RESSOURCE_ID_BILANS_FINANCIERS,
+        resource_id=RESOURCE_ID_BILANS_FINANCIERS,
         file_to_store={
             "dest_path": BILANS_FINANCIERS_TMP_FOLDER,
             "dest_name": "bilans_entreprises.csv",
@@ -30,7 +30,7 @@ def download_bilans_financiers():
 
 def save_date_last_modified():
     fetch_and_store_last_modified_metadata(
-        RESSOURCE_ID_BILANS_FINANCIERS, BILANS_FINANCIERS_TMP_FOLDER
+        RESOURCE_ID_BILANS_FINANCIERS, BILANS_FINANCIERS_TMP_FOLDER
     )
 
 

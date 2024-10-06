@@ -4,7 +4,7 @@ import logging
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.config import (
     EGAPRO_TMP_FOLDER,
-    RESSOURCE_ID_EGAPRO,
+    RESOURCE_ID_EGAPRO,
     URL_EGAPRO,
 )
 from dag_datalake_sirene.helpers.tchap import send_message
@@ -29,7 +29,7 @@ def preprocess_egapro_data(ti):
 
 
 def save_date_last_modified():
-    fetch_and_store_last_modified_metadata(RESSOURCE_ID_EGAPRO, EGAPRO_TMP_FOLDER)
+    fetch_and_store_last_modified_metadata(RESOURCE_ID_EGAPRO, EGAPRO_TMP_FOLDER)
 
 
 def send_file_to_minio():
