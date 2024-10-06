@@ -1,7 +1,10 @@
 import csv
 import requests
+from datetime import datetime
 import logging
+import os
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.utils import save_to_metadata
 from dag_datalake_sirene.config import (
     MARCHE_INCLUSION_API_URL,
     MARCHE_INCLUSION_TMP_FOLDER,
@@ -41,6 +44,16 @@ def get_structures_siae():
     save_siae_to_csv(response_data, file_path)
 
 
+def save_date_last_modified():
+    date_last_modified = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
+    metadata_path = os.path.join(MARCHE_INCLUSION_TMP_FOLDER, "metadata.json")
+
+    # Save the 'last_modified' date to the metadata file
+    save_to_metadata(metadata_path, "last_modified", date_last_modified)
+
+    logging.info(f"Last modified date saved successfully to {metadata_path}")
+
+
 def send_file_minio():
     minio_client.send_files(
         list_files=[
@@ -49,6 +62,12 @@ def send_file_minio():
                 "source_name": "marche_inclusion.csv",
                 "dest_path": "marche_inclusion/",
                 "dest_name": "stock_marche_inclusion.csv",
+            },
+            {
+                "source_path": MARCHE_INCLUSION_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "marche_inclusion/",
+                "dest_name": "metadata.json",
             },
         ],
     )
