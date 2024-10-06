@@ -13,6 +13,7 @@ from dag_datalake_sirene.workflows.data_pipelines.egapro.task_functions import (
     send_file_to_minio,
     compare_files_minio,
     send_notification,
+    save_date_last_modified,
 )
 
 default_args = {
@@ -41,6 +42,9 @@ with DAG(
     process_egapro = PythonOperator(
         task_id="process_egapro", python_callable=preprocess_egapro_data
     )
+    save_date_last_modified = PythonOperator(
+        task_id="save_date_last_modified", python_callable=save_date_last_modified
+    )
 
     send_file_to_minio = PythonOperator(
         task_id="send_file_to_minio", python_callable=send_file_to_minio
@@ -55,6 +59,7 @@ with DAG(
     )
 
     process_egapro.set_upstream(clean_previous_outputs)
-    send_file_to_minio.set_upstream(process_egapro)
+    save_date_last_modified.set_upstream(process_egapro)
+    send_file_to_minio.set_upstream(save_date_last_modified)
     compare_files_minio.set_upstream(send_file_to_minio)
     send_notification.set_upstream(compare_files_minio)
