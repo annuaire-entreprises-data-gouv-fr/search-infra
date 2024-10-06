@@ -1,6 +1,7 @@
 import pandas as pd
 import logging
 import requests
+import os
 from datetime import datetime
 import zipfile
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
@@ -272,7 +273,8 @@ def save_last_modified_date():
     # returns the format 'YYYY-MM-DDTHH:MM:SS.ssssss'
     date_last_modified_str = date_last_modified.isoformat()
 
-    save_to_metadata(COLTER_TMP_FOLDER, "last_modified", date_last_modified_str)
+    metadata_path = os.path.join(COLTER_TMP_FOLDER, "metadata.json")
+    save_to_metadata(metadata_path, "last_modified", date_last_modified_str)
 
 
 def send_file_to_minio():
