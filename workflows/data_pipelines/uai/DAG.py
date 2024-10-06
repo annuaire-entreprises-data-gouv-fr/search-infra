@@ -12,6 +12,7 @@ from dag_datalake_sirene.workflows.data_pipelines.uai.task_functions import (
     process_uai,
     send_file_to_minio,
     compare_files_minio,
+    save_last_modified_date,
     send_notification,
 )
 
@@ -35,6 +36,10 @@ with DAG(
 
     process_uai = PythonOperator(task_id="process_uai", python_callable=process_uai)
 
+    save_last_modified_date = PythonOperator(
+        task_id="save_last_modified_date", python_callable=save_last_modified_date
+    )
+
     send_file_to_minio = PythonOperator(
         task_id="send_file_to_minio", python_callable=send_file_to_minio
     )
@@ -49,6 +54,7 @@ with DAG(
 
     download_latest_data.set_upstream(clean_previous_outputs)
     process_uai.set_upstream(download_latest_data)
-    send_file_to_minio.set_upstream(process_uai)
+    save_last_modified_date.set_upstream(process_uai)
+    send_file_to_minio.set_upstream(save_last_modified_date)
     compare_files_minio.set_upstream(send_file_to_minio)
     send_notification.set_upstream(compare_files_minio)
