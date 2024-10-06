@@ -1,8 +1,13 @@
 from datetime import datetime
 import pandas as pd
 import logging
+import os
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.helpers.utils import flatten_dict, save_dataframe
+from dag_datalake_sirene.helpers.utils import (
+    flatten_dict,
+    save_dataframe,
+    save_to_metadata,
+)
 from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.insee_client import (
     INSEEAPIClient,
 )
@@ -31,7 +36,8 @@ def get_current_flux_unite_legale(ti):
         "denominationUsuelle2UniteLegale,denominationUsuelle3UniteLegale,"
         "categorieJuridiqueUniteLegale,activitePrincipaleUniteLegale,"
         "economieSocialeSolidaireUniteLegale,statutDiffusionUniteLegale,"
-        "societeMissionUniteLegale,anneeCategorieEntreprise,anneeEffectifsUniteLegale,caractereEmployeurUniteLegale,"
+        "societeMissionUniteLegale,anneeCategorieEntreprise,anneeEffectifsUniteLegale,"
+        "caractereEmployeurUniteLegale,"
         "nicSiegeUniteLegale&nombre=1000"
     )
 
@@ -127,6 +133,16 @@ def get_current_flux_etablissement(ti):
     ti.xcom_push(key="nb_flux_etablissement", value=str(df.shape[0]))
 
 
+def save_date_last_modified():
+    date_last_modified = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
+    metadata_path = os.path.join(INSEE_FLUX_TMP_FOLDER, "metadata.json")
+
+    # Save the 'last_modified' date to the metadata file
+    save_to_metadata(metadata_path, "last_modified", date_last_modified)
+
+    logging.info(f"Last modified date saved successfully to {metadata_path}")
+
+
 def send_flux_minio():
     minio_client.send_files(
         list_files=[
@@ -147,6 +163,12 @@ def send_flux_minio():
                 "source_name": f"flux_non_diffusible_{CURRENT_MONTH}.csv.gz",
                 "dest_path": "insee/sirene/flux/",
                 "dest_name": f"flux_non_diffusible_{CURRENT_MONTH}.csv.gz",
+            },
+            {
+                "source_path": INSEE_FLUX_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "insee/sirene/flux/",
+                "dest_name": "metadata.json",
             },
         ],
     )
