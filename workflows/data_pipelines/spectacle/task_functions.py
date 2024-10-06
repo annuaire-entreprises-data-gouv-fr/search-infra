@@ -3,7 +3,9 @@ import logging
 import requests
 
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.utils import fetch_and_store_last_modified_metadata
 from dag_datalake_sirene.config import (
+    RESSOURCE_ID_ENTREPRENEUR_SPECTACLE,
     SPECTACLE_TMP_FOLDER,
     URL_ENTREPRENEUR_SPECTACLE,
 )
@@ -48,6 +50,12 @@ def preprocess_spectacle_data(ti):
     del df_spectacle_clean
 
 
+def save_date_last_modified():
+    fetch_and_store_last_modified_metadata(
+        RESSOURCE_ID_ENTREPRENEUR_SPECTACLE, SPECTACLE_TMP_FOLDER
+    )
+
+
 def send_file_to_minio():
     minio_client.send_files(
         list_files=[
@@ -56,6 +64,12 @@ def send_file_to_minio():
                 "source_name": "spectacle.csv",
                 "dest_path": "spectacle/new/",
                 "dest_name": "spectacle.csv",
+            },
+            {
+                "source_path": SPECTACLE_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "spectacle/new/",
+                "dest_name": "metadata.json",
             },
         ],
     )
@@ -81,6 +95,12 @@ def compare_files_minio():
                 "source_name": "spectacle.csv",
                 "dest_path": "spectacle/latest/",
                 "dest_name": "spectacle.csv",
+            },
+            {
+                "source_path": SPECTACLE_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "spectacle/latest/",
+                "dest_name": "metadata.json",
             },
         ],
     )
