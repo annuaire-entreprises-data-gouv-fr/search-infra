@@ -1,24 +1,34 @@
 import pandas as pd
 import logging
+import os
+from datetime import datetime
 from dag_datalake_sirene.config import (
     UAI_TMP_FOLDER,
+    DATASET_ID_UAI_ONISEP,
+    RESOURCE_ID_UAI_MESR,
+    RESOURCE_ID_UAI_MENJ,
 )
 from dag_datalake_sirene.helpers.tchap import send_message
 from dag_datalake_sirene.helpers.datagouv import (
     get_dataset_or_resource_metadata,
     get_resource,
 )
+from dag_datalake_sirene.helpers.utils import fetch_last_modified_date, save_to_metadata
 
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 
 
 def download_latest_data(ti):
+
+    # https://www.data.gouv.fr/fr/datasets/annuaire-de-leducation/
     get_resource(
-        resource_id="85aefd85-3025-400f-90ff-ccfd17ca588e",
+        resource_id=RESOURCE_ID_UAI_MENJ,
         file_to_store={"dest_path": UAI_TMP_FOLDER, "dest_name": "menj.csv"},
     )
+    # https://www.data.gouv.fr/en/datasets/
+    # principaux-etablissements-denseignement-superieur/
     get_resource(
-        resource_id="bcc3229a-beb2-4077-a8d8-50a065dfbbfa",
+        resource_id=RESOURCE_ID_UAI_MESR,
         file_to_store={"dest_path": UAI_TMP_FOLDER, "dest_name": "mesr.csv"},
     )
 
@@ -26,10 +36,12 @@ def download_latest_data(ti):
     # datasets/5fa5e386afdaa6152360f323/ sont régulièrements écrasés
     # pour de nouvelles ressources. On récupère donc le csv du JDD :
     data = get_dataset_or_resource_metadata(
-        dataset_id="5fa5e386afdaa6152360f323",
+        dataset_id=DATASET_ID_UAI_ONISEP,
     )
+    logging.info(f"+++++++++++{data}")
     for res in data["resources"]:
         if res["format"] == "csv":
+            logging.info(f"+++++++++++{res['id']}")
             get_resource(
                 resource_id=res["id"],
                 file_to_store={"dest_path": UAI_TMP_FOLDER, "dest_name": "onisep.csv"},
@@ -116,6 +128,29 @@ def process_uai(ti):
     ti.xcom_push(key="nb_siret", value=str(annuaire_uai["siret"].nunique()))
 
 
+def save_last_modified_date():
+    date_list = []
+    uai_resource_id_list = [
+        RESOURCE_ID_UAI_MESR,
+        RESOURCE_ID_UAI_MENJ,
+    ]
+
+    for resource_id in uai_resource_id_list:
+        date_list.append(fetch_last_modified_date(resource_id))
+
+    # Convert date strings to datetime objects and find the max (Remove timezone offset)
+    date_list_dt = [datetime.fromisoformat(date[:-6]) for date in date_list]
+    date_last_modified = max(date_list_dt)
+
+    # Format the maximum date back to string if necessary,
+    # returns the format 'YYYY-MM-DDTHH:MM:SS.ssssss'
+    date_last_modified_str = date_last_modified.isoformat()
+
+    metadata_path = os.path.join(UAI_TMP_FOLDER, "metadata.json")
+
+    save_to_metadata(metadata_path, "last_modified", date_last_modified_str)
+
+
 def send_file_to_minio():
     minio_client.send_files(
         list_files=[
@@ -123,8 +158,14 @@ def send_file_to_minio():
                 "source_path": UAI_TMP_FOLDER,
                 "source_name": "annuaire_uai.csv",
                 "dest_path": "uai/new/",
-                "dest_name": "annuaire_uai.csv",
-            }
+                "dest_name": "metadate.json",
+            },
+            {
+                "source_path": UAI_TMP_FOLDER,
+                "source_name": "annuaire_uai.csv",
+                "dest_path": "uai/new/",
+                "dest_name": "metadate.json",
+            },
         ],
     )
 
@@ -149,7 +190,13 @@ def compare_files_minio():
                 "source_name": "annuaire_uai.csv",
                 "dest_path": "uai/latest/",
                 "dest_name": "annuaire_uai.csv",
-            }
+            },
+            {
+                "source_path": UAI_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "uai/latest/",
+                "dest_name": "metadata.json",
+            },
         ],
     )
 
