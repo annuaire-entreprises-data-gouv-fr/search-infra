@@ -147,7 +147,6 @@ def fetch_last_modified_date(resource_id: str) -> str:
         date_last_modified = metadata.get("resource", {}).get("last_modified")
         if not date_last_modified:
             raise ValueError("Last modified date not found in resource metadata.")
-
         return date_last_modified
 
     except Exception as e:
