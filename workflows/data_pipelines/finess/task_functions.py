@@ -5,10 +5,11 @@ import requests
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.config import (
     FINESS_TMP_FOLDER,
+    RESSOURCE_ID_FINESS,
     URL_FINESS,
 )
 from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.utils import get_date_last_modified, save_to_metadata
+from dag_datalake_sirene.helpers.utils import fetch_and_store_last_modified_metadata
 
 
 def preprocess_finess_data(ti):
@@ -46,9 +47,9 @@ def preprocess_finess_data(ti):
     del df_finess
     del df_list_finess
 
-    date_last_modified = get_date_last_modified(response=r)
-    save_to_metadata(f"{FINESS_TMP_FOLDER}metadata.json", "egapro", date_last_modified)
-    logging.info(f"%%%%%%%% Last modified: {date_last_modified}")
+
+def save_date_last_modified():
+    fetch_and_store_last_modified_metadata(RESSOURCE_ID_FINESS, FINESS_TMP_FOLDER)
 
 
 def send_file_to_minio():
@@ -78,14 +79,7 @@ def compare_files_minio():
         file_name_1="finess.csv",
     )
 
-    are_metadata_identical = minio_client.compare_files(
-        file_path_1="finess/new/",
-        file_name_2="metadata.json",
-        file_path_2="finess/latest/",
-        file_name_1="metadata.json",
-    )
-
-    if are_files_identical and are_metadata_identical:
+    if are_files_identical:
         return False
 
     if are_files_identical is None:
