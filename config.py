@@ -54,7 +54,7 @@ CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
 
 # Insee
 INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
-INSEE_API_URL = "https://api.insee.fr/entreprises/sirene/V3.11/"
+INSEE_API_URL = "https://api.insee.fr/api-sirene/3.11/"
 
 # Notification
 TCHAP_ANNUAIRE_WEBHOOK = Variable.get("TCHAP_ANNUAIRE_WEBHOOK", "")
