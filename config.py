@@ -125,6 +125,10 @@ URL_AGENCE_BIO = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/agence_bio"
     "/latest/agence_bio_certifications.csv"
 )
+URL_AGENCE_BIO_METADATA = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/agence_bio"
+    "/latest/metadata.json"
+)
 RESOURCE_ID_BILANS_FINANCIERS = "9d213815-1649-4527-9eb4-427146ef2e5b"
 URL_BILANS_FINANCIERS = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/bilans_financiers"
