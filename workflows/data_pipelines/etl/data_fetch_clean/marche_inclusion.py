@@ -1,5 +1,4 @@
 import pandas as pd
-from dag_datalake_sirene.helpers.utils import get_last_modified
 from dag_datalake_sirene.config import URL_MINIO_MARCHE_INCLUSION
 
 
@@ -19,9 +18,5 @@ def preprocess_marche_inclusion_data(data_dir, **kwargs):
     df_siae_grouped["est_siae"] = True
 
     del df_siae
-
-    # Get the last modified date of the CSV file
-    last_modified = get_last_modified(URL_MINIO_MARCHE_INCLUSION)
-    kwargs["ti"].xcom_push(key="marche_inclusion_last_modified", value=last_modified)
 
     return df_siae_grouped
