@@ -107,7 +107,7 @@ class ApiRNEClient:
                         logging.info(f"***Error HTTP: {e}")
                         url = url.replace("pageSize=100", "pageSize=1")
                         logging.info(f"***Changing page size to 1: {e}")
-                        time.sleep(300)
+                        time.sleep(60)
                 else:
                     logging.error(f"Error occurred while making API request: {e}")
                     if attempt < self.max_retries:
