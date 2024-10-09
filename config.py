@@ -121,18 +121,22 @@ API_URL = Variable.get("API_URL", "")
 API_IS_REMOTE = Variable.get("API_IS_REMOTE", "False").lower() not in ["false", "0"]
 
 # Datasets
-URL_AGENCE_BIO = (
+URL_MINIO_AGENCE_BIO = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/agence_bio"
     "/latest/agence_bio_certifications.csv"
 )
-URL_AGENCE_BIO_METADATA = (
+URL_MINIO_AGENCE_BIO_METADATA = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/agence_bio"
     "/latest/metadata.json"
 )
 RESOURCE_ID_BILANS_FINANCIERS = "9d213815-1649-4527-9eb4-427146ef2e5b"
-URL_BILANS_FINANCIERS = (
+URL_MINIO_BILANS_FINANCIERS = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/bilans_financiers"
     "/latest/synthese_bilans.csv"
+)
+URL_MINIO_BILANS_FINANCIERS_METADATA = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/bilans_financiers"
+    "/latest/metadate.json"
 )
 RESOURCE_ID_COLTER_REGIONS = "619ee62e-8f9e-4c62-b166-abc6f2b86201"
 URL_COLTER_REGIONS = (
@@ -167,6 +171,10 @@ URL_MINIO_COLTER = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/colter"
     "/latest/colter.csv"
 )
+URL_MINIO_COLTER_METADATA = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/colter"
+    "/latest/metadata.json"
+)
 URL_MINIO_ELUS = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/colter"
     "/latest/elus.csv"
@@ -179,11 +187,19 @@ URL_MINIO_CONVENTION_COLLECTIVE = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/convention_collective"
     "/latest/cc.csv"
 )
+URL_MINIO_CONVENTION_COLLECTIVE_METADATA = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/convention_collective"
+    "/latest/metadata.json"
+)
 RESOURCE_ID_EGAPRO = "d434859f-8d3b-4381-bcdb-ec9200653ae6"
 URL_EGAPRO = f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_EGAPRO}"
 URL_MINIO_EGAPRO = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/egapro"
     "/latest/egapro.csv"
+)
+URL_MINIO_EGAPRO_METADATA = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/egapro"
+    "/latest/metadata.json"
 )
 RESOURCE_ID_ENTREPRENEUR_SPECTACLE = "fb6c3b2e-da8c-4e69-a719-6a96329e4cb2"
 URL_ENTREPRENEUR_SPECTACLE = (
@@ -192,6 +208,10 @@ URL_ENTREPRENEUR_SPECTACLE = (
 URL_MINIO_ENTREPRENEUR_SPECTACLE = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/spectacle"
     "/latest/spectacle.csv"
+)
+URL_MINIO_ENTREPRENEUR_SPECTACLE_METADATA = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/spectacle"
+    "/latest/metadata.json"
 )
 URL_ETABLISSEMENTS = "https://files.data.gouv.fr/geo-sirene/last/dep/geo_siret"
 URL_MINIO_ETABLISSEMENTS = (
@@ -205,13 +225,18 @@ URL_MINIO_ETABLISSEMENTS_HISTORIQUE = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
     "/sirene/historique/StockEtablissementHistorique_utf8.zip"
 )
-RESOURCE_ID_FINESS = "2ce43ade-8d2c-4d1d-81da-ca06c82abc68"
 
+RESOURCE_ID_FINESS = "2ce43ade-8d2c-4d1d-81da-ca06c82abc68"
 URL_FINESS = f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_FINESS}"
 URL_MINIO_FINESS = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/finess"
     "/latest/finess.csv"
 )
+URL_MINIO_FINESS_METADATA = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/finess"
+    "/latest/metadata.json"
+)
+
 URL_ORGANISME_FORMATION = (
     "https://dgefp.opendatasoft.com/api/explore/v2.1/catalog/datasets/liste"
     "-publique-des-of-v2/exports/csv?lang=fr&timezone=Europe%2FBerlin&use_labels"
@@ -221,11 +246,18 @@ URL_MINIO_ORGANISME_FORMATION = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/formation"
     "/latest/formation.csv"
 )
+URL_MINIO_ORGANISME_FORMATION_METADATA = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/formation"
+    "/latest/metadata.json"
+)
 URL_RGE = (
     "https://data.ademe.fr/data-fair/api/v1/datasets/"
     "liste-des-entreprises-rge-2/lines?size=10000&select=siret%2Ccode_qualification"
 )
 URL_MINIO_RGE = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/rge/latest/rge.csv"
+)
+URL_MINIO_RGE_METADATA = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/rge/latest/rge.csv"
 )
 
@@ -235,9 +267,13 @@ RESOURCE_ID_UAI_MENJ = "85aefd85-3025-400f-90ff-ccfd17ca588e"
 RESOURCE_ID_UAI_MESR = "bcc3229a-beb2-4077-a8d8-50a065dfbbfa"
 # Idéo-Structures d'enseignement supérieur
 DATASET_ID_UAI_ONISEP = "5fa5e386afdaa6152360f323"
-URL_UAI = (
+URL_MINIO_UAI = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/uai"
     "/latest/annuaire_uai.csv"
+)
+URL_MINIO_UAI_METADATA = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/uai"
+    "/latest/metadata.json"
 )
 
 URL_UNITE_LEGALE = "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip"
@@ -252,11 +288,16 @@ URL_MINIO_UNITE_LEGALE_HISTORIQUE = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
     "/sirene/historique/StockUniteLegaleHistorique_utf8.zip"
 )
+
 RESOURCE_ID_ESS_FRANCE = "57bc99ca-0432-4b46-8fcc-e76a35c9efaf"
 URL_ESS_FRANCE = f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_ESS_FRANCE}"
 URL_MINIO_ESS_FRANCE = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/ess"
     "/latest/ess_france.csv"
+)
+URL_MINIO_ESS_FRANCE_METADATA = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/ess"
+    "/latest/metadata.json"
 )
 URL_CC_DARES = (
     "https://travail-emploi.gouv.fr/IMG/xlsx/"
@@ -265,7 +306,10 @@ URL_CC_DARES = (
 URL_CC_KALI = (
     "https://www.data.gouv.fr/fr/datasets/r/02b67492-5243-44e8-8dd1-0cb3f90f35ff"
 )
-
+URL_MINIO_SIRENE_METADATA = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee/sirene/"
+    "flux/metadata.json"
+)
 
 # DataGouv
 DATAGOUV_URL = "https://www.data.gouv.fr"
