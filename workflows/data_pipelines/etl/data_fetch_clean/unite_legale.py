@@ -62,7 +62,6 @@ def download_flux(data_dir):
             raise AirflowSkipException("Skipping this task")
 
 
-
 def extract_nic_list(periods_data):
     nic_list = []
     for row in ast.literal_eval(periods_data):
