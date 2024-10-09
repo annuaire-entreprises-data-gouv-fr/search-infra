@@ -72,7 +72,7 @@ def extract_nic_list(periods_data):
     return list(set(nic_list))
 
 
-def preprocess_unite_legale_data(data_dir, sirene_file_type, **kwargs):
+def preprocess_unite_legale_data(data_dir, sirene_file_type):
     if sirene_file_type == "stock":
         df_iterator = download_stock(data_dir)
 
@@ -191,7 +191,7 @@ def process_ancien_siege_flux(data_dir):
     """
     df_iterator = download_flux(data_dir)
 
-    for df_unite_legale in enumerate(df_iterator):
+    for _, df_unite_legale in enumerate(df_iterator):
         df_expanded = (
             df_unite_legale[["siren", "periodesUniteLegale"]]
             .assign(
