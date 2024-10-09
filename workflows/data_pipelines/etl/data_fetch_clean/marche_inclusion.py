@@ -2,7 +2,7 @@ import pandas as pd
 from dag_datalake_sirene.config import URL_MINIO_MARCHE_INCLUSION
 
 
-def preprocess_marche_inclusion_data(data_dir, **kwargs):
+def preprocess_marche_inclusion_data(data_dir):
     df_siae = pd.read_csv(
         URL_MINIO_MARCHE_INCLUSION,
         dtype=str,
