@@ -74,7 +74,6 @@ def extract_nic_list(periods_data):
 def preprocess_unite_legale_data(data_dir, sirene_file_type):
     if sirene_file_type == "stock":
         df_iterator = download_stock(data_dir)
-
     if sirene_file_type == "flux":
         df_iterator = download_flux(data_dir)
 
