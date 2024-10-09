@@ -258,16 +258,12 @@ def get_date_last_modified(response=None, url=None) -> str:
                 get_response = requests.get(url)
                 get_response.raise_for_status()
                 last_modified_raw = get_response.headers.get("Last-Modified", None)
-                print(get_response.headers)
+                logging.info(get_response.headers)
         else:
             raise ValueError("Either a response or URL must be provided")
 
         # Use parse_date_string to convert the Last-Modified date to ISO 8601 format
-        return (
-            parse_date_string(last_modified_raw)
-            if last_modified_raw
-            else "No date available"
-        )
+        return parse_date_string(last_modified_raw) if last_modified_raw else None
     except requests.RequestException as e:
         logging.error(f"Error fetching last modified date: {e}")
         return "Error fetching date"
@@ -447,8 +443,8 @@ def fetch_last_modified_date_from_json(url: str) -> datetime | None:
         return None
 
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching data: {e}")
+        logging.warning(f"Error fetching data: {e}")
         return None
     except ValueError as e:
-        print(f"Error parsing JSON or date: {e}")
+        logging.warning(f"Error parsing JSON or date: {e}")
         return None
