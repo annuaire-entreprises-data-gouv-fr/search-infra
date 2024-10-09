@@ -258,7 +258,8 @@ URL_MINIO_RGE = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/rge/latest/rge.csv"
 )
 URL_MINIO_RGE_METADATA = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/rge/latest/rge.csv"
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/"
+    "rge/latest/metadata.json"
 )
 
 # Ministère de l'Education Nationale et de la Jeunesse
