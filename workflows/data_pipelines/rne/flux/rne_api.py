@@ -92,6 +92,7 @@ class ApiRNEClient:
                 response.raise_for_status()
                 response = response.json()
                 last_siren = self.get_last_siren_in_page(response)
+                logging.info(f"%%%%%%% LAST SIREN : {last_siren}")
                 return response, last_siren
 
             except Exception as e:
@@ -100,12 +101,12 @@ class ApiRNEClient:
                     logging.info("Got a new access token and retrying...")
                 elif hasattr(e, "response") and e.response.status_code == 500:
                     if "Allowed memory size of" in str(e.response.content):
-                        url = url.replace("pageSize=100", "pageSize=5")
-                        logging.info(f"***Memory Error changing page size to 5 : {e}")
+                        url = url.replace("pageSize=100", "pageSize=1")
+                        logging.info(f"***Memory Error changing page size to 1 : {e}")
                     else:
                         logging.info(f"***Error HTTP: {e}")
-                        url = url.replace("pageSize=100", "pageSize=10")
-                        logging.info(f"***Changing page size to 10: {e}")
+                        url = url.replace("pageSize=100", "pageSize=5")
+                        logging.info(f"***Changing page size to 5: {e}")
                         time.sleep(600)
                 else:
                     logging.error(f"Error occurred while making API request: {e}")
