@@ -417,3 +417,38 @@ def fetch_and_store_last_modified_metadata(resource_id: str, file_path: str) -> 
 
     except Exception as e:
         raise RuntimeError(f"Failed to save last modified metadata: {e}")
+
+
+def fetch_last_modified_date_from_json(url: str) -> datetime | None:
+    """
+    Fetch and parse the 'last_modified' date from a JSON response at the given URL.
+
+    Args:
+        url (str): The URL to fetch the JSON data from.
+
+    Returns:
+        Optional[datetime]: The parsed 'last_modified' date if present and valid,
+                            or None if not found or in case of any error.
+
+    Raises:
+        ValueError: If the URL is empty or not a string.
+    """
+    if not isinstance(url, str) or not url.strip():
+        raise ValueError("URL must be a non-empty string")
+
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        last_modified = data.get("last_modified")
+        if last_modified:
+            return datetime.fromisoformat(last_modified)
+        return None
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching data: {e}")
+        return None
+    except ValueError as e:
+        print(f"Error parsing JSON or date: {e}")
+        return None
