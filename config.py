@@ -136,7 +136,7 @@ URL_MINIO_BILANS_FINANCIERS = (
 )
 URL_MINIO_BILANS_FINANCIERS_METADATA = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/bilans_financiers"
-    "/latest/metadate.json"
+    "/latest/metadata.json"
 )
 RESOURCE_ID_COLTER_REGIONS = "619ee62e-8f9e-4c62-b166-abc6f2b86201"
 URL_COLTER_REGIONS = (
