@@ -22,7 +22,7 @@ from dag_datalake_sirene.config import (
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 
 
-def create_data_source_last_modified_file():
+def create_data_source_last_modified_file(**kwargs):
     metadata_dict = {}
 
     metadata_url_to_datasource = {
@@ -66,6 +66,13 @@ def create_data_source_last_modified_file():
             # Handle other network-related errors
             logging.error(f"Error fetching data from {url}: {e}")
             metadata_dict[datasource] = None  # Assign None if any request error occurs
+
+    # Fetch RNE metadata
+    rne_last_modified_date = kwargs["ti"].xcom_pull(
+        key="rne_last_modified", task_ids="get_latest_rne_database"
+    )
+
+    metadata_dict["rne"] = rne_last_modified_date
 
     # Save the metadata_dict to a JSON file
     with open(json_file_path, "w") as json_file:
