@@ -102,11 +102,11 @@ class ApiRNEClient:
                 elif hasattr(e, "response") and e.response.status_code == 500:
                     if "Allowed memory size of" in str(e.response.content):
                         url = url.replace("pageSize=100", "pageSize=1")
-                        logging.info(f"***Memory Error changing page size to 1 : {e}")
+                        logging.info(f"***Memory Error changing page size to 1 : {url}")
                     else:
                         logging.info(f"***Error HTTP: {e}")
                         url = url.replace("pageSize=100", "pageSize=1")
-                        logging.info(f"***Changing page size to 1: {e}")
+                        logging.info(f"***Changing page size to 1: {url}")
                         time.sleep(60)
                 else:
                     logging.error(f"Error occurred while making API request: {e}")
