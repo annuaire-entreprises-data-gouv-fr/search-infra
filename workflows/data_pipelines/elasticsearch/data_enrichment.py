@@ -68,6 +68,8 @@ def get_nom_commercial(unite_legale):
 # Because we need to create sitemap and to ensure coherence
 # between sitemap values and slug in API. We calculate this field
 # with this function and we add it both in elasticsearch and in sitemap
+
+
 def format_slug(
     nom_complet,
     sigle=None,
@@ -78,38 +80,49 @@ def format_slug(
     siren=None,
     statut_diffusion=None,
 ):
+    """Generate a slug based on company information."""
+    # If the company is private (statut_diffusion == "P"), use the SIREN as the slug
     if statut_diffusion == "P" and siren:
         return slugify(siren)
 
+    # Initialize slug parts with the nom_complet
     slug_parts = [nom_complet]
 
+    # Handle the case of nom_commercial_siege
     if nom_commercial_siege:
         slug_parts.append(nom_commercial_siege)
     else:
-        # When a company removes a commercial name,
-        # INSEE sets its old "denomination usuelle" to "SUPPRESSION DU NOM COMMERCIAL".
-        # Removing said mention.
+        # Combine and filter out "SUPPRESSION DU NOM COMMERCIAL" from denom usuelles
+        denom_usuelle_fields = [
+            denomination_usuelle_1,
+            denomination_usuelle_2,
+            denomination_usuelle_3,
+        ]
+
+        # Log when any denomination is "SUPPRESSION DU NOM COMMERCIAL"
+        if any(x == "SUPPRESSION DU NOM COMMERCIAL" for x in denom_usuelle_fields):
+            logging.warning(
+                f"Suppression du nom commercial detected in usuelle fields: {siren}"
+            )
+
         denomination_usuelle = " ".join(
             filter(
                 lambda x: x and x != "SUPPRESSION DU NOM COMMERCIAL",
-                [
-                    denomination_usuelle_1,
-                    denomination_usuelle_2,
-                    denomination_usuelle_3,
-                ],
+                denom_usuelle_fields,
             )
         )
         if denomination_usuelle:
             slug_parts.append(denomination_usuelle)
 
+    # Add sigle and siren if they exist
     if sigle:
         slug_parts.append(sigle)
-
     if siren:
         slug_parts.append(siren)
 
-    full_name = " ".join(filter(None, slug_parts))
-    return slugify(full_name.lower()) if full_name else ""
+    # Join parts to form the full name, and slugify it
+    full_name = " ".join(filter(None, slug_parts)).lower()
+    return slugify(full_name) if full_name else ""
 
 
 # Noms
