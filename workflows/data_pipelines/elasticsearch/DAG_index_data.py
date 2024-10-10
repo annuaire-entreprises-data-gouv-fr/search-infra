@@ -29,6 +29,11 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
     send_notification_success_tchap,
     send_notification_failure_tchap,
 )
+
+from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
+    source_updates import (
+    sync_data_source_updates,
+)
 # fmt: on
 from dag_datalake_sirene.tests.e2e_tests.run_tests import run_e2e_tests
 from dag_datalake_sirene.config import (
@@ -136,6 +141,11 @@ with DAG(
         python_callable=send_notification_success_tchap,
     )
 
+    sync_data_source_updates = PythonOperator(
+        task_id="sync_data_source_updates_file",
+        python_callable=sync_data_source_updates,
+    )
+
     clean_previous_folder.set_upstream(get_next_index_name)
     get_latest_sqlite_database.set_upstream(clean_previous_folder)
 
@@ -161,7 +171,9 @@ with DAG(
         )
 
         trigger_snapshot_dag.set_upstream(update_elastic_alias)
+        sync_data_source_updates.set_upstream(trigger_snapshot_dag)
         test_api.set_upstream(trigger_snapshot_dag)
+
         clean_folder.set_upstream([test_api, update_sitemap])
         send_notification_tchap.set_upstream([clean_folder, update_sitemap])
     else:
@@ -180,6 +192,7 @@ with DAG(
             task_id="clean_folder",
             folder_path=f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ELK_DAG_NAME}",
         )
-        test_api.set_upstream(update_elastic_alias)
+        sync_data_source_updates.set_upstream(update_elastic_alias)
+        test_api.set_upstream(sync_data_source_updates)
         clean_folder.set_upstream([test_api, update_sitemap])
         flush_cache.set_upstream(clean_folder)

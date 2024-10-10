@@ -1,20 +1,31 @@
 import pandas as pd
 import logging
 import requests
+import os
+from datetime import datetime
 import zipfile
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.utils import get_current_year
+from dag_datalake_sirene.helpers.utils import get_current_year, save_to_metadata
+from dag_datalake_sirene.helpers.datagouv import fetch_last_modified_date
 from dag_datalake_sirene.config import (
     COLTER_TMP_FOLDER,
     URL_COLTER_REGIONS,
+    RESOURCE_ID_COLTER_REGIONS,
     URL_COLTER_DEP,
+    RESOURCE_ID_COLTER_DEP,
     URL_COLTER_COMMUNES,
+    RESOURCE_ID_COLTER_COMMUNES,
     URL_ELUS_EPCI,
+    RESOURCE_ID_ELUS_EPCI,
     URL_CONSEILLERS_REGIONAUX,
+    RESOURCE_ID_CONSEILLERS_REGIONAUX,
     URL_CONSEILLERS_DEPARTEMENTAUX,
+    RESOURCE_ID_CONSEILLERS_DEPARTEMENTAUX,
     URL_CONSEILLERS_MUNICIPAUX,
+    RESOURCE_ID_CONSEILLERS_MUNICIPAUX,
     URL_ASSEMBLEE_COL_STATUT_PARTICULIER,
+    RESOURCE_ID_ASSEMBLEE_COL_STATUT_PARTICULIER,
 )
 
 
@@ -217,6 +228,55 @@ def get_epci_url():
         raise e
 
 
+def save_last_modified_date():
+    """
+    Fetches the last modified dates for a list of resource IDs,
+    determines the latest date among them, and saves this date
+    to the metadata folder.
+
+    The function retrieves last modified dates from the following resources:
+    - RESOURCE_ID_COLTER_REGIONS
+    - RESOURCE_ID_COLTER_DEP
+    - RESOURCE_ID_COLTER_COMMUNES
+    - RESOURCE_ID_ELUS_EPCI
+    - RESOURCE_ID_CONSEILLERS_REGIONAUX
+    - RESOURCE_ID_CONSEILLERS_DEPARTEMENTAUX
+    - RESOURCE_ID_CONSEILLERS_MUNICIPAUX
+    - RESOURCE_ID_ASSEMBLEE_COL_STATUT_PARTICULIER
+
+    The dates are expected to be in the format "YYYY-MM-DDTHH:MM:SS.ssssss+00:00".
+    The maximum date is determined and saved as a string in the ISO 8601 format.
+
+    Returns:
+        None
+    """
+    date_list = []
+    colter_resource_id_list = [
+        RESOURCE_ID_COLTER_REGIONS,
+        RESOURCE_ID_COLTER_DEP,
+        RESOURCE_ID_COLTER_COMMUNES,
+        RESOURCE_ID_ELUS_EPCI,
+        RESOURCE_ID_CONSEILLERS_REGIONAUX,
+        RESOURCE_ID_CONSEILLERS_DEPARTEMENTAUX,
+        RESOURCE_ID_CONSEILLERS_MUNICIPAUX,
+        RESOURCE_ID_ASSEMBLEE_COL_STATUT_PARTICULIER,
+    ]
+
+    for resource_id in colter_resource_id_list:
+        date_list.append(fetch_last_modified_date(resource_id))
+
+    # Convert date strings to datetime objects and find the max (Remove timezone offset)
+    date_list_dt = [datetime.fromisoformat(date[:-6]) for date in date_list]
+    date_last_modified = max(date_list_dt)
+
+    # Format the maximum date back to string if necessary,
+    # returns the format 'YYYY-MM-DDTHH:MM:SS.ssssss'
+    date_last_modified_str = date_last_modified.isoformat()
+
+    metadata_path = os.path.join(COLTER_TMP_FOLDER, "metadata.json")
+    save_to_metadata(metadata_path, "last_modified", date_last_modified_str)
+
+
 def send_file_to_minio():
     minio_client.send_files(
         list_files=[
@@ -231,6 +291,12 @@ def send_file_to_minio():
                 "source_name": "colter-new.csv",
                 "dest_path": "colter/new/",
                 "dest_name": "colter.csv",
+            },
+            {
+                "source_path": COLTER_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "colter/new/",
+                "dest_name": "metadata.json",
             },
         ],
     )
@@ -257,6 +323,12 @@ def compare_files_minio():
                 "dest_path": "colter/latest/",
                 "dest_name": "colter.csv",
             },
+            {
+                "source_path": COLTER_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "colter/latest/",
+                "dest_name": "metadata.json",
+            },
         ],
     )
 
@@ -279,6 +351,12 @@ def compare_files_minio():
                 "source_name": "colter-elus-new.csv",
                 "dest_path": "colter/latest/",
                 "dest_name": "elus.csv",
+            },
+            {
+                "source_path": COLTER_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "colter/latest/",
+                "dest_name": "metadata.json",
             },
         ],
     )

@@ -1,9 +1,11 @@
 import pandas as pd
 import logging
 from typing import Any
+from datetime import datetime
+import os
 
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
-from dag_datalake_sirene.helpers.utils import flatten_object
+from dag_datalake_sirene.helpers.utils import flatten_object, save_to_metadata
 from dag_datalake_sirene.config import (
     AGENCE_BIO_TMP_FOLDER,
 )
@@ -198,8 +200,24 @@ def send_file_to_minio():
                 "dest_path": "agence_bio/new/",
                 "dest_name": "agence_bio_adresses.csv",
             },
+            {
+                "source_path": AGENCE_BIO_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "agence_bio/new/",
+                "dest_name": "metadata.json",
+            },
         ],
     )
+
+
+def save_date_last_modified():
+    date_last_modified = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
+    metadata_path = os.path.join(AGENCE_BIO_TMP_FOLDER, "metadata.json")
+
+    # Save the 'last_modified' date to the metadata file
+    save_to_metadata(metadata_path, "last_modified", date_last_modified)
+
+    logging.info(f"Last modified date saved successfully to {metadata_path}")
 
 
 def compare_files_minio():
@@ -240,6 +258,12 @@ def compare_files_minio():
                 "source_name": "agence_bio_adresses.csv",
                 "dest_path": "agence_bio/latest/",
                 "dest_name": "agence_bio_adresses.csv",
+            },
+            {
+                "source_path": AGENCE_BIO_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "agence_bio/latest/",
+                "dest_name": "metadata.json",
             },
         ],
     )

@@ -12,6 +12,7 @@ from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.task_functions imp
     send_notification,
     send_notification_stock,
     get_stock_non_diffusible,
+    save_date_last_modified,
     send_flux_minio,
     send_stock_minio,
     send_notification_failure_tchap,
@@ -69,6 +70,10 @@ with DAG(
         task_id="get_current_flux_non_diffusible",
         python_callable=get_current_flux_non_diffusible,
     )
+    save_date_last_modified = PythonOperator(
+        task_id="save_date_last_modified",
+        python_callable=save_date_last_modified,
+    )
 
     send_flux_minio = PythonOperator(
         task_id="send_flux_minio",
@@ -102,7 +107,8 @@ with DAG(
     get_current_flux_unite_legale.set_upstream(clean_previous_outputs)
     get_current_flux_etablissement.set_upstream(get_current_flux_unite_legale)
     get_current_flux_non_diffusible.set_upstream(get_current_flux_etablissement)
-    send_flux_minio.set_upstream(get_current_flux_non_diffusible)
+    save_date_last_modified.set_upstream(get_current_flux_non_diffusible)
+    send_flux_minio.set_upstream(save_date_last_modified)
     send_notification.set_upstream(send_flux_minio)
     check_if_monday.set_upstream(send_flux_minio)
     get_stock_non_diffusible.set_upstream(check_if_monday)

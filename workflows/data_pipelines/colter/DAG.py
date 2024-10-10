@@ -13,6 +13,7 @@ from dag_datalake_sirene.workflows.data_pipelines.colter.task_functions import (
     preprocess_elus_data,
     send_file_to_minio,
     compare_files_minio,
+    save_last_modified_date,
     send_notification,
 )
 
@@ -47,6 +48,10 @@ with DAG(
         task_id="preprocess_elus_data", python_callable=preprocess_elus_data
     )
 
+    save_last_modified_date = PythonOperator(
+        task_id="save_last_modified_date", python_callable=save_last_modified_date
+    )
+
     send_file_to_minio = PythonOperator(
         task_id="send_file_to_minio", python_callable=send_file_to_minio
     )
@@ -61,6 +66,7 @@ with DAG(
 
     preprocess_colter_data.set_upstream(clean_previous_outputs)
     preprocess_elus_data.set_upstream(preprocess_colter_data)
-    send_file_to_minio.set_upstream(preprocess_elus_data)
+    save_last_modified_date.set_upstream(preprocess_elus_data)
+    send_file_to_minio.set_upstream(save_last_modified_date)
     compare_files_minio.set_upstream(send_file_to_minio)
     send_notification.set_upstream(compare_files_minio)
