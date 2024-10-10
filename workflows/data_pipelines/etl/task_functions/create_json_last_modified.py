@@ -69,7 +69,7 @@ def create_data_source_last_modified_file(**kwargs):
 
     # Fetch RNE metadata
     rne_last_modified_date = kwargs["ti"].xcom_pull(
-        key="rne_last_modified", task_ids="get_latest_rne_database"
+        key="rne_last_modified", task_ids="get_rne_database"
     )
 
     metadata_dict["rne"] = rne_last_modified_date
