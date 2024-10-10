@@ -153,7 +153,7 @@ def get_and_save_daily_flux_rne(
                 page_data, last_siren = rne_client.make_api_request(
                     start_date, end_date, last_siren
                 )
-                if page_data:
+                if page_data and page_data != "skip la poste":
                     for company in page_data:  # type: ignore
                         json.dump(company, json_file)
                         json_file.write("\n")
