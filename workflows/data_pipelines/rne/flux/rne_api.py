@@ -100,7 +100,10 @@ class ApiRNEClient:
                     self.token = self.get_new_token()
                     logging.info("Got a new access token and retrying...")
                 elif hasattr(e, "response") and e.response.status_code == 500:
-                    if "allocate 4198400 bytes" in str(e.response.content):
+                    if (
+                        "Allowed memory size of" in str(e.response.content)
+                        and "357802032" in url
+                    ):
                         url = url.replace("pageSize=100", "pageSize=1")
                         logging.warning(
                             f"+++++++++Memory Error for la POSTE "
