@@ -61,7 +61,7 @@ class MinIOClient:
             is_file = os.path.isfile(
                 os.path.join(file["source_path"], file["source_name"])
             )
-            logging.info("Sending ", file["source_name"])
+            logging.info(f"Sending {file['source_name']}")
             if is_file:
                 self.client.fput_object(
                     self.bucket,
@@ -246,7 +246,7 @@ class MinIOClient:
             return bool(file_1["ETag"] == file_2["ETag"])
 
         except botocore.exceptions.ClientError as e:
-            logging.error("Error loading files:", e)
+            logging.error(f"Error loading files: {e}")
             return None
 
     def rename_folder(self, old_folder_suffix: str, new_folder_suffix: str):
