@@ -26,8 +26,8 @@ def download_bilans_financiers():
 def process_bilans_financiers(ti):
     fields = [
         "siren",
-        "chiffre_d_affaires",
-        "resultat_net",
+        "Chiffre_d_affaires",
+        "Resultat_net",
         "date_cloture_exercice",
         "type_bilan",
     ]
@@ -39,6 +39,13 @@ def process_bilans_financiers(ti):
         parse_dates=[
             "date_cloture_exercice"
         ],  # Convert 'date_cloture_exercice' to datetime
+    )
+
+    df_bilan = df_bilan.rename(
+        columns={
+            "Chiffre_d_affaires": "chiffre_d_affaires",
+            "Resultat_net": "resultat_net",
+        }
     )
     # Get the current fiscal year
     current_fiscal_year = get_fiscal_year(datetime.now())

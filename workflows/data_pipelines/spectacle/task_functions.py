@@ -20,8 +20,11 @@ def preprocess_spectacle_data(ti):
         SPECTACLE_TMP_FOLDER + "spectacle-download.csv", dtype=str, sep=";"
     )
     df_spectacle["siren"] = df_spectacle[
-        "siren_personne_physique_siret_personne_morale"
+        "SIRET (personne morale) / SIREN (personne physique)"
     ].str[:9]
+    df_spectacle.rename(
+        columns={"Statut du récépissé": "statut_du_recepisse"}, inplace=True
+    )
     df_spectacle = df_spectacle[["siren", "statut_du_recepisse"]]
     df_spectacle["statut_du_recepisse"] = df_spectacle["statut_du_recepisse"].apply(
         lambda x: "valide" if x == "Valide" else "invalide"
