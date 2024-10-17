@@ -65,6 +65,15 @@ def get_dataset_or_resource_metadata(
         return {"message": "error", "status": r.status_code}
 
 
+def get_resource_metadata(resource_id: str):
+    url = f"{DATAGOUV_URL}/api/2/datasets/resources/{resource_id}"
+    r = datagouv_session.get(url)
+    if r.status_code == 200:
+        return r.json()
+    else:
+        return {"message": "error", "status": r.status_code}
+
+
 def post_resource(
     file_to_upload: File,
     dataset_id: str,
@@ -115,3 +124,30 @@ def post_resource(
         r_put = datagouv_session.put(url.replace("upload/", ""), json=resource_payload)
         r_put.raise_for_status()
     return r
+
+
+def fetch_last_modified_date(resource_id: str) -> str:
+    """
+    Fetch the 'last_modified' date of a resource from data.gouv.fr.
+
+    Args:
+        resource_id (str): The ID of the resource from data.gouv.fr.
+
+    Returns:
+        str: The 'last_modified' date of the resource.
+
+    Raises:
+        ValueError: If the last modified date is not found in the resource metadata.
+    """
+    try:
+        # Fetch the resource metadata
+        metadata = get_resource_metadata(resource_id)
+
+        # Extract the 'last_modified' date
+        date_last_modified = metadata.get("resource", {}).get("last_modified")
+        if not date_last_modified:
+            raise ValueError("Last modified date not found in resource metadata.")
+        return date_last_modified
+
+    except Exception as e:
+        raise RuntimeError(f"Failed to fetch last modified date: {e}")

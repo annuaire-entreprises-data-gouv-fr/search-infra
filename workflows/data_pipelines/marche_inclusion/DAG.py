@@ -8,6 +8,7 @@ from airflow.utils.dates import days_ago
 from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.task_functions\
     import (
     get_structures_siae,
+    save_date_last_modified,
     send_file_minio,
 )
 # fmt: on
@@ -49,10 +50,16 @@ with DAG(
         task_id="get_structures_siae",
         python_callable=get_structures_siae,
     )
+    save_date_last_modified = PythonOperator(
+        task_id="save_date_last_modified",
+        python_callable=save_date_last_modified,
+    )
+
     send_file_minio = PythonOperator(
         task_id="send_file_minio",
         python_callable=send_file_minio,
     )
 
     get_structures_siae.set_upstream(clean_previous_outputs)
-    send_file_minio.set_upstream(get_structures_siae)
+    save_date_last_modified.set_upstream(get_structures_siae)
+    send_file_minio.set_upstream(save_date_last_modified)

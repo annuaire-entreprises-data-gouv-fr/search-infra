@@ -71,11 +71,17 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.send_notifi
     send_notification_success_tchap,
     send_notification_failure_tchap,
 )
+from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
+    create_json_last_modified import (
+    create_data_source_last_modified_file,
+)
 # fmt: on
 
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.upload_db import (
     upload_db_to_minio,
 )
+
+
 from dag_datalake_sirene.config import (
     AIRFLOW_DAG_TMP,
     AIRFLOW_ETL_DAG_NAME,
@@ -347,6 +353,12 @@ with DAG(
         python_callable=upload_db_to_minio,
     )
 
+    create_data_source_last_modified_file = PythonOperator(
+        task_id="create_data_source_last_modified_file",
+        provide_context=True,
+        python_callable=create_data_source_last_modified_file,
+    )
+
     clean_folder = CleanFolderOperator(
         task_id="clean_folder",
         folder_path=(f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ETL_DAG_NAME}"),
@@ -413,7 +425,8 @@ with DAG(
     create_marche_inclusion_table.set_upstream(create_elu_table)
 
     send_database_to_minio.set_upstream(create_marche_inclusion_table)
+    create_data_source_last_modified_file.set_upstream(send_database_to_minio)
+    clean_folder.set_upstream(create_data_source_last_modified_file)
 
-    clean_folder.set_upstream(send_database_to_minio)
     trigger_indexing_dag.set_upstream(clean_folder)
     send_notification_tchap.set_upstream(trigger_indexing_dag)

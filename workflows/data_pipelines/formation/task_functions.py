@@ -1,8 +1,11 @@
 import pandas as pd
+from datetime import datetime
 import logging
 import requests
+import os
 
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.utils import get_date_last_modified, save_to_metadata
 from dag_datalake_sirene.config import (
     FORMATION_TMP_FOLDER,
     URL_ORGANISME_FORMATION,
@@ -87,6 +90,18 @@ def preprocess_organisme_formation_data(ti):
     del df_liste_organisme_formation
 
 
+def save_date_last_modified():
+    date_last_modified = get_date_last_modified(url=URL_ORGANISME_FORMATION)
+    if date_last_modified is None:
+        date_last_modified = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
+    metadata_path = os.path.join(FORMATION_TMP_FOLDER, "metadata.json")
+
+    # Save the 'last_modified' date to the metadata file
+    save_to_metadata(metadata_path, "last_modified", date_last_modified)
+
+    logging.info(f"Last modified date saved successfully to {metadata_path}")
+
+
 def send_file_to_minio():
     minio_client.send_files(
         list_files=[
@@ -95,6 +110,12 @@ def send_file_to_minio():
                 "source_name": "formation.csv",
                 "dest_path": "formation/new/",
                 "dest_name": "formation.csv",
+            },
+            {
+                "source_path": FORMATION_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "formation/new/",
+                "dest_name": "metadata.json",
             },
         ],
     )
@@ -120,6 +141,12 @@ def compare_files_minio():
                 "source_name": "formation.csv",
                 "dest_path": "formation/latest/",
                 "dest_name": "formation.csv",
+            },
+            {
+                "source_path": FORMATION_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "formation/latest/",
+                "dest_name": "metadata.json",
             },
         ],
     )

@@ -4,9 +4,11 @@ import logging
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.config import (
     ESS_TMP_FOLDER,
+    RESOURCE_ID_ESS_FRANCE,
     URL_ESS_FRANCE,
 )
 from dag_datalake_sirene.helpers.tchap import send_message
+from dag_datalake_sirene.helpers.utils import fetch_and_store_last_modified_metadata
 
 
 def preprocess_ess_france_data(ti):
@@ -20,6 +22,10 @@ def preprocess_ess_france_data(ti):
     ti.xcom_push(key="nb_siren_ess", value=str(df_ess["siren"].nunique()))
 
 
+def save_date_last_modified():
+    fetch_and_store_last_modified_metadata(RESOURCE_ID_ESS_FRANCE, ESS_TMP_FOLDER)
+
+
 def send_file_to_minio():
     minio_client.send_files(
         list_files=[
@@ -29,21 +35,28 @@ def send_file_to_minio():
                 "dest_path": "ess/new/",
                 "dest_name": "ess_france.csv",
             },
+            {
+                "source_path": ESS_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "ess/new/",
+                "dest_name": "metadata.json",
+            },
         ],
     )
 
 
 def compare_files_minio():
-    is_same = minio_client.compare_files(
+    are_files_identical = minio_client.compare_files(
         file_path_1="ess/new/",
         file_name_2="ess_france.csv",
         file_path_2="ess/latest/",
         file_name_1="ess_france.csv",
     )
-    if is_same:
+
+    if are_files_identical:
         return False
 
-    if is_same is None:
+    if are_files_identical is None:
         logging.info("First time in this Minio env. Creating")
 
     minio_client.send_files(
@@ -53,6 +66,12 @@ def compare_files_minio():
                 "source_name": "ess_france.csv",
                 "dest_path": "ess/latest/",
                 "dest_name": "ess_france.csv",
+            },
+            {
+                "source_path": ESS_TMP_FOLDER,
+                "source_name": "metadata.json",
+                "dest_path": "ess/latest/",
+                "dest_name": "metadata.json",
             },
         ],
     )
