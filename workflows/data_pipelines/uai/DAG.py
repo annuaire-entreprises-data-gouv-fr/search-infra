@@ -5,6 +5,7 @@ from airflow.operators.bash import BashOperator
 from airflow.utils.dates import days_ago
 from datetime import timedelta
 from dag_datalake_sirene.config import (
+    EMAIL_LIST,
     UAI_TMP_FOLDER,
 )
 from dag_datalake_sirene.workflows.data_pipelines.uai.task_functions import (
@@ -15,6 +16,15 @@ from dag_datalake_sirene.workflows.data_pipelines.uai.task_functions import (
     save_last_modified_date,
     send_notification,
 )
+from dag_datalake_sirene.helpers.tchap import send_notification_failure_tchap
+
+default_args = {
+    "depends_on_past": False,
+    "email_on_failure": True,
+    "email_on_retry": False,
+    "email": EMAIL_LIST,
+    "retries": 1,
+}
 
 with DAG(
     dag_id="data_processing_uai",
@@ -24,6 +34,7 @@ with DAG(
     tags=["uai", "scolaire"],
     params={},
     catchup=False,
+    on_failure_callback=send_notification_failure_tchap,
 ) as dag:
     clean_previous_outputs = BashOperator(
         task_id="clean_previous_outputs",
