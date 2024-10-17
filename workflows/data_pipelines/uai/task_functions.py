@@ -86,17 +86,17 @@ def process_uai(ti):
     df_mesr = pd.read_csv(f"{UAI_TMP_FOLDER}mesr.csv", dtype=str, sep=";")
     df_mesr = df_mesr.rename(
         columns={
-            "uai": "uai",
-            "uo_lib": "denomination",
+            "uai - identifiant": "uai",
+            "uo_lib_officiel": "denomination",
             "sigle": "sigle",
-            "adresse_uai": "adresse",
-            "code_postal_uai": "code_postal",
-            "com_code": "code_commune",
-            "uucr_nom": "commune",
+            "Adresse": "adresse",
+            "Code postal": "code_postal",
+            "Code commune": "code_commune",
+            "Commune": "commune",
             "siren": "siren",
             "siret": "siret",
-            "com_nom": "public_prive",
-            "type_d_etablissement": "type",
+            "secteur d'établissement": "public_prive",
+            "type d'établissement": "type",
         }
     )
     df_mesr["statut_prive"] = None
