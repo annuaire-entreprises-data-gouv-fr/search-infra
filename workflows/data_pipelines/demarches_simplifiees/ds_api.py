@@ -115,7 +115,7 @@ class DemarcheSimplifieeClient:
         session.mount("http://", adapter)
         return session
 
-    def execute_query(self, query: str, variables: dict) -> dict:
+    def execute_query(self, query: str, variables) -> dict:
         response = self.session.post(
             DS_API_URL,
             json={"query": query, "variables": variables},
@@ -124,8 +124,11 @@ class DemarcheSimplifieeClient:
         response.raise_for_status()
         return response.json()
 
-    def get_demarche(self, demarche_number: int) -> DemarcheResponse:
-        variables = {"demarcheNumber": demarche_number, "after": None}
+    def get_demarche(self, demarche_number) -> DemarcheResponse:
+        variables = {
+            "demarcheNumber": demarche_number,
+            "after": None,
+        }
         all_dossiers = []
 
         while True:
@@ -187,9 +190,11 @@ class DemarcheSimplifieeClient:
             if not page_info.has_next_page:
                 break
 
+            variables["after"] = page_info.end_cursor
+
         return DemarcheResponse(
             id=demarche_data["id"],
-            number=demarche_data["number"],
+            number=int(demarche_data["number"]),
             title=demarche_data["title"],
             state=demarche_data["state"],
             date_creation=datetime.fromisoformat(demarche_data["dateCreation"]),
