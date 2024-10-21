@@ -20,6 +20,7 @@ from dag_datalake_sirene.config import (
     URL_MINIO_CONVENTION_COLLECTIVE_METADATA,
 )
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.utils import simplify_date
 
 
 def create_data_source_last_modified_file(**kwargs):
@@ -52,7 +53,7 @@ def create_data_source_last_modified_file(**kwargs):
             json_data = response.json()  # Parse the JSON response
 
             # Get the 'last_modified' key
-            last_modified = json_data.get("last_modified", None)
+            last_modified = simplify_date(json_data.get("last_modified", None))
             metadata_dict[datasource] = (
                 last_modified  # Set value (can be None if not present)
             )
