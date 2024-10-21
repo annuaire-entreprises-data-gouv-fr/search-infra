@@ -73,7 +73,7 @@ def create_data_source_last_modified_file(**kwargs):
         key="rne_last_modified", task_ids="get_rne_database"
     )
 
-    metadata_dict["rne"] = rne_last_modified_date
+    metadata_dict["rne"] = simplify_date(rne_last_modified_date)
 
     # Save the metadata_dict to a JSON file
     with open(json_file_path, "w") as json_file:
