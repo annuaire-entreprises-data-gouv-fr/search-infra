@@ -448,3 +448,9 @@ def fetch_last_modified_date_from_json(url: str) -> datetime | None:
     except ValueError as e:
         logging.warning(f"Error parsing JSON or date: {e}")
         return None
+
+
+def simplify_date(datetime_str: str) -> str:
+    if datetime_str is None:
+        return None
+    return datetime_str.split("T")[0]
