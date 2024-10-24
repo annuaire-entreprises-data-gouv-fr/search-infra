@@ -317,3 +317,11 @@ DATAGOUV_URL = "https://www.data.gouv.fr"
 DATAGOUV_RESOURCE_PATH = "/fr/datasets/r/"
 ORGA_REFERENCE = "646b7187b50b2a93b1ae3d45"
 DATAGOUV_SECRET_API_KEY = Variable.get("DATAGOUV_SECRET_API_KEY", "")
+
+# Demarches simplifiees
+DS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}ds/"
+DS_MINIO_DATA_PATH = "demarches_simplifiees/"
+DS_AUTH = Variable.get("DS_AUTH", "")
+DS_API_URL = "https://www.demarches-simplifiees.fr/api/v2/graphql"
+DEMARCHE_NUMBER = Variable.get("DEMARCHE_NUMBER", "")
+DS_INSTRUCTEUR_ID = Variable.get("DS_INSTRUCTEUR_ID", "")
