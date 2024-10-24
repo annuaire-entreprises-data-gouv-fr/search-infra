@@ -1,14 +1,10 @@
 from airflow.models import DAG
 from datetime import timedelta, datetime
-from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from dag_datalake_sirene.config import EMAIL_LIST
-from dag_datalake_sirene.workflows.data_pipelines.demarches_simplifiees.ds_api import (
-    get_latest_db,
-    fetch_and_save_df_data,
-    send_to_minio,
+from dag_datalake_sirene.workflows.data_pipelines.demarches_simplifiees.main import (
+    run_processor,
 )
-from dag_datalake_sirene.config import DS_TMP_FOLDER
 
 default_args = {
     "depends_on_past": False,
@@ -30,26 +26,6 @@ with DAG(
     tags=["demarches_simplifiees", "dossiers"],
     params={},
 ) as dag:
-    clean_previous_outputs = BashOperator(
-        task_id="clean_previous_outputs",
-        bash_command=f"rm -rf {DS_TMP_FOLDER} && mkdir -p {DS_TMP_FOLDER}",
+    process_task = PythonOperator(
+        task_id="process_demarche", python_callable=run_processor
     )
-
-    get_latest_db = PythonOperator(
-        task_id="get_latest_db",
-        python_callable=get_latest_db,
-    )
-
-    fetch_and_save_df_data = PythonOperator(
-        task_id="fetch_and_save_df_data",
-        python_callable=fetch_and_save_df_data,
-    )
-
-    send_to_minio = PythonOperator(
-        task_id="send_to_minio",
-        python_callable=send_to_minio,
-    )
-
-    get_latest_db.set_upstream(clean_previous_outputs)
-    fetch_and_save_df_data.set_upstream(get_latest_db)
-    send_to_minio.set_upstream(fetch_and_save_df_data)
