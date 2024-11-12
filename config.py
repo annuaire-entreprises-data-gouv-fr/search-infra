@@ -1,5 +1,23 @@
 from airflow.models import Variable
 import json
+from dataclasses import dataclass
+
+
+@dataclass
+class DataSourceConfig:
+    name: str
+    tmp_folder: str
+    minio_path: str
+    file_name: str
+    resource_id: str | None = None
+    url: str | None = None
+    url_minio: str | None = None
+    url_minio_metadata: str | None = None
+
+
+BASE_TMP_FOLDER = "/tmp"
+DATA_GOUV_BASE_URL = "https://www.data.gouv.fr/fr/datasets/r/"
+MINIO_BASE_URL = "https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/"
 
 # Airflow
 AIRFLOW_DAG_HOME = Variable.get("AIRFLOW_DAG_HOME", "/opt/airflow/dags/")
@@ -191,16 +209,7 @@ URL_MINIO_CONVENTION_COLLECTIVE_METADATA = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/convention_collective"
     "/latest/metadata.json"
 )
-RESOURCE_ID_EGAPRO = "d434859f-8d3b-4381-bcdb-ec9200653ae6"
-URL_EGAPRO = f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_EGAPRO}"
-URL_MINIO_EGAPRO = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/egapro"
-    "/latest/egapro.csv"
-)
-URL_MINIO_EGAPRO_METADATA = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/egapro"
-    "/latest/metadata.json"
-)
+
 RESOURCE_ID_ENTREPRENEUR_SPECTACLE = "fb6c3b2e-da8c-4e69-a719-6a96329e4cb2"
 URL_ENTREPRENEUR_SPECTACLE = (
     f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_ENTREPRENEUR_SPECTACLE}"
