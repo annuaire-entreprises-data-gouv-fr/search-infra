@@ -3,7 +3,7 @@ import logging
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.helpers.tchap import send_message
 from dag_datalake_sirene.helpers.utils import fetch_and_store_last_modified_metadata
-from dag_datalake_sirene.settings.data_sources import DataSourceConfig
+from dag_datalake_sirene.config import DataSourceConfig
 
 
 class DataProcessor(ABC):
@@ -12,15 +12,11 @@ class DataProcessor(ABC):
         self.minio_client = minio_client
 
     @abstractmethod
-    def download_data(self):
-        pass
-
-    @abstractmethod
     def preprocess_data(self, ti):
         pass
 
     def save_date_last_modified(self):
-        if self.resource_id:
+        if self.config.resource_id:
             fetch_and_store_last_modified_metadata(
                 self.config.resource_id, self.config.tmp_folder
             )
@@ -31,13 +27,13 @@ class DataProcessor(ABC):
         self.minio_client.send_files(
             list_files=[
                 {
-                    "source_path": self.config.tmp_folder,
+                    "source_path": f"{self.config.tmp_folder}/",
                     "source_name": f"{self.config.file_name}.csv",
                     "dest_path": f"{self.config.minio_path}/new/",
                     "dest_name": f"{self.config.file_name}.csv",
                 },
                 {
-                    "source_path": self.config.tmp_folder,
+                    "source_path": f"{self.config.tmp_folder}/",
                     "source_name": "metadata.json",
                     "dest_path": f"{self.config.minio_path}/new/",
                     "dest_name": "metadata.json",
@@ -56,13 +52,13 @@ class DataProcessor(ABC):
             self.minio_client.send_files(
                 list_files=[
                     {
-                        "source_path": self.tmp_folder,
+                        "source_path": f"{self.config.tmp_folder}/",
                         "source_name": f"{self.config.file_name}.csv",
                         "dest_path": f"{self.config.minio_path}/latest/",
                         "dest_name": f"{self.config.file_name}.csv",
                     },
                     {
-                        "source_path": self.tmp_folder,
+                        "source_path": f"{self.config.tmp_folder}/",
                         "source_name": "metadata.json",
                         "dest_path": f"{self.config.minio_path}/latest/",
                         "dest_name": "metadata.json",
