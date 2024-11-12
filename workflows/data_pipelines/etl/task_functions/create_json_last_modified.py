@@ -11,7 +11,6 @@ from dag_datalake_sirene.config import (
     URL_MINIO_UAI_METADATA,
     URL_MINIO_COLTER_METADATA,
     URL_MINIO_SIRENE_METADATA,
-    URL_MINIO_EGAPRO_METADATA,
     URL_MINIO_AGENCE_BIO_METADATA,
     URL_MINIO_ENTREPRENEUR_SPECTACLE_METADATA,
     URL_MINIO_FINESS_METADATA,
@@ -19,6 +18,7 @@ from dag_datalake_sirene.config import (
     URL_MINIO_ORGANISME_FORMATION_METADATA,
     URL_MINIO_CONVENTION_COLLECTIVE_METADATA,
 )
+from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.helpers.utils import simplify_date
 
@@ -32,7 +32,7 @@ def create_data_source_last_modified_file(**kwargs):
         URL_MINIO_UAI_METADATA: "uai",
         URL_MINIO_COLTER_METADATA: "collectivite_territoriale",
         URL_MINIO_SIRENE_METADATA: "sirene",
-        URL_MINIO_EGAPRO_METADATA: "egapro",
+        EGAPRO_CONFIG.url_minio_metadata: "egapro",
         URL_MINIO_AGENCE_BIO_METADATA: "agence_bio",
         URL_MINIO_ENTREPRENEUR_SPECTACLE_METADATA: "entrepreneur_spectacle",
         URL_MINIO_FINESS_METADATA: "finess",
