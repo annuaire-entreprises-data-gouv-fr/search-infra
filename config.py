@@ -15,9 +15,10 @@ class DataSourceConfig:
     url_minio_metadata: str | None = None
 
 
+AIRFLOW_ENV = Variable.get("ENV", "dev")
 BASE_TMP_FOLDER = "/tmp"
 DATA_GOUV_BASE_URL = "https://www.data.gouv.fr/fr/datasets/r/"
-MINIO_BASE_URL = "https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/"
+MINIO_BASE_URL = f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/"
 
 # Airflow
 AIRFLOW_DAG_HOME = Variable.get("AIRFLOW_DAG_HOME", "/opt/airflow/dags/")
@@ -28,7 +29,6 @@ AIRFLOW_ELK_DAG_NAME = "index_elasticsearch"
 AIRFLOW_SNAPSHOT_DAG_NAME = "snapshot_index"
 AIRFLOW_SNAPSHOT_ROLLBACK_DAG_NAME = "snapshot_index_rollback"
 AIRFLOW_PUBLISH_DAG_NAME = "publish_data_gouv"
-AIRFLOW_ENV = Variable.get("ENV", "dev")
 AIRFLOW_URL = Variable.get("AIRFLOW_URL", "")
 AIRFLOW_ETL_DATA_DIR = (
     AIRFLOW_DAG_TMP + AIRFLOW_DAG_FOLDER + AIRFLOW_ETL_DAG_NAME + "/data/"
