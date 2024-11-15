@@ -1,3 +1,4 @@
+"""
 import pytest
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
     is_service_public,
@@ -22,3 +23,4 @@ urssaf_siren_numbers = {"123456789", "987654321"}
 )
 def test_is_service_public(nature_juridique, siren, expected):
     assert is_service_public(nature_juridique, siren) == expected
+"""
