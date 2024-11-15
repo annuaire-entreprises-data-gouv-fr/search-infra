@@ -185,6 +185,7 @@ def is_service_public(nature_juridique_unite_legale, siren):
         or siren == "320252489"  # BPI France
         or siren in urssaf_siren_numbers  # Check against URSSAF SIREN numbers
     )
+    logging.info(f"+++++++++++++++{siren} is service public!")
 
     return is_public
 
