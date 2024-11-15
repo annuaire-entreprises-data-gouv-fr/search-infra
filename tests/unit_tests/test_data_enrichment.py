@@ -14,7 +14,7 @@ urssaf_siren_numbers = {"123456789", "987654321"}
         ("72", "987654321", True),  # Valid prefix
         ("1234", "320252489", True),  # BPI France
         ("1234", "123456789", True),  # URSSAF SIREN
-        ("1234", "775663438", False),  # RATP should be excluded
+        ("4120", "775663438", False),  # RATP should be excluded
         ("1234", "111111111", False),  # Non-public SIREN
         ("", "123456789", False),  # Empty nature juridique
         (None, "123456789", False),  # None nature juridique
