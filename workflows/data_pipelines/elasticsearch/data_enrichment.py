@@ -34,6 +34,8 @@ sections_NAF = load_file("sections_codes_naf.json")
 mapping_dep_to_reg = load_file("dep_to_reg.json")
 mapping_role_dirigeants = load_file("roles_dirigeants.json")
 mapping_commune_to_epci = load_file("epci.json")
+urssaf_data = load_file("urssaf.json")
+urssaf_siren_numbers = set(urssaf_data.values())
 
 
 # Nom complet
@@ -153,13 +155,38 @@ def is_ess(est_ess_france, ess_insee):
 
 # Service public
 def is_service_public(nature_juridique_unite_legale, siren):
-    if (
-        nature_juridique_unite_legale
-        and nature_juridique_unite_legale.startswith(("4", "71", "72", "73", "74"))
-    ) or siren == "320252489":
-        return True
-    else:
+    """
+    Determine if a given entity is classified as a public service.
+
+    Parameters:
+    - nature_juridique_unite_legale (str): The legal nature of the entity.
+    - siren (str): The SIREN number of the entity.
+
+    Returns:
+    - bool: True if the entity is classified as a public service,
+            False otherwise. Exceptions include:
+            - BPI France (SIREN: 320252489) and URSSAF are considered public.
+            - RATP (SIREN: 775663438) is explicitly excluded.
+    """
+
+    # Exclude RATP
+    if siren == "775663438":
         return False
+
+    # Define valid prefixes for public service
+    valid_prefixes = {"4", "71", "72", "73", "74"}
+
+    # Check if the entity is classified as a public service
+    is_public = (
+        (
+            nature_juridique_unite_legale
+            and nature_juridique_unite_legale.startswith(tuple(valid_prefixes))
+        )
+        or siren == "320252489"  # BPI France
+        or siren in urssaf_siren_numbers  # Check against URSSAF SIREN numbers
+    )
+
+    return is_public
 
 
 # Association
