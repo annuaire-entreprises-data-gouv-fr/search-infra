@@ -34,8 +34,7 @@ sections_NAF = load_file("sections_codes_naf.json")
 mapping_dep_to_reg = load_file("dep_to_reg.json")
 mapping_role_dirigeants = load_file("roles_dirigeants.json")
 mapping_commune_to_epci = load_file("epci.json")
-urssaf_data = load_file("urssaf.json")
-urssaf_siren_numbers = set(urssaf_data.values())
+service_public_whitelist = set(load_file("service_public.json").values())
 
 
 # Nom complet
@@ -165,8 +164,8 @@ def is_service_public(nature_juridique_unite_legale, siren):
     Returns:
     - bool: True if the entity is classified as a public service,
             False otherwise. Exceptions include:
-            - BPI France (SIREN: 320252489) and URSSAF are considered public.
-            - RATP (SIREN: 775663438) is explicitly excluded.
+            - BPI France and URSSAF are considered public.
+            - RATP is explicitly excluded.
     """
 
     # Exclude RATP
@@ -176,15 +175,10 @@ def is_service_public(nature_juridique_unite_legale, siren):
     # Define valid prefixes for public service
     valid_prefixes = {"4", "71", "72", "73", "74"}
 
-    # Check if the entity is classified as a public service
     is_public = (
-        (
-            nature_juridique_unite_legale
-            and nature_juridique_unite_legale.startswith(tuple(valid_prefixes))
-        )
-        or siren == "320252489"  # BPI France
-        or siren in urssaf_siren_numbers  # Check against URSSAF SIREN numbers
-    )
+        nature_juridique_unite_legale
+        and nature_juridique_unite_legale.startswith(tuple(valid_prefixes))
+    ) or siren in service_public_whitelist
 
     return is_public
 
