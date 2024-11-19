@@ -12,6 +12,7 @@ from dag_datalake_sirene.config import (
     METADATA_CC_MINIO_PATH,
     METADATA_CC_TMP_FOLDER,
     URL_CC_DARES,
+    FILE_CC_DATE,
     URL_CC_KALI,
 )
 from dag_datalake_sirene.helpers.minio_helpers import File, minio_client
@@ -37,7 +38,7 @@ def get_month_year_french():
 
     current_date = datetime.now()
     month_number = current_date.month
-    month_name_french = month_mapping.get(month_number, "unknown")
+    month_name_french = month_mapping.get(month_number, "unknown").title()
 
     year_last_two_digits = str(current_date.year)[-2:]
     # Format the result as 'monthYear'
@@ -50,8 +51,10 @@ def create_metadata_concollective_json():
     context = get_current_context()
     ti = context["ti"]
 
-    current_cc_dares_extension = f"{get_month_year_french()}.xlsx"
-    current_url_cc_dares = URL_CC_DARES + current_cc_dares_extension
+    current_cc_dares_file = f"{FILE_CC_DATE}{get_month_year_french()}.xlsx"
+    current_url_cc_dares = (
+        f"{URL_CC_DARES}/{datetime.now().strftime('%Y-%m')}/{current_cc_dares_file}"
+    )
     logging.info(f"Current CC Dares URL: {current_url_cc_dares}")
 
     r = requests.get(current_url_cc_dares, allow_redirects=True)

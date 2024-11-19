@@ -300,10 +300,9 @@ URL_MINIO_ESS_FRANCE_METADATA = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/ess"
     "/latest/metadata.json"
 )
-URL_CC_DARES = (
-    "https://travail-emploi.gouv.fr/IMG/xlsx/"
-    "dares_donnes_identifiant_convention_collective_"
-)
+URL_CC_DARES = "https://travail-emploi.gouv.fr/sites/travail-emploi/files"
+# Caution: DARES file is case sensitive or returns 404
+FILE_CC_DATE = "Dares_donnes_Identifiant_convention_collective_"
 URL_CC_KALI = (
     "https://www.data.gouv.fr/fr/datasets/r/02b67492-5243-44e8-8dd1-0cb3f90f35ff"
 )
