@@ -34,7 +34,8 @@ sections_NAF = load_file("sections_codes_naf.json")
 mapping_dep_to_reg = load_file("dep_to_reg.json")
 mapping_role_dirigeants = load_file("roles_dirigeants.json")
 mapping_commune_to_epci = load_file("epci.json")
-service_public_whitelist = set(load_file("service_public.json").values())
+service_public_whitelist = set(load_file("service_public_whitelist.json").values())
+service_public_blacklist = set(load_file("service_public_blacklist.json").values())
 
 
 # Nom complet
@@ -153,7 +154,7 @@ def is_ess(est_ess_france, ess_insee):
 
 
 # Service public
-def is_service_public(nature_juridique_unite_legale, siren):
+def is_service_public(nature_juridique_unite_legale: str, siren: str) -> bool:
     """
     Determine if a given entity is classified as a public service.
 
@@ -165,11 +166,9 @@ def is_service_public(nature_juridique_unite_legale, siren):
     - bool: True if the entity is classified as a public service,
             False otherwise. Exceptions include:
             - BPI France and URSSAF are considered public.
-            - RATP is explicitly excluded.
+            - RATP is excluded based on blacklist.
     """
-
-    # Exclude RATP
-    if siren == "775663438":
+    if siren in service_public_blacklist:
         return False
 
     # Define valid prefixes for public service
