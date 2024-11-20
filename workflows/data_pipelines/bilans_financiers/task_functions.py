@@ -48,9 +48,6 @@ def process_bilans_financiers(ti):
         dtype=str,
         sep=";",
         usecols=fields,
-        parse_dates=[
-            "date_cloture_exercice"
-        ],  # Convert 'date_cloture_exercice' to datetime
     )
 
     df_bilan = df_bilan.rename(
@@ -61,6 +58,16 @@ def process_bilans_financiers(ti):
     )
     # Get the current fiscal year
     current_fiscal_year = get_fiscal_year(datetime.now())
+
+    logging.warning(
+        f"*++++++++++++++++++++{df_bilan['date_cloture_exercice'].head(10)}"
+    )
+
+    df_bilan["date_cloture_exercice"] = pd.to_datetime(
+        df_bilan["date_cloture_exercice"], errors="coerce"
+    )
+
+    logging.warning(f"////////////{df_bilan['date_cloture_exercice'].head(10)}")
 
     # Filter out rows with fiscal years greater than the current fiscal year
     df_bilan["annee_cloture_exercice"] = df_bilan["date_cloture_exercice"].apply(
