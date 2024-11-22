@@ -1,6 +1,13 @@
 .ipynb_checkpoints/
 __pycache__/
+.vscode/
+.ruff_cache/
+
+.env
+**/data_pipelines/proto/*
+pyproject.toml
+poetry.lock
+.venv
+
 data/
 output/
-.env
-.vscode/

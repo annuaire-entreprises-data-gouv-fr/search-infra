@@ -1,16 +1,22 @@
+import json
+import logging
+from datetime import datetime
+
 import pandas as pd
 import requests
-import logging
-import json
-from datetime import datetime
-from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from airflow.decorators import task
+from airflow.operators.python import get_current_context
+from requests.exceptions import HTTPError
+
 from dag_datalake_sirene.config import (
-    URL_CC_DARES,
-    URL_CC_KALI,
     METADATA_CC_MINIO_PATH,
     METADATA_CC_TMP_FOLDER,
+    URL_CC_DARES,
+    FILE_CC_DATE,
+    URL_CC_KALI,
 )
+from dag_datalake_sirene.helpers.minio_helpers import File, minio_client
+from dag_datalake_sirene.helpers.notification import Notification
 
 
 def get_month_year_french():
@@ -32,7 +38,7 @@ def get_month_year_french():
 
     current_date = datetime.now()
     month_number = current_date.month
-    month_name_french = month_mapping.get(month_number, "unknown")
+    month_name_french = month_mapping.get(month_number, "unknown").title()
 
     year_last_two_digits = str(current_date.year)[-2:]
     # Format the result as 'monthYear'
@@ -40,11 +46,33 @@ def get_month_year_french():
     return result
 
 
+@task()
 def create_metadata_concollective_json():
-    current_cc_dares_extension = f"{get_month_year_french()}.xlsx"
-    current_url_cc_dares = URL_CC_DARES + current_cc_dares_extension
+    context = get_current_context()
+    ti = context["ti"]
+
+    current_cc_dares_file = f"{FILE_CC_DATE}{get_month_year_french()}.xlsx"
+    current_url_cc_dares = (
+        f"{URL_CC_DARES}/{datetime.now().strftime('%Y-%m')}/{current_cc_dares_file}"
+    )
     logging.info(f"Current CC Dares URL: {current_url_cc_dares}")
+
     r = requests.get(current_url_cc_dares, allow_redirects=True)
+    if not r.ok:
+        # The file is often unavailable, this is expected but
+        # we need to be informed to act upon it if it has been too long
+        last_run_date = minio_client.get_date_last_modified(
+            f"{METADATA_CC_MINIO_PATH}cc_kali.json"
+        )
+        if last_run_date is not None:
+            date_diff = datetime.now() - datetime.fromisoformat(last_run_date)
+            error_message = f"\u26a0\ufe0f {r.status_code}: Le fichier CC du DARES n'est pas disponible depuis {date_diff.days} jours."
+        else:
+            error_message = f"\u26a0\ufe0f {r.status_code}: Le fichier CC du DARES n'est pas disponible."
+        logging.warning(error_message)
+        ti.xcom_push(key=Notification.notification_xcom_key, value=error_message)
+        raise HTTPError(f"{error_message}: {current_url_cc_dares}")
+
     with open(METADATA_CC_TMP_FOLDER + "dares-download.xlsx", "wb") as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)
@@ -98,26 +126,23 @@ def create_metadata_concollective_json():
         json.dump(metadata_json, json_file)
 
 
-def upload_json_file_to_minio():
+@task()
+def upload_json_to_minio():
+    context = get_current_context()
+    ti = context["ti"]
+
     minio_client.send_files(
         list_files=[
-            {
-                "source_path": METADATA_CC_TMP_FOLDER,
-                "source_name": "metadata-cc-kali.json",
-                "dest_path": METADATA_CC_MINIO_PATH,
-                "dest_name": "cc_kali.json",
-            }
+            File(
+                source_path=METADATA_CC_TMP_FOLDER,
+                source_name="metadata-cc-kali.json",
+                dest_path=METADATA_CC_MINIO_PATH,
+                dest_name="cc_kali.json",
+                content_type=None,
+            )
         ],
     )
-
-
-def send_notification_success_tchap():
-    send_message(
-        f"\U0001F7E2 Données :"
-        f"\nMetadata Conventions Collectives mise à jour sur Minio "
-        f"- Bucket {minio_client.bucket}."
+    ti.xcom_push(
+        key=Notification.notification_xcom_key,
+        value=f"Metadata Conventions Collectives mise à jour sur Minio dans le bucket {minio_client.bucket}.",
     )
-
-
-def send_notification_failure_tchap(context):
-    send_message("\U0001F534 Données :" "\nFail DAG Metadata CC!!!!")
