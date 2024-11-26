@@ -50,7 +50,7 @@ def data_processing_egapro_dag():
     def send_file_to_minio():
         return egapro_processor.send_file_to_minio()
 
-    @task.short_circuit
+    @task
     def compare_files_minio():
         return egapro_processor.compare_files_minio()
 
