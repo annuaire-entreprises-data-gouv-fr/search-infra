@@ -34,8 +34,5 @@ class EgaproProcessor(DataProcessor):
         super().send_file_to_minio()
         ti = get_current_context()["ti"]
         nb_siren = ti.xcom_pull(key="nb_siren_egapro", task_ids="process_egapro")
-        message = (
-            f"\U0001f7e2 Données Egapro mises à jour.\n"
-            f"- {nb_siren} unités légales représentées."
-        )
+        message = f"{nb_siren} unités légales représentées."
         ti.xcom_push(key=Notification.notification_xcom_key, value=message)
