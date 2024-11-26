@@ -1,14 +1,12 @@
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 from datetime import timedelta
-from dag_datalake_sirene.config import (
-    EGAPRO_TMP_FOLDER,
-    EMAIL_LIST,
-)
+from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
 from dag_datalake_sirene.workflows.data_pipelines.egapro.egapro_processor import (
     EgaproProcessor,
 )
+from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
 
 egapro_processor = EgaproProcessor()
 
@@ -36,7 +34,9 @@ default_args = {
 def data_processing_egapro_dag():
     @task.bash
     def clean_previous_outputs():
-        return f"rm -rf {EGAPRO_TMP_FOLDER} && mkdir -p {EGAPRO_TMP_FOLDER}"
+        return (
+            f"rm -rf {EGAPRO_CONFIG.tmp_folder} && mkdir -p {EGAPRO_CONFIG.tmp_folder}"
+        )
 
     @task
     def process_egapro():
