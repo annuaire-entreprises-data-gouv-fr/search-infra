@@ -56,12 +56,12 @@ class Notification:
     def generate_notification_message(self) -> str:
         additional_messages = self.get_dag_additional_messages()
         if additional_messages:
-            additional_messages = "\n" + "\n".join(additional_messages)
+            additional_messages_str = "\n" + "\n".join(additional_messages)
         else:
-            additional_messages = ""
-        return f"{self.status.value} {self.dag_id} {additional_messages}"
+            additional_messages_str = ""
+        return f"{self.status.value} {self.dag_id} {additional_messages_str}"
 
-    def get_dag_additional_messages(self):
+    def get_dag_additional_messages(self) -> list[str]:
         """
         Generate a message from all the "notification_message" keys and failed tasks.
         """
