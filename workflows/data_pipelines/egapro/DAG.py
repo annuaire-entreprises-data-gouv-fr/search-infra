@@ -39,7 +39,7 @@ def data_processing_egapro_dag():
         )
 
     @task
-    def process_egapro():
+    def preprocess_egapro():
         return egapro_processor.preprocess_data()
 
     @task
@@ -56,7 +56,7 @@ def data_processing_egapro_dag():
 
     (
         clean_previous_outputs()
-        >> process_egapro()
+        >> preprocess_egapro()
         >> save_date_last_modified()
         >> send_file_to_minio()
         >> compare_files_minio()
