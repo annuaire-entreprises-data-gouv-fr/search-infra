@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import logging
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.minio_helpers import minio_client, File
 from dag_datalake_sirene.helpers.tchap import send_message
 from dag_datalake_sirene.helpers.utils import fetch_and_store_last_modified_metadata
 from dag_datalake_sirene.config import DataSourceConfig
@@ -26,18 +26,18 @@ class DataProcessor(ABC):
     def send_file_to_minio(self):
         self.minio_client.send_files(
             list_files=[
-                {
-                    "source_path": f"{self.config.tmp_folder}/",
-                    "source_name": f"{self.config.file_name}.csv",
-                    "dest_path": f"{self.config.minio_path}/new/",
-                    "dest_name": f"{self.config.file_name}.csv",
-                },
-                {
-                    "source_path": f"{self.config.tmp_folder}/",
-                    "source_name": "metadata.json",
-                    "dest_path": f"{self.config.minio_path}/new/",
-                    "dest_name": "metadata.json",
-                },
+                File(
+                    source_path=f"{self.config.tmp_folder}/",
+                    source_name=f"{self.config.file_name}.csv",
+                    dest_path=f"{self.config.minio_path}/new/",
+                    dest_name=f"{self.config.file_name}.csv",
+                ),
+                File(
+                    source_path=f"{self.config.tmp_folder}/",
+                    source_name="metadata.json",
+                    dest_path=f"{self.config.minio_path}/new/",
+                    dest_name="metadata.json",
+                ),
             ],
         )
 
@@ -51,18 +51,18 @@ class DataProcessor(ABC):
         if not is_same:
             self.minio_client.send_files(
                 list_files=[
-                    {
-                        "source_path": f"{self.config.tmp_folder}/",
-                        "source_name": f"{self.config.file_name}.csv",
-                        "dest_path": f"{self.config.minio_path}/latest/",
-                        "dest_name": f"{self.config.file_name}.csv",
-                    },
-                    {
-                        "source_path": f"{self.config.tmp_folder}/",
-                        "source_name": "metadata.json",
-                        "dest_path": f"{self.config.minio_path}/latest/",
-                        "dest_name": "metadata.json",
-                    },
+                    File(
+                        source_path=f"{self.config.tmp_folder}/",
+                        source_name=f"{self.config.file_name}.csv",
+                        dest_path=f"{self.config.minio_path}/latest/",
+                        dest_name=f"{self.config.file_name}.csv",
+                    ),
+                    File(
+                        source_path=f"{self.config.tmp_folder}/",
+                        source_name="metadata.json",
+                        dest_path=f"{self.config.minio_path}/latest/",
+                        dest_name="metadata.json",
+                    ),
                 ],
             )
         return not is_same
