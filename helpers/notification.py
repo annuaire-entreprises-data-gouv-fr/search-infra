@@ -47,7 +47,7 @@ class Notification:
         self.status_name = self.status.name
 
         dag_run = context.get("dag_run")
-        self.dag_id = dag_run.dag_id.title()
+        self.dag_id = dag_run.dag_id
         # Sort the task instances because they can be stored in a random order in the context
         self.task_instances = sorted(
             dag_run.get_task_instances(), key=lambda ti: ti.execution_date
@@ -59,9 +59,9 @@ class Notification:
             additional_messages = "\n" + "\n".join(additional_messages)
         else:
             additional_messages = ""
-        return f"{self.status.value} {self.dag_id}: Données {additional_messages}"
+        return f"{self.status.value} {self.dag_id} {additional_messages}"
 
-    def get_dag_additional_messages(self) -> list[str]:
+    def get_dag_additional_messages(self):
         """
         Generate a message from all the "notification_message" keys and failed tasks.
         """
@@ -71,9 +71,7 @@ class Notification:
                 task_ids=ti.task_id, key=self.notification_xcom_key
             )
             if notification_message is not None:
-                notification_messages.append(
-                    f"- {ti.task_id}({ti.state}): {notification_message}"
-                )
+                notification_messages.append(f"- {notification_message}")
             elif notification_message is None and ti.state == "failed":
                 notification_messages.append(f"- {ti.task_id}({ti.state})")
 
