@@ -5,6 +5,7 @@ from dag_datalake_sirene.config import (
     EGAPRO_TMP_FOLDER,
     EMAIL_LIST,
 )
+from dag_datalake_sirene.helpers import Notification
 from dag_datalake_sirene.workflows.data_pipelines.egapro.egapro_processor import (
     EgaproProcessor,
 )
@@ -22,13 +23,15 @@ default_args = {
 
 @dag(
     dag_id="data_processing_egapro",
+    tags=["egapro"],
     default_args=default_args,
     schedule_interval="0 16 * * *",
     start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=60),
-    tags=["egapro"],
     params={},
     catchup=False,
+    on_failure_callback=Notification.send_notification_tchap,
+    on_success_callback=Notification.send_notification_tchap,
 )
 def data_processing_egapro_dag():
     @task.bash
@@ -51,17 +54,12 @@ def data_processing_egapro_dag():
     def compare_files_minio():
         return egapro_processor.compare_files_minio()
 
-    @task
-    def send_notification(**kwargs):
-        return egapro_processor.send_notification(kwargs["ti"])
-
     (
         clean_previous_outputs()
         >> process_egapro()
         >> save_date_last_modified()
         >> send_file_to_minio()
         >> compare_files_minio()
-        >> send_notification()
     )
 
 

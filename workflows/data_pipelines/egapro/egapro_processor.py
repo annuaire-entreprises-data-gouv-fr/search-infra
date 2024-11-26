@@ -1,6 +1,6 @@
 import pandas as pd
 import logging
-from dag_datalake_sirene.helpers.data_processor import DataProcessor
+from dag_datalake_sirene.helpers import Notification, DataProcessor
 from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
 
 
@@ -27,9 +27,11 @@ class EgaproProcessor(DataProcessor):
 
         del df_egapro
 
-    def send_notification(self, ti):
+    def send_file_to_minio(self, ti):
+        super().send_file_to_minio()
         nb_siren = ti.xcom_pull(key="nb_siren_egapro", task_ids="process_egapro")
-        super().send_notification(
+        message = (
             f"\U0001f7e2 Données Egapro mises à jour.\n"
-            f"- {nb_siren} unités légales représentées.",
+            f"- {nb_siren} unités légales représentées."
         )
+        ti.xcom_push(key=Notification.notification_xcom_key, value=message)
