@@ -1,16 +1,13 @@
-from airflow.decorators import dag, task
-
-from airflow.utils.dates import days_ago
 from datetime import timedelta
-from dag_datalake_sirene.config import (
-    EMAIL_LIST,
-)
+
+from airflow.decorators import dag, task
+from airflow.utils.dates import days_ago
+
+from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
+from dag_datalake_sirene.workflows.data_pipelines.finess.config import FINESS_CONFIG
 from dag_datalake_sirene.workflows.data_pipelines.finess.finess_processor import (
     FinessProcessor,
-)
-from dag_datalake_sirene.workflows.data_pipelines.finess.config import (
-    FINESS_CONFIG,
 )
 
 finess_processor = FinessProcessor()
