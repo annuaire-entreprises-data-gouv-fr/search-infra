@@ -12,7 +12,7 @@ class DataProcessor(ABC):
         self.minio_client = minio_client
 
     @abstractmethod
-    def preprocess_data(self, ti):
+    def preprocess_data(self):
         pass
 
     def save_date_last_modified(self):
@@ -67,5 +67,5 @@ class DataProcessor(ABC):
             )
         return not is_same
 
-    def send_notification(self, message, ti):
+    def send_notification(self, message):
         send_message(message)
