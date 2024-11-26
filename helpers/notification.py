@@ -59,7 +59,7 @@ class Notification:
             additional_messages_str = "\n" + "\n".join(additional_messages)
         else:
             additional_messages_str = ""
-        return f"{self.status.value} {self.dag_id} {additional_messages_str}"
+        return f"{self.status.value} airflow : {self.dag_id} {additional_messages_str}"
 
     def get_dag_additional_messages(self) -> list[str]:
         """
