@@ -1,20 +1,15 @@
-from airflow.models import DAG
-from airflow.operators.python import PythonOperator, ShortCircuitOperator
-from airflow.operators.bash import BashOperator
-
+from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 from datetime import timedelta
 from dag_datalake_sirene.config import (
     EGAPRO_TMP_FOLDER,
     EMAIL_LIST,
 )
-from dag_datalake_sirene.workflows.data_pipelines.egapro.task_functions import (
-    preprocess_egapro_data,
-    send_file_to_minio,
-    compare_files_minio,
-    send_notification,
-    save_date_last_modified,
+from dag_datalake_sirene.workflows.data_pipelines.egapro.egapro_processor import (
+    EgaproProcessor,
 )
+
+egapro_processor = EgaproProcessor()
 
 default_args = {
     "depends_on_past": False,
@@ -24,7 +19,8 @@ default_args = {
     "retries": 1,
 }
 
-with DAG(
+
+@dag(
     dag_id="data_processing_egapro",
     default_args=default_args,
     schedule_interval="0 16 * * *",
@@ -33,33 +29,41 @@ with DAG(
     tags=["egapro"],
     params={},
     catchup=False,
-) as dag:
-    clean_previous_outputs = BashOperator(
-        task_id="clean_previous_outputs",
-        bash_command=(f"rm -rf {EGAPRO_TMP_FOLDER} && mkdir -p {EGAPRO_TMP_FOLDER}"),
+)
+def data_processing_egapro_dag():
+    @task.bash
+    def clean_previous_outputs():
+        return f"rm -rf {EGAPRO_TMP_FOLDER} && mkdir -p {EGAPRO_TMP_FOLDER}"
+
+    @task
+    def process_egapro(**kwargs):
+        return egapro_processor.preprocess_data(kwargs["ti"])
+
+    @task
+    def save_date_last_modified():
+        return egapro_processor.save_date_last_modified()
+
+    @task
+    def send_file_to_minio():
+        return egapro_processor.send_file_to_minio()
+
+    @task.short_circuit
+    def compare_files_minio():
+        return egapro_processor.compare_files_minio()
+
+    @task
+    def send_notification(**kwargs):
+        return egapro_processor.send_notification(kwargs["ti"])
+
+    (
+        clean_previous_outputs()
+        >> process_egapro()
+        >> save_date_last_modified()
+        >> send_file_to_minio()
+        >> compare_files_minio()
+        >> send_notification()
     )
 
-    process_egapro = PythonOperator(
-        task_id="process_egapro", python_callable=preprocess_egapro_data
-    )
-    save_date_last_modified = PythonOperator(
-        task_id="save_date_last_modified", python_callable=save_date_last_modified
-    )
 
-    send_file_to_minio = PythonOperator(
-        task_id="send_file_to_minio", python_callable=send_file_to_minio
-    )
-
-    compare_files_minio = ShortCircuitOperator(
-        task_id="compare_files_minio", python_callable=compare_files_minio
-    )
-
-    send_notification = PythonOperator(
-        task_id="send_notification", python_callable=send_notification
-    )
-
-    process_egapro.set_upstream(clean_previous_outputs)
-    save_date_last_modified.set_upstream(process_egapro)
-    send_file_to_minio.set_upstream(save_date_last_modified)
-    compare_files_minio.set_upstream(send_file_to_minio)
-    send_notification.set_upstream(compare_files_minio)
+# Instantiate the DAG
+dag_instance = data_processing_egapro_dag()

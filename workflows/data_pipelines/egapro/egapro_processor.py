@@ -30,7 +30,6 @@ class EgaproProcessor(DataProcessor):
     def send_notification(self, ti):
         nb_siren = ti.xcom_pull(key="nb_siren_egapro", task_ids="process_egapro")
         super().send_notification(
-            f"\U0001F7E2 Données Egapro mises à jour.\n"
+            f"\U0001f7e2 Données Egapro mises à jour.\n"
             f"- {nb_siren} unités légales représentées.",
-            ti,
         )
