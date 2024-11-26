@@ -39,8 +39,8 @@ def data_processing_egapro_dag():
         return f"rm -rf {EGAPRO_TMP_FOLDER} && mkdir -p {EGAPRO_TMP_FOLDER}"
 
     @task
-    def process_egapro(**kwargs):
-        return egapro_processor.preprocess_data(kwargs["ti"])
+    def process_egapro():
+        return egapro_processor.preprocess_data()
 
     @task
     def save_date_last_modified():
