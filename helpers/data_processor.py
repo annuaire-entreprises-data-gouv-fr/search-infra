@@ -7,12 +7,21 @@ from dag_datalake_sirene.config import DataSourceConfig
 
 
 class DataProcessor(ABC):
+    """Abstract base class for processing data.
+
+    This class provides methods for preprocessing data, saving metadata,
+    sending files to MinIO, comparing files in MinIO, and sending notifications.
+    """
+
     def __init__(self, config: DataSourceConfig):
         self.config = config
         self.minio_client = minio_client
 
     @abstractmethod
     def preprocess_data(self):
+        """
+        This method must be implemented by subclasses.
+        """
         pass
 
     def save_date_last_modified(self):
@@ -24,6 +33,9 @@ class DataProcessor(ABC):
             logging.warning("No resource_id provided for last modified date.")
 
     def send_file_to_minio(self):
+        """
+        Sends the CSV file and metadata JSON to the specified MinIO path.
+        """
         self.minio_client.send_files(
             list_files=[
                 File(
@@ -42,6 +54,14 @@ class DataProcessor(ABC):
         )
 
     def compare_files_minio(self):
+        """Compares files in MinIO.
+
+        Checks if the current file is the same as the latest file in MinIO.
+        If not, it sends the current file to the latest path.
+
+        Returns:
+            bool: True if the files are different, False if they are the same.
+        """
         is_same = self.minio_client.compare_files(
             file_path_1=f"{self.config.minio_path}/new/",
             file_name_2=f"{self.config.file_name}.csv",
