@@ -48,6 +48,7 @@ def process_bilans_financiers(ti):
         dtype=str,
         sep=";",
         usecols=fields,
+        encoding="utf-8-sig",
     )
 
     df_bilan = df_bilan.rename(
@@ -179,6 +180,6 @@ def compare_files_minio():
 def send_notification(ti):
     nb_siren = ti.xcom_pull(key="nb_siren", task_ids="process_bilans_financiers")
     send_message(
-        f"\U0001F7E2 Données Bilans Financiers mises à jour.\n"
+        f"\U0001f7e2 Données Bilans Financiers mises à jour.\n"
         f"- {nb_siren} unités légales référencés\n"
     )
