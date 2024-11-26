@@ -62,7 +62,6 @@ AGENCE_BIO_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}agence_bio/"
 UAI_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}uai/"
 BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
 SPECTACLE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}spectacle/"
-FINESS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}finess/"
 RGE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rge/"
 FORMATION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}formation/"
 ESS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}ess/"
@@ -233,18 +232,6 @@ URL_MINIO_ETABLISSEMENTS_HISTORIQUE = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
     "/sirene/historique/StockEtablissementHistorique_utf8.zip"
 )
-
-RESOURCE_ID_FINESS = "2ce43ade-8d2c-4d1d-81da-ca06c82abc68"
-URL_FINESS = f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_FINESS}"
-URL_MINIO_FINESS = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/finess"
-    "/latest/finess.csv"
-)
-URL_MINIO_FINESS_METADATA = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/finess"
-    "/latest/metadata.json"
-)
-
 URL_ORGANISME_FORMATION = (
     "https://dgefp.opendatasoft.com/api/explore/v2.1/catalog/datasets/liste"
     "-publique-des-of-v2/exports/csv?lang=fr&timezone=Europe%2FBerlin&use_labels"
