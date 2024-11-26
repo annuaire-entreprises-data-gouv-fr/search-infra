@@ -64,4 +64,4 @@ def data_processing_egapro_dag():
 
 
 # Instantiate the DAG
-dag_instance = data_processing_egapro_dag()
+data_processing_egapro_dag()
