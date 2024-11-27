@@ -142,7 +142,3 @@ def upload_json_to_minio():
             )
         ],
     )
-    ti.xcom_push(
-        key=Notification.notification_xcom_key,
-        value=f"Metadata Conventions Collectives mise à jour sur Minio dans le bucket {minio_client.bucket}.",
-    )
