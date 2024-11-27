@@ -34,6 +34,6 @@ class EgaproProcessor(DataProcessor):
     def send_file_to_minio(self):
         super().send_file_to_minio()
         ti = get_current_context()["ti"]
-        nb_siren = ti.xcom_pull(key="nb_siren_egapro", task_ids="process_egapro")
+        nb_siren = ti.xcom_pull(key="nb_siren_egapro", task_ids="preprocess_egapro")
         message = f"{nb_siren} unités légales."
         ti.xcom_push(key=Notification.notification_xcom_key, value=message)

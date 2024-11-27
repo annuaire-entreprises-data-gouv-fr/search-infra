@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import logging
+import requests
 from dag_datalake_sirene.helpers.minio_helpers import minio_client, File
 from dag_datalake_sirene.helpers.tchap import send_message
 from dag_datalake_sirene.helpers.utils import fetch_and_store_last_modified_metadata
@@ -16,6 +17,26 @@ class DataProcessor(ABC):
     def __init__(self, config: DataSourceConfig):
         self.config = config
         self.minio_client = minio_client
+
+    def download_data(self, destination):
+        """
+        Downloads data from the specified URL and saves it to the destination path.
+
+        Args:
+            url (str): The URL to download data from.
+            destination (str): The file path where the downloaded data will be saved.
+        """
+        try:
+            r = requests.get(self.config.url)
+            r.raise_for_status()
+            with open(destination, "wb") as f:
+                for chunk in r.iter_content(1024):
+                    f.write(chunk)
+            logging.info(
+                f"Data downloaded successfully from {self.config.url} to {destination}."
+            )
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Error downloading data from {self.config.url}: {e}")
 
     @abstractmethod
     def preprocess_data(self):

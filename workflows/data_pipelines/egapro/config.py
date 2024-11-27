@@ -1,6 +1,5 @@
 from dag_datalake_sirene.config import (
     DataSourceConfig,
-    BASE_TMP_FOLDER,
     DATA_GOUV_BASE_URL,
     MINIO_BASE_URL,
 )
@@ -8,7 +7,7 @@ from dag_datalake_sirene.config import (
 
 EGAPRO_CONFIG = DataSourceConfig(
     name="egapro",
-    tmp_folder=f"{BASE_TMP_FOLDER}/egapro",
+    tmp_folder=f"{DataSourceConfig.base_tmp_folder}/egapro",
     minio_path="egapro",
     file_name="egapro",
     resource_id="d434859f-8d3b-4381-bcdb-ec9200653ae6",
