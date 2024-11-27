@@ -48,6 +48,6 @@ class FinessProcessor(DataProcessor):
     def send_file_to_minio(self):
         super().send_file_to_minio()
         ti = get_current_context()["ti"]
-        nb_siret = ti.xcom_pull(key="nb_siret_finess", task_ids="process_finess")
+        nb_siret = ti.xcom_pull(key="nb_siret_finess", task_ids="preprocess_finess")
         message = f"{nb_siret} établissements"
         ti.xcom_push(key=Notification.notification_xcom_key, value=message)
