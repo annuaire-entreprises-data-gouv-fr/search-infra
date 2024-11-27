@@ -1,13 +1,12 @@
 from dag_datalake_sirene.config import (
     DataSourceConfig,
-    BASE_TMP_FOLDER,
     DATA_GOUV_BASE_URL,
     MINIO_BASE_URL,
 )
 
 FINESS_CONFIG = DataSourceConfig(
     name="finess",
-    tmp_folder=f"{BASE_TMP_FOLDER}/finess",
+    tmp_folder=f"{DataSourceConfig.base_tmp_folder}/finess",
     minio_path="finess",
     file_name="finess",
     resource_id="2ce43ade-8d2c-4d1d-81da-ca06c82abc68",

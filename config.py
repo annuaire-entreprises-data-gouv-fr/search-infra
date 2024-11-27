@@ -13,6 +13,7 @@ class DataSourceConfig:
     url: str | None = None
     url_minio: str | None = None
     url_minio_metadata: str | None = None
+    base_tmp_folder: str = "/tmp"  # Default value
 
 
 AIRFLOW_ENV = Variable.get("ENV", "dev")
