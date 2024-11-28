@@ -6,7 +6,6 @@ import requests
 from dag_datalake_sirene.config import (
     AIRFLOW_ETL_DATA_DIR,
     MINIO_DATA_SOURCE_UPDATE_DATES_FILE,
-    URL_MINIO_ESS_FRANCE_METADATA,
     URL_MINIO_RGE_METADATA,
     URL_MINIO_UAI_METADATA,
     URL_MINIO_COLTER_METADATA,
@@ -19,6 +18,9 @@ from dag_datalake_sirene.config import (
 )
 from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
 from dag_datalake_sirene.workflows.data_pipelines.finess.config import FINESS_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import (
+    ESS_CONFIG,
+)
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.helpers.utils import simplify_date
 
@@ -27,7 +29,7 @@ def create_data_source_last_modified_file(**kwargs):
     metadata_dict = {}
 
     metadata_url_to_datasource = {
-        URL_MINIO_ESS_FRANCE_METADATA: "ess_france",
+        ESS_CONFIG.url_minio_metadata: "ess_france",
         URL_MINIO_RGE_METADATA: "rge",
         URL_MINIO_UAI_METADATA: "uai",
         URL_MINIO_COLTER_METADATA: "collectivite_territoriale",
