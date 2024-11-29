@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from airflow.operators.python import get_current_context
 import logging
 import requests
 from dag_datalake_sirene.helpers.minio_helpers import minio_client, File
@@ -44,6 +45,21 @@ class DataProcessor(ABC):
         This method must be implemented by subclasses.
         """
         pass
+
+    @staticmethod
+    def _push_unique_count(column, xcom_key):
+        """
+        Counts unique values in the specified column and pushes the count to XCom.
+
+        Args:
+            df (pd.DataFrame): The DataFrame to analyze.
+            column_name (str): The name of the column to count unique values.
+            xcom_key (str): The key to use for pushing the count to XCom.
+        """
+        unique_count = column.nunique()
+        ti = get_current_context()["ti"]
+        ti.xcom_push(key=xcom_key, value=str(unique_count))
+        logging.info(f"Processed {unique_count} unique values for {xcom_key}.")
 
     def save_date_last_modified(self):
         if self.config.resource_id:

@@ -65,7 +65,6 @@ BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
 SPECTACLE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}spectacle/"
 RGE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rge/"
 FORMATION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}formation/"
-ESS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}ess/"
 COLTER_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}colter/"
 CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
 MINIO_DATA_SOURCE_UPDATE_DATES_FILE = "data_source_updates.json"
@@ -284,17 +283,6 @@ URL_UNITE_LEGALE_HISTORIQUE = (
 URL_MINIO_UNITE_LEGALE_HISTORIQUE = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
     "/sirene/historique/StockUniteLegaleHistorique_utf8.zip"
-)
-
-RESOURCE_ID_ESS_FRANCE = "57bc99ca-0432-4b46-8fcc-e76a35c9efaf"
-URL_ESS_FRANCE = f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_ESS_FRANCE}"
-URL_MINIO_ESS_FRANCE = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/ess"
-    "/latest/ess_france.csv"
-)
-URL_MINIO_ESS_FRANCE_METADATA = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/ess"
-    "/latest/metadata.json"
 )
 URL_CC_DARES = "https://travail-emploi.gouv.fr/sites/travail-emploi/files"
 # Caution: DARES file is case sensitive or returns 404

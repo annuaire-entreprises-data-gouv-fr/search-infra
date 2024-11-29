@@ -1,5 +1,4 @@
 import pandas as pd
-import logging
 from dag_datalake_sirene.helpers import Notification, DataProcessor
 from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
 from airflow.operators.python import get_current_context
@@ -21,15 +20,9 @@ class EgaproProcessor(DataProcessor):
         df_egapro = df_egapro.rename(columns={"SIREN": "siren"})
         df_egapro.to_csv(f"{self.config.tmp_folder}/egapro.csv", index=False)
 
-        self._push_unique_siren_count(df_egapro)
+        DataProcessor._push_unique_count(df_egapro["siren"], "nb_siren_egapro")
 
         del df_egapro
-
-    def _push_unique_siren_count(self, df_egapro):
-        unique_count = df_egapro["siren"].nunique()
-        ti = get_current_context()["ti"]
-        ti.xcom_push(key="nb_siren_egapro", value=str(unique_count))
-        logging.info(f"Processed {unique_count} unique SIREN values.")
 
     def send_file_to_minio(self):
         super().send_file_to_minio()
