@@ -20,7 +20,7 @@ class EgaproProcessor(DataProcessor):
         df_egapro = df_egapro.rename(columns={"SIREN": "siren"})
         df_egapro.to_csv(f"{self.config.tmp_folder}/egapro.csv", index=False)
 
-        self._push_unique_count(df_egapro, "siren", "nb_siren_egapro")
+        DataProcessor._push_unique_count(df_egapro["siren"], "nb_siren_egapro")
 
         del df_egapro
 

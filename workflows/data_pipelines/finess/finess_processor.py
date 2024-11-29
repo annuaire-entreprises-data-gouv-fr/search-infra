@@ -33,7 +33,7 @@ class FinessProcessor(DataProcessor):
         df_list_finess["liste_finess"] = df_list_finess["liste_finess"].astype(str)
         df_list_finess.to_csv(f"{self.config.tmp_folder}/finess.csv", index=False)
 
-        self._push_unique_count(df_list_finess, "siret", "nb_siret_finess")
+        DataProcessor._push_unique_count(df_list_finess["siret"], "nb_siret_finess")
 
         del df_finess
         del df_list_finess

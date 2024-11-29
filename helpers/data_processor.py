@@ -47,7 +47,7 @@ class DataProcessor(ABC):
         pass
 
     @staticmethod
-    def _push_unique_count(df, column_name, xcom_key):
+    def _push_unique_count(column, xcom_key):
         """
         Counts unique values in the specified column and pushes the count to XCom.
 
@@ -56,12 +56,10 @@ class DataProcessor(ABC):
             column_name (str): The name of the column to count unique values.
             xcom_key (str): The key to use for pushing the count to XCom.
         """
-        unique_count = df[column_name].nunique()
+        unique_count = column.nunique()
         ti = get_current_context()["ti"]
         ti.xcom_push(key=xcom_key, value=str(unique_count))
-        logging.info(
-            f"Processed {unique_count} unique values in column '{column_name}'."
-        )
+        logging.info(f"Processed {unique_count} unique values for {xcom_key}.")
 
     def save_date_last_modified(self):
         if self.config.resource_id:

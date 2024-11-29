@@ -3,7 +3,7 @@ from airflow.utils.dates import days_ago
 from datetime import timedelta
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
-from dag_datalake_sirene.workflows.data_pipelines.ess_france.ess_operator import (
+from dag_datalake_sirene.workflows.data_pipelines.ess_france.ess_processor import (
     EssFranceProcessor,
 )
 from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import ESS_CONFIG

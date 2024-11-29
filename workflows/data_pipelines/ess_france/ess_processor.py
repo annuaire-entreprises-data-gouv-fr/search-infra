@@ -17,7 +17,7 @@ class EssFranceProcessor(DataProcessor):
 
         df_ess.to_csv(f"{self.config.tmp_folder}/ess.csv", index=False)
 
-        self._push_unique_count(df_ess, "siren", "nb_siren_ess")
+        DataProcessor._push_unique_count(df_ess["siren"], "nb_siren_ess")
         del df_ess
 
     def send_file_to_minio(self):
