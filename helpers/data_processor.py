@@ -46,7 +46,8 @@ class DataProcessor(ABC):
         """
         pass
 
-    def _push_unique_count(self, df, column_name, xcom_key):
+    @staticmethod
+    def _push_unique_count(df, column_name, xcom_key):
         """
         Counts unique values in the specified column and pushes the count to XCom.
 
