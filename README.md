@@ -34,3 +34,62 @@ ici 👉](https://annuaire-entreprises.data.gouv.fr/donnees/sources).
 | Liste des établissements du domaine sanitaire et social (FINESS) | `Ministère des Solidarités et de la Santé`                                                                                                                                                                | https://www.data.gouv.fr/fr/datasets/finess-extraction-du-fichier-des-etablissements/                                                                                                                                                                                                                                                                           |
 | Liste des organismes de formation                                | - `Ministère de l'Éducation Nationale et de la Jeunesse` <br />-`Ministère de l'Enseignement supérieur et de la Recherche`<br />-`Office national d'information sur les enseignements et les professions` | [Annuaire de l'éducation du MENJ](https://www.data.gouv.fr/fr/datasets/5889d03fa3a72974cbf0d5b1/)<br />[Principaux établissements d'enseignement supérieur du MESR](https://www.data.gouv.fr/fr/datasets/586dae5ea3a7290df6f4be88/)<br />[Idéo-Structures d'enseignement supérieur de l'ONISEP](https://www.data.gouv.fr/fr/datasets/5fa5e386afdaa6152360f323/) |
 | Liste des élus d'une collectivité territoriale                   | `Ministère de l'Intérieur et des Outre-Mer`                                                                                                                                                               | https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/                                                                                                                                                                                                                                                                                            |
+
+
+## Flow des données
+```mermaid
+flowchart TD
+    subgraph Workflow Prétraitement
+        subgraph DataGouv["Données sur DataGouv"]
+            D1@{ shape: lean-r, label: "Base Sirene (stock)\nsource : INSEE" } -->|DAG Airflow : Quotidien| DB_MinIO["Base de données MinIO"]
+            D2@{ shape: lean-r, label: "Ratios Financiers\nsource : MINEFI" } -->|DAG Airflow : Quotidien| DB_MinIO
+            D3@{ shape: lean-r, label: "Elus Collectivités\nTerritoriales\nsource : Ministère \nde l'Intérieur" } -->|DAG Airflow : Quotidien| DB_MinIO
+            D4@{ shape: lean-r, label: "Conventions Collectives\nsource : Ministère \n du Travail" } -->|DAG Airflow : Quotidien| DB_MinIO
+            D5@{ shape: lean-r, label: "Déclarations Egapro\nsource : MTPEI" } -->|DAG Airflow : Quotidien| DB_MinIO
+            D6@{ shape: lean-r, label: "Économie sociale et\nsolidaire\nsource : ESS France" } -->|DAG Airflow : Quotidien| DB_MinIO
+            D7@{ shape: lean-r, label: "Établissements \nSanitaire et Social\nsource : Ministère \ndes Solidarités\net de la Santé" } -->|DAG Airflow : Quotidien| DB_MinIO
+            D8@{ shape: lean-r, label: "Entreprises RGE\nsource : ADEME" } -->|DAG Airflow : Quotidien| DB_MinIO
+            D9@{ shape: lean-r, label: "Entrepreneurs Spectacles\nVivants\nsource : Ministère de \nla Culture" } -->|DAG Airflow : Quotidien| DB_MinIO
+            D10@{ shape: lean-r, label: "Annuaire de l'éducation\nsource : MENJ & MESR" } -->|DAG Airflow : Quotidien| DB_MinIO
+        end
+
+        subgraph AutresSources["Autres sources (API, sites)"]
+            D11@{ shape: lean-r, label: "Professionnels du BIO\n(API)\nsource : Agence BIO" } -->|DAG Airflow : Quotidien| DB_MinIO
+            D12@{ shape: lean-r, label: "Organismes de Formation\nsource : DGEFP" } -->|DAG Airflow : Quotidien| DB_MinIO
+            D13@{ shape: lean-r, label: "Entreprises Inclusives\n(API)\nsource : Marché de \nl'inclusion" } -->|DAG Airflow : Quotidien| DB_MinIO
+            D14@{ shape: lean-r, label: "Base RNE (stock et API)\nsource : INPI" } -->|DAG Airflow : Quotidien| DB_MinIO
+            D15@{ shape: lean-r, label: "Base Sirene (API)\nsource : INSEE" } -->|DAG Airflow : Quotidien| DB_MinIO
+        end
+    end
+
+    subgraph Workflow_SQLite["Workflow ETL"]
+        DB_MinIO@{ shape: lin-cyl, label: "Stockage des\ndonnées sur MinIO" } -->|DAG Airflow: Quotidien| DAG_SQLITE["Création de 
+        la BDD SQLite"]
+        DAG_SQLITE --> SQLite_DB[(SQLite Database)]
+        SQLite_DB --> SQLITE_MinIO@{ shape: lin-cyl, label: "Stockage DBB\nsur MinIO" }
+    end
+
+    subgraph Indexation_Elasticsearch["Workflow Indexation"]
+        SQLITE_MinIO -->|DAG Airflow : Quotidien 
+        déclenché par 
+        le workflow ETL| DAG_Elastic["Chunking & Indexation"]
+        DAG_Elastic --> Elastic_DB[(Index Elasticsearch)]
+    end
+
+    subgraph Snapshot_Workflow["Workflow Snapshot"]
+        Elastic_DB -->|DAG Airflow : Quotidien 
+        déclenché par 
+        le workflow Indexation| DAG_Snapshots["Création des Snapshots"]
+        DAG_Snapshots --> Snapshot1[(Snapshot 1)]
+        DAG_Snapshots --> Snapshot2[(Snapshot 2)]
+        DAG_Snapshots --> Snapshot3[(Snapshot 3)]
+    end
+
+    Snapshot1 --> API1["API de Recherche
+    d'entreprises : instance 1"]
+    Snapshot2 --> API2["API de Recherche 
+    d'entreprises : instance 2"]
+    Snapshot3 --> API3["API de Recherche
+    d'entreprises : instance 3"]
+
+```
