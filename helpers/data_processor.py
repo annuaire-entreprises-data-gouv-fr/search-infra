@@ -19,7 +19,7 @@ class DataProcessor(ABC):
         self.config = config
         self.minio_client = minio_client
 
-    def download_data(self, destination):
+    def download_data(self, destination: str | None = None) -> None:
         """
         Downloads data from the specified URL and saves it to the destination path.
 
@@ -27,6 +27,8 @@ class DataProcessor(ABC):
             url (str): The URL to download data from.
             destination (str): The file path where the downloaded data will be saved.
         """
+        if not destination:
+            destination = self.config.file_download_destination
         try:
             r = requests.get(self.config.url)
             r.raise_for_status()

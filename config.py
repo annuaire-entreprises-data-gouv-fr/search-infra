@@ -5,6 +5,9 @@ from dataclasses import dataclass
 
 @dataclass
 class DataSourceConfig:
+    ####################
+    # DAG placeholders #
+
     name: str
     tmp_folder: str
     minio_path: str
@@ -13,6 +16,8 @@ class DataSourceConfig:
     url: str | None = None
     url_minio: str | None = None
     url_minio_metadata: str | None = None
+    file_download_destination: str | None = None
+    file_output: str | None = None
     base_tmp_folder: str = "/tmp"  # Default value
 
 
@@ -62,7 +67,6 @@ MARCHE_INCLUSION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}marche_inclusion/"
 AGENCE_BIO_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}agence_bio/"
 UAI_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}uai/"
 BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
-SPECTACLE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}spectacle/"
 FORMATION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}formation/"
 COLTER_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}colter/"
 CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
@@ -204,19 +208,6 @@ URL_MINIO_CONVENTION_COLLECTIVE = (
 )
 URL_MINIO_CONVENTION_COLLECTIVE_METADATA = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/convention_collective"
-    "/latest/metadata.json"
-)
-
-RESOURCE_ID_ENTREPRENEUR_SPECTACLE = "fb6c3b2e-da8c-4e69-a719-6a96329e4cb2"
-URL_ENTREPRENEUR_SPECTACLE = (
-    f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_ENTREPRENEUR_SPECTACLE}"
-)
-URL_MINIO_ENTREPRENEUR_SPECTACLE = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/spectacle"
-    "/latest/spectacle.csv"
-)
-URL_MINIO_ENTREPRENEUR_SPECTACLE_METADATA = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/spectacle"
     "/latest/metadata.json"
 )
 URL_ETABLISSEMENTS = "https://files.data.gouv.fr/geo-sirene/last/dep/geo_siret"

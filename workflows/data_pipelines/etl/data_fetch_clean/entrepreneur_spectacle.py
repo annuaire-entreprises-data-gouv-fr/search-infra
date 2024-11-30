@@ -1,10 +1,13 @@
 import pandas as pd
-from dag_datalake_sirene.config import URL_MINIO_ENTREPRENEUR_SPECTACLE
+
+from dag_datalake_sirene.workflows.data_pipelines.spectacle.spectacle_config import (
+    SPECTACLE_CONFIG,
+)
 
 
 def preprocess_spectacle_data(data_dir):
     df_spectacle = pd.read_csv(
-        URL_MINIO_ENTREPRENEUR_SPECTACLE,
+        SPECTACLE_CONFIG.url_minio,
         dtype={
             "siren": "object",
             "statut_entrepreneur_spectacle": "object",
