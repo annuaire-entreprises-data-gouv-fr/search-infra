@@ -63,7 +63,6 @@ AGENCE_BIO_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}agence_bio/"
 UAI_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}uai/"
 BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
 SPECTACLE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}spectacle/"
-RGE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rge/"
 FORMATION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}formation/"
 COLTER_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}colter/"
 CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
@@ -244,17 +243,6 @@ URL_MINIO_ORGANISME_FORMATION = (
 URL_MINIO_ORGANISME_FORMATION_METADATA = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/formation"
     "/latest/metadata.json"
-)
-URL_RGE = (
-    "https://data.ademe.fr/data-fair/api/v1/datasets/"
-    "liste-des-entreprises-rge-2/lines?size=10000&select=siret%2Ccode_qualification"
-)
-URL_MINIO_RGE = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/rge/latest/rge.csv"
-)
-URL_MINIO_RGE_METADATA = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/"
-    "rge/latest/metadata.json"
 )
 
 # Ministère de l'Education Nationale et de la Jeunesse
