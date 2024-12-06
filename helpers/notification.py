@@ -11,8 +11,8 @@ class Notification:
     Methods:
         send_notification_tchap() -> None:
             Sends a notification to Tchap with the following format:
-                🟠 dagA: Données
-                - task1(success): N rows were updated.
+                🔴 dagA: Données
+                - N rows were updated.
                 - task2(failed)
 
     Usage:
