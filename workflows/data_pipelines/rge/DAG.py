@@ -21,7 +21,6 @@ default_args = {
 
 
 @dag(
-    dag_id="data_processing_rge",
     tags=["reconnu garant de l'environnement", "label", "ademe"],
     default_args=default_args,
     schedule_interval="0 16 * * *",
@@ -32,7 +31,7 @@ default_args = {
     on_failure_callback=Notification.send_notification_tchap,
     on_success_callback=Notification.send_notification_tchap,
 )
-def data_processing_rge_dag():
+def data_processing_rge():
     @task.bash
     def clean_previous_outputs():
         return f"rm -rf {RGE_CONFIG.tmp_folder} && mkdir -p {RGE_CONFIG.tmp_folder}"
@@ -62,4 +61,4 @@ def data_processing_rge_dag():
     )
 
 
-data_processing_rge_dag()
+data_processing_rge()

@@ -21,7 +21,6 @@ default_args = {
 
 
 @dag(
-    dag_id="data_processing_finess",
     tags=["domaine sanitaire et social"],
     default_args=default_args,
     schedule_interval="0 16 * * *",
@@ -32,7 +31,7 @@ default_args = {
     on_failure_callback=Notification.send_notification_tchap,
     on_success_callback=Notification.send_notification_tchap,
 )
-def data_processing_finess_dag():
+def data_processing_finess():
     @task.bash
     def clean_previous_outputs():
         return (
@@ -64,4 +63,4 @@ def data_processing_finess_dag():
     )
 
 
-data_processing_finess_dag()
+data_processing_finess()

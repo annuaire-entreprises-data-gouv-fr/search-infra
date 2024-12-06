@@ -21,7 +21,6 @@ default_args = {
 
 
 @dag(
-    dag_id="get_metadata_cc",
     default_args=default_args,
     start_date=datetime(2023, 11, 23),
     schedule_interval="0 11 2 * *",  # Run every 2nd day of the month at 11 am

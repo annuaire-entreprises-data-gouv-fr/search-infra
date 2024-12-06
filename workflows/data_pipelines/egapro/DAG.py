@@ -20,7 +20,6 @@ default_args = {
 
 
 @dag(
-    dag_id="data_processing_egapro",
     tags=["egapro"],
     default_args=default_args,
     schedule_interval="0 16 * * *",
@@ -31,7 +30,7 @@ default_args = {
     on_failure_callback=Notification.send_notification_tchap,
     on_success_callback=Notification.send_notification_tchap,
 )
-def data_processing_egapro_dag():
+def data_processing_egapro():
     @task.bash
     def clean_previous_outputs():
         return (
@@ -64,4 +63,4 @@ def data_processing_egapro_dag():
 
 
 # Instantiate the DAG
-data_processing_egapro_dag()
+data_processing_egapro()
