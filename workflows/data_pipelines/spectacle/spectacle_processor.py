@@ -44,7 +44,7 @@ class SpectacleProcessor(DataProcessor):
         ].to_csv(self.config.file_output, index=False)
 
         self._push_unique_count(
-            df_spectacle["siren"], Notification.notification_xcom_key
+            df_spectacle["siren"], Notification.notification_xcom_key, "unités légales"
         )
 
         del df_spectacle

@@ -1,7 +1,7 @@
 import pandas as pd
-from dag_datalake_sirene.helpers import Notification, DataProcessor
+
+from dag_datalake_sirene.helpers import DataProcessor, Notification
 from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import ESS_CONFIG
-from airflow.operators.python import get_current_context
 
 
 class EssFranceProcessor(DataProcessor):
@@ -17,12 +17,7 @@ class EssFranceProcessor(DataProcessor):
 
         df_ess.to_csv(f"{self.config.tmp_folder}/ess.csv", index=False)
 
-        DataProcessor._push_unique_count(df_ess["siren"], "nb_siren_ess")
+        DataProcessor._push_unique_count(
+            df_ess["siren"], Notification.notification_xcom_key, "unités légales"
+        )
         del df_ess
-
-    def send_file_to_minio(self):
-        super().send_file_to_minio()
-        ti = get_current_context()["ti"]
-        nb_siren = ti.xcom_pull(key="nb_siren_ess", task_ids="preprocess_ess_france")
-        message = f"{nb_siren} unités légales"
-        ti.xcom_push(key=Notification.notification_xcom_key, value=message)

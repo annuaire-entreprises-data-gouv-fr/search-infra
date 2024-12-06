@@ -1,7 +1,7 @@
 import pandas as pd
-from dag_datalake_sirene.helpers import Notification, DataProcessor
+
+from dag_datalake_sirene.helpers import DataProcessor, Notification
 from dag_datalake_sirene.workflows.data_pipelines.finess.config import FINESS_CONFIG
-from airflow.operators.python import get_current_context
 
 
 class FinessProcessor(DataProcessor):
@@ -33,14 +33,11 @@ class FinessProcessor(DataProcessor):
         df_list_finess["liste_finess"] = df_list_finess["liste_finess"].astype(str)
         df_list_finess.to_csv(f"{self.config.tmp_folder}/finess.csv", index=False)
 
-        DataProcessor._push_unique_count(df_list_finess["siret"], "nb_siret_finess")
+        DataProcessor._push_unique_count(
+            df_list_finess["siret"],
+            Notification.notification_xcom_key,
+            "établissements",
+        )
 
         del df_finess
         del df_list_finess
-
-    def send_file_to_minio(self):
-        super().send_file_to_minio()
-        ti = get_current_context()["ti"]
-        nb_siret = ti.xcom_pull(key="nb_siret_finess", task_ids="preprocess_finess")
-        message = f"{nb_siret} établissements"
-        ti.xcom_push(key=Notification.notification_xcom_key, value=message)

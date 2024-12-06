@@ -1,11 +1,13 @@
-from abc import ABC, abstractmethod
-from airflow.operators.python import get_current_context
 import logging
+from abc import ABC, abstractmethod
+
 import requests
-from dag_datalake_sirene.helpers.minio_helpers import minio_client, File
+from airflow.operators.python import get_current_context
+
+from dag_datalake_sirene.config import DataSourceConfig
+from dag_datalake_sirene.helpers.minio_helpers import File, minio_client
 from dag_datalake_sirene.helpers.tchap import send_message
 from dag_datalake_sirene.helpers.utils import fetch_and_store_last_modified_metadata
-from dag_datalake_sirene.config import DataSourceConfig
 
 
 class DataProcessor(ABC):
@@ -49,19 +51,23 @@ class DataProcessor(ABC):
         pass
 
     @staticmethod
-    def _push_unique_count(column, xcom_key):
+    def _push_unique_count(column, xcom_key, description=None):
         """
         Counts unique values in the specified column and pushes the count to XCom.
+        If description is None, defaults to the column name.
 
         Args:
-            df (pd.DataFrame): The DataFrame to analyze.
-            column_name (str): The name of the column to count unique values.
+            column (pd.Series): The Dataframe column to count unique values from.
             xcom_key (str): The key to use for pushing the count to XCom.
+            description (str): The description to append next to the count.
         """
         unique_count = column.nunique()
+        unique_count_str = (
+            f"{unique_count} {description if description else column.name}"
+        )
         ti = get_current_context()["ti"]
-        ti.xcom_push(key=xcom_key, value=str(unique_count))
-        logging.info(f"Processed {unique_count} unique values for {xcom_key}.")
+        ti.xcom_push(key=xcom_key, value=unique_count_str)
+        logging.info(f"Processed {unique_count_str} unique values for {xcom_key}.")
 
     def save_date_last_modified(self):
         if self.config.resource_id:
