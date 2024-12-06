@@ -3,14 +3,15 @@ from datetime import timedelta
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 
-from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
-from dag_datalake_sirene.workflows.data_pipelines.rge.config import RGE_CONFIG
-from dag_datalake_sirene.workflows.data_pipelines.rge.rge_processor import (
-    RGEProcessor,
+from dag_datalake_sirene.workflows.data_pipelines.spectacle.spectacle_config import (
+    SPECTACLE_CONFIG,
+)
+from dag_datalake_sirene.config import EMAIL_LIST
+from dag_datalake_sirene.workflows.data_pipelines.spectacle.spectacle_processor import (
+    SpectacleProcessor,
 )
 
-rge_processor = RGEProcessor()
 default_args = {
     "depends_on_past": False,
     "email_on_failure": True,
@@ -21,7 +22,7 @@ default_args = {
 
 
 @dag(
-    tags=["reconnu garant de l'environnement", "label", "ademe"],
+    tags=["entrepreneur spectacle"],
     default_args=default_args,
     schedule_interval="0 16 * * *",
     start_date=days_ago(8),
@@ -31,34 +32,41 @@ default_args = {
     on_failure_callback=Notification.send_notification_tchap,
     on_success_callback=Notification.send_notification_tchap,
 )
-def data_processing_rge():
+def data_processing_entrepreneur_spectacle():
+    spectacle_processor = SpectacleProcessor()
+
     @task.bash
     def clean_previous_outputs():
-        return f"rm -rf {RGE_CONFIG.tmp_folder} && mkdir -p {RGE_CONFIG.tmp_folder}"
+        return f"rm -rf {SPECTACLE_CONFIG.tmp_folder} && mkdir -p {SPECTACLE_CONFIG.tmp_folder}"
 
     @task
-    def preprocess_rge():
-        return rge_processor.preprocess_data()
+    def download_data():
+        return spectacle_processor.download_data()
+
+    @task
+    def preprocess_data():
+        return spectacle_processor.preprocess_data()
 
     @task
     def save_date_last_modified():
-        return rge_processor.save_date_last_modified()
+        return spectacle_processor.save_date_last_modified()
 
     @task
     def send_file_to_minio():
-        return rge_processor.send_file_to_minio()
+        return spectacle_processor.send_file_to_minio()
 
     @task
     def compare_files_minio():
-        return rge_processor.compare_files_minio()
+        return spectacle_processor.compare_files_minio()
 
     (
         clean_previous_outputs()
-        >> preprocess_rge()
+        >> download_data()
+        >> preprocess_data()
         >> save_date_last_modified()
         >> send_file_to_minio()
         >> compare_files_minio()
     )
 
 
-data_processing_rge()
+data_processing_entrepreneur_spectacle()

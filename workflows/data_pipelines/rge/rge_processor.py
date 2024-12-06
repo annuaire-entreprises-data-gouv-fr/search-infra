@@ -1,11 +1,12 @@
-import pandas as pd
-import requests
 import logging
 import os
-from dag_datalake_sirene.helpers import Notification, DataProcessor
-from dag_datalake_sirene.workflows.data_pipelines.rge.config import RGE_CONFIG
-from airflow.operators.python import get_current_context
+
+import pandas as pd
+import requests
+
+from dag_datalake_sirene.helpers import DataProcessor, Notification
 from dag_datalake_sirene.helpers.utils import get_date_last_modified, save_to_metadata
+from dag_datalake_sirene.workflows.data_pipelines.rge.config import RGE_CONFIG
 
 
 class RGEProcessor(DataProcessor):
@@ -51,7 +52,9 @@ class RGEProcessor(DataProcessor):
         df_list_rge["liste_rge"] = df_list_rge["liste_rge"].astype(str)
 
         df_list_rge.to_csv(f"{self.config.tmp_folder}/rge.csv", index=False)
-        DataProcessor._push_unique_count(df_list_rge["siret"], "nb_siret_rge")
+        DataProcessor._push_unique_count(
+            df_list_rge["siret"], Notification.notification_xcom_key, "établissements"
+        )
 
         del df_rge
         del df_list_rge
@@ -64,10 +67,3 @@ class RGEProcessor(DataProcessor):
         save_to_metadata(metadata_path, "last_modified", date_last_modified)
 
         logging.info(f"Last modified date saved successfully to {metadata_path}")
-
-    def send_file_to_minio(self):
-        super().send_file_to_minio()
-        ti = get_current_context()["ti"]
-        nb_siret = ti.xcom_pull(key="nb_siret_rge", task_ids="preprocess_rge")
-        message = f"{nb_siret} établissements"
-        ti.xcom_push(key=Notification.notification_xcom_key, value=message)
