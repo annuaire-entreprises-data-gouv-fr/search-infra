@@ -1,4 +1,6 @@
 import logging
+import os
+from datetime import datetime
 from abc import ABC, abstractmethod
 
 import requests
@@ -7,7 +9,11 @@ from airflow.operators.python import get_current_context
 from dag_datalake_sirene.config import DataSourceConfig
 from dag_datalake_sirene.helpers.minio_helpers import File, minio_client
 from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.helpers.utils import fetch_and_store_last_modified_metadata
+from dag_datalake_sirene.helpers.utils import (
+    fetch_and_store_last_modified_metadata,
+    get_date_last_modified,
+    save_to_metadata,
+)
 
 
 class DataProcessor(ABC):
@@ -70,12 +76,37 @@ class DataProcessor(ABC):
         logging.info(f"Processed {unique_count_str} unique values for {xcom_key}.")
 
     def save_date_last_modified(self):
+        """Saves the last modified date for a resource or URL to a metadata file.
+
+        Depending on the configuration, the method fetches and stores the last modified
+        metadata from a data.gouv resource_id or a URL. If no last modified date is available for a URL,
+        the current datetime is used.
+
+        Configurations:
+            - `self.config.resource_id` (str, optional): The data.gouv static resource identifier.
+            - `self.config.url` (str, optional): The URL to the resource (eg. opendatasoft).
+
+        Usage:
+            my_processor = MyProcessor()
+            @task
+            def save_date_last_modified():
+                return my_processor.save_date_last_modified()
+
+        """
+
+        metadata_path = os.path.join(self.config.tmp_folder, "metadata.json")
         if self.config.resource_id:
             fetch_and_store_last_modified_metadata(
                 self.config.resource_id, self.config.tmp_folder
             )
         else:
-            logging.warning("No resource_id provided for last modified date.")
+            date_last_modified = get_date_last_modified(url=self.config.url)
+            if date_last_modified is None:
+                date_last_modified = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
+                logging.warning("No resource_id nor URL provided in the configuration.")
+            save_to_metadata(metadata_path, "last_modified", date_last_modified)
+
+        logging.info(f"Last modified date saved successfully to {metadata_path}")
 
     def send_file_to_minio(self):
         """
