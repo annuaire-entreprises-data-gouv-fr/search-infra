@@ -1,11 +1,9 @@
 import logging
-import os
 
 import pandas as pd
 import requests
 
 from dag_datalake_sirene.helpers import DataProcessor, Notification
-from dag_datalake_sirene.helpers.utils import get_date_last_modified, save_to_metadata
 from dag_datalake_sirene.workflows.data_pipelines.rge.config import RGE_CONFIG
 
 
@@ -58,12 +56,3 @@ class RGEProcessor(DataProcessor):
 
         del df_rge
         del df_list_rge
-
-    def save_date_last_modified(self):
-        date_last_modified = get_date_last_modified(url=RGE_CONFIG.url)
-        metadata_path = os.path.join(f"{self.config.tmp_folder}", "metadata.json")
-
-        # Save the 'last_modified' date to the metadata file
-        save_to_metadata(metadata_path, "last_modified", date_last_modified)
-
-        logging.info(f"Last modified date saved successfully to {metadata_path}")
