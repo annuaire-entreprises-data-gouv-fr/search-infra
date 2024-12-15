@@ -11,7 +11,6 @@ from dag_datalake_sirene.config import (
     URL_MINIO_SIRENE_METADATA,
     URL_MINIO_AGENCE_BIO_METADATA,
     URL_MINIO_BILANS_FINANCIERS_METADATA,
-    URL_MINIO_ORGANISME_FORMATION_METADATA,
     URL_MINIO_CONVENTION_COLLECTIVE_METADATA,
 )
 from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
@@ -24,6 +23,9 @@ from dag_datalake_sirene.workflows.data_pipelines.rge.config import (
 )
 from dag_datalake_sirene.workflows.data_pipelines.spectacle.spectacle_config import (
     SPECTACLE_CONFIG,
+)
+from dag_datalake_sirene.workflows.data_pipelines.formation.formation_config import (
+    FORMATION_CONFIG,
 )
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.helpers.utils import simplify_date
@@ -43,7 +45,7 @@ def create_data_source_last_modified_file(**kwargs):
         SPECTACLE_CONFIG.url_minio_metadata: "entrepreneur_spectacle",
         FINESS_CONFIG.url_minio_metadata: "finess",
         URL_MINIO_BILANS_FINANCIERS_METADATA: "bilan_financier",
-        URL_MINIO_ORGANISME_FORMATION_METADATA: "organisme_formation",
+        FORMATION_CONFIG.url_minio_metadata: "organisme_formation",
         URL_MINIO_CONVENTION_COLLECTIVE_METADATA: "convention_collective",
     }
 
