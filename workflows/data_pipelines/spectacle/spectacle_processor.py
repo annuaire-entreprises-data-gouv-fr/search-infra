@@ -13,7 +13,9 @@ class SpectacleProcessor(DataProcessor):
 
     def preprocess_data(self):
         df_spectacle = pd.read_csv(
-            self.config.file_download_destination, dtype=str, sep=";"
+            self.config.files_to_download["spectacle"]["destination"],
+            dtype=str,
+            sep=";",
         )
 
         df_spectacle = (

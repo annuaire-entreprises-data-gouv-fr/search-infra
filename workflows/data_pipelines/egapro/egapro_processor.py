@@ -10,7 +10,7 @@ class EgaproProcessor(DataProcessor):
 
     def preprocess_data(self):
         df_egapro = pd.read_excel(
-            self.config.url,
+            self.config.files_to_download["egapro"]["url"],
             dtype=str,
             engine="openpyxl",
         )
