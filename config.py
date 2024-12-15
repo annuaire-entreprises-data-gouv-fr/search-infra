@@ -67,7 +67,6 @@ MARCHE_INCLUSION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}marche_inclusion/"
 AGENCE_BIO_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}agence_bio/"
 UAI_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}uai/"
 BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
-FORMATION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}formation/"
 COLTER_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}colter/"
 CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
 MINIO_DATA_SOURCE_UPDATE_DATES_FILE = "data_source_updates.json"
@@ -221,19 +220,6 @@ URL_ETABLISSEMENTS_HISTORIQUE = (
 URL_MINIO_ETABLISSEMENTS_HISTORIQUE = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
     "/sirene/historique/StockEtablissementHistorique_utf8.zip"
-)
-URL_ORGANISME_FORMATION = (
-    "https://dgefp.opendatasoft.com/api/explore/v2.1/catalog/datasets/liste"
-    "-publique-des-of-v2/exports/csv?lang=fr&timezone=Europe%2FBerlin&use_labels"
-    "=true&delimiter=%3B"
-)
-URL_MINIO_ORGANISME_FORMATION = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/formation"
-    "/latest/formation.csv"
-)
-URL_MINIO_ORGANISME_FORMATION_METADATA = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/formation"
-    "/latest/metadata.json"
 )
 
 # Ministère de l'Education Nationale et de la Jeunesse

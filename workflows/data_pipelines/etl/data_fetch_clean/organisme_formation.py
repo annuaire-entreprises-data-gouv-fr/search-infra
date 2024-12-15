@@ -1,10 +1,13 @@
 import pandas as pd
-from dag_datalake_sirene.config import URL_MINIO_ORGANISME_FORMATION
+
+from dag_datalake_sirene.workflows.data_pipelines.formation.formation_config import (
+    FORMATION_CONFIG,
+)
 
 
 def preprocess_organisme_formation_data(data_dir):
     df_organisme_formation = pd.read_csv(
-        URL_MINIO_ORGANISME_FORMATION,
+        FORMATION_CONFIG.url,
         dtype={
             "siren": "object",
             "liste_id_organisme_formation": "object",
