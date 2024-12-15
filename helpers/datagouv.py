@@ -1,9 +1,13 @@
-from typing import Optional, TypedDict
-import requests
+import logging
 import os
+from typing import Optional, TypedDict, Tuple
+
+import requests
+
 from dag_datalake_sirene.config import (
-    DATAGOUV_URL,
+    DATA_GOUV_BASE_URL,
     DATAGOUV_SECRET_API_KEY,
+    DATAGOUV_URL,
 )
 
 datagouv_session = requests.Session()
@@ -151,3 +155,40 @@ def fetch_last_modified_date(resource_id: str) -> str:
 
     except Exception as e:
         raise RuntimeError(f"Failed to fetch last modified date: {e}")
+
+
+def fetch_last_resource_from_dataset(
+    dataset_url: str, resource_extension: str = "csv"
+) -> Tuple[str, str]:
+    """
+    Fetch the last resource URL of a dataset with a specific extension.
+
+    Args:
+        dataset_url (str): URL of the data.gouv dataset.
+        resource_extension (str, optional): File extension of the resource to look for. Defaults to csv.
+
+    Returns:
+        Tuple[str, str]:
+            - first element is the resource id
+            - second element is the resource url
+    """
+    response = requests.get(dataset_url)
+    if response.ok:
+        dataset_metadata = response.json()
+    else:
+        logging.error(f"Error fetching dataset metadata from {dataset_url}")
+        response.raise_for_status()
+
+    resource_id, _ = max(
+        (
+            (resource["id"], resource["last_modified"])
+            for resource in dataset_metadata.get("resources", [])
+            if resource["format"] == resource_extension
+        ),
+        default=(None, None),
+        key=lambda x: x[1],  # Sort by 'last_modified'
+    )
+    if resource_id:
+        return resource_id, f"{DATA_GOUV_BASE_URL}{resource_id}"
+
+    raise ValueError(f"No CSV resource found for dataset at {dataset_url}.")

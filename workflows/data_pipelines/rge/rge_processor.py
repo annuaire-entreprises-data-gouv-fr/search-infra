@@ -13,8 +13,9 @@ class RGEProcessor(DataProcessor):
 
     def download_data(self):
         list_rge = []
+        url = self.config.files_to_download["rge"]["url"]
         try:
-            r = requests.get(self.config.url)
+            r = requests.get(url)
             r.raise_for_status()
             data = r.json()
             list_rge.extend(data["results"])
@@ -27,13 +28,13 @@ class RGEProcessor(DataProcessor):
                 logging.info("Fetched additional page data.")
 
             logging.info(
-                f"Data downloaded successfully from {self.config.url}."
+                f"Data downloaded successfully from {url}."
                 "Total records: {len(list_rge)}."
             )
             return list_rge
 
         except requests.exceptions.RequestException as e:
-            logging.error(f"Error downloading data from {self.config.url}: {e}")
+            logging.error(f"Error downloading data from {url}: {e}")
             raise e
 
     def preprocess_data(self):

@@ -14,7 +14,7 @@ class FormationProcessor(DataProcessor):
 
     def preprocess_data(self):
         df_organisme_formation = pd.read_csv(
-            self.config.file_download_destination,
+            self.config.files_to_download["formation"]["destination"],
             dtype="string",
             sep=";",
             usecols=["Certifications", "Numéro Déclaration Activité", "Code SIREN"],

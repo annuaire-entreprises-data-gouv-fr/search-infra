@@ -12,11 +12,9 @@ class DataSourceConfig:
     tmp_folder: str
     minio_path: str
     file_name: str
-    resource_id: str | None = None
-    url: str | None = None
+    files_to_download: dict[str, dict[str, str]]
     url_minio: str | None = None
     url_minio_metadata: str | None = None
-    file_download_destination: str | None = None
     file_output: str | None = None
     base_tmp_folder: str = "/tmp"  # Default value
 
