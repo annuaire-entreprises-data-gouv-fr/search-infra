@@ -26,7 +26,7 @@ class DataProcessor(ABC):
     sending files to MinIO, comparing files in MinIO, and sending notifications.
     """
 
-    def __init__(self, config: DataSourceConfig):
+    def __init__(self, config: DataSourceConfig) -> None:
         self.config = config
         self.minio_client = minio_client
 
@@ -35,7 +35,7 @@ class DataProcessor(ABC):
         Downloads data from the specified URL and saves it to the destination path.
 
         Configurations:
-            - self.config.files_to_download (List[Dict], optional): The list of resources to download.
+            - self.config.files_to_download (list[dict], optional): The list of resources to download.
               Args of each file dictionary:
                 - url (str): The URL of the file or dataset.
                 - destination (str): The local path to save the file.
@@ -93,7 +93,7 @@ class DataProcessor(ABC):
         ti.xcom_push(key=xcom_key, value=unique_count_str)
         logging.info(f"Processed {unique_count_str} unique values for {xcom_key}.")
 
-    def save_date_last_modified(self):
+    def save_date_last_modified(self) -> None:
         """Saves the last modified date for a resource or URL to a metadata file.
 
         Depending on the configuration, the method fetches and stores the last modified timestamp
@@ -101,7 +101,7 @@ class DataProcessor(ABC):
         If no last modified date is available the current datetime is used.
 
         Configurations:
-            - self.config.files_to_download (List[Dict], optional): The list of resources to download.
+            - self.config.files_to_download (list[dict], optional): The list of resources to download.
               Args of each file dictionary:
                 - url (str): The URL of the file or dataset.
                 - destination (str): The local path to save the file.
@@ -109,7 +109,7 @@ class DataProcessor(ABC):
             - `self.config.tmp_folder` (str): The path to the local tmp folder.
 
         Usage:
-            my_processor = MyProcessor()
+            my_processor = DataProcessor()
             @task
             def save_date_last_modified():
                 return my_processor.save_date_last_modified()

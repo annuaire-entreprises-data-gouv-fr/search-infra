@@ -5,8 +5,26 @@ from dataclasses import dataclass
 
 @dataclass
 class DataSourceConfig:
-    ####################
-    # DAG placeholders #
+    """
+    Configuration for a data source.
+
+    Attributes:
+        name (str): Unique name of the data source.
+        tmp_folder (str): Local path folder for storing temporary and intermediate files.
+        minio_path (str): Folder name in MinIO where files are stored.
+        file_name (str): Name of the main file associated with the data source.
+        files_to_download (dict[str, dict[str, str]]): Information about files to download.
+            Keys represent unique file identifiers, and values are dictionaries with details about the files:
+            - url (str, optional): url of the file to download
+            - resource_id (str, optional): Data.gouv resource id
+            - dataset_id (str, optional): Data.gouv dataset id (the most recent resource will be downloaded)
+            - destination (str, optional): Local path where the downloaded file will be saved.
+        url_minio (str | None, optional): MinIO URL where the processed file will be stored. Defaults to None.
+        url_minio_metadata (str | None, optional): MinIO URL where the metadata file will be stored.  Defaults to None.
+        file_output (str | None, optional): Local file path of the output file. Defaults to None.
+        base_tmp_folder (str, optional): Base path for temporary folders. Defaults to "/tmp".
+
+    """
 
     name: str
     tmp_folder: str
@@ -63,7 +81,6 @@ INSEE_FLUX_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/flux/"
 INSEE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/ul/"
 MARCHE_INCLUSION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}marche_inclusion/"
 AGENCE_BIO_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}agence_bio/"
-UAI_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}uai/"
 BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
 COLTER_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}colter/"
 CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
@@ -220,20 +237,6 @@ URL_MINIO_ETABLISSEMENTS_HISTORIQUE = (
     "/sirene/historique/StockEtablissementHistorique_utf8.zip"
 )
 
-# Ministère de l'Education Nationale et de la Jeunesse
-RESOURCE_ID_UAI_MENJ = "85aefd85-3025-400f-90ff-ccfd17ca588e"
-# Ministère de l'Enseignement Supérieur er de la Recherche
-RESOURCE_ID_UAI_MESR = "bcc3229a-beb2-4077-a8d8-50a065dfbbfa"
-# Idéo-Structures d'enseignement supérieur
-DATASET_ID_UAI_ONISEP = "5fa5e386afdaa6152360f323"
-URL_MINIO_UAI = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/uai"
-    "/latest/annuaire_uai.csv"
-)
-URL_MINIO_UAI_METADATA = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/uai"
-    "/latest/metadata.json"
-)
 
 URL_UNITE_LEGALE = "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip"
 URL_MINIO_UNITE_LEGALE = (
