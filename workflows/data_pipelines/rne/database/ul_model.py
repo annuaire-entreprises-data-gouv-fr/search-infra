@@ -14,6 +14,7 @@ class Immatriculation(BaseModel):
     date_cloture_exercice: str | None = None
     duree_personne_morale: int | None = None
     nature_entreprise: str | None = None
+    description_detaillee: str | None = None
     date_debut_activite: str | None = None
     capital_variable: bool | None = None
     devise_capital: str | None = None
@@ -89,6 +90,11 @@ class UniteLegale(BaseModel):
     etat_administratif: str | None = None
     forme_exercice_activite_principale: str | None = None
     statut_diffusion: str | None = None
+    micro_entreprise: bool | None = None
+    regime_micro_social: bool | None = None
+    eirl: bool | None = None
+    indicateur_artiste_auteur: bool | None = None
+    indicateur_marin_professionnel: bool | None = None
     adresse: Adresse | None = Adresse()
     dirigeants: list[DirigeantsPP | DirigeantsPM] | None = None
     siege: Siege | None = Siege()
