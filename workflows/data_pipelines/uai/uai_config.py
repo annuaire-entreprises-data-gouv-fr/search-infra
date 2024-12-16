@@ -12,18 +12,16 @@ UAI_CONFIG = DataSourceConfig(
     minio_path="uai",
     file_name="uai",
     files_to_download={
-        "menj": {
-            "url": f"{DATA_GOUV_BASE_URL}85aefd85-3025-400f-90ff-ccfd17ca588e",
-            "resource_id": "85aefd85-3025-400f-90ff-ccfd17ca588e",
-            "destination": f"{DataSourceConfig.base_tmp_folder}/uai/uai-menj-download.csv",
-        },
         "mesr": {
             "url": f"{DATA_GOUV_BASE_URL}bcc3229a-beb2-4077-a8d8-50a065dfbbfa",
             "resource_id": "bcc3229a-beb2-4077-a8d8-50a065dfbbfa",
             "destination": f"{DataSourceConfig.base_tmp_folder}/uai/uai-mesr-download.csv",
         },
-        # Les ressources du JDD ONISEP sont régulièrements écrasés par de nouvelles ressources.
-        # On récupère doit donc à chaque fois retrouver le resource_id du dataset
+        "menj": {
+            "url": f"{DATAGOUV_URL}/api/1/datasets/5889d03fa3a72974cbf0d5b1",
+            "dataset_id": "5889d03fa3a72974cbf0d5b1",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/uai/uai-menj-download.csv",
+        },
         "onisep": {
             "url": f"{DATAGOUV_URL}/api/1/datasets/5fa5e386afdaa6152360f323",
             "dataset_id": "5fa5e386afdaa6152360f323",

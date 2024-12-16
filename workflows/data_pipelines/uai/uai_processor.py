@@ -29,9 +29,9 @@ class UAIProcessor(DataProcessor):
         # menj
         df_menj = pd.read_csv(
             self.config.files_to_download["menj"]["destination"],
-            dtype=str,
+            dtype="string",
             sep=";",
-            encoding="Latin-1",
+            # encoding="Latin-1",
         )
         df_menj = df_menj.rename(
             columns={
