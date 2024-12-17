@@ -34,8 +34,8 @@ sections_NAF = load_file("sections_codes_naf.json")
 mapping_dep_to_reg = load_file("dep_to_reg.json")
 mapping_role_dirigeants = load_file("roles_dirigeants.json")
 mapping_commune_to_epci = load_file("epci.json")
-service_public_whitelist = set(load_file("service_public_whitelist.json").values())
-service_public_blacklist = set(load_file("service_public_blacklist.json").values())
+service_public_whitelist = set(load_file("service_public_whitelist.json"))
+service_public_blacklist = set(load_file("service_public_blacklist.json"))
 
 
 # Nom complet
