@@ -9,11 +9,8 @@ class FinessProcessor(DataProcessor):
         super().__init__(FINESS_CONFIG)
 
     def preprocess_data(self):
-        destination_path = f"{self.config.tmp_folder}/finess-download.csv"
-        self.download_data(destination_path)
-
         df_finess = pd.read_csv(
-            destination_path,
+            self.config.files_to_download["finess"]["destination"],
             dtype=str,
             sep=";",
             encoding="Latin-1",

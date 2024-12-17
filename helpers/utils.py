@@ -229,7 +229,7 @@ def flatten_object(obj, prop):
     return res[1:]
 
 
-def get_date_last_modified(response=None, url=None) -> str:
+def get_date_last_modified(response=None, url=None) -> str | None:
     """
     Fetches the Last-Modified date from either a response object or a URL.
     Returns it in ISO 8601 format using `parse_date_string`.

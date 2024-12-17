@@ -12,11 +12,9 @@ class DataSourceConfig:
     tmp_folder: str
     minio_path: str
     file_name: str
-    resource_id: str | None = None
-    url: str | None = None
+    files_to_download: dict[str, dict[str, str]]
     url_minio: str | None = None
     url_minio_metadata: str | None = None
-    file_download_destination: str | None = None
     file_output: str | None = None
     base_tmp_folder: str = "/tmp"  # Default value
 
@@ -65,7 +63,6 @@ INSEE_FLUX_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/flux/"
 INSEE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/ul/"
 MARCHE_INCLUSION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}marche_inclusion/"
 AGENCE_BIO_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}agence_bio/"
-UAI_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}uai/"
 BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
 COLTER_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}colter/"
 CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
@@ -222,20 +219,6 @@ URL_MINIO_ETABLISSEMENTS_HISTORIQUE = (
     "/sirene/historique/StockEtablissementHistorique_utf8.zip"
 )
 
-# Ministère de l'Education Nationale et de la Jeunesse
-RESOURCE_ID_UAI_MENJ = "85aefd85-3025-400f-90ff-ccfd17ca588e"
-# Ministère de l'Enseignement Supérieur er de la Recherche
-RESOURCE_ID_UAI_MESR = "bcc3229a-beb2-4077-a8d8-50a065dfbbfa"
-# Idéo-Structures d'enseignement supérieur
-DATASET_ID_UAI_ONISEP = "5fa5e386afdaa6152360f323"
-URL_MINIO_UAI = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/uai"
-    "/latest/annuaire_uai.csv"
-)
-URL_MINIO_UAI_METADATA = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/uai"
-    "/latest/metadata.json"
-)
 
 URL_UNITE_LEGALE = "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip"
 URL_MINIO_UNITE_LEGALE = (
