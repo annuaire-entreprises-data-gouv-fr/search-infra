@@ -7,7 +7,7 @@ from dag_datalake_sirene.workflows.data_pipelines.formation.formation_config imp
 
 def preprocess_organisme_formation_data(data_dir):
     df_organisme_formation = pd.read_csv(
-        FORMATION_CONFIG.url,
+        FORMATION_CONFIG.url_minio,
         dtype={
             "siren": "object",
             "liste_id_organisme_formation": "object",
