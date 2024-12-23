@@ -36,36 +36,36 @@ def data_processing_organisme_formation():
     formation_processor = FormationProcessor()
 
     @task.bash
-    def formation_clean_previous_outputs():
+    def clean_previous_outputs():
         return f"rm -rf {FORMATION_CONFIG.tmp_folder} && mkdir -p {FORMATION_CONFIG.tmp_folder}"
 
     @task
-    def formation_download_data():
+    def download_data():
         return formation_processor.download_data()
 
     @task
-    def formation_preprocess_data():
+    def preprocess_data():
         return formation_processor.preprocess_data()
 
     @task
-    def formation_save_date_last_modified():
+    def save_date_last_modified():
         return formation_processor.save_date_last_modified()
 
     @task
-    def formation_send_file_to_minio():
+    def send_file_to_minio():
         return formation_processor.send_file_to_minio()
 
     @task
-    def formation_compare_files_minio():
+    def compare_files_minio():
         return formation_processor.compare_files_minio()
 
     (
-        formation_clean_previous_outputs()
-        >> formation_download_data()
-        >> formation_preprocess_data()
-        >> formation_save_date_last_modified()
-        >> formation_send_file_to_minio()
-        >> formation_compare_files_minio()
+        clean_previous_outputs()
+        >> download_data()
+        >> preprocess_data()
+        >> save_date_last_modified()
+        >> send_file_to_minio()
+        >> compare_files_minio()
     )
 
 
