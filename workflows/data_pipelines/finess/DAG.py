@@ -39,7 +39,7 @@ def data_processing_finess():
         )
 
     @task
-    def finess_download_data():
+    def download_data():
         return finess_processor.download_data()
 
     @task
@@ -60,7 +60,7 @@ def data_processing_finess():
 
     (
         clean_previous_outputs()
-        >> finess_download_data()
+        >> download_data()
         >> preprocess_finess()
         >> save_date_last_modified()
         >> send_file_to_minio()

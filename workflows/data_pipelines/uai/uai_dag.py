@@ -36,36 +36,36 @@ def data_processing_uai():
     uai_processor = UAIProcessor()
 
     @task.bash
-    def uai_clean_previous_outputs():
+    def clean_previous_outputs():
         return f"rm -rf {UAI_CONFIG.tmp_folder} && mkdir -p {UAI_CONFIG.tmp_folder}"
 
     @task
-    def uai_download_data():
+    def download_data():
         return uai_processor.download_data()
 
     @task
-    def uai_preprocess_data():
+    def preprocess_data():
         return uai_processor.preprocess_data()
 
     @task
-    def uai_save_date_last_modified():
+    def save_date_last_modified():
         return uai_processor.save_date_last_modified()
 
     @task
-    def uai_send_file_to_minio():
+    def send_file_to_minio():
         return uai_processor.send_file_to_minio()
 
     @task
-    def uai_compare_files_minio():
+    def compare_files_minio():
         return uai_processor.compare_files_minio()
 
     (
-        uai_clean_previous_outputs()
-        >> uai_download_data()
-        >> uai_preprocess_data()
-        >> uai_save_date_last_modified()
-        >> uai_send_file_to_minio()
-        >> uai_compare_files_minio()
+        clean_previous_outputs()
+        >> download_data()
+        >> preprocess_data()
+        >> save_date_last_modified()
+        >> send_file_to_minio()
+        >> compare_files_minio()
     )
 
 
