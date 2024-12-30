@@ -59,13 +59,14 @@ class DataProcessor(ABC):
                 logging.info(
                     f"{name} downloaded successfully from {url} to {params['destination']}."
                 )
-            except (requests.exceptions.RequestException, ValueError) as e:
+            except (requests.exceptions.RequestException, ValueError):
                 error_message = f"Failed to download {name} from {params['url']}"
                 ti = get_current_context()["ti"]
                 ti.xcom_push(
                     key=Notification.notification_xcom_key, value=error_message
                 )
-                logging.error(f"{error_message}: {e}")
+                logging.error(error_message)
+                raise
 
     @abstractmethod
     def preprocess_data(self):
