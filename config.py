@@ -82,7 +82,6 @@ INSEE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/ul/"
 MARCHE_INCLUSION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}marche_inclusion/"
 AGENCE_BIO_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}agence_bio/"
 BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
-COLTER_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}colter/"
 CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
 MINIO_DATA_SOURCE_UPDATE_DATES_FILE = "data_source_updates.json"
 
@@ -170,47 +169,6 @@ URL_MINIO_BILANS_FINANCIERS = (
 URL_MINIO_BILANS_FINANCIERS_METADATA = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/bilans_financiers"
     "/latest/metadata.json"
-)
-RESOURCE_ID_COLTER_REGIONS = "619ee62e-8f9e-4c62-b166-abc6f2b86201"
-URL_COLTER_REGIONS = (
-    f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_COLTER_REGIONS}"
-)
-RESOURCE_ID_COLTER_DEP = "2f4f901d-e3ce-4760-b122-56a311340fc4"
-URL_COLTER_DEP = f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_COLTER_DEP}"
-RESOURCE_ID_COLTER_COMMUNES = "42b16d68-958e-4518-8551-93e095fe8fda"
-URL_COLTER_COMMUNES = (
-    f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_COLTER_COMMUNES}"
-)
-RESOURCE_ID_ELUS_EPCI = "41d95d7d-b172-4636-ac44-32656367cdc7"
-URL_ELUS_EPCI = f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_ELUS_EPCI}"
-RESOURCE_ID_CONSEILLERS_REGIONAUX = "430e13f9-834b-4411-a1a8-da0b4b6e715c"
-URL_CONSEILLERS_REGIONAUX = (
-    f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_CONSEILLERS_REGIONAUX}"
-)
-RESOURCE_ID_CONSEILLERS_DEPARTEMENTAUX = "601ef073-d986-4582-8e1a-ed14dc857fba"
-URL_CONSEILLERS_DEPARTEMENTAUX = (
-    f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_CONSEILLERS_DEPARTEMENTAUX}"
-)
-RESOURCE_ID_CONSEILLERS_MUNICIPAUX = "d5f400de-ae3f-4966-8cb6-a85c70c6c24a"
-URL_CONSEILLERS_MUNICIPAUX = (
-    f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_CONSEILLERS_MUNICIPAUX}"
-)
-RESOURCE_ID_ASSEMBLEE_COL_STATUT_PARTICULIER = "a595be27-cfab-4810-b9d4-22e193bffe35"
-URL_ASSEMBLEE_COL_STATUT_PARTICULIER = (
-    "https://www.data.gouv.fr/fr/datasets/"
-    f"r/{RESOURCE_ID_ASSEMBLEE_COL_STATUT_PARTICULIER}"
-)
-URL_MINIO_COLTER = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/colter"
-    "/latest/colter.csv"
-)
-URL_MINIO_COLTER_METADATA = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/colter"
-    "/latest/metadata.json"
-)
-URL_MINIO_ELUS = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/colter"
-    "/latest/elus.csv"
 )
 RESOURCE_ID_CONVENTION_COLLECTIVE = "a22e54f7-b937-4483-9a72-aad2ea1316f1"
 URL_CONVENTION_COLLECTIVE = (

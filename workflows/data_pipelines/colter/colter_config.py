@@ -1,0 +1,63 @@
+from dag_datalake_sirene.config import (
+    DataSourceConfig,
+    MINIO_BASE_URL,
+    DATA_GOUV_BASE_URL,
+)
+
+
+COLTER_CONFIG = DataSourceConfig(
+    name="colter",
+    tmp_folder=f"{DataSourceConfig.base_tmp_folder}/colter",
+    minio_path="colter",
+    file_name="colter",
+    files_to_download={
+        "colter_regions": {
+            "url": f"{DATA_GOUV_BASE_URL}619ee62e-8f9e-4c62-b166-abc6f2b86201",
+            "resource_id": "619ee62e-8f9e-4c62-b166-abc6f2b86201",
+        },
+        "colter_deps": {
+            "url": f"{DATA_GOUV_BASE_URL}2f4f901d-e3ce-4760-b122-56a311340fc4",
+            "resource_id": "2f4f901d-e3ce-4760-b122-56a311340fc4",
+        },
+        "colter_communes": {
+            "url": f"{DATA_GOUV_BASE_URL}42b16d68-958e-4518-8551-93e095fe8fda",
+            "resource_id": "42b16d68-958e-4518-8551-93e095fe8fda",
+        },
+    },
+    url_minio=f"{MINIO_BASE_URL}colter/latest/colter.csv",
+    url_minio_metadata=f"{MINIO_BASE_URL}colter/latest/metadata.json",
+    file_output=f"{DataSourceConfig.base_tmp_folder}/colter/colter.csv",
+)
+
+
+ELUS_CONFIG = DataSourceConfig(
+    name="colter_elus",
+    tmp_folder=f"{DataSourceConfig.base_tmp_folder}/colter_elus",
+    minio_path="colter_elus",
+    file_name="elus",
+    files_to_download={
+        "assemblee_col_statut_particulier": {
+            "url": f"{DATA_GOUV_BASE_URL}a595be27-cfab-4810-b9d4-22e193bffe35",
+            "resource_id": "a595be27-cfab-4810-b9d4-22e193bffe35",
+        },
+        "conseillers_regionaux": {
+            "url": f"{DATA_GOUV_BASE_URL}430e13f9-834b-4411-a1a8-da0b4b6e715c",
+            "resource_id": "430e13f9-834b-4411-a1a8-da0b4b6e715c",
+        },
+        "conseillers_departementaux": {
+            "url": f"{DATA_GOUV_BASE_URL}601ef073-d986-4582-8e1a-ed14dc857fba",
+            "resource_id": "601ef073-d986-4582-8e1a-ed14dc857fba",
+        },
+        "conseillers_municipaux": {
+            "url": f"{DATA_GOUV_BASE_URL}d5f400de-ae3f-4966-8cb6-a85c70c6c24a",
+            "resource_id": "d5f400de-ae3f-4966-8cb6-a85c70c6c24a",
+        },
+        "elus_epci": {
+            "url": f"{DATA_GOUV_BASE_URL}41d95d7d-b172-4636-ac44-32656367cdc7",
+            "resource_id": "41d95d7d-b172-4636-ac44-32656367cdc7",
+        },
+    },
+    url_minio=f"{MINIO_BASE_URL}colter_elus/latest/elus.csv",
+    url_minio_metadata=f"{MINIO_BASE_URL}colter_elus/latest/metadata.json",
+    file_output=f"{DataSourceConfig.base_tmp_folder}/colter_elus/elus.csv",
+)
