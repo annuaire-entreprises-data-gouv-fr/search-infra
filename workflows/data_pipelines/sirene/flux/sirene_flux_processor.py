@@ -47,7 +47,7 @@ class SireneFluxProcessor(DataProcessor):
         save_data_to_zipped_csv(
             df, self.config.tmp_folder, f"flux_unite_legale_{self.current_month}.csv"
         )
-        DataProcessor._push_unique_count(
+        DataProcessor.push_unique_count(
             df["siren"], Notification.notification_xcom_key, "unités légales"
         )
 
@@ -87,7 +87,7 @@ class SireneFluxProcessor(DataProcessor):
         save_data_to_zipped_csv(
             df, self.config.tmp_folder, f"flux_etablissement_{self.current_month}.csv"
         )
-        self._push_unique_count(
+        self.push_unique_count(
             df["siret"], Notification.notification_xcom_key, "établissements"
         )
 

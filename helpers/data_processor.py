@@ -77,7 +77,7 @@ class DataProcessor(ABC):
         pass
 
     @staticmethod
-    def _push_unique_count(column, xcom_key, description=None):
+    def push_unique_count(column, xcom_key, description=None):
         """
         Counts unique values in the specified column and pushes the count to XCom.
         If description is None, defaults to the column name.

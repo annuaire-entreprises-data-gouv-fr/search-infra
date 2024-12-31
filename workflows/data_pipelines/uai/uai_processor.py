@@ -100,10 +100,10 @@ class UAIProcessor(DataProcessor):
         annuaire_uai = annuaire_uai.drop_duplicates(subset=["uai"], keep="first")
         annuaire_uai.to_csv(self.config.file_output, index=False)
 
-        self._push_unique_count(
+        self.push_unique_count(
             annuaire_uai["uai"], Notification.notification_xcom_key, "UAI"
         )
-        self._push_unique_count(
+        self.push_unique_count(
             annuaire_uai["siret"], Notification.notification_xcom_key, "siret"
         )
 
