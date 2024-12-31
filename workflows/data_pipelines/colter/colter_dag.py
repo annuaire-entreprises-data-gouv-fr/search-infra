@@ -58,8 +58,8 @@ def data_processing_collectivite_territoriale():
     def send_file_to_minio():
         return colter_processor.send_file_to_minio()
 
-    @task
-    def compare_files_minio(outlets=[dataset_colter]):
+    @task(outlets=[dataset_colter])
+    def compare_files_minio():
         return colter_processor.compare_files_minio()
 
     (
