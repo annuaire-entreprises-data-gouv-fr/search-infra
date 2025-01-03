@@ -4,8 +4,8 @@
 
 | Information | Valeur |
 | -------- | -------- |
-| Fichier source     | `DAG.py`     |
-| Description | Ce traitement permet de constituer un stock sur les entreprises certifiées bio en France. | Hebdomadaire |
+| Description | Ce traitement permet de constituer un stock sur les entreprises certifiées bio en France. |
+| Fréquence | Quotidienne |
 | Données sources | [API Professionnels Bio](https://api.gouv.fr/les-api/api-professionnels-bio) |
 | Données de sorties | Minio |
-| Channel Tchap d'information | ~annuaire-entrperises-tech |
+| Channel Tchap d'information | ~annuaire-entreprises-tech |
