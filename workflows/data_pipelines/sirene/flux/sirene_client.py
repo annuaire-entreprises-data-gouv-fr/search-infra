@@ -1,12 +1,12 @@
 from typing import Any
 import pandas as pd
-from dag_datalake_sirene.helpers.api_client import APIClient
+from dag_datalake_sirene.helpers.api_client import ApiClient
 from dag_datalake_sirene.helpers.utils import (
     flatten_dict,
 )
 
 
-class SireneApiClient(APIClient):
+class SireneApiClient(ApiClient):
     def __init__(self, api_endpoint: str, bearer_token: str):
         super().__init__(
             base_url=api_endpoint,
