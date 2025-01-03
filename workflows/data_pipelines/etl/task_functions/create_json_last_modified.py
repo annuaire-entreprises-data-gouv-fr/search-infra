@@ -6,12 +6,14 @@ import requests
 from dag_datalake_sirene.config import (
     AIRFLOW_ETL_DATA_DIR,
     MINIO_DATA_SOURCE_UPDATE_DATES_FILE,
-    URL_MINIO_AGENCE_BIO_METADATA,
     URL_MINIO_BILANS_FINANCIERS_METADATA,
     URL_MINIO_CONVENTION_COLLECTIVE_METADATA,
 )
 from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
 from dag_datalake_sirene.workflows.data_pipelines.finess.config import FINESS_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.agence_bio.agence_bio_config import (
+    AGENCE_BIO_CONFIG,
+)
 from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import (
     ESS_CONFIG,
 )
@@ -49,7 +51,7 @@ def create_data_source_last_modified_file(**kwargs):
         ELUS_CONFIG.url_minio_metadata: "collectivite_territoriale_elus",
         FLUX_SIRENE_CONFIG.url_minio_metadata: "sirene",
         EGAPRO_CONFIG.url_minio_metadata: "egapro",
-        URL_MINIO_AGENCE_BIO_METADATA: "agence_bio",
+        AGENCE_BIO_CONFIG.url_minio_metadata: "agence_bio",
         SPECTACLE_CONFIG.url_minio_metadata: "entrepreneur_spectacle",
         FINESS_CONFIG.url_minio_metadata: "finess",
         URL_MINIO_BILANS_FINANCIERS_METADATA: "bilan_financier",

@@ -1,9 +1,9 @@
 import functools
-import time
 import logging
-from typing import Callable, TypeVar, ParamSpec, Any
-from requests import Response, RequestException
-import requests
+import time
+from typing import Any, Callable, ParamSpec, TypeVar
+
+from requests import RequestException, Response, Session
 
 P = ParamSpec("P")
 R = TypeVar("R", bound=Response)
@@ -74,7 +74,7 @@ class ApiClient:
 
     def __init__(self, base_url: str, headers: dict[str, str] | None = None):
         """
-        Initialize the APIClient.
+        Initialize the ApiClient.
 
         Args:
             base_url (str): The base URL for all API requests.
@@ -82,14 +82,12 @@ class ApiClient:
             all requests.
         """
         self.base_url = base_url
-        self.session = requests.Session()
+        self.session = Session()
         if headers:
             self.session.headers.update(headers)
 
     @retry_request()
-    def get(
-        self, endpoint: str, params: dict[str, Any] | None = None
-    ) -> requests.Response:
+    def get(self, endpoint: str, params: dict[str, Any] | None = None) -> Response:
         """
         Make a GET request to the specified endpoint.
 
@@ -118,10 +116,10 @@ class ApiClient:
         Args:
             endpoint (str): The API endpoint to request.
             response_and_pagination_handler (Callable): A function to handle pagination
-            and data extraction.
+                and data extraction.
             batch_size (int): Number of items to request per batch. Default is 1000.
             sleep_time (float): Time to sleep between requests in seconds.
-                                Default is 2.0.
+                Default is 2.0.
 
         Returns:
             list[dict[str, Any]]: A list of all data items fetched from the API.
