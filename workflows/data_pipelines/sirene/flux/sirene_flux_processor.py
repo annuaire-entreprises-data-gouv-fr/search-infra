@@ -26,16 +26,18 @@ class SireneFluxProcessor(DataProcessor):
         return base_endpoint.format(self.current_month, fields)
 
     def get_current_flux_unite_legale(self):
-        fields = "siren,dateCreationUniteLegale,sigleUniteLegale,"
-        "prenomUsuelUniteLegale,identifiantAssociationUniteLegale,"
-        "trancheEffectifsUniteLegale,dateDernierTraitementUniteLegale,"
-        "categorieEntreprise,etatAdministratifUniteLegale,nomUniteLegale,"
-        "nomUsageUniteLegale,denominationUniteLegale,denominationUsuelle1UniteLegale,"
-        "denominationUsuelle2UniteLegale,denominationUsuelle3UniteLegale,"
-        "categorieJuridiqueUniteLegale,activitePrincipaleUniteLegale,"
-        "economieSocialeSolidaireUniteLegale,statutDiffusionUniteLegale,"
-        "societeMissionUniteLegale,anneeCategorieEntreprise,anneeEffectifsUniteLegale,"
-        "caractereEmployeurUniteLegale,nicSiegeUniteLegale"
+        fields = (
+            "siren,dateCreationUniteLegale,sigleUniteLegale,"
+            "prenomUsuelUniteLegale,identifiantAssociationUniteLegale,"
+            "trancheEffectifsUniteLegale,dateDernierTraitementUniteLegale,"
+            "categorieEntreprise,etatAdministratifUniteLegale,nomUniteLegale,"
+            "nomUsageUniteLegale,denominationUniteLegale,denominationUsuelle1UniteLegale,"
+            "denominationUsuelle2UniteLegale,denominationUsuelle3UniteLegale,"
+            "categorieJuridiqueUniteLegale,activitePrincipaleUniteLegale,"
+            "economieSocialeSolidaireUniteLegale,statutDiffusionUniteLegale,"
+            "societeMissionUniteLegale,anneeCategorieEntreprise,anneeEffectifsUniteLegale,"
+            "caractereEmployeurUniteLegale,nicSiegeUniteLegale"
+        )
 
         endpoint = self._construct_endpoint(self.BASE_UNITE_LEGALE_ENDPOINT, fields)
         df = self.client.fetch_data(endpoint, "unitesLegales")
@@ -45,27 +47,29 @@ class SireneFluxProcessor(DataProcessor):
         )
 
     def get_current_flux_etablissement(self):
-        fields = "siren,siret,dateCreationEtablissement,trancheEffectifsEtablissement,"
-        "activitePrincipaleRegistreMetiersEtablissement,etablissementSiege,"
-        "anneeEffectifsEtablissement,libelleVoieEtablissement,codePostalEtablissement,"
-        "numeroVoieEtablissement,dateDernierTraitementEtablissement,"
-        "libelleCommuneEtablissement,libelleCedexEtablissement,typeVoieEtablissement,"
-        "codeCommuneEtablissement,codeCedexEtablissement,"
-        "complementAdresseEtablissement,distributionSpecialeEtablissement,"
-        "complementAdresse2Etablissement,indiceRepetition2Etablissement,"
-        "libelleCedex2Etablissement,codeCedex2Etablissement,"
-        "numeroVoie2Etablissement,typeVoie2Etablissement,libelleVoie2Etablissement,"
-        "codeCommune2Etablissement,libelleCommune2Etablissement,"
-        "distributionSpeciale2Etablissement,dateDebut,etatAdministratifEtablissement,"
-        "enseigne1Etablissement,enseigne1Etablissement,enseigne2Etablissement,"
-        "enseigne3Etablissement,denominationUsuelleEtablissement,"
-        "activitePrincipaleEtablissement,indiceRepetitionEtablissement,"
-        "libelleCommuneEtrangerEtablissement,codePaysEtrangerEtablissement,"
-        "libellePaysEtrangerEtablissement,libelleCommuneEtranger2Etablissement,"
-        "codePaysEtranger2Etablissement,libellePaysEtranger2Etablissement,"
-        "statutDiffusionEtablissement,caractereEmployeurEtablissement,"
-        "coordonneeLambertAbscisseEtablissement,"
-        "coordonneeLambertOrdonneeEtablissement"
+        fields = (
+            "siren,siret,dateCreationEtablissement,trancheEffectifsEtablissement,"
+            "activitePrincipaleRegistreMetiersEtablissement,etablissementSiege,"
+            "anneeEffectifsEtablissement,libelleVoieEtablissement,codePostalEtablissement,"
+            "numeroVoieEtablissement,dateDernierTraitementEtablissement,"
+            "libelleCommuneEtablissement,libelleCedexEtablissement,typeVoieEtablissement,"
+            "codeCommuneEtablissement,codeCedexEtablissement,"
+            "complementAdresseEtablissement,distributionSpecialeEtablissement,"
+            "complementAdresse2Etablissement,indiceRepetition2Etablissement,"
+            "libelleCedex2Etablissement,codeCedex2Etablissement,"
+            "numeroVoie2Etablissement,typeVoie2Etablissement,libelleVoie2Etablissement,"
+            "codeCommune2Etablissement,libelleCommune2Etablissement,"
+            "distributionSpeciale2Etablissement,dateDebut,etatAdministratifEtablissement,"
+            "enseigne1Etablissement,enseigne1Etablissement,enseigne2Etablissement,"
+            "enseigne3Etablissement,denominationUsuelleEtablissement,"
+            "activitePrincipaleEtablissement,indiceRepetitionEtablissement,"
+            "libelleCommuneEtrangerEtablissement,codePaysEtrangerEtablissement,"
+            "libellePaysEtrangerEtablissement,libelleCommuneEtranger2Etablissement,"
+            "codePaysEtranger2Etablissement,libellePaysEtranger2Etablissement,"
+            "statutDiffusionEtablissement,caractereEmployeurEtablissement,"
+            "coordonneeLambertAbscisseEtablissement,"
+            "coordonneeLambertOrdonneeEtablissement"
+        )
 
         endpoint = self._construct_endpoint(self.BASE_ETABLISSEMENT_ENDPOINT, fields)
 
