@@ -6,7 +6,7 @@ from dag_datalake_sirene.helpers.utils import (
 )
 
 
-class InseeApiClient(APIClient):
+class SireneApiClient(APIClient):
     def __init__(self, api_endpoint: str, bearer_token: str):
         super().__init__(
             base_url=api_endpoint,

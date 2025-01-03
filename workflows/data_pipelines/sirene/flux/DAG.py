@@ -5,8 +5,8 @@ from airflow.utils.dates import days_ago
 from airflow.decorators import dag, task
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
-from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.insee_processor import (
-    InseeFluxProcessor,
+from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.sirene_flux_processor import (
+    SireneFluxProcessor,
 )
 
 from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
@@ -36,7 +36,7 @@ default_args = {
     on_success_callback=Notification.send_notification_tchap,
 )
 def data_processing_sirene_flux():
-    insee_processor = InseeFluxProcessor()
+    sirene_flux_processor = SireneFluxProcessor()
 
     @task.bash
     def clean_previous_outputs():
@@ -44,19 +44,19 @@ def data_processing_sirene_flux():
 
     @task
     def get_flux_unites_legales():
-        return insee_processor.get_current_flux_unite_legale()
+        return sirene_flux_processor.get_current_flux_unite_legale()
 
     @task
     def get_flux_etablissements():
-        return insee_processor.get_current_flux_etablissement()
+        return sirene_flux_processor.get_current_flux_etablissement()
 
     @task
     def save_date_last_modified():
-        return insee_processor.save_date_last_modified()
+        return sirene_flux_processor.save_date_last_modified()
 
     @task
     def send_flux_to_minio():
-        return insee_processor.send_flux_to_minio()
+        return sirene_flux_processor.send_flux_to_minio()
 
     (
         clean_previous_outputs()

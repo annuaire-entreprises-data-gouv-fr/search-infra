@@ -1,6 +1,6 @@
 from datetime import datetime
-from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.insee_client import (
-    InseeApiClient,
+from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.sirene_client import (
+    SireneApiClient,
 )
 from dag_datalake_sirene.helpers.data_processor import DataProcessor, Notification
 from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
@@ -9,7 +9,7 @@ from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
 from dag_datalake_sirene.helpers.minio_helpers import File
 
 
-class InseeFluxProcessor(DataProcessor):
+class SireneFluxProcessor(DataProcessor):
     BASE_UNITE_LEGALE_ENDPOINT = (
         "siren?q=dateDernierTraitementUniteLegale%3A{}&champs={}&nombre=1000"
     )
@@ -19,7 +19,7 @@ class InseeFluxProcessor(DataProcessor):
 
     def __init__(self):
         super().__init__(FLUX_SIRENE_CONFIG)
-        self.client = InseeApiClient(self.config.url_api, self.config.auth_api)
+        self.client = SireneApiClient(self.config.url_api, self.config.auth_api)
         self.current_month = datetime.today().strftime("%Y-%m")
 
     def _construct_endpoint(self, base_endpoint: str, fields: str) -> str:
