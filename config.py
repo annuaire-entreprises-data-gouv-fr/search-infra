@@ -29,12 +29,14 @@ class DataSourceConfig:
     name: str
     tmp_folder: str
     minio_path: str
-    file_name: str
-    files_to_download: dict[str, dict[str, str]]
+    file_name: str | None = None
+    files_to_download: dict[str, dict[str, str]] | None = None
     url_minio: str | None = None
     url_minio_metadata: str | None = None
     file_output: str | None = None
-    base_tmp_folder: str = "/tmp"  # Default value
+    base_tmp_folder: str = "/tmp"
+    url_api: str | None = None
+    auth_api: str | None = None
 
 
 AIRFLOW_ENV = Variable.get("ENV", "dev")
@@ -77,17 +79,12 @@ RNE_STOCK_DATADIR = f"{RNE_STOCK_TMP_FOLDER}data"
 RNE_DAG_FOLDER = "dag_datalake_sirene/workflows/data_pipelines/"
 METADATA_CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}metadata/cc/"
 METADATA_CC_MINIO_PATH = "metadata/cc/"
-INSEE_FLUX_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/flux/"
 INSEE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/ul/"
 MARCHE_INCLUSION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}marche_inclusion/"
 AGENCE_BIO_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}agence_bio/"
 BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
 CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
 MINIO_DATA_SOURCE_UPDATE_DATES_FILE = "data_source_updates.json"
-
-# Insee
-INSEE_SECRET_BEARER = Variable.get("SECRET_BEARER_INSEE", None)
-INSEE_API_URL = "https://api.insee.fr/api-sirene/3.11/"
 
 # Notification
 TCHAP_ANNUAIRE_WEBHOOK = Variable.get("TCHAP_ANNUAIRE_WEBHOOK", "")

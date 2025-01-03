@@ -11,6 +11,9 @@ from dag_datalake_sirene.config import (
     URL_MINIO_UNITE_LEGALE,
     URL_MINIO_UNITE_LEGALE_HISTORIQUE,
 )
+from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
+    FLUX_SIRENE_CONFIG,
+)
 
 
 def download_historique(data_dir):
@@ -42,7 +45,7 @@ def download_flux(data_dir):
         minio_client.get_files(
             list_files=[
                 {
-                    "source_path": "insee/sirene/flux/",
+                    "source_path": FLUX_SIRENE_CONFIG.minio_path,
                     "source_name": f"flux_unite_legale_{year_month}.csv.gz",
                     "dest_path": f"{data_dir}",
                     "dest_name": f"flux_unite_legale_{year_month}.csv.gz",

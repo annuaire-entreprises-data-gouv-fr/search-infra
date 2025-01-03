@@ -64,7 +64,7 @@ def retry_request(
     return decorator
 
 
-class APIClient:
+class ApiClient:
     """
     A client for making API requests with retry functionality.
 

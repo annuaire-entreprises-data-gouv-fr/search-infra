@@ -10,6 +10,9 @@ from dag_datalake_sirene.config import (
     URL_ETABLISSEMENTS,
     URL_MINIO_ETABLISSEMENTS_HISTORIQUE,
 )
+from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
+    FLUX_SIRENE_CONFIG,
+)
 
 
 def download_stock(departement):
@@ -84,7 +87,7 @@ def download_flux(data_dir):
         minio_client.get_files(
             list_files=[
                 {
-                    "source_path": "insee/sirene/flux/",
+                    "source_path": FLUX_SIRENE_CONFIG.minio_path,
                     "source_name": f"flux_etablissement_{year_month}.csv.gz",
                     "dest_path": f"{data_dir}",
                     "dest_name": f"flux_etablissement_{year_month}.csv.gz",

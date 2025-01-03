@@ -1,9 +1,8 @@
 from typing import Any
-from dag_datalake_sirene.helpers.api_client import APIClient
+from dag_datalake_sirene.helpers.api_client import ApiClient
 
 
-class BIOAPIClient(APIClient):
-
+class BioApiClient(ApiClient):
     BASE_URL = "https://opendata.agencebio.org/api/gouv/operateurs/"
     DEPARTMENTS = (
         "01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,21,22,"
@@ -20,7 +19,6 @@ class BIOAPIClient(APIClient):
     def process_response_and_pagination(
         self, response: dict[str, Any] = None, current_params: dict[str, Any] = None
     ) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
-
         if current_params is None:
             initial_params = {**self.params, "debut": "0"}
             return None, initial_params

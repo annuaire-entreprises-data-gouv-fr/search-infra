@@ -210,7 +210,7 @@ def flatten_dict(dd, separator="_", prefix=""):
     )
 
 
-def save_dataframe(df: pd.DataFrame, file_path: str, chunk_size: int = 100000):
+def save_dataframe_zipped(df: pd.DataFrame, file_path: str, chunk_size: int = 100000):
     df.to_csv(file_path, index=False)
 
     with open(file_path, "rb") as orig_file:

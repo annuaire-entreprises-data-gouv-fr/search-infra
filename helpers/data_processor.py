@@ -1,7 +1,8 @@
 import logging
 import os
 from datetime import datetime
-from abc import ABC, abstractmethod
+from abc import ABC
+import pandas as pd
 
 import requests
 from airflow.operators.python import get_current_context
@@ -16,6 +17,9 @@ from dag_datalake_sirene.helpers.datagouv import (
 from dag_datalake_sirene.helpers.utils import (
     get_date_last_modified,
     save_to_metadata,
+)
+from dag_datalake_sirene.helpers.utils import (
+    save_dataframe_zipped,
 )
 
 
@@ -35,11 +39,13 @@ class DataProcessor(ABC):
         Downloads data from the specified URL and saves it to the destination path.
 
         Configurations:
-            - self.config.files_to_download (list[dict], optional): The list of resources to download.
+            - self.config.files_to_download (list[dict], optional): The list of
+            resources to download.
               Args of each file dictionary:
                 - url (str): The URL of the file or dataset.
                 - destination (str): The local path to save the file.
-                - dataset_id (optional): Indicates the resource has to be fetched from the dataset.
+                - dataset_id (optional): Indicates the resource has to
+                be fetched from the dataset.
 
         """
         for name, params in self.config.files_to_download.items():
@@ -68,7 +74,6 @@ class DataProcessor(ABC):
                 logging.error(error_message)
                 raise
 
-    @abstractmethod
     def preprocess_data(self):
         """
         This method must be implemented by subclasses.
@@ -97,16 +102,18 @@ class DataProcessor(ABC):
     def save_date_last_modified(self) -> None:
         """Saves the last modified date for a resource or URL to a metadata file.
 
-        Depending on the configuration, the method fetches and stores the last modified timestamp
-        metadata from all data.gouv resources or URLs.
+        Depending on the configuration, the method fetches and stores the last
+        modified timestamp metadata from all data.gouv resources or URLs.
         If no last modified date is available the current datetime is used.
 
         Configurations:
-            - self.config.files_to_download (list[dict], optional): The list of resources to download.
+            - self.config.files_to_download (list[dict], optional): The list
+            of resources to download.
               Args of each file dictionary:
                 - url (str): The URL of the file or dataset.
                 - destination (str): The local path to save the file.
-                - dataset_id (optional): Indicates the resource has to be fetched from the dataset.
+                - dataset_id (optional): Indicates the resource has to be
+                fetched from the dataset.
             - `self.config.tmp_folder` (str): The path to the local tmp folder.
 
         Usage:
@@ -119,20 +126,21 @@ class DataProcessor(ABC):
         date_list = []
         metadata_path = os.path.join(self.config.tmp_folder, "metadata.json")
 
-        for name, params in self.config.files_to_download.items():
-            if "resource_id" in params:
-                date_list.append(fetch_last_modified_date(params["resource_id"]))
-            elif "dataset_id" in params:
-                resource_id, _ = fetch_last_resource_from_dataset(params["url"])
-                date_list.append(fetch_last_modified_date(resource_id))
-            elif "url" in params:
-                url_date = get_date_last_modified(url=params["url"])
-                if url_date:
-                    date_list.append(url_date)
-            else:
-                logging.warning(
-                    f"Resource type not handled in {self.__class__.__name__}.save_date_last_modified():\n{name}:\n{params}"
-                )
+        if self.config.files_to_download:
+            for name, params in self.config.files_to_download.items():
+                if "resource_id" in params:
+                    date_list.append(fetch_last_modified_date(params["resource_id"]))
+                elif "dataset_id" in params:
+                    resource_id, _ = fetch_last_resource_from_dataset(params["url"])
+                    date_list.append(fetch_last_modified_date(resource_id))
+                elif "url" in params:
+                    url_date = get_date_last_modified(url=params["url"])
+                    if url_date:
+                        date_list.append(url_date)
+                else:
+                    logging.warning(
+                        f"Resource type not handled in {self.__class__.__name__}.save_date_last_modified():\n{name}:\n{params}"
+                    )
 
         logging.info(date_list)
 
@@ -217,3 +225,9 @@ class DataProcessor(ABC):
                 ],
             )
         return not is_same
+
+    def save_data_to_csv(self, df: pd.DataFrame, filename: str):
+        """Save DataFrame to CSV and log the action."""
+        file_path = os.path.join(self.config.tmp_folder, filename)
+        save_dataframe_zipped(df, file_path)
+        logging.info(f"Saved {filename} with {df.shape[0]} records.")
