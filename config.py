@@ -192,19 +192,6 @@ URL_MINIO_ETABLISSEMENTS_HISTORIQUE = (
     "/sirene/historique/StockEtablissementHistorique_utf8.zip"
 )
 
-
-URL_UNITE_LEGALE = "https://files.data.gouv.fr/insee-sirene/StockUniteLegale_utf8.zip"
-URL_MINIO_UNITE_LEGALE = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
-    "/sirene/stock/StockUniteLegale_utf8.zip"
-)
-URL_UNITE_LEGALE_HISTORIQUE = (
-    "https://www.data.gouv.fr/fr/datasets/r/0835cd60-2c2a-497b-bc64-404de704ce89"
-)
-URL_MINIO_UNITE_LEGALE_HISTORIQUE = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
-    "/sirene/historique/StockUniteLegaleHistorique_utf8.zip"
-)
 URL_CC_DARES = "https://travail-emploi.gouv.fr/sites/travail-emploi/files"
 # Caution: DARES file is case sensitive or returns 404
 FILE_CC_DATE = "Dares_donnes_Identifiant_convention_collective_"
