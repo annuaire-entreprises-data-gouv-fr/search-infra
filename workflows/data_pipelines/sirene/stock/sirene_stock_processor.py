@@ -10,10 +10,6 @@ class SireneStockProcessor(DataProcessor):
     def __init__(self):
         super().__init__(STOCK_SIRENE_CONFIG)
 
-    def download_stock_and_historique(self):
-        """Download stock UL file"""
-        self.download_data()
-
     def send_stock_to_minio(self):
         self.minio_client.send_files(
             list_files=[
@@ -28,6 +24,12 @@ class SireneStockProcessor(DataProcessor):
                     source_name="StockUniteLegaleHistorique_utf8.zip",
                     dest_path=f"{self.config.minio_path}",
                     dest_name="StockUniteLegaleHistorique_utf8.zip",
+                ),
+                File(
+                    source_path=f"{self.config.tmp_folder}",
+                    source_name="StockEtablissementHistorique_utf8.zip",
+                    dest_path=f"{self.config.minio_path}",
+                    dest_name="StockEtablissementHistorique_utf8.zip",
                 ),
             ],
         )
