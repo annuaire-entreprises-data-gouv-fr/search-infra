@@ -179,28 +179,12 @@ URL_MINIO_CONVENTION_COLLECTIVE_METADATA = (
     f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/convention_collective"
     "/latest/metadata.json"
 )
-URL_ETABLISSEMENTS = "https://files.data.gouv.fr/geo-sirene/last/dep/geo_siret"
-URL_MINIO_ETABLISSEMENTS = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
-    "/sirene/stock/StockEtablissement_utf8.zip"
-)
-URL_ETABLISSEMENTS_HISTORIQUE = (
-    "https://www.data.gouv.fr/fr/datasets/r/88fbb6b4-0320-443e-b739-b4376a012c32"
-)
-URL_MINIO_ETABLISSEMENTS_HISTORIQUE = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee"
-    "/sirene/historique/StockEtablissementHistorique_utf8.zip"
-)
-
+URL_STOCK_ETABLISSEMENTS = "https://files.data.gouv.fr/geo-sirene/last/dep/geo_siret"
 URL_CC_DARES = "https://travail-emploi.gouv.fr/sites/travail-emploi/files"
 # Caution: DARES file is case sensitive or returns 404
 FILE_CC_DATE = "Dares_donnes_Identifiant_convention_collective_"
 URL_CC_KALI = (
     "https://www.data.gouv.fr/fr/datasets/r/02b67492-5243-44e8-8dd1-0cb3f90f35ff"
-)
-URL_MINIO_SIRENE_METADATA = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/insee/sirene/"
-    "flux/metadata.json"
 )
 
 # DataGouv
