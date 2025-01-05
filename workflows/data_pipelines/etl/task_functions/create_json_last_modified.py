@@ -6,7 +6,6 @@ import requests
 from dag_datalake_sirene.config import (
     AIRFLOW_ETL_DATA_DIR,
     MINIO_DATA_SOURCE_UPDATE_DATES_FILE,
-    URL_MINIO_SIRENE_METADATA,
     URL_MINIO_AGENCE_BIO_METADATA,
     URL_MINIO_BILANS_FINANCIERS_METADATA,
     URL_MINIO_CONVENTION_COLLECTIVE_METADATA,
@@ -32,6 +31,9 @@ from dag_datalake_sirene.workflows.data_pipelines.colter.colter_config import (
     COLTER_CONFIG,
     ELUS_CONFIG,
 )
+from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
+    FLUX_SIRENE_CONFIG,
+)
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.helpers.utils import simplify_date
 
@@ -45,7 +47,7 @@ def create_data_source_last_modified_file(**kwargs):
         UAI_CONFIG.url_minio_metadata: "uai",
         COLTER_CONFIG.url_minio_metadata: "collectivite_territoriale",
         ELUS_CONFIG.url_minio_metadata: "collectivite_territoriale_elus",
-        URL_MINIO_SIRENE_METADATA: "sirene",
+        FLUX_SIRENE_CONFIG.url_minio_metadata: "sirene",
         EGAPRO_CONFIG.url_minio_metadata: "egapro",
         URL_MINIO_AGENCE_BIO_METADATA: "agence_bio",
         SPECTACLE_CONFIG.url_minio_metadata: "entrepreneur_spectacle",

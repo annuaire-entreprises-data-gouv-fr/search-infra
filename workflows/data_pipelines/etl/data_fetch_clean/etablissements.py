@@ -7,17 +7,19 @@ from datetime import datetime
 from airflow.exceptions import AirflowSkipException
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.config import (
-    URL_ETABLISSEMENTS,
-    URL_MINIO_ETABLISSEMENTS_HISTORIQUE,
+    URL_STOCK_ETABLISSEMENTS,
 )
 from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
     FLUX_SIRENE_CONFIG,
 )
+from dag_datalake_sirene.workflows.data_pipelines.sirene.stock.config import (
+    STOCK_SIRENE_CONFIG,
+)
 
 
 def download_stock(departement):
-    url = f"{URL_ETABLISSEMENTS}_{departement}.csv.gz"
-    logging.info(f"Dep file url: {url}")
+    url = f"{URL_STOCK_ETABLISSEMENTS}_{departement}.csv.gz"
+    logging.info(f"Département file url: {url}")
     df_dep = pd.read_csv(
         url,
         compression="gzip",
@@ -161,7 +163,10 @@ def download_flux(data_dir):
 
 
 def download_historique(data_dir):
-    r = requests.get(URL_MINIO_ETABLISSEMENTS_HISTORIQUE, allow_redirects=True)
+    r = requests.get(
+        f"{STOCK_SIRENE_CONFIG.url_minio}StockEtablissementHistorique_utf8.zip",
+        allow_redirects=True,
+    )
     open(data_dir + "StockEtablissementHistorique_utf8.zip", "wb").write(r.content)
     shutil.unpack_archive(data_dir + "StockEtablissementHistorique_utf8.zip", data_dir)
     df_iterator = pd.read_csv(
