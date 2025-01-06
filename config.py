@@ -1,6 +1,6 @@
 from airflow.models import Variable
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -30,7 +30,7 @@ class DataSourceConfig:
     tmp_folder: str
     minio_path: str
     file_name: str | None = None
-    files_to_download: dict[str, dict[str, str]] | None = {}
+    files_to_download: dict[str, dict[str, str]] | None = field(default_factory=dict)
     url_minio: str | None = None
     url_minio_metadata: str | None = None
     file_output: str | None = None
