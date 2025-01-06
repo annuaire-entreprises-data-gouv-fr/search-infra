@@ -6,6 +6,9 @@ from dag_datalake_sirene.helpers.data_processor import DataProcessor, Notificati
 from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
     FLUX_SIRENE_CONFIG,
 )
+from dag_datalake_sirene.helpers.utils import (
+    save_data_to_zipped_csv,
+)
 from dag_datalake_sirene.helpers.minio_helpers import File
 
 
@@ -41,7 +44,9 @@ class SireneFluxProcessor(DataProcessor):
 
         endpoint = self._construct_endpoint(self.BASE_UNITE_LEGALE_ENDPOINT, fields)
         df = self.client.fetch_data(endpoint, "unitesLegales")
-        self.save_data_to_csv(df, f"flux_unite_legale_{self.current_month}.csv")
+        save_data_to_zipped_csv(
+            df, self.config.tmp_folder, f"flux_unite_legale_{self.current_month}.csv"
+        )
         DataProcessor._push_unique_count(
             df["siren"], Notification.notification_xcom_key, "unités légales"
         )
@@ -79,8 +84,10 @@ class SireneFluxProcessor(DataProcessor):
                 col.replace(prefix, "") if prefix in col else col for col in df.columns
             ]
 
-        self.save_data_to_csv(df, f"flux_etablissement_{self.current_month}.csv")
-        DataProcessor._push_unique_count(
+        save_data_to_zipped_csv(
+            df, self.config.tmp_folder, f"flux_etablissement_{self.current_month}.csv"
+        )
+        self._push_unique_count(
             df["siret"], Notification.notification_xcom_key, "établissements"
         )
 

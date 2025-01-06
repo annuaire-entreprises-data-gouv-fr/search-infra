@@ -222,6 +222,13 @@ def save_dataframe_zipped(df: pd.DataFrame, file_path: str, chunk_size: int = 10
                 zipped_file.write(chunk)
 
 
+def save_data_to_zipped_csv(df: pd.DataFrame, folder: str, filename: str):
+    """Save DataFrame to CSV and log the action."""
+    file_path = os.path.join(folder, filename)
+    save_dataframe_zipped(df, file_path)
+    logging.info(f"Saved {filename} with {df.shape[0]} records.")
+
+
 def flatten_object(obj, prop):
     res = ""
     for item in obj:
