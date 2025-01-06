@@ -2,7 +2,6 @@ import logging
 import os
 from datetime import datetime
 from abc import ABC
-import pandas as pd
 
 import requests
 from airflow.operators.python import get_current_context
@@ -17,9 +16,6 @@ from dag_datalake_sirene.helpers.datagouv import (
 from dag_datalake_sirene.helpers.utils import (
     get_date_last_modified,
     save_to_metadata,
-)
-from dag_datalake_sirene.helpers.utils import (
-    save_dataframe_zipped,
 )
 
 
@@ -225,9 +221,3 @@ class DataProcessor(ABC):
                 ],
             )
         return not is_same
-
-    def save_data_to_csv(self, df: pd.DataFrame, filename: str):
-        """Save DataFrame to CSV and log the action."""
-        file_path = os.path.join(self.config.tmp_folder, filename)
-        save_dataframe_zipped(df, file_path)
-        logging.info(f"Saved {filename} with {df.shape[0]} records.")
