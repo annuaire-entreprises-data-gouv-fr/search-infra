@@ -9,10 +9,6 @@ from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.sirene_flux_proces
     SireneFluxProcessor,
 )
 
-from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
-    FLUX_SIRENE_CONFIG,
-)
-
 
 default_args = {
     "depends_on_past": False,
@@ -40,7 +36,7 @@ def data_processing_sirene_flux():
 
     @task.bash
     def clean_previous_outputs():
-        return f"rm -rf {FLUX_SIRENE_CONFIG.tmp_folder} && mkdir -p {FLUX_SIRENE_CONFIG.tmp_folder}"
+        return f"rm -rf {sirene_flux_processor.config.tmp_folder} && mkdir -p {sirene_flux_processor.config.tmp_folder}"
 
     @task
     def get_flux_unites_legales():
