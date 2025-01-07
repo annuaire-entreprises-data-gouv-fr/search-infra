@@ -30,7 +30,7 @@ class DataSourceConfig:
     tmp_folder: str
     minio_path: str
     file_name: str | None = None
-    files_to_download: dict[str, dict[str, str]] | None = field(default_factory=dict)
+    files_to_download: dict[str, dict[str, str]] = field(default_factory=dict)
     url_minio: str | None = None
     url_minio_metadata: str | None = None
     file_output: str | None = None
