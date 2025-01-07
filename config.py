@@ -80,7 +80,6 @@ RNE_DAG_FOLDER = "dag_datalake_sirene/workflows/data_pipelines/"
 METADATA_CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}metadata/cc/"
 METADATA_CC_MINIO_PATH = "metadata/cc/"
 INSEE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/ul/"
-MARCHE_INCLUSION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}marche_inclusion/"
 CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
 MINIO_DATA_SOURCE_UPDATE_DATES_FILE = "data_source_updates.json"
 
@@ -102,13 +101,6 @@ RNE_AUTH = json.loads(Variable.get("RNE_AUTH", "[]"))
 RNE_API_TOKEN_URL = "https://registre-national-entreprises.inpi.fr/api/sso/login"
 RNE_API_DIFF_URL = "https://registre-national-entreprises.inpi.fr/api/companies/diff?"
 
-# MARCHE INCLUSION
-MARCHE_INCLUSION_API_URL = "https://lemarche.inclusion.beta.gouv.fr/api/siae/?"
-SECRET_TOKEN_MARCHE_INCLUSION = Variable.get("SECRET_TOKEN_MARCHE_INCLUSION", "")
-URL_MINIO_MARCHE_INCLUSION = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/marche_inclusion"
-    "/stock_marche_inclusion.csv"
-)
 # AIO
 AIO_URL = Variable.get("AIO_URL", None)
 COLOR_URL = Variable.get("COLOR_URL", None)

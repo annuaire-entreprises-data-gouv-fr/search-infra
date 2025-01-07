@@ -1,10 +1,12 @@
 import pandas as pd
-from dag_datalake_sirene.config import URL_MINIO_MARCHE_INCLUSION
+from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.config import (
+    MARCHE_INCLUSION_CONFIG,
+)
 
 
 def preprocess_marche_inclusion_data(data_dir):
     df_siae = pd.read_csv(
-        URL_MINIO_MARCHE_INCLUSION,
+        MARCHE_INCLUSION_CONFIG.url_minio,
         dtype=str,
     )
     df_siae["siren"] = df_siae["siret"].str[0:9]

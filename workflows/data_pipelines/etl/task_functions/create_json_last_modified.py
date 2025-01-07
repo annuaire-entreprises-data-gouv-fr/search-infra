@@ -38,6 +38,9 @@ from dag_datalake_sirene.workflows.data_pipelines.colter.colter_config import (
 from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
     FLUX_SIRENE_CONFIG,
 )
+from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.config import (
+    MARCHE_INCLUSION_CONFIG,
+)
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.helpers.utils import simplify_date
 
@@ -59,6 +62,7 @@ def create_data_source_last_modified_file(**kwargs):
         BILANS_FINANCIERS_CONFIG.url_minio_metadata: "bilan_financier",
         FORMATION_CONFIG.url_minio_metadata: "organisme_formation",
         URL_MINIO_CONVENTION_COLLECTIVE_METADATA: "convention_collective",
+        MARCHE_INCLUSION_CONFIG.url_minio_metadata: "marche_inclusion",
     }
 
     json_file_path = os.path.join(
