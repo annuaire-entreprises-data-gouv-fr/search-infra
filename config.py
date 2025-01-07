@@ -81,7 +81,6 @@ METADATA_CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}metadata/cc/"
 METADATA_CC_MINIO_PATH = "metadata/cc/"
 INSEE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/ul/"
 MARCHE_INCLUSION_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}marche_inclusion/"
-BILANS_FINANCIERS_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}bilans_financiers/"
 CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
 MINIO_DATA_SOURCE_UPDATE_DATES_FILE = "data_source_updates.json"
 
@@ -149,15 +148,6 @@ API_URL = Variable.get("API_URL", "")
 API_IS_REMOTE = Variable.get("API_IS_REMOTE", "False").lower() not in ["false", "0"]
 
 # Datasets
-RESOURCE_ID_BILANS_FINANCIERS = "9d213815-1649-4527-9eb4-427146ef2e5b"
-URL_MINIO_BILANS_FINANCIERS = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/bilans_financiers"
-    "/latest/synthese_bilans.csv"
-)
-URL_MINIO_BILANS_FINANCIERS_METADATA = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/bilans_financiers"
-    "/latest/metadata.json"
-)
 RESOURCE_ID_CONVENTION_COLLECTIVE = "a22e54f7-b937-4483-9a72-aad2ea1316f1"
 URL_CONVENTION_COLLECTIVE = (
     f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_CONVENTION_COLLECTIVE}"
