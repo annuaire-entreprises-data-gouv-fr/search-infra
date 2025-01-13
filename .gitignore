@@ -3,13 +3,15 @@ __pycache__/
 .vscode/
 .ruff_cache/
 .mypy_cache
-
-.env
-local-tmp/
+.DS_Store
 
 pyproject.toml
 poetry.lock
+.env
 .venv
+.envrc
+
+local-tmp/
 
 data/
 output/
