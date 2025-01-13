@@ -1,6 +1,6 @@
 import pandas as pd
 
-from dag_datalake_sirene.workflows.data_pipelines.colter.colter_config import (
+from dag_datalake_sirene.workflows.data_pipelines.colter.config import (
     COLTER_CONFIG,
     ELUS_CONFIG,
 )

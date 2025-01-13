@@ -4,13 +4,11 @@ from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 
 from dag_datalake_sirene.helpers import Notification
-from dag_datalake_sirene.workflows.data_pipelines.formation.formation_config import (
-    FORMATION_CONFIG,
-)
 from dag_datalake_sirene.config import EMAIL_LIST
-from dag_datalake_sirene.workflows.data_pipelines.formation.formation_processor import (
-    FormationProcessor,
+from dag_datalake_sirene.workflows.data_pipelines.bilans_financiers.processor import (
+    BilansFinanciersProcessor,
 )
+
 
 default_args = {
     "depends_on_past": False,
@@ -22,7 +20,7 @@ default_args = {
 
 
 @dag(
-    tags=["qualiopi", "formation"],
+    tags=["bilans financiers", "signaux faibles"],
     default_args=default_args,
     schedule_interval="0 16 * * *",
     start_date=days_ago(8),
@@ -32,32 +30,32 @@ default_args = {
     on_failure_callback=Notification.send_notification_tchap,
     on_success_callback=Notification.send_notification_tchap,
 )
-def data_processing_organisme_formation():
-    formation_processor = FormationProcessor()
+def data_processing_bilans_financiers():
+    bilans_financiers_processor = BilansFinanciersProcessor()
 
     @task.bash
     def clean_previous_outputs():
-        return f"rm -rf {FORMATION_CONFIG.tmp_folder} && mkdir -p {FORMATION_CONFIG.tmp_folder}"
+        return f"rm -rf {bilans_financiers_processor.config.tmp_folder} && mkdir -p {bilans_financiers_processor.config.tmp_folder}"
 
     @task
     def download_data():
-        return formation_processor.download_data()
+        return bilans_financiers_processor.download_data()
 
     @task
     def preprocess_data():
-        return formation_processor.preprocess_data()
+        return bilans_financiers_processor.preprocess_data()
 
     @task
     def save_date_last_modified():
-        return formation_processor.save_date_last_modified()
+        return bilans_financiers_processor.save_date_last_modified()
 
     @task
     def send_file_to_minio():
-        return formation_processor.send_file_to_minio()
+        return bilans_financiers_processor.send_file_to_minio()
 
     @task
     def compare_files_minio():
-        return formation_processor.compare_files_minio()
+        return bilans_financiers_processor.compare_files_minio()
 
     (
         clean_previous_outputs()
@@ -69,4 +67,4 @@ def data_processing_organisme_formation():
     )
 
 
-data_processing_organisme_formation()
+data_processing_bilans_financiers()

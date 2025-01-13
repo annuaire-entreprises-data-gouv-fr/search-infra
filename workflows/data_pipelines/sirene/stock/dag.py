@@ -5,7 +5,7 @@ from airflow.decorators import dag
 
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
-from dag_datalake_sirene.workflows.data_pipelines.sirene.stock.sirene_stock_processor import (
+from dag_datalake_sirene.workflows.data_pipelines.sirene.stock.processor import (
     SireneStockProcessor,
 )
 

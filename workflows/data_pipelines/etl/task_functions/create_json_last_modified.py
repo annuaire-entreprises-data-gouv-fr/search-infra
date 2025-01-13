@@ -10,10 +10,10 @@ from dag_datalake_sirene.config import (
 )
 from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
 from dag_datalake_sirene.workflows.data_pipelines.finess.config import FINESS_CONFIG
-from dag_datalake_sirene.workflows.data_pipelines.agence_bio.agence_bio_config import (
+from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.bilans_financiers.bilans_financiers_config import (
+from dag_datalake_sirene.workflows.data_pipelines.bilans_financiers.config import (
     BILANS_FINANCIERS_CONFIG,
 )
 from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import (
@@ -22,16 +22,16 @@ from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import (
 from dag_datalake_sirene.workflows.data_pipelines.rge.config import (
     RGE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.spectacle.spectacle_config import (
+from dag_datalake_sirene.workflows.data_pipelines.spectacle.config import (
     SPECTACLE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.formation.formation_config import (
+from dag_datalake_sirene.workflows.data_pipelines.formation.config import (
     FORMATION_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.uai.uai_config import (
+from dag_datalake_sirene.workflows.data_pipelines.uai.config import (
     UAI_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.colter.colter_config import (
+from dag_datalake_sirene.workflows.data_pipelines.colter.config import (
     COLTER_CONFIG,
     ELUS_CONFIG,
 )

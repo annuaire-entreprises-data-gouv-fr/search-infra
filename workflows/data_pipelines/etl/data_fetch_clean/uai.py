@@ -1,5 +1,5 @@
 import pandas as pd
-from dag_datalake_sirene.workflows.data_pipelines.uai.uai_config import UAI_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.uai.config import UAI_CONFIG
 
 
 def preprocess_uai_data(data_dir):

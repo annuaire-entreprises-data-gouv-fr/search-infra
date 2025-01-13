@@ -6,11 +6,11 @@ from airflow.utils.dates import days_ago
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
 from dag_datalake_sirene.workflows.data_pipelines.rge.config import RGE_CONFIG
-from dag_datalake_sirene.workflows.data_pipelines.rge.rge_processor import (
-    RGEProcessor,
+from dag_datalake_sirene.workflows.data_pipelines.rge.processor import (
+    RgeProcessor,
 )
 
-rge_processor = RGEProcessor()
+rge_processor = RgeProcessor()
 default_args = {
     "depends_on_past": False,
     "email_on_failure": True,

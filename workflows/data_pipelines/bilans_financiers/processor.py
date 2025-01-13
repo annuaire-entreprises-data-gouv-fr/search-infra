@@ -4,7 +4,7 @@ import pandas as pd
 
 from dag_datalake_sirene.helpers import DataProcessor, Notification
 from dag_datalake_sirene.helpers.utils import get_fiscal_year
-from dag_datalake_sirene.workflows.data_pipelines.bilans_financiers.bilans_financiers_config import (
+from dag_datalake_sirene.workflows.data_pipelines.bilans_financiers.config import (
     BILANS_FINANCIERS_CONFIG,
 )
 

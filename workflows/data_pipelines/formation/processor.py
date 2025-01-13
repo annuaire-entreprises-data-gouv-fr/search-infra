@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 
 from dag_datalake_sirene.helpers import DataProcessor, Notification
-from dag_datalake_sirene.workflows.data_pipelines.formation.formation_config import (
+from dag_datalake_sirene.workflows.data_pipelines.formation.config import (
     FORMATION_CONFIG,
 )
 

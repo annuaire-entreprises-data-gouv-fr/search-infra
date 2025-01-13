@@ -1,5 +1,5 @@
 import pandas as pd
-from dag_datalake_sirene.workflows.data_pipelines.agence_bio.agence_bio_config import (
+from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
 
