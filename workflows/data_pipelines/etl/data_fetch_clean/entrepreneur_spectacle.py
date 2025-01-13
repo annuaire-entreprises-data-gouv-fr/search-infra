@@ -1,6 +1,6 @@
 import pandas as pd
 
-from dag_datalake_sirene.workflows.data_pipelines.spectacle.spectacle_config import (
+from dag_datalake_sirene.workflows.data_pipelines.spectacle.config import (
     SPECTACLE_CONFIG,
 )
 

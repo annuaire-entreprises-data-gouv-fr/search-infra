@@ -7,7 +7,7 @@ from dag_datalake_sirene.helpers import DataProcessor, Notification
 from dag_datalake_sirene.workflows.data_pipelines.rge.config import RGE_CONFIG
 
 
-class RGEProcessor(DataProcessor):
+class RgeProcessor(DataProcessor):
     def __init__(self):
         super().__init__(RGE_CONFIG)
 

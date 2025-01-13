@@ -1,12 +1,12 @@
 import pandas as pd
 
 from dag_datalake_sirene.helpers import DataProcessor, Notification
-from dag_datalake_sirene.workflows.data_pipelines.uai.uai_config import (
+from dag_datalake_sirene.workflows.data_pipelines.uai.config import (
     UAI_CONFIG,
 )
 
 
-class UAIProcessor(DataProcessor):
+class UaiProcessor(DataProcessor):
     def __init__(self):
         super().__init__(UAI_CONFIG)
 

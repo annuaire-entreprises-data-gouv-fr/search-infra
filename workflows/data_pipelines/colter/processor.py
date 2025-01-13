@@ -6,7 +6,7 @@ import requests
 
 from dag_datalake_sirene.helpers import DataProcessor
 from dag_datalake_sirene.helpers.utils import get_current_year
-from dag_datalake_sirene.workflows.data_pipelines.colter.colter_config import (
+from dag_datalake_sirene.workflows.data_pipelines.colter.config import (
     COLTER_CONFIG,
     ELUS_CONFIG,
 )

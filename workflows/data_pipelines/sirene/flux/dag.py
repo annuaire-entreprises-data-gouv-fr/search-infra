@@ -5,7 +5,7 @@ from airflow.utils.dates import days_ago
 from airflow.decorators import dag, task
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
-from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.sirene_flux_processor import (
+from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.processor import (
     SireneFluxProcessor,
 )
 

@@ -3,12 +3,12 @@ from airflow.utils.dates import days_ago
 from datetime import timedelta
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
-from dag_datalake_sirene.workflows.data_pipelines.ess_france.ess_processor import (
-    EssFranceProcessor,
+from dag_datalake_sirene.workflows.data_pipelines.egapro.processor import (
+    EgaproProcessor,
 )
-from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import ESS_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
 
-ess_france_processor = EssFranceProcessor()
+egapro_processor = EgaproProcessor()
 
 default_args = {
     "depends_on_past": False,
@@ -20,7 +20,7 @@ default_args = {
 
 
 @dag(
-    tags=["economie sociale et solidaire", "ESS France"],
+    tags=["egapro"],
     default_args=default_args,
     schedule_interval="0 16 * * *",
     start_date=days_ago(8),
@@ -30,30 +30,32 @@ default_args = {
     on_failure_callback=Notification.send_notification_tchap,
     on_success_callback=Notification.send_notification_tchap,
 )
-def data_processing_ess_france():
+def data_processing_egapro():
     @task.bash
     def clean_previous_outputs():
-        return f"rm -rf {ESS_CONFIG.tmp_folder} && mkdir -p {ESS_CONFIG.tmp_folder}"
+        return (
+            f"rm -rf {EGAPRO_CONFIG.tmp_folder} && mkdir -p {EGAPRO_CONFIG.tmp_folder}"
+        )
 
     @task
-    def preprocess_ess_france():
-        return ess_france_processor.preprocess_data()
+    def preprocess_egapro():
+        return egapro_processor.preprocess_data()
 
     @task
     def save_date_last_modified():
-        return ess_france_processor.save_date_last_modified()
+        return egapro_processor.save_date_last_modified()
 
     @task
     def send_file_to_minio():
-        return ess_france_processor.send_file_to_minio()
+        return egapro_processor.send_file_to_minio()
 
     @task
     def compare_files_minio():
-        return ess_france_processor.compare_files_minio()
+        return egapro_processor.compare_files_minio()
 
     (
         clean_previous_outputs()
-        >> preprocess_ess_france()
+        >> preprocess_egapro()
         >> save_date_last_modified()
         >> send_file_to_minio()
         >> compare_files_minio()
@@ -61,4 +63,4 @@ def data_processing_ess_france():
 
 
 # Instantiate the DAG
-data_processing_ess_france()
+data_processing_egapro()

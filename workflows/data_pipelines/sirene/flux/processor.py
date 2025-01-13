@@ -1,5 +1,5 @@
 from datetime import datetime
-from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.sirene_client import (
+from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.api import (
     SireneApiClient,
 )
 from dag_datalake_sirene.helpers.data_processor import DataProcessor, Notification

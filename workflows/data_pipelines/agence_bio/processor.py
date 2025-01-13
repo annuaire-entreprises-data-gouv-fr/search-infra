@@ -6,10 +6,10 @@ import pandas as pd
 from dag_datalake_sirene.helpers import DataProcessor, Notification
 from dag_datalake_sirene.helpers.minio_helpers import File
 from dag_datalake_sirene.helpers.utils import flatten_object
-from dag_datalake_sirene.workflows.data_pipelines.agence_bio.agence_bio_api import (
+from dag_datalake_sirene.workflows.data_pipelines.agence_bio.api import (
     BioApiClient,
 )
-from dag_datalake_sirene.workflows.data_pipelines.agence_bio.agence_bio_config import (
+from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
 
