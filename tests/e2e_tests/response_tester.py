@@ -2,6 +2,7 @@ import requests
 from requests.adapters import HTTPAdapter, Retry
 
 ok_status_code = 200
+no_content_status_code = 204
 client_error_status_code = 400
 min_total_results = 10
 min_total_results_filters = 1000
@@ -47,17 +48,25 @@ class APIResponseTester:
             response_status_code == ok_status_code
         ), f"API response code is {response_status_code}, expected 200."
 
+    def assert_api_response_code_204(self, path):
+        response_status_code = self.get_api_response_code(path)
+        assert (
+            response_status_code == no_content_status_code
+        ), f"API response code is {response_status_code}, expected 204."
+
     def assert_api_response_code_400(self, path):
         response_status_code = self.get_api_response_code(path)
         assert response_status_code == client_error_status_code, (
             f"API response code is " f"{response_status_code}, expected 400."
         )
 
-    def test_field_value(self, path, field_name, expected_value):
+    def test_field_value(self, path, result_number, field_name, expected_value):
         response = self.get_api_response(path)
         if response.status_code == ok_status_code:
             # response = response.json()
-            response_value = get_field_value(response.json()["results"][0], field_name)
+            response_value = get_field_value(
+                response.json()["results"][result_number], field_name
+            )
             assert (
                 response_value == expected_value
             ), f"Field '{field_name}' has unexpected value."
