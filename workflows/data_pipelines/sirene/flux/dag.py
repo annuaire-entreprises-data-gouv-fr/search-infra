@@ -24,7 +24,7 @@ default_args = {
     default_args=default_args,
     schedule_interval="0 4 2-31 * *",  # Daily at 4 AM except the 1st of every month
     start_date=days_ago(1),
-    dagrun_timeout=timedelta(minutes=60 * 5),
+    dagrun_timeout=timedelta(minutes=60 * 12),
     params={},
     catchup=False,
     max_active_runs=1,
