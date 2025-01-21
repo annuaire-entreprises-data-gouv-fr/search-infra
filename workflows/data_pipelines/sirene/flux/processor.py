@@ -83,7 +83,6 @@ class SireneFluxProcessor(DataProcessor):
             df.columns = [
                 col.replace(prefix, "") if prefix in col else col for col in df.columns
             ]
-
         save_data_to_zipped_csv(
             df, self.config.tmp_folder, f"flux_etablissement_{self.current_month}.csv"
         )
