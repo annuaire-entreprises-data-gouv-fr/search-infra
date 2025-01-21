@@ -1,5 +1,4 @@
 from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean import (
-    agence_bio as bio,
     collectivite_territoriale as ct,
     bilan_financier as bf,
     convention_collective as cc,
@@ -12,7 +11,6 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean import (
     uai,
     marche_inclusion as mi,
 )
-
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
     create_unique_index,
     create_index,
@@ -22,7 +20,6 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
 )
 
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries import (
-    agence_bio as q_bio,
     bilan_financier as q_bf,
     convention_collective as q_cc,
     egapro as q_egapro,
@@ -95,23 +92,6 @@ def create_finess_table():
         index_name="index_finess",
         index_column="siret",
         preprocess_table_data=finess.preprocess_finess_data,
-    )
-
-
-def create_agence_bio_table():
-    create_and_fill_table_model(
-        table_name="agence_bio",
-        create_table_query=q_bio.create_table_agence_bio_query,
-        create_index_func=create_index,
-        index_name="index_agence_bio",
-        index_column="siret",
-        preprocess_table_data=bio.preprocess_agence_bio_data,
-    )
-    create_only_index(
-        table_name="agence_bio",
-        create_index_func=create_index,
-        index_name="index_siren_agence_bio",
-        index_column="siren",
     )
 
 

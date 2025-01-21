@@ -8,7 +8,7 @@ from airflow.operators.python import get_current_context
 
 from dag_datalake_sirene.config import DataSourceConfig
 from dag_datalake_sirene.helpers.minio_helpers import File, minio_client
-from dag_datalake_sirene.helpers import Notification
+from dag_datalake_sirene.helpers.notification import Notification
 from dag_datalake_sirene.helpers.datagouv import (
     fetch_last_resource_from_dataset,
     fetch_last_modified_date,

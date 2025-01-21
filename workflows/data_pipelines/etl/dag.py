@@ -2,10 +2,15 @@ from datetime import datetime, timedelta
 
 from airflow.decorators import dag, task
 from airflow.operators.python import PythonOperator
-from dag_datalake_sirene.helpers import Notification
+from dag_datalake_sirene.helpers import Notification, SqliteClient
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 from operators.clean_folder import CleanFolderOperator
+
+from dag_datalake_sirene.helpers.dwh_processor import DataWarehouseProcessor
+from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
+    AGENCE_BIO_CONFIG,
+)
 
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
@@ -24,7 +29,6 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_additional_data_tables import (
-    create_agence_bio_table,
     create_bilan_financier_table,
     create_colter_table,
     create_ess_table,
@@ -84,6 +88,7 @@ from dag_datalake_sirene.config import (
     AIRFLOW_DAG_FOLDER,
     AIRFLOW_ELK_DAG_NAME,
     EMAIL_LIST,
+    SIRENE_DATABASE_LOCATION,
 )
 
 
@@ -95,6 +100,7 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=10),
 }
+
 
 @dag(
     dag_id=AIRFLOW_ETL_DAG_NAME,
@@ -109,7 +115,7 @@ default_args = {
     on_success_callback=Notification.send_notification_tchap,
     max_active_runs=1,
 )
-def extract_transform_load_db():
+def datawarehouse_creation():
     clean_previous_folder = CleanFolderOperator(
         task_id="clean_previous_folder",
         folder_path=(f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ETL_DAG_NAME}"),
@@ -298,17 +304,31 @@ def extract_transform_load_db():
         python_callable=create_finess_table,
     )
 
-    create_agence_bio_table_task = PythonOperator(
-        task_id="create_agence_bio_table",
-        provide_context=True,
-        python_callable=create_agence_bio_table,
-    )
+    processor_list = [
+        DataWarehouseProcessor(AGENCE_BIO_CONFIG),
+    ]
+    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
+    tasks = []
+    for processor in processor_list:
+
+        @task(task_id=f"create_{processor.config.name}_table")
+        def create_table(**kwargs):
+            processor.etl_create_table(sqlite_client)
+
+        task_instance = create_table()
+        tasks.append(task_instance)
+
+    create_finess_table_task >> tasks[0]
+    for i in range(len(tasks) - 1):
+        tasks[i] >> tasks[i + 1]
 
     create_organisme_formation_table_task = PythonOperator(
         task_id="create_organisme_formation_table",
         provide_context=True,
         python_callable=create_organisme_formation_table,
     )
+
+    tasks[-1] >> create_organisme_formation_table_task
 
     create_uai_table_task = PythonOperator(
         task_id="create_uai_table",
@@ -373,22 +393,34 @@ def extract_transform_load_db():
     create_sqlite_database_task.set_upstream(clean_previous_folder)
 
     create_unite_legale_table_task.set_upstream(create_sqlite_database_task)
-    create_historique_unite_legale_table_task.set_upstream(create_unite_legale_table_task)
+    create_historique_unite_legale_table_task.set_upstream(
+        create_unite_legale_table_task
+    )
     create_date_fermeture_unite_legale_table_task.set_upstream(
         create_historique_unite_legale_table_task
     )
-    create_etablissement_table_task.set_upstream(create_date_fermeture_unite_legale_table_task)
+    create_etablissement_table_task.set_upstream(
+        create_date_fermeture_unite_legale_table_task
+    )
     create_flux_unite_legale_table_task.set_upstream(create_etablissement_table_task)
-    create_flux_etablissement_table_task.set_upstream(create_flux_unite_legale_table_task)
+    create_flux_etablissement_table_task.set_upstream(
+        create_flux_unite_legale_table_task
+    )
     replace_unite_legale_table_task.set_upstream(create_flux_etablissement_table_task)
-    insert_date_fermeture_unite_legale_task.set_upstream(replace_unite_legale_table_task)
-    replace_etablissement_table_task.set_upstream(insert_date_fermeture_unite_legale_task)
+    insert_date_fermeture_unite_legale_task.set_upstream(
+        replace_unite_legale_table_task
+    )
+    replace_etablissement_table_task.set_upstream(
+        insert_date_fermeture_unite_legale_task
+    )
     count_nombre_etablissement_task.set_upstream(replace_etablissement_table_task)
     count_nombre_etablissement_ouvert_task.set_upstream(count_nombre_etablissement_task)
     create_siege_table_task.set_upstream(count_nombre_etablissement_ouvert_task)
     replace_siege_table_task.set_upstream(create_siege_table_task)
     add_ancien_siege_flux_data_task.set_upstream(replace_siege_table_task)
-    create_historique_etablissement_table_task.set_upstream(add_ancien_siege_flux_data_task)
+    create_historique_etablissement_table_task.set_upstream(
+        add_ancien_siege_flux_data_task
+    )
     create_date_fermeture_etablissement_table_task.set_upstream(
         create_historique_etablissement_table_task
     )
@@ -405,11 +437,12 @@ def extract_transform_load_db():
     create_immatriculation_table_task.set_upstream(create_benef_table_task)
 
     create_bilan_financier_table_task.set_upstream(create_immatriculation_table_task)
-    create_convention_collective_table_task.set_upstream(create_bilan_financier_table_task)
+    create_convention_collective_table_task.set_upstream(
+        create_bilan_financier_table_task
+    )
     create_ess_table_task.set_upstream(create_convention_collective_table_task)
     create_rge_table_task.set_upstream(create_ess_table_task)
     create_finess_table_task.set_upstream(create_rge_table_task)
-    create_organisme_formation_table_task.set_upstream(create_agence_bio_table_task)
     create_uai_table_task.set_upstream(create_organisme_formation_table_task)
     create_spectacle_table_task.set_upstream(create_uai_table_task)
     create_egapro_table_task.set_upstream(create_spectacle_table_task)
@@ -423,4 +456,5 @@ def extract_transform_load_db():
 
     trigger_indexing_dag.set_upstream(clean_folder)
 
-extract_transform_load_db()
+
+datawarehouse_creation()
