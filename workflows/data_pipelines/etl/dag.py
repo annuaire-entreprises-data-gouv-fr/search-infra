@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 
 from airflow.decorators import dag, task
@@ -5,13 +6,10 @@ from airflow.operators.python import PythonOperator
 from dag_datalake_sirene.helpers import Notification, SqliteClient
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
-from operators.clean_folder import CleanFolderOperator
-
 from dag_datalake_sirene.helpers.dwh_processor import DataWarehouseProcessor
 from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
-
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_etablissements_tables import (
@@ -49,16 +47,9 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_dirig_pp_table,
     get_latest_rne_database,
 )
-
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_immatriculation_table import (
         create_immatriculation_table,
-)
-
-
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
-    create_sqlite_database import (
-    create_sqlite_database,
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_unite_legale_tables import (
@@ -83,12 +74,10 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.upload_db i
 
 
 from dag_datalake_sirene.config import (
-    AIRFLOW_DAG_TMP,
+    SIRENE_DATABASE_LOCATION,
     AIRFLOW_ETL_DAG_NAME,
-    AIRFLOW_DAG_FOLDER,
     AIRFLOW_ELK_DAG_NAME,
     EMAIL_LIST,
-    SIRENE_DATABASE_LOCATION,
 )
 
 
@@ -116,16 +105,10 @@ default_args = {
     max_active_runs=1,
 )
 def datawarehouse_creation():
-    clean_previous_folder = CleanFolderOperator(
-        task_id="clean_previous_folder",
-        folder_path=(f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ETL_DAG_NAME}"),
-    )
-
-    create_sqlite_database_task = PythonOperator(
-        task_id="create_sqlite_database",
-        provide_context=True,
-        python_callable=create_sqlite_database,
-    )
+    @task.bash
+    def clean_previous_tmp_folder() -> str:
+        db_folder_path = os.path.dirname(SIRENE_DATABASE_LOCATION)
+        return f"rm -rf {db_folder_path} && mkdir -p {db_folder_path}"
 
     create_unite_legale_table_task = PythonOperator(
         task_id="create_unite_legale_table",
@@ -378,10 +361,10 @@ def datawarehouse_creation():
         python_callable=create_data_source_last_modified_file,
     )
 
-    clean_folder = CleanFolderOperator(
-        task_id="clean_folder",
-        folder_path=(f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ETL_DAG_NAME}"),
-    )
+    @task.bash
+    def clean_current_tmp_folder() -> str:
+        db_folder_path = os.path.dirname(SIRENE_DATABASE_LOCATION)
+        return f"rm -rf {db_folder_path} && mkdir -p {db_folder_path}"
 
     trigger_indexing_dag = TriggerDagRunOperator(
         task_id="trigger_indexing_dag",
@@ -390,9 +373,8 @@ def datawarehouse_creation():
         deferrable=False,
     )
 
-    create_sqlite_database_task.set_upstream(clean_previous_folder)
+    clean_previous_tmp_folder() >> create_unite_legale_table_task
 
-    create_unite_legale_table_task.set_upstream(create_sqlite_database_task)
     create_historique_unite_legale_table_task.set_upstream(
         create_unite_legale_table_task
     )
@@ -452,9 +434,12 @@ def datawarehouse_creation():
 
     send_database_to_minio_task.set_upstream(create_marche_inclusion_table_task)
     create_data_source_last_modified_file_task.set_upstream(send_database_to_minio_task)
-    clean_folder.set_upstream(create_data_source_last_modified_file_task)
 
-    trigger_indexing_dag.set_upstream(clean_folder)
+    (
+        create_data_source_last_modified_file_task
+        >> clean_current_tmp_folder()
+        >> trigger_indexing_dag
+    )
 
 
 datawarehouse_creation()

@@ -1,14 +1,20 @@
 import logging
 import sqlite3
+import os
 
 
 class SqliteClient:
-    # Connect to database
     def __init__(self, db_location, timeout=30) -> None:
         self.db_location = db_location
+
+        # SQLite creates the database if it does not exist but not the parent folders
+        self.db_folder = os.path.dirname(self.db_location)
+        if not os.path.exists(self.db_folder):
+            os.makedirs(self.db_folder)
+
         self.db_conn = sqlite3.connect(self.db_location, timeout=timeout)
         logging.info(
-            f"*********** Connecting to database {self.db_location}! " f"***********"
+            f"*********** Connecting to database {self.db_location}! ***********"
         )
         self.db_cursor = self.db_conn.cursor()
 
