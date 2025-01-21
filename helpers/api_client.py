@@ -41,7 +41,7 @@ def retry_request(
                             sleep_time = backoff_factor * (2**retries)
                             logging.warning(
                                 f"Retryable error: {response.status_code}. "
-                                "Sleeping for {sleep_time} seconds..."
+                                f"Sleeping for {sleep_time} seconds..."
                             )
                             time.sleep(sleep_time)
                         case 500:
