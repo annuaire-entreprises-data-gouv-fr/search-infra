@@ -461,3 +461,16 @@ def simplify_date(datetime_str: str) -> str:
     if datetime_str is None:
         return None
     return datetime_str.split("T")[0]
+
+
+def download_file(download_url: str, destination_path: str) -> None:
+    logging.info(f"Downloading file from {download_url}..")
+
+    response = requests.get(download_url, stream=True)
+    response.raise_for_status()
+
+    with open(destination_path, "wb") as file:
+        for chunk in response.iter_content(chunk_size=1024):
+            file.write(chunk)
+
+    logging.info(f"..download successful! File located in {destination_path}.")
