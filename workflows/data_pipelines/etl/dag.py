@@ -3,13 +3,14 @@ from datetime import datetime, timedelta
 
 from airflow.decorators import dag, task
 from airflow.operators.python import PythonOperator
-from dag_datalake_sirene.helpers import Notification, SqliteClient
+from dag_datalake_sirene.helpers import Notification
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 from dag_datalake_sirene.helpers.dwh_processor import DataWarehouseProcessor
 from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
+
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_etablissements_tables import (
@@ -290,13 +291,12 @@ def datawarehouse_creation():
     processor_list = [
         DataWarehouseProcessor(AGENCE_BIO_CONFIG),
     ]
-    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
     tasks = []
     for processor in processor_list:
 
         @task(task_id=f"create_{processor.config.name}_table")
         def create_table(**kwargs):
-            processor.etl_create_table(sqlite_client)
+            processor.etl_create_table(SIRENE_DATABASE_LOCATION)
 
         task_instance = create_table()
         tasks.append(task_instance)
