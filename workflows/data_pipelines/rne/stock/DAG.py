@@ -1,71 +1,60 @@
-from airflow.models import DAG
-from datetime import timedelta, datetime
-from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonOperator
+from datetime import timedelta
+from airflow.utils.dates import days_ago
+from dag_datalake_sirene.helpers import Notification
 from dag_datalake_sirene.config import (
-    AIRFLOW_DAG_HOME,
     EMAIL_LIST,
-    RNE_DAG_FOLDER,
-    RNE_FTP_URL,
-    RNE_STOCK_TMP_FOLDER,
 )
-from dag_datalake_sirene.workflows.data_pipelines.rne.stock.task_functions import (
-    unzip_files_and_upload_minio,
-    send_notification_failure_tchap,
-    send_notification_success_tchap,
+
+from airflow.decorators import dag, task
+from dag_datalake_sirene.workflows.data_pipelines.rne.stock.processor import (
+    RneStockProcessor,
 )
+
 
 default_args = {
     "depends_on_past": False,
-    "email": EMAIL_LIST,
     "email_on_failure": True,
     "email_on_retry": False,
+    "email": EMAIL_LIST,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
 }
 
-with DAG(
-    dag_id="get_stock_rne",
+
+@dag(
+    tags=["rne", "stock", "download"],
     default_args=default_args,
-    start_date=datetime(2023, 10, 5),
-    catchup=False,
-    max_active_runs=1,
-    dagrun_timeout=timedelta(minutes=(60 * 18)),
-    on_failure_callback=send_notification_failure_tchap,
-    tags=["download", "rne", "stock"],
+    schedule_interval="0 16 * * *",
+    start_date=days_ago(8),
+    dagrun_timeout=timedelta(minutes=60 * 18),
     params={},
-) as dag:
-    clean_previous_outputs = BashOperator(
-        task_id="clean_previous_outputs",
-        bash_command=(
-            f"rm -rf {RNE_STOCK_TMP_FOLDER} && mkdir -p {RNE_STOCK_TMP_FOLDER}"
-        ),
+    catchup=False,
+    on_failure_callback=Notification.send_notification_tchap,
+    on_success_callback=Notification.send_notification_tchap,
+)
+def get_rne_stock():
+    rne_stock_processor = RneStockProcessor()
+
+    @task.bash
+    def clean_previous_outputs():
+        return f"rm -rf {rne_stock_processor.config.tmp_folder} && mkdir -p {rne_stock_processor.config.tmp_folder}"
+
+    @task
+    def get_rne_latest_stock():
+        rne_stock_processor.download_stock(
+            rne_stock_processor.config.files_to_download["ftp"]["url"]
+        )
+
+    @task
+    def unzip_files_and_upload_minio():
+        rne_stock_processor.send_stock_to_minio()
+
+    (
+        clean_previous_outputs()
+        >> get_rne_latest_stock()
+        >> unzip_files_and_upload_minio()
     )
 
-    get_rne_latest_stock = BashOperator(
-        task_id="get_latest_stock",
-        bash_command=(
-            f"{AIRFLOW_DAG_HOME}{RNE_DAG_FOLDER}rne/stock/get_stock.sh "
-            f"{RNE_STOCK_TMP_FOLDER} {RNE_FTP_URL} "
-        ),
-    )
 
-    unzip_files_and_upload_minio = PythonOperator(
-        task_id="unzip_files_and_upload_minio",
-        python_callable=unzip_files_and_upload_minio,
-    )
-
-    clean_outputs = BashOperator(
-        task_id="clean_outputs",
-        bash_command=f"rm -rf {RNE_STOCK_TMP_FOLDER}",
-    )
-
-    send_notification_tchap = PythonOperator(
-        task_id="send_notification_tchap",
-        python_callable=send_notification_success_tchap,
-    )
-
-    get_rne_latest_stock.set_upstream(clean_previous_outputs)
-    unzip_files_and_upload_minio.set_upstream(get_rne_latest_stock)
-    clean_outputs.set_upstream(unzip_files_and_upload_minio)
-    send_notification_tchap.set_upstream(clean_outputs)
+# Instantiate the DAG
+get_rne_stock()
