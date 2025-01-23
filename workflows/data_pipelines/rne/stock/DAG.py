@@ -17,6 +17,7 @@ default_args = {
     "email_on_retry": False,
     "email": EMAIL_LIST,
     "retries": 1,
+    "max_active_run": 1,
     "retry_delay": timedelta(minutes=5),
 }
 
