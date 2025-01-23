@@ -65,5 +65,6 @@ class RneStockProcessor(DataProcessor):
                     self.config.tmp_folder, file_info.filename
                 )
                 os.remove(extracted_file_path)
+        os.remove(zip_path)
 
         return sent_files
