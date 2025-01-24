@@ -19,11 +19,11 @@ class DataSourceConfig:
             - resource_id (str, optional): Data.gouv resource id
             - dataset_id (str, optional): Data.gouv dataset id (the most recent resource will be downloaded)
             - destination (str, optional): Local path where the downloaded file will be saved.
-        url_minio (str | None, optional): MinIO URL where the processed file will be stored. Defaults to None.
-        url_minio_metadata (str | None, optional): MinIO URL where the metadata file will be stored.  Defaults to None.
-        file_output (str | None, optional): Local file path of the output file. Defaults to None.
+        url_minio (str | None): MinIO URL where the processed file will be stored. Defaults to None.
+        url_minio_metadata (str | None): MinIO URL where the metadata file will be stored.  Defaults to None.
+        file_output (str | None): Local file path of the output file. Defaults to None.
         base_tmp_folder (str, optional): Base path for temporary folders. Defaults to "/tmp".
-        table_ddl (str | None, optional): SQL query to create the database table in the ETL DAG. Defaults to None.
+        table_ddl (str | None): SQL query to create the database table in the ETL DAG. Defaults to None.
 
     """
 
