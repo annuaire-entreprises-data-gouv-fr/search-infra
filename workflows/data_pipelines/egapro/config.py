@@ -18,4 +18,13 @@ EGAPRO_CONFIG = DataSourceConfig(
     },
     url_minio=f"{MINIO_BASE_URL}egapro/latest/egapro.csv",
     url_minio_metadata=f"{MINIO_BASE_URL}egapro/latest/metadata.json",
+    table_ddl="""
+        BEGIN;
+        CREATE TABLE IF NOT EXISTS egapro
+        (
+            siren TEXT PRIMARY KEY,
+            egapro_renseignee INTEGER
+        );
+        COMMIT;
+    """,
 )
