@@ -20,4 +20,14 @@ SPECTACLE_CONFIG = DataSourceConfig(
     url_minio=f"{MINIO_BASE_URL}spectacle/latest/spectacle.csv",
     url_minio_metadata=f"{MINIO_BASE_URL}spectacle/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/spectacle/spectacle.csv",
+    table_ddl="""
+        BEGIN;
+        CREATE TABLE IF NOT EXISTS spectacle
+        (
+            siren TEXT PRIMARY KEY,
+            est_entrepreneur_spectacle INTEGER,
+            statut_entrepreneur_spectacle TEXT
+        );
+        COMMIT;
+    """,
 )
