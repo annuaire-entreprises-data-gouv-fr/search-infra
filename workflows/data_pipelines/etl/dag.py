@@ -6,7 +6,7 @@ from airflow.operators.python import PythonOperator
 from dag_datalake_sirene.helpers import Notification
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
-from dag_datalake_sirene.helpers.dwh_processor import DataWarehouseProcessor
+from dag_datalake_sirene.helpers.database_constructor import DatabaseTableConstructor
 from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
@@ -105,7 +105,7 @@ default_args = {
     on_success_callback=Notification.send_notification_tchap,
     max_active_runs=1,
 )
-def datawarehouse_creation():
+def database_constructor():
     @task.bash
     def clean_previous_tmp_folder() -> str:
         db_folder_path = os.path.dirname(SIRENE_DATABASE_LOCATION)
@@ -289,7 +289,7 @@ def datawarehouse_creation():
     )
 
     processor_list = [
-        DataWarehouseProcessor(AGENCE_BIO_CONFIG),
+        DatabaseTableConstructor(AGENCE_BIO_CONFIG),
     ]
     tasks = []
     for processor in processor_list:
@@ -442,4 +442,4 @@ def datawarehouse_creation():
     )
 
 
-datawarehouse_creation()
+database_constructor()

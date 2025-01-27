@@ -5,7 +5,7 @@ from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 from dag_datalake_sirene.config import DataSourceConfig
 
 
-class DataWarehouseProcessor:
+class DatabaseTableConstructor:
     """
     Class for creating a SQLite data warehouse from all the preprocessed open data sources.
     """
