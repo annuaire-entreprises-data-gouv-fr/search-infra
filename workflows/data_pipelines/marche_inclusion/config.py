@@ -15,4 +15,15 @@ MARCHE_INCLUSION_CONFIG = DataSourceConfig(
     url_minio=f"{MINIO_BASE_URL}marche_inclusion/latest/stock_marche_inclusion.csv",
     url_minio_metadata=f"{MINIO_BASE_URL}marche_inclusion/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/marche_inclusion/stock_marche_inclusion.csv",
+    table_ddl="""
+        BEGIN;
+        CREATE TABLE IF NOT EXISTS marche_inclusion
+        (
+            siren TEXT PRIMARY KEY,
+            type_siae TEXT,
+            est_siae INTEGER
+
+        );
+        COMMIT;
+    """,
 )
