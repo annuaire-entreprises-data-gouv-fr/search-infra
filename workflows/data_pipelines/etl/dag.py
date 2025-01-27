@@ -10,6 +10,30 @@ from dag_datalake_sirene.helpers.database_constructor import DatabaseTableConstr
 from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
+from dag_datalake_sirene.workflows.data_pipelines.bilans_financiers.config import (
+    BILANS_FINANCIERS_CONFIG,
+)
+from dag_datalake_sirene.workflows.data_pipelines.colter.config import (
+    COLTER_CONFIG,
+    ELUS_CONFIG,
+)
+from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import ESS_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.rge.config import RGE_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.finess.config import FINESS_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.formation.config import (
+    FORMATION_CONFIG,
+)
+from dag_datalake_sirene.workflows.data_pipelines.spectacle.config import (
+    SPECTACLE_CONFIG,
+)
+from dag_datalake_sirene.workflows.data_pipelines.uai.config import UAI_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.convcollective.config import (
+    CONVENTION_COLLECTIVE_CONFIG,
+)
+from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.config import (
+    MARCHE_INCLUSION_CONFIG,
+)
 
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
@@ -25,21 +49,6 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     insert_date_fermeture_etablissement,
     replace_etablissement_table,
     replace_siege_table,
-)
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
-    create_additional_data_tables import (
-    create_bilan_financier_table,
-    create_colter_table,
-    create_ess_table,
-    create_rge_table,
-    create_finess_table,
-    create_egapro_table,
-    create_elu_table,
-    create_organisme_formation_table,
-    create_spectacle_table,
-    create_uai_table,
-    create_convention_collective_table,
-    create_marche_inclusion_table,
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_dirig_benef_tables import (
@@ -258,96 +267,30 @@ def database_constructor():
         python_callable=create_immatriculation_table,
     )
 
-    create_bilan_financier_table_task = PythonOperator(
-        task_id="create_bilan_financier_table",
-        provide_context=True,
-        python_callable=create_bilan_financier_table,
-    )
-
-    create_convention_collective_table_task = PythonOperator(
-        task_id="create_convention_collective_table",
-        provide_context=True,
-        python_callable=create_convention_collective_table,
-    )
-
-    create_ess_table_task = PythonOperator(
-        task_id="create_ess_table",
-        provide_context=True,
-        python_callable=create_ess_table,
-    )
-
-    create_rge_table_task = PythonOperator(
-        task_id="create_rge_table",
-        provide_context=True,
-        python_callable=create_rge_table,
-    )
-
-    create_finess_table_task = PythonOperator(
-        task_id="create_finess_table",
-        provide_context=True,
-        python_callable=create_finess_table,
-    )
-
-    processor_list = [
-        DatabaseTableConstructor(AGENCE_BIO_CONFIG),
+    config_list = [
+        AGENCE_BIO_CONFIG,
+        BILANS_FINANCIERS_CONFIG,
+        COLTER_CONFIG,
+        ELUS_CONFIG,
+        ESS_CONFIG,
+        RGE_CONFIG,
+        FINESS_CONFIG,
+        EGAPRO_CONFIG,
+        FORMATION_CONFIG,
+        SPECTACLE_CONFIG,
+        UAI_CONFIG,
+        CONVENTION_COLLECTIVE_CONFIG,
+        MARCHE_INCLUSION_CONFIG,
     ]
     tasks = []
-    for processor in processor_list:
+    for config in config_list:
 
-        @task(task_id=f"create_{processor.config.name}_table")
-        def create_table(**kwargs):
-            processor.etl_create_table(SIRENE_DATABASE_LOCATION)
+        @task(task_id=f"create_{config.name}_table")
+        def create_table(config=config) -> None:
+            DatabaseTableConstructor(config).etl_create_table(SIRENE_DATABASE_LOCATION)
 
         task_instance = create_table()
         tasks.append(task_instance)
-
-    create_finess_table_task >> tasks[0]
-    for i in range(len(tasks) - 1):
-        tasks[i] >> tasks[i + 1]
-
-    create_organisme_formation_table_task = PythonOperator(
-        task_id="create_organisme_formation_table",
-        provide_context=True,
-        python_callable=create_organisme_formation_table,
-    )
-
-    tasks[-1] >> create_organisme_formation_table_task
-
-    create_uai_table_task = PythonOperator(
-        task_id="create_uai_table",
-        provide_context=True,
-        python_callable=create_uai_table,
-    )
-
-    create_spectacle_table_task = PythonOperator(
-        task_id="create_spectacle_table",
-        provide_context=True,
-        python_callable=create_spectacle_table,
-    )
-
-    create_egapro_table_task = PythonOperator(
-        task_id="create_egapro_table",
-        provide_context=True,
-        python_callable=create_egapro_table,
-    )
-
-    create_elu_table_task = PythonOperator(
-        task_id="create_elu_table",
-        provide_context=True,
-        python_callable=create_elu_table,
-    )
-
-    create_colter_table_task = PythonOperator(
-        task_id="create_colter_table",
-        provide_context=True,
-        python_callable=create_colter_table,
-    )
-
-    create_marche_inclusion_table_task = PythonOperator(
-        task_id="create_marche_inclusion_table",
-        provide_context=True,
-        python_callable=create_marche_inclusion_table,
-    )
 
     send_database_to_minio_task = PythonOperator(
         task_id="upload_db_to_minio",
@@ -418,21 +361,12 @@ def database_constructor():
     create_benef_table_task.set_upstream(create_dirig_pm_table_task)
     create_immatriculation_table_task.set_upstream(create_benef_table_task)
 
-    create_bilan_financier_table_task.set_upstream(create_immatriculation_table_task)
-    create_convention_collective_table_task.set_upstream(
-        create_bilan_financier_table_task
-    )
-    create_ess_table_task.set_upstream(create_convention_collective_table_task)
-    create_rge_table_task.set_upstream(create_ess_table_task)
-    create_finess_table_task.set_upstream(create_rge_table_task)
-    create_uai_table_task.set_upstream(create_organisme_formation_table_task)
-    create_spectacle_table_task.set_upstream(create_uai_table_task)
-    create_egapro_table_task.set_upstream(create_spectacle_table_task)
-    create_colter_table_task.set_upstream(create_egapro_table_task)
-    create_elu_table_task.set_upstream(create_colter_table_task)
-    create_marche_inclusion_table_task.set_upstream(create_elu_table_task)
+    create_immatriculation_table_task >> tasks[0]
 
-    send_database_to_minio_task.set_upstream(create_marche_inclusion_table_task)
+    for i in range(len(tasks) - 1):
+        tasks[i] >> tasks[i + 1]
+    tasks[-1] >> send_database_to_minio_task
+
     create_data_source_last_modified_file_task.set_upstream(send_database_to_minio_task)
 
     (
