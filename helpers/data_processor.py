@@ -8,7 +8,7 @@ from airflow.operators.python import get_current_context
 
 from dag_datalake_sirene.config import DataSourceConfig
 from dag_datalake_sirene.helpers.minio_helpers import File, minio_client
-from dag_datalake_sirene.helpers import Notification
+from dag_datalake_sirene.helpers.notification import Notification
 from dag_datalake_sirene.helpers.datagouv import (
     fetch_last_resource_from_dataset,
     fetch_last_modified_date,
@@ -16,6 +16,7 @@ from dag_datalake_sirene.helpers.datagouv import (
 from dag_datalake_sirene.helpers.utils import (
     get_date_last_modified,
     save_to_metadata,
+    download_file,
 )
 
 
@@ -51,16 +52,8 @@ class DataProcessor(ABC):
                 else:
                     url = params["url"]
 
-                response = requests.get(url, stream=True)
-                response.raise_for_status()
+                download_file(url, params["destination"])
 
-                with open(params["destination"], "wb") as file:
-                    for chunk in response.iter_content(chunk_size=1024):
-                        file.write(chunk)
-
-                logging.info(
-                    f"{name} downloaded successfully from {url} to {params['destination']}."
-                )
             except (requests.exceptions.RequestException, ValueError):
                 error_message = f"Failed to download {name} from {params['url']}"
                 ti = get_current_context()["ti"]

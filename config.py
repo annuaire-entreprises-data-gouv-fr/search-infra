@@ -9,7 +9,7 @@ class DataSourceConfig:
     Configuration for a data source.
 
     Attributes:
-        name (str): Unique name of the data source.
+        name (str): Unique name of the data source. Also used as the table name in the database.
         tmp_folder (str): Local path folder for storing temporary and intermediate files.
         minio_path (str): Folder name in MinIO where files are stored.
         file_name (str): Name of the main file associated with the data source.
@@ -19,10 +19,11 @@ class DataSourceConfig:
             - resource_id (str, optional): Data.gouv resource id
             - dataset_id (str, optional): Data.gouv dataset id (the most recent resource will be downloaded)
             - destination (str, optional): Local path where the downloaded file will be saved.
-        url_minio (str | None, optional): MinIO URL where the processed file will be stored. Defaults to None.
-        url_minio_metadata (str | None, optional): MinIO URL where the metadata file will be stored.  Defaults to None.
-        file_output (str | None, optional): Local file path of the output file. Defaults to None.
+        url_minio (str | None): MinIO URL where the processed file will be stored. Defaults to None.
+        url_minio_metadata (str | None): MinIO URL where the metadata file will be stored.  Defaults to None.
+        file_output (str | None): Local file path of the output file. Defaults to None.
         base_tmp_folder (str, optional): Base path for temporary folders. Defaults to "/tmp".
+        table_ddl (str | None): SQL query to create the database table in the ETL DAG. Defaults to None.
 
     """
 
@@ -37,6 +38,7 @@ class DataSourceConfig:
     base_tmp_folder: str = "/tmp"
     url_api: str | None = None
     auth_api: str | None = None
+    table_ddl: str | None = None
 
 
 AIRFLOW_ENV = Variable.get("ENV", "dev")

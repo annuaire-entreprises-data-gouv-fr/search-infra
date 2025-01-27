@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, Literal
 
 import pandas as pd
 
@@ -17,6 +17,14 @@ from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
 class AgenceBioProcessor(DataProcessor):
     def __init__(self) -> None:
         super().__init__(AGENCE_BIO_CONFIG)
+
+    @staticmethod
+    def get_bio_status(status) -> Literal["valide"] | Literal["invalide"]:
+        if status:
+            clean_status = [s for s in status if str(s) != "nan"]
+            if "ENGAGEE" in clean_status:
+                return "valide"
+        return "invalide"
 
     def process_agence_bio_data(
         self, data: list[dict[str, Any]]
@@ -60,22 +68,27 @@ class AgenceBioProcessor(DataProcessor):
             items=[
                 "id_bio",
                 "siret",
-                "organisme",
                 "etatCertification",
-                "dateSuspension",
-                "dateArret",
-                "dateEngagement",
-                "dateNotification",
-                "url",
             ]
         ).rename(
             columns={
                 "etatCertification": "etat_certification",
-                "dateSuspension": "date_suspension",
-                "dateArret": "date_arret",
-                "dateEngagement": "date_engagement",
-                "dateNotification": "date_notification",
             }
+        )
+
+        df_cert = (
+            df_cert[df_cert["siret"].str.len() == 14]
+            .groupby("siret")
+            .agg(liste_id_bio=("id_bio", list), statut_bio=("etat_certification", list))
+            .reset_index()
+            .assign(
+                statut_bio=lambda df: df["statut_bio"].apply(
+                    lambda x: self.get_bio_status(x)
+                ),
+                liste_id_bio=lambda df: df["liste_id_bio"].astype(str),
+                siren=lambda df: df["siret"].str[:9],
+            )
+            .loc[lambda df: df["statut_bio"] == "valide"]
         )
 
         df_prod = df_prod.dropna(subset=["etatProductions"])
