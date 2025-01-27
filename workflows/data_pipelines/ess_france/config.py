@@ -18,4 +18,13 @@ ESS_CONFIG = DataSourceConfig(
     },
     url_minio=f"{MINIO_BASE_URL}ess/latest/ess.csv",
     url_minio_metadata=f"{MINIO_BASE_URL}ess/latest/metadata.json",
+    table_ddl="""
+        BEGIN;
+        CREATE TABLE IF NOT EXISTS ess_france
+        (
+            siren TEXT PRIMARY KEY,
+            est_ess_france INTEGER
+        );
+        COMMIT;
+    """,
 )
