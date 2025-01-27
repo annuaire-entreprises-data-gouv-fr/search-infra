@@ -27,11 +27,24 @@ COLTER_CONFIG = DataSourceConfig(
     url_minio=f"{MINIO_BASE_URL}colter/latest/colter.csv",
     url_minio_metadata=f"{MINIO_BASE_URL}colter/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/colter/colter.csv",
+    # No unique key in the data
+    table_ddl="""
+        BEGIN;
+        CREATE TABLE IF NOT EXISTS colter
+        (
+            siren TEXT,
+            colter_code TEXT,
+            colter_code_insee TEXT,
+            colter_niveau TEXT
+        );
+        CREATE INDEX idx_siren_colter ON colter (siren);
+        COMMIT;
+    """,
 )
 
 
 ELUS_CONFIG = DataSourceConfig(
-    name="colter_elus",
+    name="elus",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/colter_elus",
     minio_path="colter_elus",
     file_name="elus",
@@ -60,4 +73,19 @@ ELUS_CONFIG = DataSourceConfig(
     url_minio=f"{MINIO_BASE_URL}colter_elus/latest/elus.csv",
     url_minio_metadata=f"{MINIO_BASE_URL}colter_elus/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/colter_elus/elus.csv",
+    # No unique key in the data
+    table_ddl="""
+        BEGIN;
+        CREATE TABLE IF NOT EXISTS elus
+        (
+            siren TEXT,
+            nom TEXT,
+            prenom TEXT,
+            date_naissance TEXT,
+            sexe TEXT,
+            fonction TEXT
+        );
+        CREATE INDEX idx_siren_elus ON elus (siren);
+        COMMIT;
+    """,
 )
