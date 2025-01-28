@@ -19,7 +19,7 @@ AGENCE_BIO_CONFIG = DataSourceConfig(
             liste_id_bio,
             statut_bio
         );
-        CREATE INDEX idx_siren ON agence_bio (siren);
+        CREATE INDEX idx_siren_agence_bio ON agence_bio (siren);
         COMMIT;
     """,
 )
