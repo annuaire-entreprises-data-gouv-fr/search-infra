@@ -6,7 +6,6 @@ import requests
 from dag_datalake_sirene.config import (
     AIRFLOW_ETL_DATA_DIR,
     MINIO_DATA_SOURCE_UPDATE_DATES_FILE,
-    URL_MINIO_CONVENTION_COLLECTIVE_METADATA,
 )
 from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
 from dag_datalake_sirene.workflows.data_pipelines.finess.config import FINESS_CONFIG
@@ -41,6 +40,9 @@ from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
 from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.config import (
     MARCHE_INCLUSION_CONFIG,
 )
+from dag_datalake_sirene.workflows.data_pipelines.convcollective.config import (
+    CONVENTION_COLLECTIVE_CONFIG,
+)
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.helpers.utils import simplify_date
 
@@ -61,7 +63,7 @@ def create_data_source_last_modified_file(**kwargs):
         FINESS_CONFIG.url_minio_metadata: "finess",
         BILANS_FINANCIERS_CONFIG.url_minio_metadata: "bilan_financier",
         FORMATION_CONFIG.url_minio_metadata: "organisme_formation",
-        URL_MINIO_CONVENTION_COLLECTIVE_METADATA: "convention_collective",
+        CONVENTION_COLLECTIVE_CONFIG.url_minio_metadata: "convention_collective",
         MARCHE_INCLUSION_CONFIG.url_minio_metadata: "marche_inclusion",
     }
 

@@ -142,18 +142,7 @@ API_URL = Variable.get("API_URL", "")
 API_IS_REMOTE = Variable.get("API_IS_REMOTE", "False").lower() not in ["false", "0"]
 
 # Datasets
-RESOURCE_ID_CONVENTION_COLLECTIVE = "a22e54f7-b937-4483-9a72-aad2ea1316f1"
-URL_CONVENTION_COLLECTIVE = (
-    f"https://www.data.gouv.fr/fr/datasets/r/{RESOURCE_ID_CONVENTION_COLLECTIVE}"
-)
-URL_MINIO_CONVENTION_COLLECTIVE = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/convention_collective"
-    "/latest/cc.csv"
-)
-URL_MINIO_CONVENTION_COLLECTIVE_METADATA = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/convention_collective"
-    "/latest/metadata.json"
-)
+
 URL_STOCK_ETABLISSEMENTS = "https://files.data.gouv.fr/geo-sirene/last/dep/geo_siret"
 URL_CC_DARES = "https://travail-emploi.gouv.fr/sites/travail-emploi/files"
 # Caution: DARES file is case sensitive or returns 404
