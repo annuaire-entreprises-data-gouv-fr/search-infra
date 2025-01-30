@@ -20,8 +20,10 @@ class EgaproProcessor(DataProcessor):
         df_egapro = df_egapro.rename(columns={"SIREN": "siren"})
         df_egapro.to_csv(f"{self.config.tmp_folder}/egapro.csv", index=False)
 
-        DataProcessor.push_unique_count(
-            df_egapro["siren"], Notification.notification_xcom_key, "unités légales"
+        DataProcessor.push_message(
+            Notification.notification_xcom_key,
+            column=df_egapro["siren"],
+            description="unités légales",
         )
 
         del df_egapro

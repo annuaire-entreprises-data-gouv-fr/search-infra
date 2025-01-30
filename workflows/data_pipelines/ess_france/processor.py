@@ -17,7 +17,9 @@ class EssFranceProcessor(DataProcessor):
 
         df_ess.to_csv(f"{self.config.tmp_folder}/ess.csv", index=False)
 
-        DataProcessor.push_unique_count(
-            df_ess["siren"], Notification.notification_xcom_key, "unités légales"
+        DataProcessor.push_message(
+            Notification.notification_xcom_key,
+            column=df_ess["siren"],
+            description="unités légales",
         )
         del df_ess

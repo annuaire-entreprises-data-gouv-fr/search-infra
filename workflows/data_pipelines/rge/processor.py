@@ -51,8 +51,10 @@ class RgeProcessor(DataProcessor):
         df_list_rge["liste_rge"] = df_list_rge["liste_rge"].astype(str)
 
         df_list_rge.to_csv(f"{self.config.tmp_folder}/rge.csv", index=False)
-        DataProcessor.push_unique_count(
-            df_list_rge["siret"], Notification.notification_xcom_key, "établissements"
+        DataProcessor.push_message(
+            Notification.notification_xcom_key,
+            column=df_list_rge["siret"],
+            description="établissements",
         )
 
         del df_rge

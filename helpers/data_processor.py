@@ -70,23 +70,31 @@ class DataProcessor(ABC):
         pass
 
     @staticmethod
-    def push_unique_count(column, xcom_key, description=None):
+    def push_message(xcom_key, column=None, description: str = ""):
         """
-        Counts unique values in the specified column and pushes the count to XCom.
-        If description is None, defaults to the column name.
+        Pushes a message to XCom.
+        If a column is provided, it sends the unique count of values in that column as a message.
+        Otherwise, it sends the provided description directly.
 
         Args:
-            column (pd.Series): The Dataframe column to count unique values from.
-            xcom_key (str): The key to use for pushing the count to XCom.
-            description (str): The description to append next to the count.
+            xcom_key (str): XCom key to use.
+            column (pd.Series | None, optional): The DataFrame column to count unique values from. Defaults to None.
+            description (str, optional): Description to append next to the count or the message to send if no column is provided. Defaults to an empty string.
+
+        Returns:
+            None
         """
-        unique_count = column.nunique()
-        unique_count_str = (
-            f"{unique_count} {description if description else column.name}"
-        )
+        if not column and not description:
+            raise ValueError(
+                "DataProcessor.push_message() requires at least a Dataframe column or a non empty description as argument."
+            )
+        if column:
+            metric = column.nunique()
+            description = f"{metric} {column.name} {description}"
+
         ti = get_current_context()["ti"]
-        ti.xcom_push(key=xcom_key, value=unique_count_str)
-        logging.info(f"Processed {unique_count_str} unique values for {xcom_key}.")
+        ti.xcom_push(key=xcom_key, value=description)
+        logging.info(f"Pushed notification: {description}")
 
     def save_date_last_modified(self) -> None:
         """Saves the last modified date for a resource or URL to a metadata file.
