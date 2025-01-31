@@ -137,7 +137,7 @@ def process_ul_chunk(chunk):
     )
 
     chunk["est_service_public"] = chunk.apply(
-        lambda row: is_service_public(row["nature_juridique"], row["siren"]), axis=1
+        lambda row: is_service_public(row["nature_juridique"]), axis=1
     )
 
     return chunk
@@ -354,8 +354,8 @@ def publish_data(**kwargs):
 
 
 def notification_tchap(ti):
-    send_message("\U0001F7E2 Fichiers mis à jour sur DataGouv.")
+    send_message("\U0001f7e2 Fichiers mis à jour sur DataGouv.")
 
 
 def send_notification_failure_tchap(context):
-    send_message("\U0001F534 Données :" "\nFail DAG de publication sur Data.gouv!!!!")
+    send_message("\U0001f534 Données :" "\nFail DAG de publication sur Data.gouv!!!!")
