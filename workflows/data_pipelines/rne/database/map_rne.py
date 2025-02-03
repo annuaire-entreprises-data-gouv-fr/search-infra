@@ -63,6 +63,19 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     unite_legale.immatriculation.nature_entreprise = get_nature_entreprise_list(
         rne_company
     )
+    unite_legale.immatriculation.description_detaillee = (
+        get_description_detaillee_activite_list(rne_company)
+    )
+
+    unite_legale.micro_entreprise = (
+        rne_company.formality.content.natureCreation.microEntreprise
+    )
+    unite_legale.eirl = rne_company.formality.content.natureCreation.eirl
+    unite_legale.regime_micro_social = get_regime_micro_social(rne_company)
+    unite_legale.indicateur_artiste_auteur = get_indicateur_artiste_auteur(rne_company)
+    unite_legale.indicateur_marin_professionnel = get_indicateur_marin_professionnel(
+        rne_company
+    )
 
     company_address = get_adresse(rne_company)
     unite_legale.adresse = map_address_rne_to_ul(company_address)
@@ -131,6 +144,49 @@ def get_nature_entreprise_list(rne_company: "RNECompany") -> list[str] | None:
 
     # Return the list of nature_entreprise or None if it's empty
     return list(nature_entreprise) if nature_entreprise else None
+
+
+def get_indicateur_status(rne_company: "RNECompany", indicateur_name: str) -> bool:
+    def has_indicateur(etablissement):
+        if hasattr(etablissement, "activites"):
+            return any(
+                getattr(activite, indicateur_name, False)
+                for activite in etablissement.activites
+            )
+        return False
+
+    etablissements = [get_siege(rne_company)] + (get_etablissements(rne_company) or [])
+    return any(has_indicateur(etablissement) for etablissement in etablissements)
+
+
+def get_indicateur_artiste_auteur(rne_company: "RNECompany") -> bool:
+    return get_indicateur_status(rne_company, "indicateurArtisteAuteur")
+
+
+def get_indicateur_marin_professionnel(rne_company: "RNECompany") -> bool:
+    return get_indicateur_status(rne_company, "indicateurMarinProfessionnel")
+
+
+def get_description_detaillee_activite_list(
+    rne_company: "RNECompany",
+) -> list[str] | None:
+    description_detaillee = set()
+
+    def extract_descriptions(etablissement):
+        if hasattr(etablissement, "activites"):
+            for activite in etablissement.activites:
+                description = getattr(activite, "descriptionDetaillee", None)
+                if description:
+                    description_detaillee.add(description)
+
+    # Check the main establishment
+    extract_descriptions(get_siege(rne_company))
+
+    # Check other establishments
+    for etablissement in get_etablissements(rne_company) or []:
+        extract_descriptions(etablissement)
+
+    return list(description_detaillee) or None
 
 
 def get_etablissements(rne_company: "RNECompany"):
@@ -210,6 +266,18 @@ def get_dirigeants(rne_company: RNECompany):
 def get_beneficiaires(rne_company: RNECompany):
     beneficiaires = get_value(rne_company, "beneficiairesEffectifs", None)
     return beneficiaires
+
+
+def get_regime_micro_social(rne_company: RNECompany):
+    if rne_company.is_personne_physique():
+        identite = getattr(rne_company, "identite", None)
+        if identite:
+            entrepreneur = getattr(identite, "entrepreneur", None)
+            if entrepreneur:
+                regime_micro_social = getattr(entrepreneur, "regimeMicroSocial", None)
+                if regime_micro_social:
+                    return getattr(regime_micro_social, "optionMicroSocial", None)
+    return None
 
 
 def map_address_rne_to_ul(address_rne):
