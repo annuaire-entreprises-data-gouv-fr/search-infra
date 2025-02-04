@@ -7,8 +7,9 @@ import gzip
 import re
 import json
 import pandas as pd
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from pathlib import Path
+from typing import Literal
 
 from unicodedata import normalize
 from dag_datalake_sirene.config import AIRFLOW_ENV
@@ -190,6 +191,58 @@ def get_current_year():
 def get_fiscal_year(date):
     # Get the fiscal year based on the month of the date
     return date.year if date.month >= 7 else date.year - 1
+
+
+def get_previous_months(
+    lookback: int = 12,
+    starting_date: date = date.today(),
+    string_format: bool = True,
+    period_type: Literal["year", "month", "day"] = "month",
+    step: int = 1,
+) -> list[str] | list[date]:
+    """
+    Generate a list of continuous periods (months, years, weeks, or days)
+    starting from a given date.
+
+    Args:
+        lookback (int): The number of previous periods to include in the list.
+        starting_date (date): The starting date from which to calculate the previous periods.
+        string_format (bool): If True outputs a list of string, otherwise dates. Default to True.
+        period_type (Literal["year", "month", "day"]): The type of period to calculate.
+            Defaults to "month".
+        step (int): Step between each period. Default is 1.
+
+    Returns:
+        list[str | date]: A descending ordered list of strings or date of the previous periods.
+    """
+
+    _formats = {
+        "year": "%Y",
+        "month": "%Y-%m",
+        "day": "%Y-%m-%d",
+    }
+    _time_delta = {
+        "year": ({"day": 1, "month": 1}, {"days": 1}),
+        "month": ({"day": 1}, {"days": 1}),
+        "day": ({"hour": 0}, {"hours": 1}),
+    }
+
+    periods = [starting_date]
+
+    for _ in range(lookback * step):
+        period = periods[-1].replace(**_time_delta[period_type][0]) - timedelta(
+            **_time_delta[period_type][1]
+        )
+        periods.append(period)
+
+    if string_format:
+        return [
+            period.strftime(_formats[period_type])
+            for i, period in enumerate(periods)
+            if i % step == 0
+        ]
+
+    return periods
 
 
 def remove_spaces(string):
