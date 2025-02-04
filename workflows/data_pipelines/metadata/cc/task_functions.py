@@ -4,7 +4,6 @@ from datetime import datetime
 
 import pandas as pd
 import requests
-from airflow.decorators import task
 from airflow.operators.python import get_current_context
 from requests.exceptions import HTTPError
 
@@ -17,13 +16,14 @@ from dag_datalake_sirene.config import (
 )
 from dag_datalake_sirene.helpers.minio_helpers import File, minio_client
 from dag_datalake_sirene.helpers.notification import Notification
+from dag_datalake_sirene.helpers.utils import get_previous_months
 
 
 def get_month_year_french():
     # Mapping of month numbers to French month names in lowercase
     month_mapping = {
         1: "janvier",
-        2: "fevrier",
+        2: "février",
         3: "mars",
         4: "avril",
         5: "mai",
@@ -33,7 +33,7 @@ def get_month_year_french():
         9: "septembre",
         10: "octobre",
         11: "novembre",
-        12: "decembre",
+        12: "décembre",
     }
 
     current_date = datetime.now()
@@ -46,18 +46,42 @@ def get_month_year_french():
     return result
 
 
-@task()
-def create_metadata_concollective_json():
+def is_metadata_not_updated() -> bool:
+    last_run_date = minio_client.get_date_last_modified(
+        f"{METADATA_CC_MINIO_PATH}cc_kali.json"
+    )
+    if last_run_date is not None:
+        last_run_date = datetime.fromisoformat(last_run_date)
+        if (
+            last_run_date.month == datetime.now().month
+            and last_run_date.year == datetime.now().year
+        ):
+            logging.info("Metadata was already updated for the current month.")
+            return False
+        else:
+            logging.info("Metadata needs to be updated for the current month.")
+            return True
+
+    return True
+
+
+def create_metadata_convention_collective_json():
     context = get_current_context()
     ti = context["ti"]
 
     current_cc_dares_file = f"{FILE_CC_DATE}{get_month_year_french()}.xlsx"
-    current_url_cc_dares = (
-        f"{URL_CC_DARES}/{datetime.now().strftime('%Y-%m')}/{current_cc_dares_file}"
-    )
-    logging.info(f"Current CC Dares URL: {current_url_cc_dares}")
+    months = get_previous_months(lookback=3)
+    logging.info(months)
+    # We try to fetch the file from previous folder months because sometimes
+    # the file is not uploaded to the right folder
+    for month in months:
+        current_url_cc_dares = f"{URL_CC_DARES}/{month}/{current_cc_dares_file}"
+        logging.info(f"CC Dares URL: {current_url_cc_dares}")
 
-    r = requests.get(current_url_cc_dares, allow_redirects=True)
+        r = requests.get(current_url_cc_dares, allow_redirects=True)
+        if r.ok:
+            break
+
     if not r.ok:
         # The file is often unavailable, this is expected but
         # we need to be informed to act upon it if it has been too long
@@ -126,11 +150,7 @@ def create_metadata_concollective_json():
         json.dump(metadata_json, json_file)
 
 
-@task()
 def upload_json_to_minio():
-    context = get_current_context()
-    ti = context["ti"]
-
     minio_client.send_files(
         list_files=[
             File(
