@@ -258,7 +258,8 @@ def process_unites_legales(chunk_unites_legales_sqlite):
 
         # Service public
         unite_legale_processed["est_service_public"] = is_service_public(
-            unite_legale["nature_juridique_unite_legale"]
+            unite_legale["nature_juridique_unite_legale"],
+            unite_legale_processed["siren"],
         )
 
         # Produits catégorie/nombre étabs
