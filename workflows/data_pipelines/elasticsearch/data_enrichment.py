@@ -35,6 +35,7 @@ mapping_dep_to_reg = load_file("dep_to_reg.json")
 mapping_role_dirigeants = load_file("roles_dirigeants.json")
 mapping_commune_to_epci = load_file("epci.json")
 nature_juridique_service_public = set(load_file("nature_juridique_service_public.json"))
+service_public_whitelist = set(load_file("service_public_whitelist.json"))
 
 
 # Nom complet
@@ -153,21 +154,22 @@ def is_ess(est_ess_france, ess_insee):
 
 
 # Administration
-def is_service_public(nature_juridique_unite_legale: str) -> bool:
+def is_service_public(nature_juridique_unite_legale: str, siren: str) -> bool:
     """
-    Determine if a given entity is classified as an `administration`.
+    Determine if a given entity is classified as a public service.
 
     Parameters:
     - nature_juridique_unite_legale (str): The legal nature of the entity.
+    - siren (str): The SIREN number of the entity.
 
     Returns:
-    - bool: True if entity's nature juridique matches the list.
+    - bool: True if the entity is classified as a public service,
             False otherwise.
     """
     is_administration = (
         nature_juridique_unite_legale is not None
         and nature_juridique_unite_legale in nature_juridique_service_public
-    )
+    ) or siren in service_public_whitelist
 
     return is_administration
 
@@ -483,12 +485,13 @@ def format_etablissements_and_complements(
             etablissement["departement"]
         )
         if etablissement["latitude"] is None or etablissement["longitude"] is None:
-            etablissement["latitude"], etablissement["longitude"] = (
-                transform_coordinates(
-                    etablissement["departement"],
-                    etablissement["x"],
-                    etablissement["y"],
-                )
+            (
+                etablissement["latitude"],
+                etablissement["longitude"],
+            ) = transform_coordinates(
+                etablissement["departement"],
+                etablissement["x"],
+                etablissement["y"],
             )
         etablissement["ancien_siege"] = sqlite_str_to_bool(
             etablissement["ancien_siege"]
