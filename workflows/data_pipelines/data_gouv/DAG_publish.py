@@ -4,8 +4,9 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator, ShortCircuitOperator
 from dag_datalake_sirene.workflows.data_pipelines.data_gouv.task_functions import (
     get_latest_database,
+    fill_administration_file,
     fill_ul_file,
-    upload_ul_to_minio,
+    upload_ul_and_admin_to_minio,
     fill_etab_file,
     upload_etab_to_minio,
     publish_data,
@@ -45,7 +46,6 @@ with DAG(
     on_failure_callback=send_notification_failure_tchap,
     max_active_runs=1,
 ) as dag:
-
     check_if_prod = ShortCircuitOperator(
         task_id="check_if_prod", python_callable=check_if_prod
     )
@@ -66,9 +66,14 @@ with DAG(
         python_callable=fill_ul_file,
     )
 
+    fill_administration_file = PythonOperator(
+        task_id="fill_administration_file",
+        python_callable=fill_administration_file,
+    )
+
     upload_ul_to_minio = PythonOperator(
         task_id="upload_ul_to_minio",
-        python_callable=upload_ul_to_minio,
+        python_callable=upload_ul_and_admin_to_minio,
     )
     fill_etab_file = PythonOperator(
         task_id="fill_etab_file",
@@ -79,6 +84,7 @@ with DAG(
         task_id="upload_etab_to_minio",
         python_callable=upload_etab_to_minio,
     )
+
     publish_files = PythonOperator(
         task_id="publish_data",
         python_callable=publish_data,
@@ -94,7 +100,8 @@ with DAG(
     clean_previous_folder.set_upstream(check_if_prod)
     get_latest_sqlite_database.set_upstream(clean_previous_folder)
     fill_ul_file.set_upstream(get_latest_sqlite_database)
-    upload_ul_to_minio.set_upstream(fill_ul_file)
+    fill_administration_file.set_upstream(fill_ul_file)
+    upload_ul_to_minio.set_upstream(fill_administration_file)
     fill_etab_file.set_upstream(upload_ul_to_minio)
     upload_etab_to_minio.set_upstream(fill_etab_file)
     publish_files.set_upstream(upload_etab_to_minio)
