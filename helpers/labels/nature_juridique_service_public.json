@@ -1,4 +1,8 @@
 {
+    "4110": "Établissement public national à caractère industriel ou commercial doté d'un comptable public ",
+    "4120": "Établissement public national à caractère industriel ou commercial non doté d'un comptable public ",
+    "4140": "Établissement public local à caractère industriel ou commercial ",
+    "4150": "Régie d'une collectivité locale à caractère industriel ou commercial ",
     "4160": "Institution Banque de France",
     "5430": "SARL d'aménagement foncier et déquipement rural (SAFER)",
     "5530": "SA d'aménagement foncier et d'équipement rural (SAFER) à conseil d'administration",
@@ -55,6 +59,7 @@
     "7384": "Autre établissement public national d'enseignement",
     "7385": "Autre établissement public national administratif à compétence territoriale limitée",
     "7389": "Établissement public national à caractère administratif",
+    "7410": "Groupement d'intérêt public (GIP) ",
     "7430": "Établissement public des cultes d'Alsace-Lorraine",
     "7450": "Etablissement public administratif,  cercle et foyer dans les armées",
     "7470": "Groupement de coopération sanitaire à gestion publique",
