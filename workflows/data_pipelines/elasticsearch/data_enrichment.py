@@ -36,6 +36,7 @@ mapping_role_dirigeants = load_file("roles_dirigeants.json")
 mapping_commune_to_epci = load_file("epci.json")
 nature_juridique_service_public = set(load_file("nature_juridique_service_public.json"))
 service_public_whitelist = set(load_file("service_public_whitelist.json"))
+service_public_blacklist = set(load_file("service_public_blacklist.json"))
 
 
 # Nom complet
@@ -154,24 +155,41 @@ def is_ess(est_ess_france, ess_insee):
 
 
 # Administration
-def is_service_public(nature_juridique_unite_legale: str, siren: str) -> bool:
+def is_service_public(
+    nature_juridique_unite_legale: str, siren: str, etat_administratif: str
+) -> bool:
     """
     Determine if a given entity is classified as a public service.
 
-    Parameters:
-    - nature_juridique_unite_legale (str): The legal nature of the entity.
-    - siren (str): The SIREN number of the entity.
+    Args:
+        nature_juridique_unite_legale (str): The legal nature code of the entity
+        siren (str): The SIREN identification number of the entity
+        etat_administratif (str): Administrative status of the entity ('A' for active, 'C' for closed)
 
     Returns:
-    - bool: True if the entity is classified as a public service,
-            False otherwise.
-    """
-    is_administration = (
-        nature_juridique_unite_legale is not None
-        and nature_juridique_unite_legale in nature_juridique_service_public
-    ) or siren in service_public_whitelist
+        bool: True if the entity is classified as a public service, False otherwise
 
-    return is_administration
+    Notes:
+        - Entities in the service_public_blacklist are never considered public services
+        - Closed entities (etat_administratif == 'C') are never considered public services
+        - Entities are considered public services if either:
+          1. Their legal nature code is in nature_juridique_service_public, or
+          2. Their SIREN is in service_public_whitelist
+    """
+    # Check blacklist first
+    if siren in service_public_blacklist:
+        return False
+
+    # Closed entities are not considered public services
+    if etat_administratif == "C":
+        return False
+
+    # Check if entity is in whitelist or has a public service legal nature code
+    return (
+        (nature_juridique_unite_legale in nature_juridique_service_public)
+        if nature_juridique_unite_legale is not None
+        else False
+    ) or siren in service_public_whitelist
 
 
 # Association
