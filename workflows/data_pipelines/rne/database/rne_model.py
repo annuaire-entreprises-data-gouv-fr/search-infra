@@ -99,8 +99,17 @@ class DescriptionEtablissement(BaseModel):
 
 
 class Activite(BaseModel):
-    formeExercice: str | None = None
+    categoryCode: str | None = None
     indicateurPrincipal: bool | None = None
+    indicateurProlongement: bool | None = None
+    dateDebut: date | None = None
+    formeExercice: str | None = None
+    categorisationActivite1: str | None = None
+    categorisationActivite2: str | None = None
+    categorisationActivite3: str | None = None
+    indicateurActiviteeApe: bool | None = None
+    codeApe: str | None = None
+    activiteRattacheeEirl: bool | None = None
 
 
 class EtablissementPrincipal(BaseModel):
