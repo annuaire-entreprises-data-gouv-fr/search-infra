@@ -66,11 +66,32 @@ class Beneficiaire(BaseModel):
     situation_matrimoniale: str | None = None
 
 
+class Activite(BaseModel):
+    siret: str | None = None
+    code_category: str | None = None
+    indicateur_principal: bool | None = None
+    indicateur_prolongement: bool | None = None
+    date_debut: date | None = None
+    form_exercice: str | None = None
+    categorisation_activite1: str | None = None
+    categorisation_activite2: str | None = None
+    categorisation_activite3: str | None = None
+    indicateur_activitee_ape: bool | None = None
+    code_ape: str | None = None
+    activite_rattachee_eirl: bool | None = None
+
+
 class Siege(BaseModel):
     siret: str | None = None
     adresse: Adresse | None = Adresse()
     enseigne: str | None = None
     nom_commercial: str | None = None
+    activites: list[Activite] | None = None
+
+
+class Etablissement(BaseModel):
+    siret: str | None = None
+    activites: list[Activite] | None = None
 
 
 class UniteLegale(BaseModel):
@@ -93,6 +114,7 @@ class UniteLegale(BaseModel):
     dirigeants: list[DirigeantsPP | DirigeantsPM] | None = None
     siege: Siege | None = Siege()
     immatriculation: Immatriculation | None = Immatriculation()
+    etablissements: list[Etablissement] | None = None
     beneficiaires: list[Beneficiaire] | None = None
 
     def get_dirigeants_list(self):
