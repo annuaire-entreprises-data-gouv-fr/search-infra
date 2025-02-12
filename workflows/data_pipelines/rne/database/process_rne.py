@@ -134,6 +134,39 @@ def create_tables(cursor):
         )
     """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS etablissement
+        (
+            siren TEXT,
+            siret TEXT,
+            date_mise_a_jour DATE,
+            file_name TEXT
+        )
+    """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS activite
+        (
+            siren TEXT,
+            siret TEXT,
+            code_category TEXT,
+            indicateur_principal BOOLEAN,
+            indicateur_prolongement BOOLEAN,
+            date_debut DATE,
+            form_exercice TEXT,
+            categorisation_activite1 TEXT,
+            categorisation_activite2 TEXT,
+            categorisation_activite3 TEXT,
+            indicateur_activitee_ape BOOLEAN,
+            code_ape TEXT,
+            activite_rattachee_eirl BOOLEAN,
+            date_mise_a_jour DATE,
+            file_name TEXT
+        )
+    """
+    )
 
     create_index_db(cursor)
 
@@ -165,6 +198,16 @@ def create_index_db(cursor):
         ON immatriculation (siren, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_siren_bene_file_name
         ON beneficiaire (siren, file_name);""",
+        "CREATE INDEX IF NOT EXISTS idx_siren_etab_other ON etablissement (siren);",
+        "CREATE INDEX IF NOT EXISTS idx_siret_etab_other ON etablissement (siret);",
+        "CREATE INDEX IF NOT EXISTS idx_siren_activite ON activite (siren);",
+        "CREATE INDEX IF NOT EXISTS idx_siret_activite ON activite (siret);",
+        """CREATE INDEX IF NOT EXISTS idx_etab_other_siren_file_name
+        ON etablissement (siren, file_name);""",
+        """CREATE INDEX IF NOT EXISTS idx_etab_other_siret_file_name
+        ON etablissement (siret, file_name);""",
+        """CREATE INDEX IF NOT EXISTS idx_activite_siren_file_name
+        ON activite (siren, file_name);""",
     ]
 
     for statement in index_statements:
@@ -247,6 +290,8 @@ def find_and_delete_same_siren(cursor, siren, file_path):
         "siege",
         "immatriculation",
         "beneficiaire",
+        "etablissement",
+        "activite",
     ]
 
     for table in tables:
@@ -360,6 +405,118 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 file_path,
             ),
         )
+        # Insert siege activities if they exist
+        if siege and siege.activites:
+            for activite in siege.activites:
+                # Define the columns for the activite table
+                activite_columns = [
+                    "siren",
+                    "siret",
+                    "code_category",
+                    "indicateur_principal",
+                    "indicateur_prolongement",
+                    "date_debut",
+                    "form_exercice",
+                    "categorisation_activite1",
+                    "categorisation_activite2",
+                    "categorisation_activite3",
+                    "indicateur_activitee_ape",
+                    "code_ape",
+                    "activite_rattachee_eirl",
+                    "date_mise_a_jour",
+                    "file_name",
+                ]
+                cursor.execute(
+                    f"""
+                    INSERT INTO activite ({', '.join(activite_columns)})
+                    VALUES ({', '.join(['?'] * len(activite_columns))})
+                    """,
+                    (
+                        unite_legale.siren,
+                        siege.siret,
+                        activite.code_category,
+                        activite.indicateur_principal,
+                        activite.indicateur_prolongement,
+                        activite.date_debut,
+                        activite.form_exercice,
+                        activite.categorisation_activite1,
+                        activite.categorisation_activite2,
+                        activite.categorisation_activite3,
+                        activite.indicateur_activitee_ape,
+                        activite.code_ape,
+                        activite.activite_rattachee_eirl,
+                        unite_legale.date_mise_a_jour,
+                        file_path,
+                    ),
+                )
+
+        # Insert etablissements and their activities
+        if unite_legale.etablissements:
+            for etablissement in unite_legale.etablissements:
+                # Define the columns for the etablissement table
+                etablissement_columns = [
+                    "siren",
+                    "siret",
+                    "date_mise_a_jour",
+                    "file_name",
+                ]
+                cursor.execute(
+                    f"""
+                    INSERT INTO etablissement ({', '.join(etablissement_columns)})
+                    VALUES ({', '.join(['?'] * len(etablissement_columns))})
+                    """,
+                    (
+                        unite_legale.siren,
+                        etablissement.siret,
+                        unite_legale.date_mise_a_jour,
+                        file_path,
+                    ),
+                )
+
+                # Insert activites for this etablissement
+                if etablissement.activites:
+                    for activite in etablissement.activites:
+                        # Define the columns for the activite table
+                        activite_columns = [
+                            "siren",
+                            "siret",
+                            "code_category",
+                            "indicateur_principal",
+                            "indicateur_prolongement",
+                            "date_debut",
+                            "form_exercice",
+                            "categorisation_activite1",
+                            "categorisation_activite2",
+                            "categorisation_activite3",
+                            "indicateur_activitee_ape",
+                            "code_ape",
+                            "activite_rattachee_eirl",
+                            "date_mise_a_jour",
+                            "file_name",
+                        ]
+                        cursor.execute(
+                            f"""
+                            INSERT INTO activite ({', '.join(activite_columns)})
+                            VALUES ({', '.join(['?'] * len(activite_columns))})
+                            """,
+                            (
+                                unite_legale.siren,
+                                etablissement.siret,
+                                activite.code_category,
+                                activite.indicateur_principal,
+                                activite.indicateur_prolongement,
+                                activite.date_debut,
+                                activite.form_exercice,
+                                activite.categorisation_activite1,
+                                activite.categorisation_activite2,
+                                activite.categorisation_activite3,
+                                activite.indicateur_activitee_ape,
+                                activite.code_ape,
+                                activite.activite_rattachee_eirl,
+                                unite_legale.date_mise_a_jour,
+                                file_path,
+                            ),
+                        )
 
         list_dirigeants_pp, list_dirigeants_pm = unite_legale.get_dirigeants_list()
 
@@ -523,10 +680,17 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
     cursor.execute("SELECT COUNT(*) FROM beneficiaire")
     count_benef = cursor.fetchone()[0]
 
+    cursor.execute("SELECT COUNT(*) FROM etablissement")
+    count_etab = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM activite")
+    count_activite = cursor.fetchone()[0]
+
     logging.info(
         f"************Count UL: {count_ul}, Count siege: {count_siege}, "
         f"Count pp: {count_pp}, Count pm: {count_pm}, "
-        f"Count immat: {count_immat}, Count beneficiaire: {count_benef}."
+        f"Count immat: {count_immat}, Count beneficiaire: {count_benef}, "
+        f"Count etablissement: {count_etab}, Count activite: {count_activite}."
     )
 
     cursor.execute("SELECT * FROM unite_legale ORDER BY rowid DESC LIMIT 1")
