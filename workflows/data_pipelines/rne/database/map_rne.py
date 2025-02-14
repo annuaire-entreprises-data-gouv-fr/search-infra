@@ -12,6 +12,8 @@ from dag_datalake_sirene.workflows.data_pipelines.rne.database.ul_model import (
     DirigeantsPM,
     UniteLegale,
     Siege,
+    Etablissement,
+    Activite,
 )
 
 
@@ -84,6 +86,13 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         unite_legale.siege = map_rne_siege_to_ul(siege)
     else:
         logging.warning(f"Unite legale has no siege : {unite_legale.siren}")
+
+    # Add mapping for etablissements
+    etablissements = get_etablissements(rne_company)
+    if etablissements:
+        unite_legale.etablissements = map_rne_etablissements_to_ul(etablissements)
+    else:
+        unite_legale.etablissements = []
 
     return unite_legale
 
@@ -275,6 +284,10 @@ def map_rne_siege_to_ul(siege_rne):
     siege.adresse.distribution_speciale = adresse_siege.distributionSpeciale
     siege.adresse.pays = adresse_siege.pays
 
+    # Map activites if they exist
+    if hasattr(siege_rne, "activites") and siege_rne.activites:
+        siege.activites = map_rne_activites_to_ul(siege_rne.activites)
+
     return siege
 
 
@@ -324,3 +337,69 @@ def map_beneficiaire_rne_to_beneficiaire_ul(beneficiaires):
 
         list_beneficiaires.append(beneficiaire_ul)
     return list_beneficiaires
+
+
+def map_rne_etablissements_to_ul(etablissements_rne):
+    """Maps RNE etablissements to UL etablissements"""
+    etablissements_ul = []
+
+    if not etablissements_rne:
+        return etablissements_ul
+
+    for etablissement_rne in etablissements_rne:
+        etablissement_ul = Etablissement()
+        description = etablissement_rne.descriptionEtablissement
+
+        if description:
+            etablissement_ul.siret = description.siret
+
+        # Map activites if they exist
+        if hasattr(etablissement_rne, "activites") and etablissement_rne.activites:
+            etablissement_ul.activites = map_rne_activites_to_ul(
+                etablissement_rne.activites
+            )
+
+        etablissements_ul.append(etablissement_ul)
+
+    return etablissements_ul
+
+
+def map_rne_activites_to_ul(activites_rne):
+    """Maps RNE activites to UL activites"""
+    activites_ul = []
+
+    for activite_rne in activites_rne:
+        try:
+            activite_ul = Activite()
+
+            activite_ul.code_category = getattr(activite_rne, "categoryCode", None)
+            activite_ul.indicateur_principal = getattr(
+                activite_rne, "indicateurPrincipal", None
+            )
+            activite_ul.indicateur_prolongement = getattr(
+                activite_rne, "indicateurProlongement", None
+            )
+            activite_ul.date_debut = getattr(activite_rne, "dateDebut", None)
+            activite_ul.form_exercice = getattr(activite_rne, "formeExercice", None)
+            activite_ul.categorisation_activite1 = getattr(
+                activite_rne, "categorisationActivite1", None
+            )
+            activite_ul.categorisation_activite2 = getattr(
+                activite_rne, "categorisationActivite2", None
+            )
+            activite_ul.categorisation_activite3 = getattr(
+                activite_rne, "categorisationActivite3", None
+            )
+            activite_ul.indicateur_activitee_ape = getattr(
+                activite_rne, "indicateurActiviteeApe", None
+            )
+            activite_ul.code_ape = getattr(activite_rne, "codeApe", None)
+            activite_ul.activite_rattachee_eirl = getattr(
+                activite_rne, "activiteRattacheeEirl", None
+            )
+
+            activites_ul.append(activite_ul)
+        except Exception as e:
+            logging.error(f"Error mapping activite: {e}")
+            logging.error(f"Activite RNE data: {activite_rne}")
+    return activites_ul
