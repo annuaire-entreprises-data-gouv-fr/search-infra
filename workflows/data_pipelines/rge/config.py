@@ -16,4 +16,13 @@ RGE_CONFIG = DataSourceConfig(
     },
     url_minio=f"{MINIO_BASE_URL}rge/latest/rge.csv",
     url_minio_metadata=f"{MINIO_BASE_URL}rge/latest/metadata.json",
+    table_ddl="""
+        BEGIN;
+        CREATE TABLE IF NOT EXISTS rge
+        (
+            siret TEXT PRIMARY KEY,
+            liste_rge TEXT
+        );
+        COMMIT;
+    """,
 )

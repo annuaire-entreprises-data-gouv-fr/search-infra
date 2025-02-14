@@ -34,10 +34,28 @@ class MarcheInclusionProcessor(DataProcessor):
             response_data = self.call_api_marche_inclusion(actual_number_of_structures)
 
         df_inclusion = pd.DataFrame(response_data.get("results", []))
+
+        df_inclusion = (
+            df_inclusion.assign(
+                siren=lambda x: x.siret.str[:9],
+            )
+            .groupby("siren")["kind"]
+            .agg(
+                lambda x: str(list(set(x))),
+            )
+            .reset_index()
+            .rename(columns={"kind": "type_siae"})
+            .assign(
+                est_siae=1,
+            )
+        )
+
         df_inclusion.to_csv(
-            self.config.file_output, columns=["siret", "kind"], index=False
+            self.config.file_output,
+            columns=["siren", "type_siae", "est_siae"],
+            index=False,
         )
 
         DataProcessor.push_unique_count(
-            df_inclusion.siret, Notification.notification_xcom_key
+            df_inclusion.siren, Notification.notification_xcom_key
         )

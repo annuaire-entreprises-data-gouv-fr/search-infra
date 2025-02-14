@@ -5,7 +5,7 @@ from dag_datalake_sirene.config import (
 )
 
 BILANS_FINANCIERS_CONFIG = DataSourceConfig(
-    name="bilans_financiers",
+    name="bilan_financier",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/bilans_financiers",
     minio_path="bilans_financiers",
     file_name="synthese_bilans",
@@ -19,4 +19,16 @@ BILANS_FINANCIERS_CONFIG = DataSourceConfig(
     url_minio=f"{MINIO_BASE_URL}bilans_financiers/latest/synthese_bilans.csv",
     url_minio_metadata=f"{MINIO_BASE_URL}bilans_financiers/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/bilans_financiers/synthese_bilans.csv",
+    table_ddl="""
+        BEGIN;
+        CREATE TABLE IF NOT EXISTS bilan_financier
+        (
+            siren TEXT PRIMARY KEY,
+            ca REAL,
+            resultat_net REAL,
+            date_cloture_exercice TEXT,
+            annee_cloture_exercice TEXT
+        );
+        COMMIT;
+     """,
 )

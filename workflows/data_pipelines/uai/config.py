@@ -31,4 +31,13 @@ UAI_CONFIG = DataSourceConfig(
     url_minio=f"{MINIO_BASE_URL}uai/latest/uai.csv",
     url_minio_metadata=f"{MINIO_BASE_URL}uai/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/uai/uai.csv",
+    table_ddl="""
+        BEGIN;
+        CREATE TABLE IF NOT EXISTS uai
+        (
+            siret TEXT PRIMARY KEY,
+            liste_uai TEXT
+        );
+        COMMIT;
+    """,
 )

@@ -19,4 +19,17 @@ CONVENTION_COLLECTIVE_CONFIG = DataSourceConfig(
     url_minio=f"{MINIO_BASE_URL}convention_collective/latest/convention_collective.csv",
     url_minio_metadata=f"{MINIO_BASE_URL}convention_collective/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/convention_collective/convention_collective.csv",
+    table_ddl="""
+        BEGIN;
+        CREATE TABLE IF NOT EXISTS convention_collective
+        (
+            siren TEXT,
+            siret TEXT PRIMARY KEY,
+            liste_idcc_etablissement TEXT,
+            liste_idcc_unite_legale TEXT,
+            sirets_par_idcc TEXT
+        );
+        CREATE INDEX idx_siren_convention_collective ON convention_collective (siren);
+        COMMIT;
+    """,
 )

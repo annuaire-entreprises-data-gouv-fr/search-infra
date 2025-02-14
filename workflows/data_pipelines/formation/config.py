@@ -1,7 +1,7 @@
 from dag_datalake_sirene.config import MINIO_BASE_URL, DataSourceConfig
 
 FORMATION_CONFIG = DataSourceConfig(
-    name="formation",
+    name="organisme_formation",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/formation",
     minio_path="formation",
     file_name="formation",
@@ -16,4 +16,14 @@ FORMATION_CONFIG = DataSourceConfig(
     url_minio=f"{MINIO_BASE_URL}formation/latest/formation.csv",
     url_minio_metadata=f"{MINIO_BASE_URL}formation/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/formation/formation.csv",
+    table_ddl="""
+        BEGIN;
+        CREATE TABLE IF NOT EXISTS organisme_formation
+        (
+            siren TEXT PRIMARY KEY,
+            liste_id_organisme_formation TEXT,
+            est_qualiopi INTEGER
+        );
+        COMMIT;
+    """,
 )

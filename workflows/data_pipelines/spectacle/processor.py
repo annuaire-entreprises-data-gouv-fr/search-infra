@@ -21,7 +21,7 @@ class SpectacleProcessor(DataProcessor):
         df_spectacle = (
             df_spectacle.assign(
                 statut_du_recepisse=lambda x: x["Statut du récépissé"],
-                est_entrepreneur_spectacle=True,
+                est_entrepreneur_spectacle=1,
                 siren=lambda x: x[
                     "SIRET (personne morale) / SIREN (personne physique)"
                 ].str[:9],

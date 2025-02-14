@@ -22,16 +22,15 @@ class FormationProcessor(DataProcessor):
 
         df_organisme_formation = (
             df_organisme_formation.assign(
-                est_qualiopi=lambda x: x["Certifications"].notna(),
+                est_qualiopi=lambda x: x["Certifications"].notna().astype(int),
                 id_nda=lambda x: x["Numéro Déclaration Activité"],
                 siren=lambda x: x["Code SIREN"],
             )
             .groupby(["siren"], as_index=False)
             .agg(
-                id_nda=("id_nda", list),
+                liste_id_organisme_formation=("id_nda", list),
                 est_qualiopi=("est_qualiopi", "max"),  # True takes priority over False
             )
-            .rename(columns={"id_nda": "liste_id_organisme_formation"})
             .sort_values("siren")
         )
 
