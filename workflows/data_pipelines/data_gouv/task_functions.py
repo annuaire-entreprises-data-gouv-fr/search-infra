@@ -157,6 +157,7 @@ def fill_ul_file():
         "nombre_etablissements",
         "nombre_etablissements_ouverts",
         "nom_complet",
+        "nature_juridique",
         "colter_code",
         "colter_code_insee",
         "colter_elus",
@@ -201,17 +202,40 @@ def fill_ul_file():
     sqlite_client.commit_and_close_conn()
 
 
+def fill_administration_file():
+    # Read the unites_legales CSV that was already created
+    ul_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{today_date}.csv"
+    administration_csv_path = (
+        f"{AIRFLOW_DATAGOUV_DATA_DIR}liste_administration_{today_date}.csv"
+    )
+
+    df = pd.read_csv(ul_csv_path, dtype=str)
+    admin_df = df[df["est_service_public"] == "True"][
+        ["siren", "nom_complet", "nature_juridique"]
+    ]
+
+    logging.info(f"******* Nombre d'administrations à publier : {len(admin_df)}")
+
+    admin_df = admin_df.astype(str)
+    admin_df.to_csv(administration_csv_path, index=False)
+
+
 def send_to_minio(list_files):
     minio_client.send_files(
         list_files=list_files,
     )
 
 
-def upload_ul_to_minio(**kwargs):
+def upload_ul_and_admin_to_minio(**kwargs):
     ul_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{today_date}.csv"
+    admin_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}liste_administration_{today_date}.csv"
 
     with open(ul_csv_path, "rb") as f_in:
         with gzip.open(f"{ul_csv_path}.gz", "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
+
+    with open(admin_csv_path, "rb") as f_in:
+        with gzip.open(f"{admin_csv_path}.gz", "wb") as f_out:
             shutil.copyfileobj(f_in, f_out)
 
     send_to_minio(
@@ -221,8 +245,14 @@ def upload_ul_to_minio(**kwargs):
                 "source_name": f"unites_legales_{today_date}.csv.gz",
                 "dest_path": "data_gouv/",
                 "dest_name": f"unites_legales_{today_date}.csv.gz",
-            }
-        ]
+            },
+            {
+                "source_path": AIRFLOW_DATAGOUV_DATA_DIR,
+                "source_name": f"liste_administration_{today_date}.csv.gz",
+                "dest_path": "data_gouv/",
+                "dest_name": f"liste_administration_{today_date}.csv.gz",
+            },
+        ],
     )
 
 
@@ -352,10 +382,21 @@ def publish_data(**kwargs):
 
     logging.info(f"Publishing unité légale : {response_etab}")
 
+    response_administration = post_resource(
+        file_to_upload={
+            "dest_path": AIRFLOW_DATAGOUV_DATA_DIR,
+            "dest_name": f"liste_administration_{today_date}.csv.gz",
+        },
+        dataset_id="67a4b0fc66133eb94cf6e7a1",
+        resource_id="fd716bb4-0ddc-457e-8517-a990fc6a8774",
+    )
+
+    logging.info(f"Publishing administrations : {response_administration}")
+
 
 def notification_tchap(ti):
-    send_message("\U0001F7E2 Fichiers mis à jour sur DataGouv.")
+    send_message("\U0001f7e2 Fichiers mis à jour sur DataGouv.")
 
 
 def send_notification_failure_tchap(context):
-    send_message("\U0001F534 Données :" "\nFail DAG de publication sur Data.gouv!!!!")
+    send_message("\U0001f534 Données :" "\nFail DAG de publication sur Data.gouv!!!!")
