@@ -16,7 +16,7 @@ class EgaproProcessor(DataProcessor):
         )
         df_egapro = df_egapro.drop_duplicates(subset=["SIREN"], keep="first")
         df_egapro = df_egapro[["SIREN"]]
-        df_egapro["egapro_renseignee"] = True
+        df_egapro["egapro_renseignee"] = 1
         df_egapro = df_egapro.rename(columns={"SIREN": "siren"})
         df_egapro.to_csv(f"{self.config.tmp_folder}/egapro.csv", index=False)
 

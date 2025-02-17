@@ -223,6 +223,7 @@ class ElusProcessor(DataProcessor):
                 columns={col: col.replace("_elu", "")}
             )
 
+        df_colter_elus.drop_duplicates(inplace=True, ignore_index=True)
         df_colter_elus.to_csv(self.config.file_output, index=False)
 
     def process_elus_files(self, url, colname):

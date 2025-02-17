@@ -18,4 +18,13 @@ FINESS_CONFIG = DataSourceConfig(
     },
     url_minio=f"{MINIO_BASE_URL}finess/latest/finess.csv",
     url_minio_metadata=f"{MINIO_BASE_URL}finess/latest/metadata.json",
+    table_ddl="""
+        BEGIN;
+        CREATE TABLE IF NOT EXISTS finess
+        (
+            siret TEXT PRIMARY KEY,
+            liste_finess TEXT
+        );
+        COMMIT;
+    """,
 )
