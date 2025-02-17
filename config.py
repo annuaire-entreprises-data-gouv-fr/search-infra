@@ -15,16 +15,18 @@ class DataSourceConfig:
         file_name (str): Name of the main file associated with the data source.
         files_to_download (dict[str, dict[str, str]]): Information about files to download.
             Keys represent unique file identifiers, and values are dictionaries with details about the files:
-            - url (str, optional): url of the file to download
-            - resource_id (str, optional): Data.gouv resource id
-            - dataset_id (str, optional): Data.gouv dataset id (the most recent resource will be downloaded)
-            - destination (str, optional): Local path where the downloaded file will be saved.
+            - url (str, None): URL of the file to download.
+            - resource_id (str, None): Data.gouv resource ID.
+            - dataset_id (str, None): Data.gouv dataset ID (the most recent resource will be downloaded).
+            - destination (str, None): Local path where the downloaded file will be saved.
         url_minio (str | None): MinIO URL where the processed file will be stored. Defaults to None.
-        url_minio_metadata (str | None): MinIO URL where the metadata file will be stored.  Defaults to None.
+        url_minio_metadata (str | None): MinIO URL where the metadata file will be stored. Defaults to None.
         file_output (str | None): Local file path of the output file. Defaults to None.
-        base_tmp_folder (str, optional): Base path for temporary folders. Defaults to "/tmp".
+        base_tmp_folder (str, None): Base path for temporary folders. Defaults to "/tmp".
+        url_api (str | None): URL of the API to fetch data from. Defaults to None.
+        endpoint_api (str | None): Specific endpoint of the API to fetch data from. Defaults to None.
+        auth_api (str | None): Authentication credentials for the API. Defaults to None.
         table_ddl (str | None): SQL query to create the database table in the ETL DAG. Defaults to None.
-
     """
 
     name: str
@@ -37,6 +39,7 @@ class DataSourceConfig:
     file_output: str | None = None
     base_tmp_folder: str = "/tmp"
     url_api: str | None = None
+    endpoint_api: str | None = None
     auth_api: str | None = None
     table_ddl: str | None = None
 
