@@ -62,4 +62,7 @@ class ConventionCollectiveProcessor(DataProcessor):
 
         df_cc.to_csv(self.config.file_output, index=False)
 
-        DataProcessor.push_unique_count(df_cc.siren, Notification.notification_xcom_key)
+        DataProcessor.push_message(
+            Notification.notification_xcom_key,
+            column=df_cc.siren,
+        )

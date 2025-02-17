@@ -37,8 +37,9 @@ class FormationProcessor(DataProcessor):
         df_organisme_formation.to_csv(self.config.file_output, index=False)
         logging.info(f"Formation dataset saved in {self.config.file_output}")
 
-        DataProcessor.push_unique_count(
-            df_organisme_formation["siren"], Notification.notification_xcom_key, "siren"
+        DataProcessor.push_message(
+            Notification.notification_xcom_key,
+            column=df_organisme_formation["siren"],
         )
 
         del df_organisme_formation

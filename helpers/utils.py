@@ -263,22 +263,23 @@ def flatten_dict(dd, separator="_", prefix=""):
     )
 
 
-def save_dataframe_zipped(df: pd.DataFrame, file_path: str, chunk_size: int = 100000):
-    df.to_csv(file_path, index=False)
-
+def zip_file(file_path: str, chunk_size: int = 100000):
+    zip_path = f"{file_path}.gz"
     with open(file_path, "rb") as orig_file:
-        with gzip.open(f"{file_path}.gz", "wb") as zipped_file:
+        with gzip.open(zip_path, "wb") as zipped_file:
             while True:
                 chunk = orig_file.read(chunk_size)
                 if not chunk:
                     break
                 zipped_file.write(chunk)
+    return zip_path
 
 
 def save_data_to_zipped_csv(df: pd.DataFrame, folder: str, filename: str):
     """Save DataFrame to CSV and log the action."""
-    file_path = os.path.join(folder, filename)
-    save_dataframe_zipped(df, file_path)
+    file_path: str = os.path.join(folder, filename)
+    df.to_csv(file_path, index=False)
+    zip_file(file_path)
     logging.info(f"Saved {filename} with {df.shape[0]} records.")
 
 
@@ -527,3 +528,24 @@ def download_file(download_url: str, destination_path: str) -> None:
             file.write(chunk)
 
     logging.info(f"..download successful! File located in {destination_path}.")
+
+
+def get_dates_since_start_of_month() -> list[str]:
+    """
+    Get the dates since the beginning of the month until today.
+
+    Returns:
+        list[str]: List of dates with YYYY-MM-DD string format.
+    """
+    today = datetime.today()
+    # Get the first day of the current month
+    first_day_of_month = today.replace(day=1)
+
+    # Generate the list of dates
+    dates: list[str] = []
+    date = first_day_of_month
+    while date <= today:
+        dates.append(date.strftime("%Y-%m-%d"))
+        date += timedelta(days=1)
+
+    return dates

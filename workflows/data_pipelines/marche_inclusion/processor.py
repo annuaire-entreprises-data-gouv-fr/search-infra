@@ -56,6 +56,7 @@ class MarcheInclusionProcessor(DataProcessor):
             index=False,
         )
 
-        DataProcessor.push_unique_count(
-            df_inclusion.siren, Notification.notification_xcom_key
+        DataProcessor.push_message(
+            Notification.notification_xcom_key,
+            column=df_inclusion.siret,
         )

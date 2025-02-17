@@ -115,6 +115,17 @@ class UaiProcessor(DataProcessor):
         )
         annuaire_uai.to_csv(self.config.file_output, index=False)
 
-        self.push_unique_count(
-            annuaire_uai["siret"], Notification.notification_xcom_key
+        self.push_message(
+            Notification.notification_xcom_key,
+            column=annuaire_uai["uai"],
+            description="UAI",
         )
+        self.push_message(
+            Notification.notification_xcom_key,
+            column=annuaire_uai["siret"],
+            description="siret",
+        )
+
+        del df_onisep
+        del df_menj
+        del df_mesr

@@ -187,15 +187,15 @@ class AgenceBioProcessor(DataProcessor):
             df.to_csv(file_path, index=False)
             logging.info(f"Saved {name} data to {file_path}")
 
-        DataProcessor.push_unique_count(
-            processed_data["principal"]["id_bio"],
+        DataProcessor.push_message(
             Notification.notification_xcom_key,
-            "identifiants bio",
+            column=processed_data["principal"]["id_bio"],
+            description="identifiants bio",
         )
-        DataProcessor.push_unique_count(
-            processed_data["principal"]["siret"],
+        DataProcessor.push_message(
             Notification.notification_xcom_key,
-            "siret",
+            column=processed_data["principal"]["siret"],
+            description="siret",
         )
 
     def send_file_to_minio(self) -> None:
