@@ -84,11 +84,11 @@ class DataProcessor(ABC):
         Returns:
             None
         """
-        if not column and not description:
+        if column is None and not description:
             raise ValueError(
                 "DataProcessor.push_message() requires at least a Dataframe column or a non empty description as argument."
             )
-        if column:
+        if column is not None:
             metric = column.nunique()
             description = f"{metric} {column.name} {description}"
 
