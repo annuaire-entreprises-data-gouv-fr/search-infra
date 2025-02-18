@@ -530,22 +530,27 @@ def download_file(download_url: str, destination_path: str) -> None:
     logging.info(f"..download successful! File located in {destination_path}.")
 
 
-def get_dates_since_start_of_month() -> list[str]:
+def get_dates_since_start_of_month(include_today: bool = True) -> list[str]:
     """
     Get the dates since the beginning of the month until today.
 
     Returns:
         list[str]: List of dates with YYYY-MM-DD string format.
     """
-    today = datetime.today()
+    last_day_of_month = date.today()
+    if not include_today:
+        if last_day_of_month.day == 1:
+            return []
+        last_day_of_month -= timedelta(days=1)
+
     # Get the first day of the current month
-    first_day_of_month = today.replace(day=1)
+    first_day_of_month = last_day_of_month.replace(day=1)
 
     # Generate the list of dates
     dates: list[str] = []
-    date = first_day_of_month
-    while date <= today:
-        dates.append(date.strftime("%Y-%m-%d"))
-        date += timedelta(days=1)
+    day = first_day_of_month
+    while day <= last_day_of_month:
+        dates.append(day.strftime("%Y-%m-%d"))
+        day += timedelta(days=1)
 
     return dates

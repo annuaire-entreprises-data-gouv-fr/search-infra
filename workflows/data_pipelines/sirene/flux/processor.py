@@ -32,7 +32,7 @@ class SireneFluxProcessor(DataProcessor):
 
         self.client = SireneApiClient(self.config.url_api, self.config.auth_api)
         self.current_month = datetime.today().strftime("%Y-%m")
-        self.current_dates = get_dates_since_start_of_month()
+        self.current_dates = get_dates_since_start_of_month(include_today=False)
 
     @staticmethod
     def _construct_endpoint(base_endpoint: str, date: str, fields: str) -> str:
@@ -56,6 +56,7 @@ class SireneFluxProcessor(DataProcessor):
         )
         n_siren_processed = 0
 
+        logging.info(f"Processing the following dates: {self.current_dates}")
         for date in self.current_dates:
             logging.info(f"{date} -- processing..")
             endpoint = self._construct_endpoint(
