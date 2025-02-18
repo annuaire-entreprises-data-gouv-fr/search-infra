@@ -117,13 +117,7 @@ class UaiProcessor(DataProcessor):
 
         self.push_message(
             Notification.notification_xcom_key,
-            column=annuaire_uai["uai"],
-            description="UAI",
-        )
-        self.push_message(
-            Notification.notification_xcom_key,
             column=annuaire_uai["siret"],
-            description="siret",
         )
 
         del df_onisep
