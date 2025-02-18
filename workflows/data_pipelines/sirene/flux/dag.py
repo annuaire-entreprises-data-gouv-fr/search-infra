@@ -54,12 +54,17 @@ def data_processing_sirene_flux():
     def send_flux_to_minio():
         return sirene_flux_processor.send_flux_to_minio()
 
+    @task.bash
+    def clean_up():
+        return f"rm -rf {sirene_flux_processor.config.tmp_folder}"
+
     (
         clean_previous_outputs()
         >> get_flux_unites_legales()
         >> get_flux_etablissements()
         >> save_date_last_modified()
         >> send_flux_to_minio()
+        >> clean_up()
     )
 
 
