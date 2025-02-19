@@ -20,7 +20,7 @@ class SireneApiClient(ApiClient):
             endpoint=endpoint,
             response_and_pagination_handler=self.process_response_and_pagination,
             batch_size=1_000,
-            sleep_time=2.0,
+            sleep_time=5.0,
         )
 
     def fetch_data(self, endpoint: str, data_property: str) -> pd.DataFrame:
