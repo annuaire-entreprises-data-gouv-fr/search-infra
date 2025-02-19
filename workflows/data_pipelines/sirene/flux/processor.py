@@ -1,6 +1,5 @@
 from datetime import datetime
 import logging
-import os
 from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.api import (
     SireneApiClient,
 )
@@ -57,16 +56,18 @@ class SireneFluxProcessor(DataProcessor):
         n_siren_processed = 0
 
         logging.info(f"Processing the following dates: {self.current_dates}")
-        for date in self.current_dates:
+        for i_date, date in enumerate(self.current_dates):
             logging.info(f"{date} -- processing..")
             endpoint = self._construct_endpoint(
                 self.BASE_UNITE_LEGALE_ENDPOINT, date, fields
             )
             df = self.client.fetch_data(endpoint, "unitesLegales")
 
-            # Create a header for the first dump, append afterward
-            file_exists = os.path.isfile(output_path)
-            df.to_csv(output_path, mode="a", header=(not file_exists), index=False)
+            # Overwrite file with headers for the first dump, append only afterward
+            if i_date == 0:
+                df.to_csv(output_path, mode="w", header=True, index=False)
+            else:
+                df.to_csv(output_path, mode="a", header=False, index=False)
 
             n_siren = df["siren"].nunique()
             logging.info(f"{date} -- processed: {n_siren} siren")
@@ -111,7 +112,8 @@ class SireneFluxProcessor(DataProcessor):
         )
         n_siret_processed = 0
 
-        for date in self.current_dates:
+        logging.info(f"Processing the following dates: {self.current_dates}")
+        for i_date, date in enumerate(self.current_dates):
             logging.info(f"{date} -- processing..")
             endpoint = self._construct_endpoint(
                 self.BASE_ETABLISSEMENT_ENDPOINT, date, fields
@@ -122,9 +124,11 @@ class SireneFluxProcessor(DataProcessor):
                     col.replace(prefix, "") if prefix in col else col
                     for col in df.columns
                 ]
-            # Create a header for the first dump, append afterward
-            file_exists = os.path.isfile(output_path)
-            df.to_csv(output_path, mode="a", header=(not file_exists), index=False)
+            # Overwrite file with headers for the first dump, append only afterward
+            if i_date == 0:
+                df.to_csv(output_path, mode="w", header=True, index=False)
+            else:
+                df.to_csv(output_path, mode="a", header=False, index=False)
 
             n_siret = df["siret"].nunique()
             logging.info(f"{date} -- processed: {n_siret} siret")
