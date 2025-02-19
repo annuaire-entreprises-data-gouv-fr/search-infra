@@ -10,7 +10,7 @@ R = TypeVar("R", bound=Response)
 
 
 def retry_request(
-    max_retries: int = 3, backoff_factor: float = 0.3
+    max_retries: int = 10, backoff_factor: float = 0.3
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
     A decorator that retries a request function on certain HTTP status codes.
