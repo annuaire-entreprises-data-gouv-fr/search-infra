@@ -303,9 +303,6 @@ class DataGouvProcessor:
         self.compress_and_upload_file(
             f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{self.today_date}.csv"
         )
-        self.compress_and_upload_file(
-            f"{AIRFLOW_DATAGOUV_DATA_DIR}liste_administrations_{self.today_date}.csv"
-        )
 
         self.send_to_minio(
             [
@@ -317,9 +314,9 @@ class DataGouvProcessor:
                 },
                 {
                     "source_path": AIRFLOW_DATAGOUV_DATA_DIR,
-                    "source_name": f"liste_administrations_{self.today_date}.csv.gz",
+                    "source_name": f"liste_administrations_{self.today_date}.csv",
                     "dest_path": "data_gouv/",
-                    "dest_name": f"liste_administrations_{self.today_date}.csv.gz",
+                    "dest_name": f"liste_administrations_{self.today_date}.csv",
                 },
             ]
         )
@@ -355,7 +352,7 @@ class DataGouvProcessor:
                 "resource_id": "12812d7d-d11c-45f4-965c-35a3b149c585",
             },
             {
-                "file": f"liste_administrations_{self.today_date}.csv.gz",
+                "file": f"liste_administrations_{self.today_date}.csv",
                 "dataset_id": "67a5cd40941cbe4c206efcd1",
                 "resource_id": "c0f355f1-66bd-4f57-8a3c-2c6f3527b364",
             },
