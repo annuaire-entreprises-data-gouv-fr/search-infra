@@ -530,7 +530,10 @@ def download_file(download_url: str, destination_path: str) -> None:
     logging.info(f"..download successful! File located in {destination_path}.")
 
 
-def get_dates_since_start_of_month(include_today: bool = True) -> list[str]:
+def get_dates_since_start_of_month(
+    include_today: bool = True,
+    ascending: bool = True,
+) -> list[str]:
     """
     Get the dates since the beginning of the month until today.
 
@@ -552,5 +555,7 @@ def get_dates_since_start_of_month(include_today: bool = True) -> list[str]:
     while day <= last_day_of_month:
         dates.append(day.strftime("%Y-%m-%d"))
         day += timedelta(days=1)
+
+    dates.sort(reverse=(not ascending))
 
     return dates

@@ -1,5 +1,8 @@
 from datetime import datetime
 import logging
+
+import pandas as pd
+
 from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.api import (
     SireneApiClient,
 )
@@ -31,7 +34,11 @@ class SireneFluxProcessor(DataProcessor):
 
         self.client = SireneApiClient(self.config.url_api, self.config.auth_api)
         self.current_month = datetime.today().strftime("%Y-%m")
-        self.current_dates = get_dates_since_start_of_month(include_today=False)
+        # Descending order so we start by the most recent day
+        # Higher priority to the latest SIRENE flux updates
+        self.current_dates = get_dates_since_start_of_month(
+            include_today=False, ascending=False
+        )
 
     @staticmethod
     def _construct_endpoint(base_endpoint: str, date: str, fields: str) -> str:
@@ -53,7 +60,7 @@ class SireneFluxProcessor(DataProcessor):
         output_path = (
             f"{self.config.tmp_folder}flux_unite_legale_{self.current_month}.csv"
         )
-        n_siren_processed = 0
+        siren_processed = pd.Series(dtype=str)
 
         logging.info(f"Processing the following dates: {self.current_dates}")
         for i_date, date in enumerate(self.current_dates):
@@ -63,17 +70,20 @@ class SireneFluxProcessor(DataProcessor):
             )
             df = self.client.fetch_data(endpoint, "unitesLegales")
 
+            # Remove any SIREN we already got the last update from
+            df = df[~df["siren"].isin(siren_processed)]
+            pd.concat([siren_processed, df["siren"]])
+
             # Overwrite file with headers for the first dump, append only afterward
             if i_date == 0:
                 df.to_csv(output_path, mode="w", header=True, index=False)
             else:
                 df.to_csv(output_path, mode="a", header=False, index=False)
 
-            n_siren = df["siren"].nunique()
-            logging.info(f"{date} -- processed: {n_siren} siren")
-            n_siren_processed += n_siren
+            logging.info(f"{date} -- processed: {df['siren'].nunique()} siren")
             del df
 
+        n_siren_processed = len(siren_processed)
         logging.info(f"CSV output ready with {n_siren_processed} siren")
         zip_file(output_path)
         logging.info("File zipped. Done!")
@@ -110,7 +120,7 @@ class SireneFluxProcessor(DataProcessor):
         output_path = (
             f"{self.config.tmp_folder}flux_etablissement_{self.current_month}.csv"
         )
-        n_siret_processed = 0
+        siret_processed = pd.Series(dtype=str)
 
         logging.info(f"Processing the following dates: {self.current_dates}")
         for i_date, date in enumerate(self.current_dates):
@@ -124,17 +134,21 @@ class SireneFluxProcessor(DataProcessor):
                     col.replace(prefix, "") if prefix in col else col
                     for col in df.columns
                 ]
+
+            # Remove any SIRET we already got the last update from
+            df = df[~df["siret"].isin(siret_processed)]
+            pd.concat([siret_processed, df["siret"]])
+
             # Overwrite file with headers for the first dump, append only afterward
             if i_date == 0:
                 df.to_csv(output_path, mode="w", header=True, index=False)
             else:
                 df.to_csv(output_path, mode="a", header=False, index=False)
 
-            n_siret = df["siret"].nunique()
-            logging.info(f"{date} -- processed: {n_siret} siret")
-            n_siret_processed += n_siret
+            logging.info(f"{date} -- processed: {df['siret'].nunique()} siret")
             del df
 
+        n_siret_processed = len(siret_processed)
         logging.info(f"CSV output ready with {n_siret_processed} siret")
         zip_file(output_path)
         logging.info("File zipped. Done!")
