@@ -396,10 +396,10 @@ select_fields_to_index_query = """SELECT
               as statut_entrepreneur_spectacle,
             (SELECT egapro_renseignee FROM egapro WHERE siren = ul.siren) as
              egapro_renseignee,
-            (SELECT colter_code_insee FROM colter WHERE siren = ul.siren) as
+            (SELECT DISTINCT colter_code_insee FROM colter WHERE siren = ul.siren) as
             colter_code_insee,
-            (SELECT colter_code FROM colter WHERE siren = ul.siren) as colter_code,
-            (SELECT colter_niveau FROM colter WHERE siren = ul.siren) as colter_niveau,
+            (SELECT DISTINCT colter_code FROM colter WHERE siren = ul.siren) as colter_code,
+            (SELECT DISTINCT colter_niveau FROM colter WHERE siren = ul.siren) as colter_niveau,
             (SELECT est_ess_france FROM ess_france WHERE siren = ul.siren) as
             est_ess_france,
             (SELECT json_group_array(
@@ -413,7 +413,7 @@ select_fields_to_index_query = """SELECT
                     )
                 ) FROM
                 (
-                    SELECT siren, nom, prenom, date_naissance,
+                    SELECT DISTINCT siren, nom, prenom, date_naissance,
                     sexe, fonction
                     FROM elus
                     WHERE siren = ul.siren
