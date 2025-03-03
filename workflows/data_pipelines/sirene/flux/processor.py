@@ -60,7 +60,7 @@ class SireneFluxProcessor(DataProcessor):
         output_path = (
             f"{self.config.tmp_folder}flux_unite_legale_{self.current_month}.csv"
         )
-        siren_processed = pd.Series(dtype=str)
+        siren_processed = pd.Series(dtype="string")
 
         logging.info(f"Processing the following dates: {self.current_dates}")
         for i_date, date in enumerate(self.current_dates):
@@ -72,7 +72,7 @@ class SireneFluxProcessor(DataProcessor):
 
             # Remove any SIREN we already got the last update from
             df = df[~df["siren"].isin(siren_processed)]
-            pd.concat([siren_processed, df["siren"]])
+            siren_processed = pd.concat([siren_processed, df["siren"]])
 
             # Overwrite file with headers for the first dump, append only afterward
             if i_date == 0:
@@ -120,7 +120,7 @@ class SireneFluxProcessor(DataProcessor):
         output_path = (
             f"{self.config.tmp_folder}flux_etablissement_{self.current_month}.csv"
         )
-        siret_processed = pd.Series(dtype=str)
+        siret_processed = pd.Series(dtype="string")
 
         logging.info(f"Processing the following dates: {self.current_dates}")
         for i_date, date in enumerate(self.current_dates):
@@ -137,7 +137,7 @@ class SireneFluxProcessor(DataProcessor):
 
             # Remove any SIRET we already got the last update from
             df = df[~df["siret"].isin(siret_processed)]
-            pd.concat([siret_processed, df["siret"]])
+            siret_processed = pd.concat([siret_processed, df["siret"]])
 
             # Overwrite file with headers for the first dump, append only afterward
             if i_date == 0:
