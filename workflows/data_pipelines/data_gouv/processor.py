@@ -1,11 +1,24 @@
-from datetime import datetime
 import gzip
-import shutil
-import logging
-import pandas as pd
 import json
-from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
+import logging
+import os
+import re
+import shutil
+from datetime import datetime
+
+import pandas as pd
+
+from dag_datalake_sirene.config import AIRFLOW_DATAGOUV_DATA_DIR, SIRENE_MINIO_DATA_PATH
 from dag_datalake_sirene.helpers.datagouv import post_resource
+from dag_datalake_sirene.helpers.geolocalisation import transform_coordinates
+from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
+from dag_datalake_sirene.helpers.utils import (
+    convert_date_format,
+    sqlite_str_to_bool,
+    str_to_bool,
+    str_to_list,
+)
 from dag_datalake_sirene.workflows.data_pipelines.data_gouv.queries import (
     etab_fields_to_select,
     ul_fields_to_select,
@@ -13,24 +26,13 @@ from dag_datalake_sirene.workflows.data_pipelines.data_gouv.queries import (
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
     create_list_names_elus,
     format_adresse_complete,
+    format_departement,
     format_nom_complet,
     is_association,
     is_entrepreneur_individuel,
     is_ess,
     is_service_public,
-    format_departement,
 )
-from dag_datalake_sirene.helpers.utils import (
-    str_to_bool,
-    str_to_list,
-    convert_date_format,
-    sqlite_str_to_bool,
-)
-from dag_datalake_sirene.helpers.geolocalisation import transform_coordinates
-from dag_datalake_sirene.config import AIRFLOW_DATAGOUV_DATA_DIR, SIRENE_MINIO_DATA_PATH
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-import re
-import os
 
 
 class DataGouvProcessor:
