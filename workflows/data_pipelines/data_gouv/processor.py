@@ -275,7 +275,7 @@ class DataGouvProcessor:
             "nature_juridique"
         ].apply(
             lambda x: (
-                False if x in ["4110", "4120", "4140", "4150", "7381", "7410"] else True
+                False if x in ["4110", "4120", "4140", "4150", "7410"] else True
             )
         )
 
