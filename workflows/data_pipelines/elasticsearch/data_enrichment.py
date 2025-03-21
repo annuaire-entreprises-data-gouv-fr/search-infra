@@ -188,7 +188,7 @@ def is_service_public(
 
 def is_administration_l100_3(
     siren: str, nature_juridique: str, is_service_public: bool = False
-):
+) -> bool:
     """
     Determine if a given entity is classified as `administration au sens L100-3`
     """
