@@ -27,10 +27,13 @@ sections_NAF = load_file("sections_codes_naf.json")
 mapping_dep_to_reg = load_file("dep_to_reg.json")
 mapping_role_dirigeants = load_file("roles_dirigeants.json")
 mapping_commune_to_epci = load_file("epci.json")
-nature_juridique_service_public = set(load_file("nature_juridique_service_public.json"))
-service_public_whitelist = set(load_file("service_public_whitelist.json"))
-service_public_blacklist = set(load_file("service_public_blacklist.json"))
-L100_3_whitelist = set(load_file("L100_3_whitelist.json"))
+nature_juridique_service_public = set(load_file("administration_nature_juridique.json"))
+service_public_whitelist = set(load_file("administration_siren_whitelist.json"))
+service_public_blacklist = set(load_file("administration_siren_blacklist.json"))
+L100_3_siren_whitelist = set(load_file("administration_L100-3_whitelist.json"))
+excluded_nature_juridique_L100_3 = set(
+    load_file("administration_L100-3_nature_juridique_exclue.json")
+)
 
 
 # Nom complet
@@ -197,9 +200,9 @@ def is_administration_l100_3(
     else:
         return (
             True
-            if siren in L100_3_whitelist
+            if siren in L100_3_siren_whitelist
             else False
-            if nature_juridique in ["4110", "4120", "4140", "4150", "7410"]
+            if nature_juridique in excluded_nature_juridique_L100_3
             else True
         )
 
