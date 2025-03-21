@@ -3,9 +3,15 @@ from datetime import datetime, timedelta
 
 from airflow.decorators import dag, task
 from airflow.operators.python import PythonOperator
-from dag_datalake_sirene.helpers import Notification
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
+from dag_datalake_sirene.config import (
+    AIRFLOW_ELK_DAG_NAME,
+    AIRFLOW_ETL_DAG_NAME,
+    EMAIL_LIST,
+    SIRENE_DATABASE_LOCATION,
+)
+from dag_datalake_sirene.helpers import Notification
 from dag_datalake_sirene.helpers.database_constructor import DatabaseTableConstructor
 from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
@@ -17,23 +23,11 @@ from dag_datalake_sirene.workflows.data_pipelines.colter.config import (
     COLTER_CONFIG,
     ELUS_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import ESS_CONFIG
-from dag_datalake_sirene.workflows.data_pipelines.rge.config import RGE_CONFIG
-from dag_datalake_sirene.workflows.data_pipelines.finess.config import FINESS_CONFIG
-from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
-from dag_datalake_sirene.workflows.data_pipelines.formation.config import (
-    FORMATION_CONFIG,
-)
-from dag_datalake_sirene.workflows.data_pipelines.spectacle.config import (
-    SPECTACLE_CONFIG,
-)
-from dag_datalake_sirene.workflows.data_pipelines.uai.config import UAI_CONFIG
 from dag_datalake_sirene.workflows.data_pipelines.convcollective.config import (
     CONVENTION_COLLECTIVE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.config import (
-    MARCHE_INCLUSION_CONFIG,
-)
+from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import ESS_CONFIG
 
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
@@ -41,8 +35,8 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     add_rne_data_to_siege_table,
     count_nombre_etablissement,
     count_nombre_etablissement_ouvert,
-    create_etablissement_table,
     create_date_fermeture_etablissement_table,
+    create_etablissement_table,
     create_flux_etablissement_table,
     create_historique_etablissement_table,
     create_siege_table,
@@ -51,45 +45,47 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     replace_siege_table,
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
-    create_dirig_benef_tables import (
-    create_benef_table,
-    create_dirig_pm_table,
-    create_dirig_pp_table,
-    get_latest_rne_database,
+    create_immatriculation_table import (
+    create_immatriculation_table,
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
-    create_immatriculation_table import (
-        create_immatriculation_table,
+    create_json_last_modified import (
+    create_data_source_last_modified_file,
 )
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     create_unite_legale_tables import (
+    add_ancien_siege_flux_data,
+    add_rne_data_to_unite_legale_table,
     create_date_fermeture_unite_legale_table,
     create_flux_unite_legale_table,
     create_historique_unite_legale_tables,
     create_unite_legale_table,
     insert_date_fermeture_unite_legale,
     replace_unite_legale_table,
-    add_rne_data_to_unite_legale_table,
-    add_ancien_siege_flux_data,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
-    create_json_last_modified import (
-    create_data_source_last_modified_file,
+from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.create_dirig_benef_tables import (
+    create_benef_table,
+    create_dirig_pm_table,
+    create_dirig_pp_table,
+    get_latest_rne_database,
 )
-# fmt: on
 
+# fmt: on
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.upload_db import (
     upload_db_to_minio,
 )
-
-
-from dag_datalake_sirene.config import (
-    SIRENE_DATABASE_LOCATION,
-    AIRFLOW_ETL_DAG_NAME,
-    AIRFLOW_ELK_DAG_NAME,
-    EMAIL_LIST,
+from dag_datalake_sirene.workflows.data_pipelines.finess.config import FINESS_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.formation.config import (
+    FORMATION_CONFIG,
 )
-
+from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.config import (
+    MARCHE_INCLUSION_CONFIG,
+)
+from dag_datalake_sirene.workflows.data_pipelines.rge.config import RGE_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.spectacle.config import (
+    SPECTACLE_CONFIG,
+)
+from dag_datalake_sirene.workflows.data_pipelines.uai.config import UAI_CONFIG
 
 default_args = {
     "depends_on_past": False,
@@ -105,7 +101,7 @@ default_args = {
     dag_id=AIRFLOW_ETL_DAG_NAME,
     tags=["database", "all-data"],
     default_args=default_args,
-    schedule_interval="0 10 * * *",  # Run everyday at 10 am UTC
+    schedule_interval="0 4 * * *",  # Run everyday at 4 am Paris time
     start_date=datetime(2023, 12, 27),
     dagrun_timeout=timedelta(minutes=60 * 5),
     params={},
