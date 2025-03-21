@@ -1,7 +1,19 @@
 import json
 import logging
+
 from slugify import slugify
 
+from dag_datalake_sirene.helpers.geolocalisation import (
+    transform_coordinates,
+)
+from dag_datalake_sirene.helpers.utils import (
+    drop_exact_duplicates,
+    get_empty_string_if_none,
+    load_file,
+    sqlite_str_to_bool,
+    str_to_bool,
+    str_to_list,
+)
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.clean_data import (
     drop_duplicates_dirigeants_pm,
     drop_duplicates_personnes_physiques,
@@ -10,25 +22,6 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.clean_data impor
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.es_fields import (
     get_elasticsearch_field_name,
 )
-from dag_datalake_sirene.helpers.utils import (
-    drop_exact_duplicates,
-    get_empty_string_if_none,
-    str_to_bool,
-    str_to_list,
-    sqlite_str_to_bool,
-)
-from dag_datalake_sirene.helpers.geolocalisation import (
-    transform_coordinates,
-)
-
-labels_file_path = "dags/dag_datalake_sirene/helpers/labels/"
-
-
-def load_file(file_name: str):
-    with open(f"{labels_file_path}{file_name}") as json_file:
-        file_decoded = json.load(json_file)
-    return file_decoded
-
 
 sections_NAF = load_file("sections_codes_naf.json")
 mapping_dep_to_reg = load_file("dep_to_reg.json")
@@ -37,6 +30,7 @@ mapping_commune_to_epci = load_file("epci.json")
 nature_juridique_service_public = set(load_file("nature_juridique_service_public.json"))
 service_public_whitelist = set(load_file("service_public_whitelist.json"))
 service_public_blacklist = set(load_file("service_public_blacklist.json"))
+L100_3_whitelist = set(load_file("L100_3_whitelist.json"))
 
 
 # Nom complet
@@ -190,6 +184,24 @@ def is_service_public(
         if nature_juridique_unite_legale is not None
         else False
     ) or siren in service_public_whitelist
+
+
+def is_administration_l100_3(
+    siren: str, nature_juridique: str, is_service_public: bool = False
+):
+    """
+    Determine if a given entity is classified as `administration au sens L100-3`
+    """
+    if is_service_public is False:
+        return False
+    else:
+        return (
+            True
+            if siren in L100_3_whitelist
+            else False
+            if nature_juridique in ["4110", "4120", "4140", "4150", "7410"]
+            else True
+        )
 
 
 # Association
@@ -380,14 +392,14 @@ def format_personnes_physiques(list_personnes_physiques_sqlite, list_all_personn
         elif personne_physique["prenoms"] and not personne_physique["nom"]:
             list_all_personnes.append(personne_physique["prenoms"])
             logging.debug(
-                f'Missing personne_physique nom for ****** {personne_physique["siren"]}'
-                f' ***** prenoms = {personne_physique["prenoms"]}'
+                f"Missing personne_physique nom for ****** {personne_physique['siren']}"
+                f" ***** prenoms = {personne_physique['prenoms']}"
             )
         elif personne_physique["nom"] and not personne_physique["prenoms"]:
             list_all_personnes.append(personne_physique["nom"])
             logging.debug(
                 f"Missing personne_physique prenoms for ****** "
-                f'{personne_physique["siren"]} ****** nom : {personne_physique["nom"]}'
+                f"{personne_physique['siren']} ****** nom : {personne_physique['nom']}"
             )
         else:
             logging.debug(
@@ -417,7 +429,7 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
             list_all_dirigeants.append(dirigeant_pm["denomination"])
         else:
             logging.debug(
-                f'Missing denomination dirigeant for ***** {dirigeant_pm["siren"]}'
+                f"Missing denomination dirigeant for ***** {dirigeant_pm['siren']}"
             )
         dirigeant_pm["role_description"] = unique_qualites(
             dirigeant_pm["role_description"]
