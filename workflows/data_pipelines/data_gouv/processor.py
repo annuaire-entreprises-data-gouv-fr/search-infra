@@ -28,6 +28,7 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
     format_adresse_complete,
     format_departement,
     format_nom_complet,
+    is_administration_l100_3,
     is_association,
     is_entrepreneur_individuel,
     is_ess,
@@ -273,12 +274,11 @@ class DataGouvProcessor:
             ["siren", "nom_complet", "nature_juridique"]
         ]
 
-        admin_df["administration_au_sens_article_L100-3"] = admin_df[
-            "nature_juridique"
-        ].apply(
-            lambda x: (
-                False if x in ["4110", "4120", "4140", "4150", "7410"] else True
-            )
+        admin_df["administration_au_sens_article_L100-3"] = admin_df.apply(
+            lambda row: is_administration_l100_3(
+                row["siren"], row["nature_juridique"], True
+            ),
+            axis=1,
         )
 
         logging.info(f"******* Nombre d'administrations à publier : {len(admin_df)}")

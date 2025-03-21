@@ -1,19 +1,19 @@
 import filecmp
-from ast import literal_eval
-import logging
-import requests
-import os
 import gzip
-import re
 import json
-import pandas as pd
-from datetime import datetime, date, timedelta
+import logging
+import os
+import re
+from ast import literal_eval
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Literal
-
 from unicodedata import normalize
-from dag_datalake_sirene.config import AIRFLOW_ENV
 
+import pandas as pd
+import requests
+
+from dag_datalake_sirene.config import AIRFLOW_ENV
 from dag_datalake_sirene.helpers.datagouv import fetch_last_modified_date
 
 
@@ -559,3 +559,12 @@ def get_dates_since_start_of_month(
     dates.sort(reverse=(not ascending))
 
     return dates
+
+
+labels_file_path = "dags/dag_datalake_sirene/helpers/labels/"
+
+
+def load_file(file_name: str):
+    with open(f"{labels_file_path}{file_name}") as json_file:
+        file_decoded = json.load(json_file)
+    return file_decoded

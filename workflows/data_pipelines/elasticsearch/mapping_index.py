@@ -15,7 +15,8 @@ from elasticsearch_dsl import (
     token_filter,
     tokenizer,
 )
-from dag_datalake_sirene.config import ELASTIC_SHARDS, ELASTIC_REPLICAS
+
+from dag_datalake_sirene.config import ELASTIC_REPLICAS, ELASTIC_SHARDS
 
 # Define filters
 french_stop = token_filter("french_stop", type="stop", stopwords="_french_")
@@ -343,6 +344,7 @@ class UniteLegaleMapping(InnerDoc):
     est_organisme_formation = Boolean()
     liste_id_organisme_formation = Text()
     est_qualiopi = Boolean()
+    est_l100_3 = Boolean()
     est_rge = Boolean()
     est_service_public = Boolean()
     est_siae = Boolean()
