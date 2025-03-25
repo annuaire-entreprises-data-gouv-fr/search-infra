@@ -30,7 +30,7 @@ mapping_commune_to_epci = load_file("epci.json")
 nature_juridique_service_public = set(load_file("administration_nature_juridique.json"))
 service_public_whitelist = set(load_file("administration_siren_whitelist.json"))
 service_public_blacklist = set(load_file("administration_siren_blacklist.json"))
-L100_3_siren_whitelist = set(load_file("administration_L100-3_whitelist.json"))
+L100_3_siren_whitelist = set(load_file("administration_L100-3_siren_whitelist.json"))
 excluded_nature_juridique_L100_3 = set(
     load_file("administration_L100-3_nature_juridique_exclue.json")
 )
