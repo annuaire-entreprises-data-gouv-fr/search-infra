@@ -1,6 +1,11 @@
 import json
 from datetime import datetime
 
+from dag_datalake_sirene.helpers.utils import (
+    convert_date_format,
+    sqlite_str_to_bool,
+    str_to_list,
+)
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
     calculate_company_size_factor,
     create_list_names_elus,
@@ -9,20 +14,16 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
     format_nom,
     format_nom_complet,
     format_personnes_physiques,
-    format_slug,
     format_siege_unite_legale,
+    format_slug,
     get_nom_commercial,
+    is_administration_l100_3,
     is_association,
     is_entrepreneur_individuel,
     is_ess,
     is_service_public,
     label_section_from_activite,
     map_categorie_to_number,
-)
-from dag_datalake_sirene.helpers.utils import (
-    convert_date_format,
-    sqlite_str_to_bool,
-    str_to_list,
 )
 
 
@@ -256,11 +257,16 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["date_mise_a_jour_rne"]
         )
 
-        # Service public
+        # Administration
         unite_legale_processed["est_service_public"] = is_service_public(
             unite_legale["nature_juridique_unite_legale"],
             unite_legale_processed["siren"],
             unite_legale_processed["etat_administratif_unite_legale"],
+        )
+        unite_legale_processed["est_l100_3"] = is_administration_l100_3(
+            unite_legale_processed["siren"],
+            unite_legale["nature_juridique_unite_legale"],
+            unite_legale_processed["est_service_public"],
         )
 
         # Produits catégorie/nombre étabs

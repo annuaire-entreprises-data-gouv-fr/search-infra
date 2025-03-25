@@ -1,8 +1,9 @@
 import re
 
 import pytest
-from dag_datalake_sirene.tests.e2e_tests.response_tester import APIResponseTester
+
 from dag_datalake_sirene.config import API_URL
+from dag_datalake_sirene.tests.e2e_tests.response_tester import APIResponseTester
 
 min_total_results = 10
 min_total_results_filters = 1000
@@ -187,6 +188,15 @@ def test_est_service_public(api_response_tester):
         path, 0, "complements.est_service_public", True
     )
     path = "/search?est_service_public=true&q=ministere"
+    api_response_tester.test_field_value(
+        path, 0, "complements.est_service_public", True
+    )
+    path = "/search?est_l100_3=true"
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
+    api_response_tester.test_field_value(path, 0, "complements.est_l100_3", True)
+    path = "/search?est_l100_3=false&est_service_public=true"
+    api_response_tester.test_number_of_results(path, 100)
+    api_response_tester.test_field_value(path, 0, "complements.est_l100_3", False)
     api_response_tester.test_field_value(
         path, 0, "complements.est_service_public", True
     )
