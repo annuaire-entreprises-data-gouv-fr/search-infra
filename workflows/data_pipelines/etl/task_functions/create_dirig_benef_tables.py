@@ -31,7 +31,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.dirigeants 
 )
 
 
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
 
 
 from dag_datalake_sirene.config import (
@@ -42,7 +42,7 @@ from dag_datalake_sirene.config import (
 
 
 def get_latest_rne_database(**kwargs):
-    latest_file_date = minio_client.get_latest_file(
+    latest_file_date = MinIOClient().get_latest_file(
         f"ae/{AIRFLOW_ENV}/rne/database/",
         f"{RNE_DATABASE_LOCATION}.gz",
     )

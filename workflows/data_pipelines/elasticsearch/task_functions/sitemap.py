@@ -5,7 +5,7 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
     format_nom_complet,
     format_slug,
 )
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
 from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.sqlite.sitemap import (
     select_sitemap_fields_query,
@@ -79,7 +79,7 @@ def create_sitemap():
 
 
 def update_sitemap():
-    minio_client.send_files(
+    MinIOClient().send_files(
         list_files=[
             {
                 "source_path": AIRFLOW_ELK_DATA_DIR,

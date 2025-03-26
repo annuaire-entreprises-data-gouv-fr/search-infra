@@ -7,7 +7,7 @@ import requests
 from airflow.operators.python import get_current_context
 
 from dag_datalake_sirene.config import DataSourceConfig
-from dag_datalake_sirene.helpers.minio_helpers import File, minio_client
+from dag_datalake_sirene.helpers.minio_helpers import File, MinIOClient
 from dag_datalake_sirene.helpers.notification import Notification
 from dag_datalake_sirene.helpers.datagouv import (
     fetch_last_resource_from_dataset,
@@ -29,7 +29,7 @@ class DataProcessor(ABC):
 
     def __init__(self, config: DataSourceConfig) -> None:
         self.config = config
-        self.minio_client = minio_client
+        self.minio_client = MinIOClient()
 
     def download_data(self) -> None:
         """

@@ -16,10 +16,10 @@ from dag_datalake_sirene.config import (
     RNE_MINIO_STOCK_DATA_PATH,
 )
 from dag_datalake_sirene.helpers.mattermost import send_message
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
 )
+from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.process_rne import (
     create_tables,
     get_tables_count,
@@ -29,6 +29,7 @@ from dag_datalake_sirene.workflows.data_pipelines.rne.database.process_rne impor
 
 
 def get_start_date_minio(**kwargs):
+    minio_client = MinIOClient()
     try:
         minio_client.get_files(
             list_files=[
@@ -116,7 +117,7 @@ def get_latest_db(**kwargs):
         previous_start_date = datetime.strftime(
             (previous_latest_date - timedelta(days=1)), "%Y-%m-%d"
         )
-        minio_client.get_files(
+        MinIOClient().get_files(
             list_files=[
                 {
                     "source_path": RNE_MINIO_DATA_PATH,
@@ -149,6 +150,8 @@ def get_latest_db(**kwargs):
 def process_stock_json_files(**kwargs):
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
     rne_db_path = kwargs["ti"].xcom_pull(key="rne_db_path", task_ids="create_db")
+
+    minio_client = MinIOClient()
 
     # Only process stock files if a date doesn't already exist
     if start_date is not None:
@@ -184,6 +187,8 @@ def process_stock_json_files(**kwargs):
 def process_flux_json_files(**kwargs):
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
     rne_db_path = kwargs["ti"].xcom_pull(key="rne_db_path", task_ids="create_db")
+
+    minio_client = MinIOClient()
 
     json_daily_flux_files = minio_client.get_files_from_prefix(
         prefix=RNE_MINIO_FLUX_DATA_PATH,
@@ -315,7 +320,7 @@ def check_db_count(
 
 
 def send_to_minio(list_files):
-    minio_client.send_files(
+    MinIOClient().send_files(
         list_files=list_files,
     )
 

@@ -43,7 +43,7 @@ from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.config import
 from dag_datalake_sirene.workflows.data_pipelines.convcollective.config import (
     CONVENTION_COLLECTIVE_CONFIG,
 )
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
 from dag_datalake_sirene.helpers.utils import simplify_date
 
 
@@ -106,7 +106,7 @@ def create_data_source_last_modified_file(**kwargs):
         json.dump(metadata_dict, json_file, indent=4)
 
     # Send the updated JSON file to Minio
-    minio_client.send_files(
+    MinIOClient().send_files(
         [
             {
                 "source_path": AIRFLOW_ETL_DATA_DIR,

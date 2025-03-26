@@ -339,6 +339,3 @@ class MinIOClient:
             logging.info(f"Copied {source_full_path} to {dest_full_path}")
         except S3Error as e:
             logging.error(f"Error copying file from {source_path} to {dest_path}: {e}")
-
-
-minio_client = MinIOClient()
