@@ -9,7 +9,7 @@ from dag_datalake_sirene.config import (
 )
 
 
-def send_message(
+def send_message_tchap(
     text: str,
     endpoint_url: str = TCHAP_ANNUAIRE_WEBHOOK,
     image_url: str | None = None,
@@ -39,4 +39,4 @@ def send_message(
 def send_notification_failure_tchap(context):
     dag_id = context["dag"].dag_id  # Get the dag_id from the context
     message = f"\U0001f534 Fail DAG: {dag_id}!!!!"
-    send_message(message)
+    send_message_tchap(message)
