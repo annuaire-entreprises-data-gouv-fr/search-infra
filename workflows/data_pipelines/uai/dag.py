@@ -29,8 +29,8 @@ default_args = {
     dagrun_timeout=timedelta(minutes=15),
     params={},
     catchup=False,
-    on_failure_callback=Notification.send_notification_tchap,
-    on_success_callback=Notification.send_notification_tchap,
+    on_failure_callback=Notification.send_notification_mattermost,
+    on_success_callback=Notification.send_notification_mattermost,
 )
 def data_processing_uai():
     uai_processor = UaiProcessor()

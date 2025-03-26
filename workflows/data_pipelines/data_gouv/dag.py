@@ -1,19 +1,17 @@
 from datetime import timedelta
+
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.workflows.data_pipelines.data_gouv.processor import (
-    DataGouvProcessor,
-)
-
-from dag_datalake_sirene.helpers import Notification
-
-from dag_datalake_sirene.helpers.utils import check_if_prod
 
 from dag_datalake_sirene.config import (
     AIRFLOW_DAG_TMP,
     EMAIL_LIST,
 )
-
+from dag_datalake_sirene.helpers import Notification
+from dag_datalake_sirene.helpers.utils import check_if_prod
+from dag_datalake_sirene.workflows.data_pipelines.data_gouv.processor import (
+    DataGouvProcessor,
+)
 
 default_args = {
     "depends_on_past": False,
@@ -33,8 +31,8 @@ default_args = {
     dagrun_timeout=timedelta(minutes=60 * 3),
     params={},
     catchup=False,
-    on_failure_callback=Notification.send_notification_tchap,
-    on_success_callback=Notification.send_notification_tchap,
+    on_failure_callback=Notification.send_notification_mattermost,
+    on_success_callback=Notification.send_notification_mattermost,
     max_active_runs=1,
 )
 def publish_files_in_data_gouv():

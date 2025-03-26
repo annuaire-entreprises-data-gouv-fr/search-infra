@@ -106,8 +106,8 @@ default_args = {
     dagrun_timeout=timedelta(minutes=60 * 5),
     params={},
     catchup=False,  # False to ignore past runs
-    on_failure_callback=Notification.send_notification_tchap,
-    on_success_callback=Notification.send_notification_tchap,
+    on_failure_callback=Notification.send_notification_mattermost,
+    on_success_callback=Notification.send_notification_mattermost,
     max_active_runs=1,
 )
 def database_constructor():

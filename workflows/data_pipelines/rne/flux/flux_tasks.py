@@ -1,20 +1,21 @@
-import os
-import json
-from datetime import datetime, timedelta
 import gzip
-import shutil
-import re
+import json
 import logging
-from dag_datalake_sirene.helpers.tchap import send_message
+import os
+import re
+import shutil
+from datetime import datetime, timedelta
+
+from dag_datalake_sirene.config import (
+    AIRFLOW_ENV,
+    RNE_DEFAULT_START_DATE,
+    RNE_FLUX_DATADIR,
+    RNE_MINIO_FLUX_DATA_PATH,
+)
+from dag_datalake_sirene.helpers.mattermost import send_message
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
 from dag_datalake_sirene.helpers.utils import get_last_line
 from dag_datalake_sirene.workflows.data_pipelines.rne.flux.rne_api import ApiRNEClient
-from dag_datalake_sirene.config import (
-    AIRFLOW_ENV,
-    RNE_FLUX_DATADIR,
-    RNE_MINIO_FLUX_DATA_PATH,
-    RNE_DEFAULT_START_DATE,
-)
 
 
 def get_last_json_file_date():
@@ -182,7 +183,6 @@ def get_and_save_daily_flux_rne(
                 raise Exception(f"Error occurred during the API request: {e}")
 
     if os.path.exists(json_file_path):
-
         # Zip file
         with open(json_file_path, "rb") as f_in:
             with gzip.open(f"{json_file_path}.gz", "wb") as f_out:
@@ -233,7 +233,7 @@ def get_every_day_flux(ti):
     ti.xcom_push(key="rne_flux_end_date", value=end_date)
 
 
-def send_notification_success_tchap(**kwargs):
+def send_notification_success_mattermost(**kwargs):
     rne_flux_start_date = kwargs["ti"].xcom_pull(
         key="rne_flux_start_date", task_ids="get_every_day_flux"
     )
@@ -241,12 +241,12 @@ def send_notification_success_tchap(**kwargs):
         key="rne_flux_end_date", task_ids="get_every_day_flux"
     )
     send_message(
-        f"\U0001F7E2 Données :"
+        f"🟢 Données :"
         f"\nDonnées flux RNE mises à jour."
         f"\n - Date début flux : {rne_flux_start_date}."
         f"\n - Date fin flux : {rne_flux_end_date}."
     )
 
 
-def send_notification_failure_tchap(context):
-    send_message("\U0001F534 Données :" "\nFail DAG flux RNE!!!!")
+def send_notification_failure_mattermost(context):
+    send_message(":red_circle: Données :\nFail DAG flux RNE!!!!")

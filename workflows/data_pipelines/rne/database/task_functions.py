@@ -1,28 +1,30 @@
-from minio.error import S3Error
-from datetime import datetime, timedelta
-import os
-import json
 import gzip
-import shutil
-import re
+import json
 import logging
+import os
+import re
+import shutil
+from datetime import datetime, timedelta
+
+from minio.error import S3Error
+
+from dag_datalake_sirene.config import (
+    RNE_DB_TMP_FOLDER,
+    RNE_LATEST_DATE_FILE,
+    RNE_MINIO_DATA_PATH,
+    RNE_MINIO_FLUX_DATA_PATH,
+    RNE_MINIO_STOCK_DATA_PATH,
+)
+from dag_datalake_sirene.helpers.mattermost import send_message
 from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.workflows.data_pipelines.rne.database.db_connexion import (
+    connect_to_db,
+)
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.process_rne import (
     create_tables,
     get_tables_count,
     inject_records_into_db,
     remove_duplicates_from_tables,
-)
-from dag_datalake_sirene.workflows.data_pipelines.rne.database.db_connexion import (
-    connect_to_db,
-)
-from dag_datalake_sirene.helpers.tchap import send_message
-from dag_datalake_sirene.config import (
-    RNE_MINIO_DATA_PATH,
-    RNE_LATEST_DATE_FILE,
-    RNE_DB_TMP_FOLDER,
-    RNE_MINIO_STOCK_DATA_PATH,
-    RNE_MINIO_FLUX_DATA_PATH,
 )
 
 
@@ -384,11 +386,9 @@ def upload_latest_date_rne_minio(ti):
     ti.xcom_push(key="latest_date", value=latest_date)
 
 
-def notification_tchap(ti):
+def notification_mattermost(ti):
     start_date = ti.xcom_pull(key="start_date", task_ids="get_start_date")
     last_date_processed = ti.xcom_pull(
         key="last_date_processed", task_ids="process_flux_json_files"
     )
-    send_message(
-        f"\U0001F7E2 Données RNE traitées de {start_date} à {last_date_processed}."
-    )
+    send_message(f"🟢 Données RNE traitées de {start_date} à {last_date_processed}.")

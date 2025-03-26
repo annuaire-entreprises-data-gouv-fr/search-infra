@@ -1,19 +1,21 @@
-from airflow.models import DAG
 from datetime import datetime, timedelta
+
+from airflow.models import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
+
 from dag_datalake_sirene.config import EMAIL_LIST, RNE_DB_TMP_FOLDER
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.task_functions import (
-    get_start_date_minio,
-    get_latest_db,
     check_db_count,
     create_db,
+    get_latest_db,
+    get_start_date_minio,
+    notification_mattermost,
     process_flux_json_files,
     process_stock_json_files,
     remove_duplicates,
     upload_db_to_minio,
     upload_latest_date_rne_minio,
-    notification_tchap,
 )
 
 default_args = {
@@ -74,8 +76,8 @@ with DAG(
         bash_command=f"rm -rf {RNE_DB_TMP_FOLDER}",
     )
 
-    notification_tchap = PythonOperator(
-        task_id="notification_tchap", python_callable=notification_tchap
+    send_notification_mattermost = PythonOperator(
+        task_id="send_notification_mattermost", python_callable=notification_mattermost
     )
 
     get_start_date.set_upstream(clean_previous_outputs)
@@ -88,4 +90,4 @@ with DAG(
     upload_db_to_minio.set_upstream(check_db_count)
     upload_latest_date_rne_minio.set_upstream(upload_db_to_minio)
     clean_outputs.set_upstream(upload_latest_date_rne_minio)
-    notification_tchap.set_upstream(clean_outputs)
+    send_notification_mattermost.set_upstream(clean_outputs)

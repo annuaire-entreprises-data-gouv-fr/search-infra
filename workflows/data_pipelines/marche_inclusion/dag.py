@@ -3,12 +3,11 @@ from datetime import timedelta
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 
-from dag_datalake_sirene.helpers import Notification
 from dag_datalake_sirene.config import EMAIL_LIST
+from dag_datalake_sirene.helpers import Notification
 from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.processor import (
     MarcheInclusionProcessor,
 )
-
 
 default_args = {
     "depends_on_past": False,
@@ -27,8 +26,8 @@ default_args = {
     dagrun_timeout=timedelta(minutes=60),
     params={},
     catchup=False,
-    on_failure_callback=Notification.send_notification_tchap,
-    on_success_callback=Notification.send_notification_tchap,
+    on_failure_callback=Notification.send_notification_mattermost,
+    on_success_callback=Notification.send_notification_mattermost,
 )
 def data_processing_marche_inclusion():
     marche_inclusion_processor = MarcheInclusionProcessor()

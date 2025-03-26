@@ -1,12 +1,14 @@
+from datetime import timedelta
+
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
-from datetime import timedelta
+
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
+from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import ESS_CONFIG
 from dag_datalake_sirene.workflows.data_pipelines.ess_france.processor import (
     EssFranceProcessor,
 )
-from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import ESS_CONFIG
 
 ess_france_processor = EssFranceProcessor()
 
@@ -27,8 +29,8 @@ default_args = {
     dagrun_timeout=timedelta(minutes=60),
     params={},
     catchup=False,
-    on_failure_callback=Notification.send_notification_tchap,
-    on_success_callback=Notification.send_notification_tchap,
+    on_failure_callback=Notification.send_notification_mattermost,
+    on_success_callback=Notification.send_notification_mattermost,
 )
 def data_processing_ess_france():
     @task.bash

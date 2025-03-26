@@ -1,14 +1,15 @@
+from datetime import datetime, timedelta
+
 from airflow.models import DAG
-from datetime import timedelta, datetime
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
-from dag_datalake_sirene.config import EMAIL_LIST
+
+from dag_datalake_sirene.config import EMAIL_LIST, RNE_FLUX_TMP_FOLDER
 from dag_datalake_sirene.workflows.data_pipelines.rne.flux.flux_tasks import (
     get_every_day_flux,
-    send_notification_failure_tchap,
-    send_notification_success_tchap,
+    send_notification_failure_mattermost,
+    send_notification_success_mattermost,
 )
-from dag_datalake_sirene.config import RNE_FLUX_TMP_FOLDER
 
 default_args = {
     "depends_on_past": False,
@@ -27,7 +28,7 @@ with DAG(
     catchup=False,
     max_active_runs=1,
     dagrun_timeout=timedelta(days=30),
-    on_failure_callback=send_notification_failure_tchap,
+    on_failure_callback=send_notification_failure_mattermost,
     tags=["rne", "flux"],
     params={},
 ) as dag:
@@ -46,11 +47,11 @@ with DAG(
         bash_command=f"rm -rf {RNE_FLUX_TMP_FOLDER}",
     )
 
-    send_notification_success_tchap = PythonOperator(
-        task_id="send_notification_success_tchap",
-        python_callable=send_notification_success_tchap,
+    send_notification_success_mattermost = PythonOperator(
+        task_id="send_notification_success_mattermost",
+        python_callable=send_notification_success_mattermost,
     )
 
     get_daily_flux_rne.set_upstream(clean_previous_outputs)
     clean_outputs.set_upstream(get_daily_flux_rne)
-    send_notification_success_tchap.set_upstream(clean_outputs)
+    send_notification_success_mattermost.set_upstream(clean_outputs)
