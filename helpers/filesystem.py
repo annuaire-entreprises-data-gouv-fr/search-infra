@@ -2,6 +2,8 @@ import json
 import tempfile
 import logging
 
+from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
+
 
 class JsonSerializer:
     def get_content_type(self):
@@ -15,8 +17,8 @@ class JsonSerializer:
 
 
 class Filesystem:
-    def __init__(self, client, dirpath, serializer, tmp_dirpath="/tmp"):
-        self.client = client
+    def __init__(self, dirpath, serializer, tmp_dirpath="/tmp"):
+        self.client = MinIOClient()
         self.dirpath = dirpath
         self.serializer = serializer
         self.tmp_dirpath = tmp_dirpath
