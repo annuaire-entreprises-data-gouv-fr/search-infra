@@ -22,7 +22,7 @@ def send_message(
         image_url (Optional[str], optional): Url of an image to link
         with your text. Defaults to None.
     """
-    if AIRFLOW_ENV != "dev":
+    if AIRFLOW_ENV != "prod":
         return None
 
     data: dict[str, Any] = {"text": text}
