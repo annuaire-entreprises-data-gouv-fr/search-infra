@@ -1,12 +1,14 @@
+from datetime import timedelta
+
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
-from datetime import timedelta
+
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
+from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
 from dag_datalake_sirene.workflows.data_pipelines.egapro.processor import (
     EgaproProcessor,
 )
-from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
 
 egapro_processor = EgaproProcessor()
 
@@ -27,8 +29,8 @@ default_args = {
     dagrun_timeout=timedelta(minutes=60),
     params={},
     catchup=False,
-    on_failure_callback=Notification.send_notification_tchap,
-    on_success_callback=Notification.send_notification_tchap,
+    on_failure_callback=Notification.send_notification_mattermost,
+    on_success_callback=Notification.send_notification_mattermost,
 )
 def data_processing_egapro():
     @task.bash

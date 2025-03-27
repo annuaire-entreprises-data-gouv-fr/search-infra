@@ -1,14 +1,13 @@
-from airflow.decorators import task
-from airflow.utils.dates import days_ago
 from datetime import timedelta
-from airflow.decorators import dag
+
+from airflow.decorators import dag, task
+from airflow.utils.dates import days_ago
 
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
 from dag_datalake_sirene.workflows.data_pipelines.sirene.stock.processor import (
     SireneStockProcessor,
 )
-
 
 default_args = {
     "depends_on_past": False,
@@ -28,8 +27,8 @@ default_args = {
     params={},
     catchup=False,
     max_active_runs=1,
-    on_failure_callback=Notification.send_notification_tchap,
-    on_success_callback=Notification.send_notification_tchap,
+    on_failure_callback=Notification.send_notification_mattermost,
+    on_success_callback=Notification.send_notification_mattermost,
 )
 def data_processing_sirene_stock():
     sirene_stock_processor = SireneStockProcessor()

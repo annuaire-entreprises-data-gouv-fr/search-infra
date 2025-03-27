@@ -1,24 +1,24 @@
 import logging
 from enum import Enum
 
-from dag_datalake_sirene.helpers import tchap
+from dag_datalake_sirene.helpers import mattermost
 
 
 class Notification:
     """
-    Class to manage and send end of DAG notifications to Tchap.
+    Class to manage and send end of DAG notifications to Mattermost.
 
     Methods:
-        send_notification_tchap() -> None:
-            Sends a notification to Tchap with the following format:
+        send_notification_mattermost() -> None:
+            Sends a notification to Mattermost with the following format:
                 🔴 dagA: Données
                 - N rows were updated.
                 - task2(failed)
 
     Usage:
         Add the following parameters to a DAG definition:
-            >> on_failure_callback=Notification.send_notification_tchap,
-            >> on_success_callback=Notification.send_notification_tchap,
+            >> on_failure_callback=Notification.send_notification_mattermost,
+            >> on_success_callback=Notification.send_notification_mattermost,
 
         [Optional] In the relevant @task, use the following code to provide additional
         context for the notification:
@@ -29,10 +29,10 @@ class Notification:
     notification_xcom_key = "notification_message"
 
     class Status(str, Enum):
-        SUCCESS = "\U0001f7e2"
-        WARNING = "\U0001f7e0"
-        RUNNING = "\u25b6\ufe0f"
-        FAILURE = "\U0001f534"
+        SUCCESS = ":large_green_circle:"
+        WARNING = ":large_orange_circle:"
+        RUNNING = ":arrow_forward:"
+        FAILURE = ":red_circle:"
 
     def __init__(self, context) -> None:
         if context.get("dag_run").state == "success":
@@ -77,11 +77,11 @@ class Notification:
 
         return notification_messages
 
-    def send_tchap_notification(self) -> None:
+    def send_mattermost_notification(self) -> None:
         message = self.generate_notification_message()
-        logging.info(f"Notification sent to Tchap:\n{message}")
-        tchap.send_message(message)
+        logging.info(f"Notification sent to Mattermost:\n{message}")
+        mattermost.send_message(message)
 
     @classmethod
-    def send_notification_tchap(cls, context):
-        Notification(context).send_tchap_notification()
+    def send_notification_mattermost(cls, context):
+        Notification(context).send_mattermost_notification()

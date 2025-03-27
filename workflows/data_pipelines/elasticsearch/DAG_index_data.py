@@ -3,18 +3,39 @@ from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from operators.clean_folder import CleanFolderOperator
 
+from dag_datalake_sirene.config import (
+    AIRFLOW_DAG_FOLDER,
+    AIRFLOW_DAG_TMP,
+    AIRFLOW_ELK_DAG_NAME,
+    AIRFLOW_SNAPSHOT_DAG_NAME,
+    API_IS_REMOTE,
+    EMAIL_LIST,
+    REDIS_DB,
+    REDIS_HOST,
+    REDIS_PASSWORD,
+    REDIS_PORT,
+)
 from dag_datalake_sirene.helpers.flush_cache import flush_cache
+
+# fmt: on
+from dag_datalake_sirene.tests.e2e_tests.run_tests import run_e2e_tests
 
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
     index import (
-    get_next_index_name,
     check_elastic_index,
     create_elastic_index,
-    update_elastic_alias,
-    fill_elastic_siren_index,
     delete_previous_elastic_indices,
+    fill_elastic_siren_index,
+    get_next_index_name,
+    update_elastic_alias,
+)
+from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
+    send_notification import (
+    send_notification_failure_mattermost,
+    send_notification_success_mattermost,
 )
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
     sitemap import (
@@ -22,34 +43,12 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
     update_sitemap,
 )
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
-    fetch_db import get_latest_database
-
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
-    send_notification import (
-    send_notification_success_tchap,
-    send_notification_failure_tchap,
-)
-
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
     source_updates import (
     sync_data_source_updates,
 )
-# fmt: on
-from dag_datalake_sirene.tests.e2e_tests.run_tests import run_e2e_tests
-from dag_datalake_sirene.config import (
-    AIRFLOW_DAG_TMP,
-    AIRFLOW_ELK_DAG_NAME,
-    AIRFLOW_SNAPSHOT_DAG_NAME,
-    AIRFLOW_DAG_FOLDER,
-    EMAIL_LIST,
-    REDIS_HOST,
-    REDIS_PORT,
-    REDIS_DB,
-    REDIS_PASSWORD,
-    API_IS_REMOTE,
+from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.fetch_db import (
+    get_latest_database,
 )
-from operators.clean_folder import CleanFolderOperator
-
 
 default_args = {
     "depends_on_past": False,
@@ -68,7 +67,7 @@ with DAG(
     dagrun_timeout=timedelta(minutes=60 * 12),
     tags=["index", "elasticsearch"],
     catchup=False,  # False to ignore past runs
-    on_failure_callback=send_notification_failure_tchap,
+    on_failure_callback=send_notification_failure_mattermost,
     max_active_runs=1,
 ) as dag:
     get_next_index_name = PythonOperator(
@@ -136,9 +135,9 @@ with DAG(
         python_callable=run_e2e_tests,
     )
 
-    send_notification_tchap = PythonOperator(
-        task_id="send_notification_tchap",
-        python_callable=send_notification_success_tchap,
+    send_notification_mattermost = PythonOperator(
+        task_id="send_notification_mattermost",
+        python_callable=send_notification_success_mattermost,
     )
 
     sync_data_source_updates = PythonOperator(
@@ -175,7 +174,7 @@ with DAG(
         test_api.set_upstream(trigger_snapshot_dag)
 
         clean_folder.set_upstream([test_api, update_sitemap])
-        send_notification_tchap.set_upstream([clean_folder, update_sitemap])
+        send_notification_mattermost.set_upstream([clean_folder, update_sitemap])
     else:
         flush_cache = PythonOperator(
             task_id="flush_cache",

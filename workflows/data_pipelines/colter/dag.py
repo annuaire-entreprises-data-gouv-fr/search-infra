@@ -1,8 +1,8 @@
 from datetime import timedelta
 
+from airflow.datasets import Dataset
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
-from airflow.datasets import Dataset
 
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
@@ -32,8 +32,8 @@ dataset_colter = Dataset(COLTER_CONFIG.name)
     schedule_interval="0 16 * * *",
     start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=60),
-    on_failure_callback=Notification.send_notification_tchap,
-    on_success_callback=Notification.send_notification_tchap,
+    on_failure_callback=Notification.send_notification_mattermost,
+    on_success_callback=Notification.send_notification_mattermost,
     params={},
     catchup=False,
 )
@@ -77,8 +77,8 @@ def data_processing_collectivite_territoriale():
     schedule=[dataset_colter],
     start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=60),
-    on_failure_callback=Notification.send_notification_tchap,
-    on_success_callback=Notification.send_notification_tchap,
+    on_failure_callback=Notification.send_notification_mattermost,
+    on_success_callback=Notification.send_notification_mattermost,
     params={},
     catchup=False,
 )

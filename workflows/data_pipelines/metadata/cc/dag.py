@@ -4,13 +4,12 @@ from airflow.decorators import dag, task
 from airflow.operators.python import ShortCircuitOperator
 
 from dag_datalake_sirene.config import EMAIL_LIST, METADATA_CC_TMP_FOLDER
+from dag_datalake_sirene.helpers import Notification
 from dag_datalake_sirene.workflows.data_pipelines.metadata.cc.task_functions import (
     create_metadata_convention_collective_json,
-    upload_json_to_minio,
     is_metadata_not_updated,
+    upload_json_to_minio,
 )
-from dag_datalake_sirene.helpers import Notification
-
 
 default_args = {
     "depends_on_past": False,
@@ -29,8 +28,8 @@ default_args = {
     catchup=False,
     max_active_runs=1,
     dagrun_timeout=timedelta(minutes=(60 * 100)),
-    on_failure_callback=Notification.send_notification_tchap,
-    on_success_callback=Notification.send_notification_tchap,
+    on_failure_callback=Notification.send_notification_mattermost,
+    on_success_callback=Notification.send_notification_mattermost,
     tags=["api", "metadata", "cc"],
 )
 def get_metadata_cc():
