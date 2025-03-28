@@ -1,13 +1,13 @@
-from datetime import datetime
 import gzip
-import re
-import shutil
 import logging
 import os
+import re
+import shutil
+from datetime import datetime
 
 from dag_datalake_sirene.config import (
-    SIRENE_MINIO_DATA_PATH,
     AIRFLOW_ELK_DATA_DIR,
+    SIRENE_MINIO_DATA_PATH,
 )
 from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
 

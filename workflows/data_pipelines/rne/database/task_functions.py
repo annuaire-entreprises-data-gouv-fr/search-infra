@@ -16,10 +16,10 @@ from dag_datalake_sirene.config import (
     RNE_MINIO_STOCK_DATA_PATH,
 )
 from dag_datalake_sirene.helpers.mattermost import send_message
+from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
 )
-from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.process_rne import (
     create_tables,
     get_tables_count,

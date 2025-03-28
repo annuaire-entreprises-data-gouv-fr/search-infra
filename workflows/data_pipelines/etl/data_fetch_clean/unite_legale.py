@@ -1,13 +1,14 @@
-from datetime import datetime
 import ast
-import shutil
 import logging
+import shutil
+from datetime import datetime
+
 import minio
 import pandas as pd
 import requests
 from airflow.exceptions import AirflowSkipException
-from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
 
+from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
 from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
     FLUX_SIRENE_CONFIG,
 )

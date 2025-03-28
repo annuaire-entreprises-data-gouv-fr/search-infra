@@ -1,19 +1,19 @@
 import logging
 import time
 from datetime import datetime
+
 from elasticsearch_dsl import connections
 
 from dag_datalake_sirene.config import (
     AIRFLOW_ELK_DAG_NAME,
     AIRFLOW_ENV,
-    ELASTIC_URL,
-    ELASTIC_USER,
     ELASTIC_PASSWORD,
-    ELASTIC_SNAPSHOT_REPOSITORY,
     ELASTIC_SNAPSHOT_MAX_REVISIONS,
     ELASTIC_SNAPSHOT_MINIO_STATE_PATH,
+    ELASTIC_SNAPSHOT_REPOSITORY,
+    ELASTIC_URL,
+    ELASTIC_USER,
 )
-
 from dag_datalake_sirene.helpers.filesystem import (
     Filesystem,
     JsonSerializer,

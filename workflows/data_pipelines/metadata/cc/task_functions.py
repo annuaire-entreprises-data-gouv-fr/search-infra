@@ -8,10 +8,10 @@ from airflow.operators.python import get_current_context
 from requests.exceptions import HTTPError
 
 from dag_datalake_sirene.config import (
+    FILE_CC_DATE,
     METADATA_CC_MINIO_PATH,
     METADATA_CC_TMP_FOLDER,
     URL_CC_DARES,
-    FILE_CC_DATE,
     URL_CC_KALI,
 )
 from dag_datalake_sirene.helpers.minio_helpers import File, MinIOClient

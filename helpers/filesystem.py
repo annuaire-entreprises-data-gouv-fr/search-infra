@@ -1,6 +1,6 @@
 import json
-import tempfile
 import logging
+import tempfile
 
 from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
 

@@ -1,22 +1,22 @@
 import logging
 import os
-from datetime import datetime
 from abc import ABC
+from datetime import datetime
 
 import requests
 from airflow.operators.python import get_current_context
 
 from dag_datalake_sirene.config import DataSourceConfig
+from dag_datalake_sirene.helpers.datagouv import (
+    fetch_last_modified_date,
+    fetch_last_resource_from_dataset,
+)
 from dag_datalake_sirene.helpers.minio_helpers import File, MinIOClient
 from dag_datalake_sirene.helpers.notification import Notification
-from dag_datalake_sirene.helpers.datagouv import (
-    fetch_last_resource_from_dataset,
-    fetch_last_modified_date,
-)
 from dag_datalake_sirene.helpers.utils import (
+    download_file,
     get_date_last_modified,
     save_to_metadata,
-    download_file,
 )
 
 
