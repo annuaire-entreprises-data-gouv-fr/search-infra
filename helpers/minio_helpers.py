@@ -1,17 +1,19 @@
+import logging
+import os
+from datetime import datetime
+from typing import List, Optional, TypedDict
+
 import boto3
 import botocore
-from datetime import datetime
-import logging
 from minio import Minio, S3Error
 from minio.commonconfig import CopySource
-from typing import List, TypedDict, Optional
-import os
+
 from dag_datalake_sirene.config import (
     AIRFLOW_ENV,
     MINIO_BUCKET,
+    MINIO_PASSWORD,
     MINIO_URL,
     MINIO_USER,
-    MINIO_PASSWORD,
 )
 
 
@@ -73,7 +75,7 @@ class MinIOClient:
                 )
             else:
                 raise Exception(
-                    f"file {file['source_path']}{file['source_name']} " "does not exist"
+                    f"file {file['source_path']}{file['source_name']} does not exist"
                 )
 
     def get_files_from_prefix(self, prefix: str):
@@ -339,6 +341,3 @@ class MinIOClient:
             logging.info(f"Copied {source_full_path} to {dest_full_path}")
         except S3Error as e:
             logging.error(f"Error copying file from {source_path} to {dest_path}: {e}")
-
-
-minio_client = MinIOClient()

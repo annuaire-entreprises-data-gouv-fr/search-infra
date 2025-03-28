@@ -11,7 +11,7 @@ import pandas as pd
 from dag_datalake_sirene.config import AIRFLOW_DATAGOUV_DATA_DIR, SIRENE_MINIO_DATA_PATH
 from dag_datalake_sirene.helpers.datagouv import post_resource
 from dag_datalake_sirene.helpers.geolocalisation import transform_coordinates
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
 from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 from dag_datalake_sirene.helpers.utils import (
     convert_date_format,
@@ -90,6 +90,7 @@ class DataGouvProcessor:
 
     def get_latest_database(self):
         """Get the latest database from MinIO storage"""
+        minio_client = MinIOClient()
         database_files = minio_client.get_files_from_prefix(
             prefix=SIRENE_MINIO_DATA_PATH,
         )
@@ -298,7 +299,7 @@ class DataGouvProcessor:
 
     def send_to_minio(self, list_files):
         """Send files to MinIO storage"""
-        minio_client.send_files(list_files=list_files)
+        MinIOClient().send_files(list_files=list_files)
 
     def upload_ul_and_administration_to_minio(self):
         """Compress and upload unites legales and administration files to MinIO"""

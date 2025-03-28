@@ -1,20 +1,21 @@
-from datetime import datetime
 import gzip
-import re
-import shutil
 import logging
 import os
+import re
+import shutil
+from datetime import datetime
 
 from dag_datalake_sirene.config import (
-    SIRENE_MINIO_DATA_PATH,
     AIRFLOW_ELK_DATA_DIR,
+    SIRENE_MINIO_DATA_PATH,
 )
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
+from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
 
 current_date = datetime.now().date()
 
 
 def get_latest_database(**kwargs):
+    minio_client = MinIOClient()
     database_files = minio_client.get_files_from_prefix(
         prefix=SIRENE_MINIO_DATA_PATH,
     )

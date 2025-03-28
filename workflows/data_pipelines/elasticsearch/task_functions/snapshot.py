@@ -1,27 +1,26 @@
 import logging
 import time
 from datetime import datetime
+
 from elasticsearch_dsl import connections
 
 from dag_datalake_sirene.config import (
     AIRFLOW_ELK_DAG_NAME,
-    ELASTIC_URL,
-    ELASTIC_USER,
+    AIRFLOW_ENV,
     ELASTIC_PASSWORD,
-    ELASTIC_SNAPSHOT_REPOSITORY,
     ELASTIC_SNAPSHOT_MAX_REVISIONS,
     ELASTIC_SNAPSHOT_MINIO_STATE_PATH,
+    ELASTIC_SNAPSHOT_REPOSITORY,
+    ELASTIC_URL,
+    ELASTIC_USER,
 )
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-
 from dag_datalake_sirene.helpers.filesystem import (
     Filesystem,
     JsonSerializer,
 )
 
 filesystem = Filesystem(
-    minio_client,
-    f"{minio_client.get_root_dirpath()}/{ELASTIC_SNAPSHOT_MINIO_STATE_PATH}/",
+    f"ae/{AIRFLOW_ENV}/{ELASTIC_SNAPSHOT_MINIO_STATE_PATH}/",
     JsonSerializer(),
 )
 

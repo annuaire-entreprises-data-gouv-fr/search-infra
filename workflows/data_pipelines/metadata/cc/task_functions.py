@@ -8,13 +8,13 @@ from airflow.operators.python import get_current_context
 from requests.exceptions import HTTPError
 
 from dag_datalake_sirene.config import (
+    FILE_CC_DATE,
     METADATA_CC_MINIO_PATH,
     METADATA_CC_TMP_FOLDER,
     URL_CC_DARES,
-    FILE_CC_DATE,
     URL_CC_KALI,
 )
-from dag_datalake_sirene.helpers.minio_helpers import File, minio_client
+from dag_datalake_sirene.helpers.minio_helpers import File, MinIOClient
 from dag_datalake_sirene.helpers.notification import Notification
 from dag_datalake_sirene.helpers.utils import get_previous_months
 
@@ -47,7 +47,7 @@ def get_month_year_french():
 
 
 def is_metadata_not_updated() -> bool:
-    last_run_date = minio_client.get_date_last_modified(
+    last_run_date = MinIOClient().get_date_last_modified(
         f"{METADATA_CC_MINIO_PATH}cc_kali.json"
     )
     if last_run_date is not None:
@@ -85,7 +85,7 @@ def create_metadata_convention_collective_json():
     if not r.ok:
         # The file is often unavailable, this is expected but
         # we need to be informed to act upon it if it has been too long
-        last_run_date = minio_client.get_date_last_modified(
+        last_run_date = MinIOClient().get_date_last_modified(
             f"{METADATA_CC_MINIO_PATH}cc_kali.json"
         )
         if last_run_date is not None:
@@ -151,7 +151,7 @@ def create_metadata_convention_collective_json():
 
 
 def upload_json_to_minio():
-    minio_client.send_files(
+    MinIOClient().send_files(
         list_files=[
             File(
                 source_path=METADATA_CC_TMP_FOLDER,
