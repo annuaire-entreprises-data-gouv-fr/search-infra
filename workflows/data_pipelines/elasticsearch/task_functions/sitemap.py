@@ -15,13 +15,17 @@ from dag_datalake_sirene.config import (
     AIRFLOW_ENV,
 )
 
+# dev-01 -> sitemap-dev.csv / prod -> sitemap-prod.csv
+filename= "sitemap-" + AIRFLOW_ENV.split("-")[0] + ".csv"
+
 
 def create_sitemap():
     sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db")
     sqlite_client.execute(select_sitemap_fields_query)
+    filepath = AIRFLOW_ELK_DATA_DIR + filename
 
-    if os.path.exists(AIRFLOW_ELK_DATA_DIR + "sitemap-" + AIRFLOW_ENV + ".csv"):
-        os.remove(AIRFLOW_ELK_DATA_DIR + "sitemap-" + AIRFLOW_ENV + ".csv")
+    if os.path.exists(filepath):
+        os.remove(filepath)
 
     chunk_unites_legales_sqlite = 1
     while chunk_unites_legales_sqlite:
@@ -70,7 +74,7 @@ def create_sitemap():
                     f"{ul['activite_principale_unite_legale']},{slug}\n"
                 )
 
-        with open(AIRFLOW_ELK_DATA_DIR + "sitemap-" + AIRFLOW_ENV + ".csv", "a+") as f:
+        with open(filepath, "a+") as f:
             f.write(slugs)
 
 
@@ -79,7 +83,7 @@ def update_sitemap():
         list_files=[
             {
                 "source_path": AIRFLOW_ELK_DATA_DIR,
-                "source_name": f"sitemap-{AIRFLOW_ENV}.csv",
+                "source_name": filename,
                 "dest_path": "",
                 "dest_name": "sitemap.csv",
                 "content_type": "text/csv",
