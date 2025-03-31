@@ -185,6 +185,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["egapro_renseignee"]
         )
 
+        # Achats Responsables
+        unite_legale_processed["est_achats_responsables"] = sqlite_str_to_bool(
+            unite_legale["est_achats_responsables"]
+        )
+
         # Marche Inclusion
         unite_legale_processed["est_siae"] = sqlite_str_to_bool(
             unite_legale["est_siae"]
