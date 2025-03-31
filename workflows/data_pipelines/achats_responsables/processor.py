@@ -36,7 +36,6 @@ class AchatsResponsablesProcessor(DataProcessor):
         DataProcessor.push_message(
             Notification.notification_xcom_key,
             column=df_achats.siren,
-            description="unités légales",
         )
 
         del df_achats
