@@ -1,48 +1,42 @@
-import logging
 import gzip
-import shutil
+import logging
 import os
+import shutil
 
-# fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.dirigeants\
-    import (
-    preprocess_dirigeant_pm,
-    preprocess_personne_physique,
+from dag_datalake_sirene.config import (
+    AIRFLOW_ENV,
+    RNE_DATABASE_LOCATION,
+    SIRENE_DATABASE_LOCATION,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.beneficiaires\
-    import (
-    create_table_benef_query,
-    get_chunk_benef_from_db_query,
-)
+from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
+
 # fmt: on
 from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 
+# fmt: off
+from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.dirigeants import (
+    preprocess_dirigeant_pm,
+    preprocess_personne_physique,
+)
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
+    create_index,
     drop_table,
     get_distinct_column_count,
-    create_index,
 )
-
+from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.beneficiaires import (
+    create_table_benef_query,
+    get_chunk_benef_from_db_query,
+)
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.dirigeants import (
-    create_table_dirigeant_pp_query,
     create_table_dirigeant_pm_query,
-    get_chunk_dirig_pp_from_db_query,
+    create_table_dirigeant_pp_query,
     get_chunk_dirig_pm_from_db_query,
-)
-
-
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
-
-
-from dag_datalake_sirene.config import (
-    SIRENE_DATABASE_LOCATION,
-    AIRFLOW_ENV,
-    RNE_DATABASE_LOCATION,
+    get_chunk_dirig_pp_from_db_query,
 )
 
 
 def get_latest_rne_database(**kwargs):
-    latest_file_date = minio_client.get_latest_file(
+    latest_file_date = MinIOClient().get_latest_file(
         f"ae/{AIRFLOW_ENV}/rne/database/",
         f"{RNE_DATABASE_LOCATION}.gz",
     )

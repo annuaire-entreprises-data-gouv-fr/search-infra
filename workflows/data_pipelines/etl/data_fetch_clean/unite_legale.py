@@ -1,13 +1,14 @@
-from datetime import datetime
 import ast
-import shutil
 import logging
+import shutil
+from datetime import datetime
+
 import minio
 import pandas as pd
 import requests
 from airflow.exceptions import AirflowSkipException
-from dag_datalake_sirene.helpers.minio_helpers import minio_client
 
+from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
 from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
     FLUX_SIRENE_CONFIG,
 )
@@ -48,7 +49,7 @@ def download_flux(data_dir):
     year_month = datetime.today().strftime("%Y-%m")
     try:
         logging.info(f"Downloading flux for : {year_month}")
-        minio_client.get_files(
+        MinIOClient().get_files(
             list_files=[
                 {
                     "source_path": FLUX_SIRENE_CONFIG.minio_path,
