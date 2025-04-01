@@ -13,6 +13,9 @@ from dag_datalake_sirene.config import (
 )
 from dag_datalake_sirene.helpers import Notification
 from dag_datalake_sirene.helpers.database_constructor import DatabaseTableConstructor
+from dag_datalake_sirene.workflows.data_pipelines.achats_responsables.config import (
+    ACHATS_RESPONSABLES_CONFIG,
+)
 from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
@@ -277,6 +280,7 @@ def database_constructor():
         UAI_CONFIG,
         CONVENTION_COLLECTIVE_CONFIG,
         MARCHE_INCLUSION_CONFIG,
+        ACHATS_RESPONSABLES_CONFIG,
     ]
     tasks = []
     for config in config_list:

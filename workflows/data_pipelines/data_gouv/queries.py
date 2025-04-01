@@ -51,6 +51,11 @@ SELECT ul.etat_administratif_unite_legale as etat_administratif,
         FROM egapro
         WHERE siren = ul.siren
     ) as egapro_renseignee,
+    (
+        SELECT est_achats_responsables
+        FROM achats_responsables
+        WHERE siren = ul.siren
+    ) as est_achats_responsables,
     ul.economie_sociale_solidaire_unite_legale as economie_sociale_solidaire,
     (
         SELECT est_entrepreneur_spectacle
