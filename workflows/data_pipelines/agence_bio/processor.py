@@ -243,9 +243,9 @@ class AgenceBioProcessor(DataProcessor):
     def compare_files_minio(self) -> bool:
         """Overide of DataProcessor.compare_files_minio() to manage multiple files."""
         is_same = self.minio_client.compare_files(
-            file_path_1=f"{self.config.minio_path}/new//",
+            file_path_1=f"{self.config.minio_path}/new/",
             file_name_2=f"{self.config.file_name}.csv",
-            file_path_2=f"{self.config.minio_path}/latest//",
+            file_path_2=f"{self.config.minio_path}/latest/",
             file_name_1=f"{self.config.file_name}.csv",
         )
         if not is_same:
