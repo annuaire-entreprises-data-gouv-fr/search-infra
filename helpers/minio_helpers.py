@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 from datetime import datetime
@@ -9,6 +11,7 @@ import botocore
 from minio import Minio, S3Error
 from minio.commonconfig import CopySource
 
+import dag_datalake_sirene.helpers.filesystem as filesystem
 from dag_datalake_sirene.config import (
     AIRFLOW_ENV,
     MINIO_BUCKET,
@@ -18,6 +21,7 @@ from dag_datalake_sirene.config import (
 )
 
 
+# Use and enrich MinIOFile instead
 class File(TypedDict):
     source_path: str
     source_name: str
@@ -342,3 +346,70 @@ class MinIOClient:
             logging.info(f"Copied {source_full_path} to {dest_full_path}")
         except S3Error as e:
             logging.error(f"Error copying file from {source_path} to {dest_path}: {e}")
+
+
+class MinIOFile:
+    def __init__(
+        self,
+        path: str,
+    ) -> None:
+        """
+        Initialize a MinIOFile object.
+
+        Args:
+            path (str): The full path to file.
+
+        Example:
+            > remote_file = MinIOFile("/integration/content.csv")
+            > local_file = file.download_to("/tmp/test.csv")
+            > ...
+            > remote_file.replace_with(local_file)
+        """
+        self._path = Path(path)
+        self.path = path
+        self.filepath = str(self._path.parent) + "/"
+        self.filename = self._path.name
+        self.client = MinIOClient()
+
+        if not self.does_exist():
+            raise FileNotFoundError(f"File '{self.path}' does not exist in MinIO.")
+
+    def does_exist(self) -> bool:
+        try:
+            # TAKE /ae/dev into account
+            self.client.client.stat_object(
+                self.client.bucket,
+                os.path.join(self.client.get_root_dirpath(), self.path),
+            )
+            return True
+        except S3Error as _:
+            return False
+
+    def download_to(
+        self,
+        local_path: str,
+    ) -> filesystem.LocalFile:
+        if os.path.isdir(local_path):
+            local_path = os.path.join(local_path, self.filename)
+        self.client.get_object_minio(
+            os.path.join(self.client.get_root_dirpath(), self.filepath),
+            self.filename,
+            local_path,
+        )
+        return filesystem.LocalFile(local_path)
+
+    def replace_with(
+        self,
+        local_file: filesystem.LocalFile,
+    ) -> None:
+        self.client.send_files(
+            [
+                File(
+                    source_path=str(local_file.path.parent),
+                    source_name=local_file.path.name,
+                    dest_path=self.filepath,
+                    dest_name=self.filename,
+                    content_type=None,
+                )
+            ]
+        )
