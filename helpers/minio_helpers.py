@@ -1,7 +1,8 @@
 import logging
 import os
 from datetime import datetime
-from typing import List, Optional, TypedDict
+from pathlib import Path
+from typing import TypedDict
 
 import boto3
 import botocore
@@ -22,7 +23,7 @@ class File(TypedDict):
     source_name: str
     dest_path: str
     dest_name: str
-    content_type: Optional[str]
+    content_type: str | None
 
 
 class MinIOClient:
@@ -46,12 +47,12 @@ class MinIOClient:
 
     def send_files(
         self,
-        list_files: List[File],
+        list_files: list[File],
     ):
         """Send list of file to Minio bucket
 
         Args:
-            list_files (List[File]): List of Dictionnaries containing for each
+            list_files (list[File]): List of Dictionnaries containing for each
             `source_path` and `source_name` : local file location ;
             `dest_path` and `dest_name` : minio location (inside bucket specified) ;
 
@@ -94,11 +95,11 @@ class MinIOClient:
                 list_objects.append(obj.object_name.replace(f"ae/{AIRFLOW_ENV}/", ""))
         return list_objects
 
-    def get_files(self, list_files: List[File]):
+    def get_files(self, list_files: list[File]):
         """Retrieve list of files from Minio
 
         Args:
-            list_files (List[File]): List of Dictionnaries containing for each
+            list_files (list[File]): List of Dictionnaries containing for each
             `source_path` and `source_name` : Minio location inside specified bucket ;
             `dest_path` and `dest_name` : local file destination ;
         """
@@ -298,7 +299,7 @@ class MinIOClient:
 
         logging.info(f"Folder '{old_folder}' renamed to '{new_folder}'")
 
-    def get_date_last_modified(self, file_path: str) -> Optional[str]:
+    def get_date_last_modified(self, file_path: str) -> str | None:
         """
         Get the last modified date of a specific file in MinIO in ISO 8601 format.
 
