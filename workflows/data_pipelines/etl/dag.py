@@ -74,6 +74,9 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.create_diri
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.upload_db import (
     upload_db_to_minio,
 )
+from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.validation import (
+    validate_table,
+)
 from dag_datalake_sirene.workflows.data_pipelines.finess.config import FINESS_CONFIG
 from dag_datalake_sirene.workflows.data_pipelines.formation.config import (
     FORMATION_CONFIG,
@@ -122,11 +125,27 @@ def database_constructor():
         python_callable=create_unite_legale_table,
     )
 
+    @task
+    def validate_unite_legale_table() -> None:
+        return validate_table(
+            table_name="unite_legale",
+            datatabase_location=SIRENE_DATABASE_LOCATION,
+            validations=["row_count"],
+        )
+
     create_etablissement_table_task = PythonOperator(
         task_id="create_etablissement_table",
         provide_context=True,
         python_callable=create_etablissement_table,
     )
+
+    @task
+    def validate_etablissement_table() -> None:
+        return validate_table(
+            table_name="etablissement",
+            datatabase_location=SIRENE_DATABASE_LOCATION,
+            validations=["row_count"],
+        )
 
     create_flux_unite_legale_table_task = PythonOperator(
         task_id="create_flux_unite_legale_table",
@@ -312,18 +331,24 @@ def database_constructor():
         deferrable=False,
     )
 
-    clean_previous_tmp_folder() >> create_unite_legale_table_task
-
-    create_historique_unite_legale_table_task.set_upstream(
-        create_unite_legale_table_task
+    (
+        clean_previous_tmp_folder()
+        >> create_unite_legale_table_task
+        >> validate_unite_legale_table()
+        >> create_historique_unite_legale_table_task
     )
+
     create_date_fermeture_unite_legale_table_task.set_upstream(
         create_historique_unite_legale_table_task
     )
     create_etablissement_table_task.set_upstream(
         create_date_fermeture_unite_legale_table_task
     )
-    create_flux_unite_legale_table_task.set_upstream(create_etablissement_table_task)
+    (
+        create_etablissement_table_task
+        >> validate_etablissement_table()
+        >> create_flux_unite_legale_table_task
+    )
     create_flux_etablissement_table_task.set_upstream(
         create_flux_unite_legale_table_task
     )
