@@ -12,7 +12,7 @@ from dag_datalake_sirene.helpers.datagouv import (
     fetch_last_resource_from_dataset,
 )
 from dag_datalake_sirene.helpers.minio_helpers import File, MinIOClient
-from dag_datalake_sirene.helpers.notification import Notification
+from dag_datalake_sirene.helpers.notification import Notification, monitoring_logger
 from dag_datalake_sirene.helpers.utils import (
     download_file,
     get_date_last_modified,
@@ -88,9 +88,12 @@ class DataProcessor(ABC):
             raise ValueError(
                 "DataProcessor.push_message() requires at least a Dataframe column or a non empty description as argument."
             )
+
         if column is not None:
             metric = column.nunique()
-            description = f"{metric} {column.name} {description}"
+            description = column.name if description is None else description
+            description = f"{metric} {description}"
+            monitoring_logger(key=column.name, value=metric)
 
         ti = get_current_context()["ti"]
         ti.xcom_push(key=xcom_key, value=description)
