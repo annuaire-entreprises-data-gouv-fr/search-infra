@@ -10,6 +10,9 @@ from dag_datalake_sirene.config import (
 )
 from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
 from dag_datalake_sirene.helpers.utils import simplify_date
+from dag_datalake_sirene.workflows.data_pipelines.achats_responsables.config import (
+    ACHATS_RESPONSABLES_CONFIG,
+)
 from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
@@ -66,6 +69,7 @@ def create_data_source_last_modified_file(**kwargs):
         FORMATION_CONFIG.url_minio_metadata: "organisme_formation",
         CONVENTION_COLLECTIVE_CONFIG.url_minio_metadata: "convention_collective",
         MARCHE_INCLUSION_CONFIG.url_minio_metadata: "marche_inclusion",
+        ACHATS_RESPONSABLES_CONFIG.url_minio_metadata: "achats_responsables",
     }
 
     json_file_path = os.path.join(
