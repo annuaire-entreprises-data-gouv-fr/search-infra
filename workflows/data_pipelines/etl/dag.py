@@ -372,64 +372,44 @@ def database_constructor():
     (
         clean_previous_tmp_folder()
         >> create_unite_legale_table_task
-        >> validate_unite_legale_table()
+        >> validate_unite_legale_stock_table()
         >> create_historique_unite_legale_table_task
-    )
-
-    create_date_fermeture_unite_legale_table_task.set_upstream(
-        create_historique_unite_legale_table_task
-    )
-    create_etablissement_table_task.set_upstream(
-        create_date_fermeture_unite_legale_table_task
-    )
-    (
-        create_etablissement_table_task
-        >> validate_etablissement_table()
+        >> create_date_fermeture_unite_legale_table_task
+        >> create_etablissement_table_task
+        >> validate_etablissement_stock_table()
         >> create_flux_unite_legale_table_task
+        >> create_flux_etablissement_table_task
+        >> replace_unite_legale_table_task
+        >> validate_unite_legale_stock_flux_table()
+        >> insert_date_fermeture_unite_legale_task
+        >> replace_etablissement_table_task
+        >> validate_etablissement_stock_flux_table()
+        >> count_nombre_etablissement_task
+        >> count_nombre_etablissement_ouvert_task
+        >> create_siege_table_task
+        >> replace_siege_table_task
+        >> add_ancien_siege_flux_data_task
+        >> create_historique_etablissement_table_task
+        >> create_date_fermeture_etablissement_table_task
+        >> insert_date_fermeture_etablissement_task
+        >> get_latest_rne_database_task
+        >> inject_rne_unite_legale_data_task
+        >> validate_unite_legale_with_rne_table()
+        >> inject_rne_siege_data_task
+        >> create_dirig_pp_table_task
+        >> create_dirig_pm_table_task
+        >> create_benef_table_task
+        >> create_immatriculation_table_task
     )
-    create_flux_etablissement_table_task.set_upstream(
-        create_flux_unite_legale_table_task
-    )
-    replace_unite_legale_table_task.set_upstream(create_flux_etablissement_table_task)
-    insert_date_fermeture_unite_legale_task.set_upstream(
-        replace_unite_legale_table_task
-    )
-    replace_etablissement_table_task.set_upstream(
-        insert_date_fermeture_unite_legale_task
-    )
-    count_nombre_etablissement_task.set_upstream(replace_etablissement_table_task)
-    count_nombre_etablissement_ouvert_task.set_upstream(count_nombre_etablissement_task)
-    create_siege_table_task.set_upstream(count_nombre_etablissement_ouvert_task)
-    replace_siege_table_task.set_upstream(create_siege_table_task)
-    add_ancien_siege_flux_data_task.set_upstream(replace_siege_table_task)
-    create_historique_etablissement_table_task.set_upstream(
-        add_ancien_siege_flux_data_task
-    )
-    create_date_fermeture_etablissement_table_task.set_upstream(
-        create_historique_etablissement_table_task
-    )
-    insert_date_fermeture_etablissement_task.set_upstream(
-        create_date_fermeture_etablissement_table_task
-    )
-
-    get_latest_rne_database_task.set_upstream(insert_date_fermeture_etablissement_task)
-    inject_rne_unite_legale_data_task.set_upstream(get_latest_rne_database_task)
-    inject_rne_siege_data_task.set_upstream(inject_rne_unite_legale_data_task)
-    create_dirig_pp_table_task.set_upstream(inject_rne_siege_data_task)
-    create_dirig_pm_table_task.set_upstream(create_dirig_pp_table_task)
-    create_benef_table_task.set_upstream(create_dirig_pm_table_task)
-    create_immatriculation_table_task.set_upstream(create_benef_table_task)
 
     create_immatriculation_table_task >> tasks[0]
-
     for i in range(len(tasks) - 1):
         tasks[i] >> tasks[i + 1]
     tasks[-1] >> send_database_to_minio_task
 
-    create_data_source_last_modified_file_task.set_upstream(send_database_to_minio_task)
-
     (
-        create_data_source_last_modified_file_task
+        send_database_to_minio_task
+        >> create_data_source_last_modified_file_task
         >> clean_current_tmp_folder()
         >> trigger_indexing_dag
     )
