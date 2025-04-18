@@ -77,6 +77,9 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.create_diri
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.upload_db import (
     upload_db_to_minio,
 )
+from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.validation import (
+    validate_table,
+)
 from dag_datalake_sirene.workflows.data_pipelines.finess.config import FINESS_CONFIG
 from dag_datalake_sirene.workflows.data_pipelines.formation.config import (
     FORMATION_CONFIG,
@@ -125,16 +128,35 @@ def database_constructor():
         python_callable=create_unite_legale_table,
     )
 
+    @task(retries=0)
+    def validate_unite_legale_stock_table() -> None:
+        return validate_table(
+            table_name="unite_legale",
+            datatabase_location=SIRENE_DATABASE_LOCATION,
+            validations=["row_count"],
+            file_alias="stock",
+        )
+
     create_etablissement_table_task = PythonOperator(
         task_id="create_etablissement_table",
         provide_context=True,
         python_callable=create_etablissement_table,
     )
 
+    @task(retries=0)
+    def validate_etablissement_stock_table() -> None:
+        return validate_table(
+            table_name="etablissement",
+            datatabase_location=SIRENE_DATABASE_LOCATION,
+            validations=["row_count"],
+            file_alias="stock",
+        )
+
     create_flux_unite_legale_table_task = PythonOperator(
         task_id="create_flux_unite_legale_table",
         provide_context=True,
         python_callable=create_flux_unite_legale_table,
+        trigger_rule="all_done",
     )
 
     add_ancien_siege_flux_data_task = PythonOperator(
@@ -157,16 +179,35 @@ def database_constructor():
         trigger_rule="all_done",
     )
 
+    @task(retries=0)
+    def validate_unite_legale_stock_flux_table() -> None:
+        return validate_table(
+            table_name="unite_legale",
+            datatabase_location=SIRENE_DATABASE_LOCATION,
+            validations=["row_count"],
+            file_alias="stock+flux",
+        )
+
     replace_etablissement_table_task = PythonOperator(
         task_id="replace_etablissement_table",
         provide_context=True,
         python_callable=replace_etablissement_table,
     )
 
+    @task(retries=0)
+    def validate_etablissement_stock_flux_table() -> None:
+        return validate_table(
+            table_name="etablissement",
+            datatabase_location=SIRENE_DATABASE_LOCATION,
+            validations=["row_count"],
+            file_alias="stock+flux",
+        )
+
     count_nombre_etablissement_task = PythonOperator(
         task_id="count_nombre_etablissement",
         provide_context=True,
         python_callable=count_nombre_etablissement,
+        trigger_rule="all_done",
     )
 
     count_nombre_etablissement_ouvert_task = PythonOperator(
@@ -179,6 +220,7 @@ def database_constructor():
         task_id="create_historique_unite_legale_table",
         provide_context=True,
         python_callable=create_historique_unite_legale_tables,
+        trigger_rule="all_done",
     )
 
     create_date_fermeture_unite_legale_table_task = PythonOperator(
@@ -191,6 +233,7 @@ def database_constructor():
         task_id="insert_date_fermeture_unite_legale",
         provide_context=True,
         python_callable=insert_date_fermeture_unite_legale,
+        trigger_rule="all_done",
     )
 
     inject_rne_unite_legale_data_task = PythonOperator(
@@ -198,6 +241,15 @@ def database_constructor():
         provide_context=True,
         python_callable=add_rne_data_to_unite_legale_table,
     )
+
+    @task(retries=0)
+    def validate_unite_legale_with_rne_table() -> None:
+        return validate_table(
+            table_name="unite_legale",
+            datatabase_location=SIRENE_DATABASE_LOCATION,
+            validations=["row_count"],
+            file_alias="stock+flux+rne",
+        )
 
     create_siege_table_task = PythonOperator(
         task_id="create_siege_table",
@@ -215,6 +267,7 @@ def database_constructor():
         task_id="add_rne_data_to_siege_table",
         provide_context=True,
         python_callable=add_rne_data_to_siege_table,
+        trigger_rule="all_done",
     )
 
     create_historique_etablissement_table_task = PythonOperator(
@@ -316,61 +369,47 @@ def database_constructor():
         deferrable=False,
     )
 
-    clean_previous_tmp_folder() >> create_unite_legale_table_task
-
-    create_historique_unite_legale_table_task.set_upstream(
-        create_unite_legale_table_task
+    (
+        clean_previous_tmp_folder()
+        >> create_unite_legale_table_task
+        >> validate_unite_legale_stock_table()
+        >> create_historique_unite_legale_table_task
+        >> create_date_fermeture_unite_legale_table_task
+        >> create_etablissement_table_task
+        >> validate_etablissement_stock_table()
+        >> create_flux_unite_legale_table_task
+        >> create_flux_etablissement_table_task
+        >> replace_unite_legale_table_task
+        >> validate_unite_legale_stock_flux_table()
+        >> insert_date_fermeture_unite_legale_task
+        >> replace_etablissement_table_task
+        >> validate_etablissement_stock_flux_table()
+        >> count_nombre_etablissement_task
+        >> count_nombre_etablissement_ouvert_task
+        >> create_siege_table_task
+        >> replace_siege_table_task
+        >> add_ancien_siege_flux_data_task
+        >> create_historique_etablissement_table_task
+        >> create_date_fermeture_etablissement_table_task
+        >> insert_date_fermeture_etablissement_task
+        >> get_latest_rne_database_task
+        >> inject_rne_unite_legale_data_task
+        >> validate_unite_legale_with_rne_table()
+        >> inject_rne_siege_data_task
+        >> create_dirig_pp_table_task
+        >> create_dirig_pm_table_task
+        >> create_benef_table_task
+        >> create_immatriculation_table_task
     )
-    create_date_fermeture_unite_legale_table_task.set_upstream(
-        create_historique_unite_legale_table_task
-    )
-    create_etablissement_table_task.set_upstream(
-        create_date_fermeture_unite_legale_table_task
-    )
-    create_flux_unite_legale_table_task.set_upstream(create_etablissement_table_task)
-    create_flux_etablissement_table_task.set_upstream(
-        create_flux_unite_legale_table_task
-    )
-    replace_unite_legale_table_task.set_upstream(create_flux_etablissement_table_task)
-    insert_date_fermeture_unite_legale_task.set_upstream(
-        replace_unite_legale_table_task
-    )
-    replace_etablissement_table_task.set_upstream(
-        insert_date_fermeture_unite_legale_task
-    )
-    count_nombre_etablissement_task.set_upstream(replace_etablissement_table_task)
-    count_nombre_etablissement_ouvert_task.set_upstream(count_nombre_etablissement_task)
-    create_siege_table_task.set_upstream(count_nombre_etablissement_ouvert_task)
-    replace_siege_table_task.set_upstream(create_siege_table_task)
-    add_ancien_siege_flux_data_task.set_upstream(replace_siege_table_task)
-    create_historique_etablissement_table_task.set_upstream(
-        add_ancien_siege_flux_data_task
-    )
-    create_date_fermeture_etablissement_table_task.set_upstream(
-        create_historique_etablissement_table_task
-    )
-    insert_date_fermeture_etablissement_task.set_upstream(
-        create_date_fermeture_etablissement_table_task
-    )
-
-    get_latest_rne_database_task.set_upstream(insert_date_fermeture_etablissement_task)
-    inject_rne_unite_legale_data_task.set_upstream(get_latest_rne_database_task)
-    inject_rne_siege_data_task.set_upstream(inject_rne_unite_legale_data_task)
-    create_dirig_pp_table_task.set_upstream(inject_rne_siege_data_task)
-    create_dirig_pm_table_task.set_upstream(create_dirig_pp_table_task)
-    create_benef_table_task.set_upstream(create_dirig_pm_table_task)
-    create_immatriculation_table_task.set_upstream(create_benef_table_task)
 
     create_immatriculation_table_task >> tasks[0]
-
     for i in range(len(tasks) - 1):
         tasks[i] >> tasks[i + 1]
     tasks[-1] >> send_database_to_minio_task
 
-    create_data_source_last_modified_file_task.set_upstream(send_database_to_minio_task)
-
     (
-        create_data_source_last_modified_file_task
+        send_database_to_minio_task
+        >> create_data_source_last_modified_file_task
         >> clean_current_tmp_folder()
         >> trigger_indexing_dag
     )

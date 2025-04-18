@@ -4,7 +4,7 @@ from enum import Enum
 from dag_datalake_sirene.helpers import mattermost
 
 
-def monitoring_logger(key=str, value=int) -> None:
+def monitoring_logger(key: str, value: int) -> None:
     """
     Send logs to Kibana with the specified key and metric.
     Kibana expect an info log with the following format:
