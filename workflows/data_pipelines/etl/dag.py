@@ -128,7 +128,7 @@ def database_constructor():
         python_callable=create_unite_legale_table,
     )
 
-    @task
+    @task(retries=0)
     def validate_unite_legale_stock_table() -> None:
         return validate_table(
             table_name="unite_legale",
@@ -143,7 +143,7 @@ def database_constructor():
         python_callable=create_etablissement_table,
     )
 
-    @task
+    @task(retries=0)
     def validate_etablissement_stock_table() -> None:
         return validate_table(
             table_name="etablissement",
@@ -179,7 +179,7 @@ def database_constructor():
         trigger_rule="all_done",
     )
 
-    @task
+    @task(retries=0)
     def validate_unite_legale_stock_flux_table() -> None:
         return validate_table(
             table_name="unite_legale",
@@ -194,7 +194,7 @@ def database_constructor():
         python_callable=replace_etablissement_table,
     )
 
-    @task
+    @task(retries=0)
     def validate_etablissement_stock_flux_table() -> None:
         return validate_table(
             table_name="etablissement",
@@ -242,7 +242,7 @@ def database_constructor():
         python_callable=add_rne_data_to_unite_legale_table,
     )
 
-    @task
+    @task(retries=0)
     def validate_unite_legale_with_rne_table() -> None:
         return validate_table(
             table_name="unite_legale",
