@@ -87,6 +87,9 @@ from dag_datalake_sirene.workflows.data_pipelines.formation.config import (
 from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.config import (
     MARCHE_INCLUSION_CONFIG,
 )
+from dag_datalake_sirene.workflows.data_pipelines.patrimoine_vivant.config import (
+    PATRIMOINE_VIVANT_CONFIG,
+)
 from dag_datalake_sirene.workflows.data_pipelines.rge.config import RGE_CONFIG
 from dag_datalake_sirene.workflows.data_pipelines.spectacle.config import (
     SPECTACLE_CONFIG,
@@ -334,6 +337,7 @@ def database_constructor():
         CONVENTION_COLLECTIVE_CONFIG,
         MARCHE_INCLUSION_CONFIG,
         ACHATS_RESPONSABLES_CONFIG,
+        PATRIMOINE_VIVANT_CONFIG,
     ]
     tasks = []
     for config in config_list:
