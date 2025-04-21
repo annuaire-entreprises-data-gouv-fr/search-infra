@@ -346,6 +346,7 @@ class UniteLegaleMapping(InnerDoc):
     liste_id_organisme_formation = Text()
     est_qualiopi = Boolean()
     est_l100_3 = Boolean()
+    est_patrimoine_vivant = Boolean()
     est_rge = Boolean()
     est_service_public = Boolean()
     est_siae = Boolean()
