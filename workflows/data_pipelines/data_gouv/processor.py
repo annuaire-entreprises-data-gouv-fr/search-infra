@@ -60,6 +60,7 @@ class DataGouvProcessor:
             "est_association",
             "est_entrepreneur_individuel",
             "est_entrepreneur_spectacle",
+            "est_patrimoine_vivant",
             "statut_entrepreneur_spectacle",
             "est_ess",
             "est_organisme_formation",
@@ -167,6 +168,9 @@ class DataGouvProcessor:
             sqlite_str_to_bool
         )
         chunk["est_achats_responsables"] = chunk["est_achats_responsables"].apply(
+            sqlite_str_to_bool
+        )
+        chunk["est_patrimoine_vivant"] = chunk["est_patrimoine_vivant"].apply(
             sqlite_str_to_bool
         )
         chunk["est_siae"] = chunk["est_siae"].apply(sqlite_str_to_bool)
