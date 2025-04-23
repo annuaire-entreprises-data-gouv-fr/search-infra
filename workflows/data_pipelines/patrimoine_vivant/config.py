@@ -5,7 +5,7 @@ from dag_datalake_sirene.config import (
 )
 
 PATRIMOINE_VIVANT_CONFIG = DataSourceConfig(
-    name="entreprise_patrimoine_vivant",
+    name="patrimoine_vivant",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/patrimoine_vivant",
     minio_path="patrimoine_vivant",
     file_name="patrimoine_vivant",
