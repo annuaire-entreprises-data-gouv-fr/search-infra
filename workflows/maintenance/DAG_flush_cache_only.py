@@ -3,14 +3,15 @@ from datetime import timedelta
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from dag_datalake_sirene.helpers.flush_cache import flush_cache
+
 from dag_datalake_sirene.config import (
     EMAIL_LIST,
-    REDIS_HOST,
-    REDIS_PORT,
     REDIS_DB,
+    REDIS_HOST,
     REDIS_PASSWORD,
+    REDIS_PORT,
 )
+from dag_datalake_sirene.helpers.flush_cache import flush_cache
 
 DAG_NAME = "flush_cache_only"
 

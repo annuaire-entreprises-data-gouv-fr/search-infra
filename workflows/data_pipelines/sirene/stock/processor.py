@@ -1,9 +1,8 @@
 from dag_datalake_sirene.helpers import DataProcessor
-
+from dag_datalake_sirene.helpers.minio_helpers import File
 from dag_datalake_sirene.workflows.data_pipelines.sirene.stock.config import (
     STOCK_SIRENE_CONFIG,
 )
-from dag_datalake_sirene.helpers.minio_helpers import File
 
 
 class SireneStockProcessor(DataProcessor):

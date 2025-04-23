@@ -1,6 +1,6 @@
 from dag_datalake_sirene.config import (
-    DataSourceConfig,
     MINIO_BASE_URL,
+    DataSourceConfig,
 )
 
 RGE_CONFIG = DataSourceConfig(

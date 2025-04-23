@@ -1,46 +1,45 @@
 import logging
 import sqlite3
 
+from dag_datalake_sirene.config import (
+    AIRFLOW_ETL_DATA_DIR,
+    RNE_DATABASE_LOCATION,
+    SIRENE_DATABASE_LOCATION,
+)
+
+# fmt: on
+from dag_datalake_sirene.helpers.labels.departements import all_deps
 from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.etablissements\
-    import (
-        preprocess_etablissement_data,
-        preprocess_historique_etablissement_data,
-    )
+from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.etablissements import (
+    preprocess_etablissement_data,
+    preprocess_historique_etablissement_data,
+)
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
-    get_table_count,
     create_index,
     create_table_model,
     create_unique_index,
     execute_query,
+    get_table_count,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.etablissements\
-    import (
-    create_table_flux_etablissement_query,
-    create_table_etablissement_query,
-    create_table_historique_etablissement_query,
+from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.etablissements import (
+    count_nombre_etablissement_ouvert_query,
+    count_nombre_etablissement_query,
+    create_table_count_etablissement_ouvert_query,
+    create_table_count_etablissement_query,
     create_table_date_fermeture_etablissement_query,
+    create_table_etablissement_query,
+    create_table_flux_etablissement_query,
+    create_table_historique_etablissement_query,
     create_table_siege_query,
     insert_date_fermeture_etablissement_query,
     insert_date_fermeture_siege_query,
+    insert_remaining_rne_siege_data_into_main_table_query,
     populate_table_siege_query,
     replace_table_etablissement_query,
     replace_table_siege_query,
-    create_table_count_etablissement_query,
-    count_nombre_etablissement_query,
-    create_table_count_etablissement_ouvert_query,
-    count_nombre_etablissement_ouvert_query,
-    insert_remaining_rne_siege_data_into_main_table_query,
     update_siege_table_fields_with_rne_data_query,
-)
-# fmt: on
-from dag_datalake_sirene.helpers.labels.departements import all_deps
-from dag_datalake_sirene.config import AIRFLOW_ETL_DATA_DIR
-from dag_datalake_sirene.config import (
-    SIRENE_DATABASE_LOCATION,
-    RNE_DATABASE_LOCATION,
 )
 
 

@@ -1,6 +1,8 @@
+from datetime import datetime, timedelta
+
 from airflow.models import DAG
-from datetime import timedelta, datetime
 from airflow.operators.python import PythonOperator
+
 from dag_datalake_sirene.config import (
     EMAIL_LIST,
 )
@@ -27,7 +29,6 @@ with DAG(
     tags=["rename", "rne", "files"],
     params={},
 ) as dag:
-
     rename_old_rne_folders = PythonOperator(
         task_id="rename_old_rne_folders",
         python_callable=rename_old_rne_folders,

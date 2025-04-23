@@ -1,4 +1,5 @@
 import logging
+
 import requests
 
 from dag_datalake_sirene.config import API_URL

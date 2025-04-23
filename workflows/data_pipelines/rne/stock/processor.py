@@ -1,13 +1,14 @@
 import logging
 import os
-import zipfile
 import subprocess
+import zipfile
+
+from dag_datalake_sirene.config import AIRFLOW_DAG_HOME
 from dag_datalake_sirene.helpers import DataProcessor
 from dag_datalake_sirene.helpers.minio_helpers import File
 from dag_datalake_sirene.workflows.data_pipelines.rne.stock.config import (
     RNE_STOCK_CONFIG,
 )
-from dag_datalake_sirene.config import AIRFLOW_DAG_HOME
 
 
 class RneStockProcessor(DataProcessor):

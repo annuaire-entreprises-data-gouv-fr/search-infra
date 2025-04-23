@@ -1,7 +1,8 @@
+from airflow.models import Variable
+
 from dag_datalake_sirene.config import (
     DataSourceConfig,
 )
-from airflow.models import Variable
 
 RNE_STOCK_CONFIG = DataSourceConfig(
     name="rne-stock",

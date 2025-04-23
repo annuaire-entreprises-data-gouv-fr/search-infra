@@ -1,11 +1,13 @@
-from airflow.operators.python_operator import PythonOperator
-from airflow.models import DAG
-from datetime import datetime, timedelta, timezone
-from airflow.models.dagrun import DagRun
-from airflow.settings import Session
-import os
 import logging
+import os
 import shutil
+from datetime import datetime, timedelta, timezone
+
+from airflow.models import DAG
+from airflow.models.dagrun import DagRun
+from airflow.operators.python_operator import PythonOperator
+from airflow.settings import Session
+
 from dag_datalake_sirene.config import (
     EMAIL_LIST,
 )

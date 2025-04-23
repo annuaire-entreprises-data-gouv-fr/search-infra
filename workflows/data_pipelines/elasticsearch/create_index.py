@@ -1,5 +1,6 @@
 import logging
 from typing import Optional
+
 from elasticsearch_dsl import Index, connections
 
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.mapping_index import (

@@ -1,9 +1,9 @@
 from airflow.models import Variable
-from dag_datalake_sirene.config import (
-    DataSourceConfig,
-    MINIO_BASE_URL,
-)
 
+from dag_datalake_sirene.config import (
+    MINIO_BASE_URL,
+    DataSourceConfig,
+)
 
 FLUX_SIRENE_CONFIG = DataSourceConfig(
     name="flux_api_sirene",

@@ -1,7 +1,7 @@
 from dag_datalake_sirene.config import (
-    DataSourceConfig,
     DATA_GOUV_BASE_URL,
     MINIO_BASE_URL,
+    DataSourceConfig,
 )
 
 FINESS_CONFIG = DataSourceConfig(

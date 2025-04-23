@@ -1,13 +1,14 @@
-import requests
-import time
 import logging
+import time
+
+import requests
 
 from dag_datalake_sirene.config import (
     AIRFLOW_ELK_DAG_NAME,
+    ELASTIC_DOWNSTREAM_ALIAS,
+    ELASTIC_DOWNSTREAM_PASSWORD,
     ELASTIC_DOWNSTREAM_URLS,
     ELASTIC_DOWNSTREAM_USER,
-    ELASTIC_DOWNSTREAM_PASSWORD,
-    ELASTIC_DOWNSTREAM_ALIAS,
 )
 
 
@@ -48,7 +49,7 @@ def wait_for_downstream_index_import(elastic_index):
     while len(pending) > 0 and waited_for < timeout:
         for url in pending:
             response = requests.get(
-                f"{ url }/{ELASTIC_DOWNSTREAM_ALIAS}",
+                f"{url}/{ELASTIC_DOWNSTREAM_ALIAS}",
                 auth=(ELASTIC_DOWNSTREAM_USER, ELASTIC_DOWNSTREAM_PASSWORD),
             )
 

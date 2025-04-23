@@ -1,10 +1,9 @@
 from dag_datalake_sirene.config import (
-    MINIO_BASE_URL,
-    DataSourceConfig,
     DATA_GOUV_BASE_URL,
     DATAGOUV_URL,
+    MINIO_BASE_URL,
+    DataSourceConfig,
 )
-
 
 UAI_CONFIG = DataSourceConfig(
     name="uai",

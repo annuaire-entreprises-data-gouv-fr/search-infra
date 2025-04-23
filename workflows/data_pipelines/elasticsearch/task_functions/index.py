@@ -1,31 +1,31 @@
 import logging
 from datetime import datetime
-from elasticsearch_dsl import connections
-from elasticsearch import NotFoundError
 
+from elasticsearch import NotFoundError
+from elasticsearch_dsl import connections
+
+# fmt: on
+from dag_datalake_sirene.config import (
+    AIRFLOW_ELK_DATA_DIR,
+    ELASTIC_BULK_SIZE,
+    ELASTIC_BULK_THREAD_COUNT,
+    ELASTIC_MAX_LIVE_VERSIONS,
+    ELASTIC_PASSWORD,
+    ELASTIC_URL,
+    ELASTIC_USER,
+)
+from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.create_index import (
     ElasticCreateIndex,
 )
-from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
+from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.indexing_unite_legale import (
+    index_unites_legales_by_chunk,
+)
 
 # fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.sqlite.\
     fields_to_index import (
     select_fields_to_index_query,
-)
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.\
-    indexing_unite_legale import (
-    index_unites_legales_by_chunk,
-)
-# fmt: on
-from dag_datalake_sirene.config import (
-    AIRFLOW_ELK_DATA_DIR,
-    ELASTIC_URL,
-    ELASTIC_USER,
-    ELASTIC_PASSWORD,
-    ELASTIC_BULK_THREAD_COUNT,
-    ELASTIC_BULK_SIZE,
-    ELASTIC_MAX_LIVE_VERSIONS,
 )
 
 

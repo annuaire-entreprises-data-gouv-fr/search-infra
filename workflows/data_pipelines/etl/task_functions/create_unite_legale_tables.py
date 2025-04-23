@@ -1,27 +1,20 @@
 import logging
 import sqlite3
+
+from dag_datalake_sirene.config import (
+    AIRFLOW_ETL_DATA_DIR,
+    RNE_DATABASE_LOCATION,
+    SIRENE_DATABASE_LOCATION,
+)
 from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.unite_legale\
-    import (
+from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.unite_legale import (
     preprocess_historique_unite_legale_data,
     preprocess_unite_legale_data,
     process_ancien_siege_flux,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.unite_legale\
-    import (
-    create_table_date_fermeture_unite_legale_query,
-    create_table_flux_unite_legale_query,
-    create_table_historique_unite_legale_query,
-    create_table_ancien_siege_query,
-    create_table_unite_legale_query,
-    delete_current_siege_from_ancien_siege_query,
-    insert_date_fermeture_unite_legale_query,
-    replace_table_unite_legale_query,
-    insert_remaining_rne_data_into_main_table_query,
-    update_main_table_fields_with_rne_data_query,
-)
+
 # fmt: on
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
     create_index,
@@ -30,10 +23,17 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
     execute_query,
     get_table_count,
 )
-from dag_datalake_sirene.config import AIRFLOW_ETL_DATA_DIR
-from dag_datalake_sirene.config import (
-    SIRENE_DATABASE_LOCATION,
-    RNE_DATABASE_LOCATION,
+from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.unite_legale import (
+    create_table_ancien_siege_query,
+    create_table_date_fermeture_unite_legale_query,
+    create_table_flux_unite_legale_query,
+    create_table_historique_unite_legale_query,
+    create_table_unite_legale_query,
+    delete_current_siege_from_ancien_siege_query,
+    insert_date_fermeture_unite_legale_query,
+    insert_remaining_rne_data_into_main_table_query,
+    replace_table_unite_legale_query,
+    update_main_table_fields_with_rne_data_query,
 )
 
 
@@ -119,7 +119,6 @@ def replace_unite_legale_table():
 
 
 def add_rne_data_to_unite_legale_table(**kwargs):
-
     try:
         # Connect to the main database (SIRENE)
         sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
@@ -150,7 +149,6 @@ def add_rne_data_to_unite_legale_table(**kwargs):
 
 
 def create_historique_unite_legale_tables(**kwargs):
-
     sqlite_client = create_table_model(
         table_name="ancien_siege",
         create_table_query=create_table_ancien_siege_query,

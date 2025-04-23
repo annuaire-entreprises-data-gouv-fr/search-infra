@@ -3,17 +3,15 @@ from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.snapshot import (
-    rollback_minio_current_index_version,
+from dag_datalake_sirene.config import (
+    AIRFLOW_SNAPSHOT_ROLLBACK_DAG_NAME,
+    EMAIL_LIST,
 )
-
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.downstream import (
     wait_for_downstream_rollback_import,
 )
-
-from dag_datalake_sirene.config import (
-    EMAIL_LIST,
-    AIRFLOW_SNAPSHOT_ROLLBACK_DAG_NAME,
+from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.snapshot import (
+    rollback_minio_current_index_version,
 )
 
 default_args = {

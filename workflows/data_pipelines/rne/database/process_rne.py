@@ -1,16 +1,17 @@
-import logging
 import json
+import logging
+
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
+)
+from dag_datalake_sirene.workflows.data_pipelines.rne.database.map_rne import (
+    map_rne_company_to_ul,
 )
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.rne_model import (
     RNECompany,
 )
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.ul_model import (
     UniteLegale,
-)
-from dag_datalake_sirene.workflows.data_pipelines.rne.database.map_rne import (
-    map_rne_company_to_ul,
 )
 
 
@@ -335,8 +336,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
 
         cursor.execute(
             f"""
-                INSERT INTO unite_legale ({', '.join(unite_legale_columns)})
-                VALUES ({', '.join(['?'] * len(unite_legale_columns))})
+                INSERT INTO unite_legale ({", ".join(unite_legale_columns)})
+                VALUES ({", ".join(["?"] * len(unite_legale_columns))})
             """,
             (
                 unite_legale.siren,
@@ -382,8 +383,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
 
         cursor.execute(
             f"""
-                INSERT INTO siege ({', '.join(siege_columns)})
-                VALUES ({', '.join(['?'] * len(siege_columns))})
+                INSERT INTO siege ({", ".join(siege_columns)})
+                VALUES ({", ".join(["?"] * len(siege_columns))})
             """,
             (
                 unite_legale.siren,
@@ -428,8 +429,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 ]
                 cursor.execute(
                     f"""
-                    INSERT INTO activite ({', '.join(activite_columns)})
-                    VALUES ({', '.join(['?'] * len(activite_columns))})
+                    INSERT INTO activite ({", ".join(activite_columns)})
+                    VALUES ({", ".join(["?"] * len(activite_columns))})
                     """,
                     (
                         unite_legale.siren,
@@ -462,8 +463,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 ]
                 cursor.execute(
                     f"""
-                    INSERT INTO etablissement ({', '.join(etablissement_columns)})
-                    VALUES ({', '.join(['?'] * len(etablissement_columns))})
+                    INSERT INTO etablissement ({", ".join(etablissement_columns)})
+                    VALUES ({", ".join(["?"] * len(etablissement_columns))})
                     """,
                     (
                         unite_legale.siren,
@@ -496,8 +497,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                         ]
                         cursor.execute(
                             f"""
-                            INSERT INTO activite ({', '.join(activite_columns)})
-                            VALUES ({', '.join(['?'] * len(activite_columns))})
+                            INSERT INTO activite ({", ".join(activite_columns)})
+                            VALUES ({", ".join(["?"] * len(activite_columns))})
                             """,
                             (
                                 unite_legale.siren,
@@ -537,8 +538,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             ]
             cursor.execute(
                 f"""
-                INSERT INTO dirigeant_pp ({', '.join(dirigeant_pp_columns)})
-                VALUES ({', '.join(['?'] * len(dirigeant_pp_columns))})
+                INSERT INTO dirigeant_pp ({", ".join(dirigeant_pp_columns)})
+                VALUES ({", ".join(["?"] * len(dirigeant_pp_columns))})
             """,
                 (
                     unite_legale.siren,
@@ -569,8 +570,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             ]
             cursor.execute(
                 f"""
-                INSERT INTO dirigeant_pm ({', '.join(dirigeant_pm_columns)})
-                VALUES ({', '.join(['?'] * len(dirigeant_pm_columns))})
+                INSERT INTO dirigeant_pm ({", ".join(dirigeant_pm_columns)})
+                VALUES ({", ".join(["?"] * len(dirigeant_pm_columns))})
             """,
                 (
                     unite_legale.siren,
@@ -605,8 +606,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
 
         cursor.execute(
             f"""
-                INSERT INTO immatriculation ({', '.join(immat_columns)})
-                VALUES ({', '.join(['?'] * len(immat_columns))})
+                INSERT INTO immatriculation ({", ".join(immat_columns)})
+                VALUES ({", ".join(["?"] * len(immat_columns))})
             """,
             (
                 unite_legale.siren,
@@ -643,8 +644,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             ]
             cursor.execute(
                 f"""
-                INSERT INTO beneficiaire ({', '.join(beneficiaire_columns)})
-                VALUES ({', '.join(['?'] * len(beneficiaire_columns))})
+                INSERT INTO beneficiaire ({", ".join(beneficiaire_columns)})
+                VALUES ({", ".join(["?"] * len(beneficiaire_columns))})
             """,
                 (
                     unite_legale.siren,

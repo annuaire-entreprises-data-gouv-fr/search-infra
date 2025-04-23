@@ -18,10 +18,12 @@ class AchatsResponsablesProcessor(DataProcessor):
                 sep=";",
                 usecols=["SIREN", "PERIMETRE"],
             )
-            .rename(columns={
-                "SIREN": "siren",
-                "PERIMETRE": "perimetre_label",
-                })
+            .rename(
+                columns={
+                    "SIREN": "siren",
+                    "PERIMETRE": "perimetre_label",
+                }
+            )
             .assign(
                 est_achats_responsables=1,
                 siren=lambda df: df["siren"].str.replace(" ", "").str.zfill(9),

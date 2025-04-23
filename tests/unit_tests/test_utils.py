@@ -1,7 +1,8 @@
+import logging
 import os
 import tempfile
+
 import pytest
-import logging
 
 
 def get_last_line(file_path):
