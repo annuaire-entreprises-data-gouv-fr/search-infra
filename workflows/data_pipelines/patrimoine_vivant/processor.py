@@ -31,6 +31,7 @@ class PatrimoineVivantProcessor(DataProcessor):
             )
             .query("siren != ''")
             .drop_duplicates(subset=["siren"])
+            .drop(columns=["siret"])
         )
 
         df_patrimoine.to_csv(self.config.file_output, index=False)
