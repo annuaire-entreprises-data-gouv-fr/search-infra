@@ -1,6 +1,6 @@
 from dag_datalake_sirene.config import (
-    MINIO_BASE_URL,
     DATA_GOUV_BASE_URL,
+    MINIO_BASE_URL,
     DataSourceConfig,
 )
 

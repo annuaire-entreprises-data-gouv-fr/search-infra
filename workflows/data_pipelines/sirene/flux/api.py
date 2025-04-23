@@ -1,10 +1,12 @@
+import logging
 from typing import Any
+
 import pandas as pd
+
 from dag_datalake_sirene.helpers.api_client import ApiClient
 from dag_datalake_sirene.helpers.utils import (
     flatten_dict,
 )
-import logging
 
 
 class SireneApiClient(ApiClient):
@@ -53,7 +55,7 @@ class SireneApiClient(ApiClient):
                 )
                 dfs.append(chunk_df)
                 logging.info(
-                    f"Processed chunk {i//chunk_size + 1} of {(len(data)-1)//chunk_size + 1}"
+                    f"Processed chunk {i // chunk_size + 1} of {(len(data) - 1) // chunk_size + 1}"
                 )
             logging.info("Data has been flatten. Concatenating the chunks..")
 

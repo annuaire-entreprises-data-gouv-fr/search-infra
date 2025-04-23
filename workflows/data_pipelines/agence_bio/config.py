@@ -1,6 +1,5 @@
 from dag_datalake_sirene.config import MINIO_BASE_URL, DataSourceConfig
 
-
 AGENCE_BIO_CONFIG = DataSourceConfig(
     name="agence_bio",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/agence_bio",

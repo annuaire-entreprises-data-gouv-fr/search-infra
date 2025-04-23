@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Optional, TypedDict, Tuple
+from typing import Optional, Tuple, TypedDict
 
 import requests
 

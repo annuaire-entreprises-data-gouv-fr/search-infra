@@ -1,8 +1,7 @@
-from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
-
 from dag_datalake_sirene.config import (
     SIRENE_DATABASE_LOCATION,
 )
+from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 
 
 def drop_table(name):

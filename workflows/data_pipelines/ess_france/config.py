@@ -1,9 +1,8 @@
 from dag_datalake_sirene.config import (
-    DataSourceConfig,
-    MINIO_BASE_URL,
     DATA_GOUV_BASE_URL,
+    MINIO_BASE_URL,
+    DataSourceConfig,
 )
-
 
 ESS_CONFIG = DataSourceConfig(
     name="ess_france",

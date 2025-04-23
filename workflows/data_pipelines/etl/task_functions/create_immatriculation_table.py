@@ -1,6 +1,6 @@
 from dag_datalake_sirene.config import (
-    SIRENE_DATABASE_LOCATION,
     RNE_DATABASE_LOCATION,
+    SIRENE_DATABASE_LOCATION,
 )
 from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 

@@ -1,8 +1,7 @@
 from dag_datalake_sirene.config import (
-    DataSourceConfig,
     MINIO_BASE_URL,
+    DataSourceConfig,
 )
-
 
 STOCK_SIRENE_CONFIG = DataSourceConfig(
     name="stock_sirene",

@@ -9,7 +9,7 @@ repos:
       - id: trailing-whitespace
       - id: debug-statements
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.9.7'  # Ruff version
+    rev: 'v0.11.6'  # Ruff version
     hooks:
       - id: ruff
         args: [--fix, --extend-select, I]

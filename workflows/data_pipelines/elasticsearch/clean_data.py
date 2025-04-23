@@ -130,7 +130,7 @@ def drop_duplicates_dirigeants_pm(list_dict_dirigeants):
     """
     dirigeants_by_siren = {}
     for dirigeant in list_dict_dirigeants:
-        siren = f'{dirigeant["siren"]}'
+        siren = f"{dirigeant['siren']}"
         if siren in dirigeants_by_siren:
             dirigeants_by_siren[siren].append(dirigeant)
         else:
