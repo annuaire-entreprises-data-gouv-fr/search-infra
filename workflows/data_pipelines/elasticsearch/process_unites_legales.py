@@ -195,6 +195,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["est_siae"]
         )
 
+        # Patrimoine Vivants
+        unite_legale_processed["est_patrimoine_vivant"] = sqlite_str_to_bool(
+            unite_legale["est_patrimoine_vivant"]
+        )
+
         # Etablissements
         etablissements_processed, complements = format_etablissements_and_complements(
             unite_legale["etablissements"],

@@ -37,6 +37,9 @@ from dag_datalake_sirene.workflows.data_pipelines.formation.config import (
 from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.config import (
     MARCHE_INCLUSION_CONFIG,
 )
+from dag_datalake_sirene.workflows.data_pipelines.patrimoine_vivant.config import (
+    PATRIMOINE_VIVANT_CONFIG,
+)
 from dag_datalake_sirene.workflows.data_pipelines.rge.config import (
     RGE_CONFIG,
 )
@@ -70,6 +73,7 @@ def create_data_source_last_modified_file(**kwargs):
         CONVENTION_COLLECTIVE_CONFIG.url_minio_metadata: "convention_collective",
         MARCHE_INCLUSION_CONFIG.url_minio_metadata: "marche_inclusion",
         ACHATS_RESPONSABLES_CONFIG.url_minio_metadata: "achats_responsables",
+        PATRIMOINE_VIVANT_CONFIG.url_minio_metadata: "patrimoine_vivant",
     }
 
     json_file_path = os.path.join(
