@@ -119,7 +119,7 @@ def post_resource(
     r.raise_for_status()
     if not resource_id:
         resource_id = r.json()["id"]
-        print("Resource was given this id:", resource_id)
+        logging.info("Resource was given this id:", resource_id)
         url = (
             f"{DATAGOUV_URL}/api/1/datasets/{dataset_id}/resources/{resource_id}/"
             "upload/"
