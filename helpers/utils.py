@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Literal
 from unicodedata import normalize
+from urllib.parse import urlparse
 
 import pandas as pd
 import requests
@@ -398,7 +399,7 @@ def extract_date_from_filename(filename):
 
 
 def fetch_latest_file_from_folder(
-    folder_path: str, extension: str = None
+    folder_path: str, extension: str | None = None
 ) -> Path | None:
     """
     Fetches the latest file from the specified folder.
@@ -561,10 +562,47 @@ def get_dates_since_start_of_month(
     return dates
 
 
-labels_file_path = "dags/dag_datalake_sirene/helpers/labels/"
-
-
 def load_file(file_name: str):
+    labels_file_path = "dags/dag_datalake_sirene/helpers/labels/"
+
     with open(f"{labels_file_path}{file_name}") as json_file:
         file_decoded = json.load(json_file)
     return file_decoded
+
+
+def fetch_hyperlink_from_page(url: str, search_text: str) -> str:
+    """
+    Fetches a URL from a web page that matches the given search text.
+
+    Args:
+        url (str): The URL of the web page to search.
+        search_text (str): The text to search for within the web page's HTML content.
+    Returns:
+        str: The full URL found in the web page that matches the search text.
+    Raises:
+        ValueError: If no URL matching the search text is found in the HTML content.
+        requests.exceptions.RequestException: If there is an issue with the provided URL.
+    """
+
+    parsed_url = urlparse(url)
+    base_url = base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+
+    response = requests.get(url)
+    response.raise_for_status()
+    html_content = response.text
+
+    logging.info(f"Looking for the URL behind: {search_text}")
+    match = re.search(
+        r'<a\s+href="([^"]+)">' + re.escape(search_text) + r"</a>", html_content
+    )
+
+    if not match:
+        raise ValueError(f"No URL found in the html source of: {url}")
+    hyperlink = match.group(1)
+
+    if parsed_url.netloc not in hyperlink:
+        hyperlink = base_url + match.group(1)
+
+    logging.info(f"Likely found the hyperlink: {hyperlink}")
+
+    return hyperlink

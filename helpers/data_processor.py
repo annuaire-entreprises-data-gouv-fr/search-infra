@@ -15,6 +15,7 @@ from dag_datalake_sirene.helpers.minio_helpers import File, MinIOClient
 from dag_datalake_sirene.helpers.notification import Notification, monitoring_logger
 from dag_datalake_sirene.helpers.utils import (
     download_file,
+    fetch_hyperlink_from_page,
     get_date_last_modified,
     save_to_metadata,
 )
@@ -36,19 +37,30 @@ class DataProcessor(ABC):
         Downloads data from the specified URL and saves it to the destination path.
 
         Configurations:
-            - self.config.files_to_download (list[dict], optional): The list of
-            resources to download.
+            - self.config.files_to_download (dict): The dictionary of resources to download.
               Args of each file dictionary:
-                - url (str): The URL of the file or dataset.
-                - destination (str): The local path to save the file.
-                - dataset_id (optional): Indicates the resource has to
-                be fetched from the dataset.
-
+            - url (str): The URL of the file or dataset.
+            - destination (str): The local path to save the file.
+            - dataset_id (optional, str): Indicates the resource has to be fetched from the dataset.
+            - pattern (optional, str): The pattern to search for in the URL page to find the actual file link.
         """
         for name, params in self.config.files_to_download.items():
             try:
                 if "dataset_id" in params:
                     _, url = fetch_last_resource_from_dataset(params["url"])
+                elif "pattern" in params:
+                    url = params["url"]
+
+                    placeholders = {
+                        "%%current_year%%": str(datetime.now().year),
+                        "%%current_month%%": str(datetime.now().strftime("%Y-%m")),
+                        "%%current_day%%": str(datetime.now().strftime("%Y-%m-%d")),
+                    }
+                    search_text = params["pattern"]
+                    for key, value in placeholders.items():
+                        search_text = search_text.replace(key, value)
+
+                    url = fetch_hyperlink_from_page(url, search_text)
                 else:
                     url = params["url"]
 
