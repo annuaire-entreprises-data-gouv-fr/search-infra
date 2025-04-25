@@ -1,11 +1,6 @@
-import logging
-import zipfile
-
 import pandas as pd
-import requests
 
 from dag_datalake_sirene.helpers import DataProcessor
-from dag_datalake_sirene.helpers.utils import get_current_year
 from dag_datalake_sirene.workflows.data_pipelines.colter.config import (
     COLTER_CONFIG,
     ELUS_CONFIG,
@@ -17,149 +12,178 @@ class ColterProcessor(DataProcessor):
         super().__init__(COLTER_CONFIG)
 
     def preprocess_data(self):
-        # Process Régions
-        df_regions = pd.read_csv(
-            self.config.files_to_download["colter_regions"]["url"],
-            dtype=str,
-            sep=";",
-            usecols=["Code Insee 2023 Région", "Code Siren Collectivité", "Exercice"],
-        )
-        df_regions = df_regions.rename(
-            columns={
-                "Code Insee 2023 Région": "colter_code_insee",
-                "Code Siren Collectivité": "siren",
-                "Exercice": "exercice",
-            }
+        ### RÉGIONS ###
+
+        def regions_colter_niveau(colter_code_insee) -> str:
+            if (
+                colter_code_insee
+                in [
+                    "02",  # Martinique https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006070633/LEGISCTA000024405632/
+                    "03",  # Guyane https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006070633/LEGISCTA000024405343/
+                ]
+            ):
+                return "Collectivité territoriale unique"
+            elif colter_code_insee == "94":
+                # Corse https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000033463146
+                return "Collectivité de Corse"
+            elif (
+                colter_code_insee
+                in [
+                    "01",  # Guadeloupe https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000024413373
+                    "04",  # La Réunion https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000024413373
+                ]
+            ):
+                return "Région d'outre-mer"
+            return "Région"
+
+        df_colter = (
+            pd.read_csv(
+                self.config.files_to_download["colter_regions"]["destination"],
+                dtype="string",
+                sep=";",
+                usecols=[
+                    "Code Insee 2023 Région",
+                    "Code Siren Collectivité",
+                    "Exercice",
+                ],
+            )
+            .loc[lambda df: df["Exercice"] == df["Exercice"].max()]
+            .rename(
+                columns={
+                    "Code Insee 2023 Région": "colter_code_insee",
+                    "Code Siren Collectivité": "siren",
+                }
+            )
+            .filter(["colter_code_insee", "siren"])
+            .drop_duplicates(keep="first")
+            .assign(
+                colter_code=lambda df: df["colter_code_insee"],
+                colter_niveau=lambda df: df["colter_code_insee"].apply(
+                    regions_colter_niveau
+                ),
+            )
+            .sort_values(by=["colter_code"], ascending=False)
         )
 
-        df_regions = df_regions[df_regions["exercice"] == df_regions.exercice.max()][
-            ["colter_code_insee", "siren"]
-        ]
-        df_regions = df_regions.drop_duplicates(keep="first")
-        df_regions["colter_code"] = df_regions["colter_code_insee"]
-        df_regions["colter_niveau"] = "region"
+        ### DÉPARTEMENTS ###
+        def departements_colter_code(colter_code_insee):
+            if colter_code_insee == "691":
+                # Métropole de Lyon https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006070633/LEGISCTA000028528959/
+                return "69M"
+            elif colter_code_insee == "67A":
+                # Collectivité Européenne d'Alsace https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000038872957
+                return "6AE"
+            elif colter_code_insee == "75056":
+                # Paris https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006070633/LEGISCTA000006164590/
+                return "75C"
+            return colter_code_insee + "D"
 
-        # Cas particulier Corse
-        df_regions.loc[df_regions["colter_code_insee"] == "94", "colter_niveau"] = (
-            "particulier"
+        def departements_colter_niveau(colter_code_insee):
+            if colter_code_insee == "976":
+                # Mayotte https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006070633/LEGISCTA000006135501/
+                return "Département de Mayotte"
+            elif colter_code_insee in ["974", "971"]:
+                # Guadeloupe et La Réunion https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006070633/LEGISCTA000006149273/
+                return "Département d'outre-mer"
+            elif colter_code_insee == "75056":
+                return "Ville de Paris"
+            elif colter_code_insee == "691":
+                return "Métropole de Lyon"
+            elif colter_code_insee == "67A":
+                return "Collectivité Européenne d'Alsace"
+            return "Département"
+
+        def departements_colter_code_insee(colter_code_insee):
+            if colter_code_insee in ["67A", "69", "691"]:
+                return None
+            return colter_code_insee
+
+        df_deps = (
+            pd.read_csv(
+                self.config.files_to_download["colter_deps"]["destination"],
+                dtype="string",
+                sep=";",
+                usecols=[
+                    "Code Insee 2023 Département",
+                    "Code Siren Collectivité",
+                    "Exercice",
+                ],
+            )
+            .loc[lambda df: df["Exercice"] == df["Exercice"].max()]
+            .rename(
+                columns={
+                    "Code Insee 2023 Département": "colter_code_insee",
+                    "Code Siren Collectivité": "siren",
+                }
+            )
+            .filter(["colter_code_insee", "siren"])
+            .drop_duplicates(keep="first")
+            .assign(
+                colter_code=lambda df: df["colter_code_insee"].apply(
+                    departements_colter_code
+                ),
+                colter_niveau=lambda df: df["colter_code_insee"].apply(
+                    departements_colter_niveau
+                ),
+                colter_code_insee=lambda df: df["colter_code_insee"].apply(
+                    departements_colter_code_insee
+                ),
+            )
+            .sort_values(by=["colter_code_insee"])
         )
-        df_colter = df_regions
-
-        # Process Départements
-        df_deps = pd.read_csv(
-            self.config.files_to_download["colter_deps"]["url"],
-            dtype=str,
-            sep=";",
-            usecols=[
-                "Code Insee 2023 Département",
-                "Code Siren Collectivité",
-                "Exercice",
-            ],
-        )
-        df_deps = df_deps.rename(
-            columns={
-                "Code Insee 2023 Département": "colter_code_insee",
-                "Code Siren Collectivité": "siren",
-                "Exercice": "exercice",
-            }
-        )
-
-        df_deps = df_deps[df_deps["exercice"] == df_deps["exercice"].max()]
-        df_deps = df_deps[["colter_code_insee", "siren"]]
-        df_deps = df_deps.drop_duplicates(keep="first")
-        df_deps["colter_code"] = df_deps["colter_code_insee"] + "D"
-        df_deps["colter_niveau"] = "departement"
-
-        # Cas Métropole de Lyon
-        df_deps.loc[df_deps["colter_code_insee"] == "691", "colter_code"] = "69M"
-        df_deps.loc[df_deps["colter_code_insee"] == "691", "colter_niveau"] = (
-            "particulier"
-        )
-        df_deps.loc[df_deps["colter_code_insee"] == "691", "colter_code_insee"] = None
-
-        # Cas Conseil départemental du Rhone
-        df_deps.loc[df_deps["colter_code_insee"] == "69", "colter_niveau"] = (
-            "particulier"
-        )
-        df_deps.loc[df_deps["colter_code_insee"] == "69", "colter_code_insee"] = None
-
-        # Cas Collectivité Européenne d"Alsace
-        df_deps.loc[df_deps["colter_code_insee"] == "67A", "colter_code"] = "6AE"
-        df_deps.loc[df_deps["colter_code_insee"] == "67A", "colter_niveau"] = (
-            "particulier"
-        )
-        df_deps.loc[df_deps["colter_code_insee"] == "67A", "colter_code_insee"] = None
-
-        # Remove Paris
-        df_deps = df_deps[df_deps["colter_code_insee"] != "75"]
 
         df_colter = pd.concat([df_colter, df_deps])
+        del df_deps
 
-        # Process EPCI
-        url_colter_epci = ColterProcessor.get_epci_url()
-        df_epci = pd.read_excel(url_colter_epci, dtype=str, engine="openpyxl")
-        df_epci["colter_code_insee"] = None
-        df_epci["colter_code"] = df_epci["siren"]
-        df_epci["colter_niveau"] = "epci"
-        df_epci = df_epci[
-            ["colter_code_insee", "siren", "colter_code", "colter_niveau"]
-        ]
+        ### EPCI ###
+        df_epci = (
+            pd.read_excel(
+                self.config.files_to_download["colter_epci"]["destination"],
+                dtype="string",
+                engine="openpyxl",
+                usecols=["siren_epci"],
+            )
+            .rename(columns={"siren_epci": "siren"})
+            .assign(
+                colter_code_insee=None,
+                colter_niveau="EPCI",
+                colter_code=lambda df: df["siren"],
+            )
+            .query(
+                "colter_code != '200046977'"
+            )  # Remove Métropole de Lyon, already in Départements
+        )
         df_colter = pd.concat([df_colter, df_epci])
+        del df_epci
 
-        # Process Communes
-        response = requests.get(self.config.files_to_download["colter_communes"]["url"])
-        open(f"{self.config.tmp_folder}siren-communes.zip", "wb").write(
-            response.content
+        ### COMMUNES ###
+        df_communes = (
+            pd.read_csv(
+                self.config.files_to_download["colter_communes"]["destination"],
+                dtype="string",
+                sep=";",
+                usecols=["siren", "insee"],
+                encoding="latin1",
+            )
+            .rename(
+                columns={
+                    "siren_membre": "siren",
+                    "insee": "colter_code_insee",
+                }
+            )
+            .query(
+                "colter_code_insee != '75056'"
+            )  # Remove Paris, already in Départements
+            .assign(
+                colter_code=lambda df: df["colter_code_insee"],
+                colter_niveau="Commune",
+            )
         )
-
-        with zipfile.ZipFile(
-            f"{self.config.tmp_folder}siren-communes.zip", "r"
-        ) as zip_ref:
-            zip_ref.extractall(f"{self.config.tmp_folder}siren-communes")
-
-        df_communes = pd.read_excel(
-            f"{self.config.tmp_folder}siren-communes/Banatic_SirenInsee2022.xlsx",
-            dtype=str,
-            engine="openpyxl",
-        )
-        df_communes["colter_code_insee"] = df_communes["insee"]
-        df_communes["colter_code"] = df_communes["insee"]
-        df_communes["colter_niveau"] = "commune"
-        df_communes = df_communes[
-            ["colter_code_insee", "siren", "colter_code", "colter_niveau"]
-        ]
-        df_communes.loc[df_communes["colter_code_insee"] == "75056", "colter_code"] = (
-            "75C"
-        )
-        df_communes.loc[
-            df_communes["colter_code_insee"] == "75056", "colter_niveau"
-        ] = "particulier"
 
         df_colter = pd.concat([df_colter, df_communes])
+        del df_communes
+
         df_colter.to_csv(self.config.file_output, index=False)
-
-    @staticmethod
-    def generate_epci_url(year):
-        return (
-            "https://www.collectivites-locales.gouv.fr/"
-            f"files/Accueil/DESL/{year}/epcicom{year}.xlsx"
-        )
-
-    @staticmethod
-    def get_epci_url():
-        current_year = get_current_year()
-        url = ColterProcessor.generate_epci_url(current_year)
-        try:
-            response = requests.head(url)
-            if response.status_code == 200:
-                return url
-            else:
-                logging.error(f"url: {url} returns error!!! ")
-                previous_year = current_year - 1
-
-                return ColterProcessor.generate_epci_url(previous_year)
-        except requests.RequestException as e:
-            raise e
 
 
 class ElusProcessor(DataProcessor):
