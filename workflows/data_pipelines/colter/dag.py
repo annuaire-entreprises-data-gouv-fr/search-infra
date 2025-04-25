@@ -47,6 +47,10 @@ def data_processing_collectivite_territoriale():
         )
 
     @task()
+    def download_data():
+        return colter_processor.download_data()
+
+    @task()
     def preprocess_data():
         return colter_processor.preprocess_data()
 
@@ -64,6 +68,7 @@ def data_processing_collectivite_territoriale():
 
     (
         clean_previous_outputs()
+        >> download_data()
         >> preprocess_data()
         >> save_date_last_modified()
         >> send_file_to_minio()
