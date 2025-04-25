@@ -56,6 +56,11 @@ SELECT ul.etat_administratif_unite_legale as etat_administratif,
         FROM achats_responsables
         WHERE siren = ul.siren
     ) as est_achats_responsables,
+    (
+        SELECT est_patrimoine_vivant
+        FROM patrimoine_vivant
+        WHERE siren = ul.siren
+    ) as est_patrimoine_vivant,
     ul.economie_sociale_solidaire_unite_legale as economie_sociale_solidaire,
     (
         SELECT est_entrepreneur_spectacle
