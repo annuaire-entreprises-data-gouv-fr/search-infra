@@ -13,14 +13,22 @@ COLTER_CONFIG = DataSourceConfig(
         "colter_regions": {
             "url": f"{DATA_GOUV_BASE_URL}619ee62e-8f9e-4c62-b166-abc6f2b86201",
             "resource_id": "619ee62e-8f9e-4c62-b166-abc6f2b86201",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/colter/regions-download.csv",
         },
         "colter_deps": {
             "url": f"{DATA_GOUV_BASE_URL}2f4f901d-e3ce-4760-b122-56a311340fc4",
             "resource_id": "2f4f901d-e3ce-4760-b122-56a311340fc4",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/colter/deps-download.csv",
+        },
+        "colter_epci": {
+            "url": "https://www.collectivites-locales.gouv.fr/institutions/liste-et-composition-des-epci-fiscalite-propre",
+            "pattern": "Liste des EPCI au 1er janvier %%current_year%% (xls)",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/colter/epci-download.xlsx",
         },
         "colter_communes": {
-            "url": f"{DATA_GOUV_BASE_URL}42b16d68-958e-4518-8551-93e095fe8fda",
-            "resource_id": "42b16d68-958e-4518-8551-93e095fe8fda",
+            "url": f"{DATA_GOUV_BASE_URL}1e3493b3-7fc0-4005-8aa7-240bdf17e617",
+            "resource_id": "1e3493b3-7fc0-4005-8aa7-240bdf17e617",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/colter/communes-download.csv",
         },
     },
     url_minio=f"{MINIO_BASE_URL}colter/latest/colter.csv",
