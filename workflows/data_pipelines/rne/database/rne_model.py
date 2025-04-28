@@ -131,15 +131,6 @@ class NatureCessationEntreprise(BaseModel):
     etatAdministratifInsee: str | None = None
 
 
-class Beneficiaire(BaseModel):
-    descriptionPersonne: DescriptionPersonne | None = DescriptionPersonne()
-
-
-class BeneficiaireEffectif(BaseModel):
-    actif: bool | None = None
-    beneficiaire: Beneficiaire | None = Beneficiaire()
-
-
 class Exploitation(BaseModel):
     identite: Identite | None = Identite()
     composition: Composition | None = None
@@ -151,7 +142,6 @@ class Exploitation(BaseModel):
     detailCessationEntreprise: DetailCessationEntreprise | None = (
         DetailCessationEntreprise()
     )
-    beneficiairesEffectifs: list[BeneficiaireEffectif] | None = [BeneficiaireEffectif()]
 
 
 class PersonneMorale(BaseModel):
@@ -165,7 +155,6 @@ class PersonneMorale(BaseModel):
     detailCessationEntreprise: DetailCessationEntreprise | None = (
         DetailCessationEntreprise()
     )
-    beneficiairesEffectifs: list[BeneficiaireEffectif] | None = [BeneficiaireEffectif()]
 
 
 class PersonnePhysique(BaseModel):
@@ -179,7 +168,6 @@ class PersonnePhysique(BaseModel):
     detailCessationEntreprise: DetailCessationEntreprise | None = (
         DetailCessationEntreprise()
     )
-    beneficiairesEffectifs: list[BeneficiaireEffectif] | None = [BeneficiaireEffectif()]
 
 
 class NatureCreation(BaseModel):
@@ -217,7 +205,6 @@ class RNECompany(BaseModel):
     updatedAt: datetime | None = None
     createdAt: datetime | None = None
     formality: Formality
-    nombreBeneficiairesEffectifsActifs: int | None = None
     siren: str
     origin: str | None = None
 

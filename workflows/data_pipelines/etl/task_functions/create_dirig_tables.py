@@ -23,10 +23,6 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
     drop_table,
     get_distinct_column_count,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.beneficiaires import (
-    create_table_benef_query,
-    get_chunk_benef_from_db_query,
-)
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.dirigeants import (
     create_table_dirigeant_pm_query,
     create_table_dirigeant_pp_query,
@@ -109,30 +105,3 @@ def create_dirig_pm_table():
     del dir_pm_clean
     sqlite_client_siren.commit_and_close_conn()
     sqlite_client_dirig.commit_and_close_conn()
-
-
-def create_benef_table():
-    sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
-    sqlite_client_rne = SqliteClient(RNE_DATABASE_LOCATION)
-    chunk_size = int(100000)
-    for row in sqlite_client_rne.execute(
-        get_distinct_column_count("beneficiaire", "siren")
-    ):
-        nb_iter = int(int(row[0]) / chunk_size) + 1
-    sqlite_client_siren.execute(drop_table("beneficiaire"))
-    sqlite_client_siren.execute(create_table_benef_query)
-    sqlite_client_siren.execute(create_index("siren_benef", "beneficiaire", "siren"))
-    for i in range(nb_iter):
-        query = sqlite_client_rne.execute(get_chunk_benef_from_db_query(chunk_size, i))
-        benef_clean = preprocess_personne_physique(query)
-        benef_clean.to_sql(
-            "beneficiaire",
-            sqlite_client_siren.db_conn,
-            if_exists="append",
-            index=False,
-        )
-        logging.info(f"Iter: {i}")
-
-    del benef_clean
-    sqlite_client_siren.commit_and_close_conn()
-    sqlite_client_rne.commit_and_close_conn()

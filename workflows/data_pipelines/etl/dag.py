@@ -66,8 +66,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     insert_date_fermeture_unite_legale,
     replace_unite_legale_table,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.create_dirig_benef_tables import (
-    create_benef_table,
+from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.create_dirig_tables import (
     create_dirig_pm_table,
     create_dirig_pp_table,
     get_latest_rne_database,
@@ -310,12 +309,6 @@ def database_constructor():
         python_callable=create_dirig_pm_table,
     )
 
-    create_benef_table_task = PythonOperator(
-        task_id="create_benef_table",
-        provide_context=True,
-        python_callable=create_benef_table,
-    )
-
     create_immatriculation_table_task = PythonOperator(
         task_id="copy_immatriculation_table",
         provide_context=True,
@@ -402,7 +395,6 @@ def database_constructor():
         >> inject_rne_siege_data_task
         >> create_dirig_pp_table_task
         >> create_dirig_pm_table_task
-        >> create_benef_table_task
         >> create_immatriculation_table_task
     )
 

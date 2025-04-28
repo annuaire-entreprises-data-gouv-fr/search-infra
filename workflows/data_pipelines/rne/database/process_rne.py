@@ -118,25 +118,6 @@ def create_tables(cursor):
     )
     cursor.execute(
         """
-        CREATE TABLE IF NOT EXISTS beneficiaire
-        (
-            siren TEXT,
-            date_mise_a_jour DATE,
-            actif TEXT,
-            nom TEXT,
-            nom_usage TEXT,
-            prenoms TEXT,
-            genre TEXT,
-            date_de_naissance TEXT,
-            role TEXT,
-            nationalite TEXT,
-            situation_matrimoniale TEXT,
-            file_name TEXT
-        )
-    """
-    )
-    cursor.execute(
-        """
         CREATE TABLE IF NOT EXISTS etablissement
         (
             siren TEXT,
@@ -184,7 +165,6 @@ def create_index_db(cursor):
         "CREATE INDEX IF NOT EXISTS file_pp ON dirigeant_pp (file_name);",
         "CREATE INDEX IF NOT EXISTS file_pm ON dirigeant_pm (file_name);",
         "CREATE INDEX IF NOT EXISTS idx_siren_immat ON immatriculation (siren);",
-        "CREATE INDEX IF NOT EXISTS idx_siren_benef ON beneficiaire (siren);",
         """CREATE INDEX IF NOT EXISTS idx_ul_siren_file_name
         ON unite_legale (siren, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_etab_siren_file_name
@@ -197,8 +177,6 @@ def create_index_db(cursor):
         ON dirigeant_pm (siren, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_siren_immat_file_name
         ON immatriculation (siren, file_name);""",
-        """CREATE INDEX IF NOT EXISTS idx_siren_bene_file_name
-        ON beneficiaire (siren, file_name);""",
         "CREATE INDEX IF NOT EXISTS idx_siren_etab_other ON etablissement (siren);",
         "CREATE INDEX IF NOT EXISTS idx_siret_etab_other ON etablissement (siret);",
         "CREATE INDEX IF NOT EXISTS idx_siren_activite ON activite (siren);",
@@ -290,7 +268,6 @@ def find_and_delete_same_siren(cursor, siren, file_path):
         "unite_legale",
         "siege",
         "immatriculation",
-        "beneficiaire",
         "etablissement",
         "activite",
     ]
@@ -626,43 +603,6 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             ),
         )
 
-        for beneficiaire in unite_legale.beneficiaires:
-            # Define the columns for the beneficiaire table
-            beneficiaire_columns = [
-                "siren",
-                "date_mise_a_jour",
-                "actif",
-                "nom",
-                "nom_usage",
-                "prenoms",
-                "genre",
-                "date_de_naissance",
-                "role",
-                "nationalite",
-                "situation_matrimoniale",
-                "file_name",
-            ]
-            cursor.execute(
-                f"""
-                INSERT INTO beneficiaire ({", ".join(beneficiaire_columns)})
-                VALUES ({", ".join(["?"] * len(beneficiaire_columns))})
-            """,
-                (
-                    unite_legale.siren,
-                    unite_legale.date_mise_a_jour,
-                    beneficiaire.actif,
-                    beneficiaire.nom,
-                    beneficiaire.nom_usage,
-                    beneficiaire.prenoms,
-                    beneficiaire.genre,
-                    beneficiaire.date_de_naissance,
-                    beneficiaire.role,
-                    beneficiaire.nationalite,
-                    beneficiaire.situation_matrimoniale,
-                    file_path,
-                ),
-            )
-
     cursor.execute("SELECT COUNT(*) FROM dirigeant_pp")
     count_pp = cursor.fetchone()[0]
 
@@ -678,9 +618,6 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
     cursor.execute("SELECT COUNT(*) FROM immatriculation")
     count_immat = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM beneficiaire")
-    count_benef = cursor.fetchone()[0]
-
     cursor.execute("SELECT COUNT(*) FROM etablissement")
     count_etab = cursor.fetchone()[0]
 
@@ -690,7 +627,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
     logging.info(
         f"************Count UL: {count_ul}, Count siege: {count_siege}, "
         f"Count pp: {count_pp}, Count pm: {count_pm}, "
-        f"Count immat: {count_immat}, Count beneficiaire: {count_benef}, "
+        f"Count immat: {count_immat}, "
         f"Count etablissement: {count_etab}, Count activite: {count_activite}."
     )
 
@@ -748,11 +685,8 @@ def get_tables_count(db_path):
     cursor.execute("SELECT COUNT(*) FROM immatriculation")
     count_immat = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM beneficiaire")
-    count_benef = cursor.fetchone()[0]
-
     connection.close()
-    return count_ul, count_siege, count_pp, count_pm, count_immat, count_benef
+    return count_ul, count_siege, count_pp, count_pm, count_immat
 
 
 def extract_rne_data(entity, file_type="flux"):

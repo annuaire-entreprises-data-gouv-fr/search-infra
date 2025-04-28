@@ -111,16 +111,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
                 unite_legale_processed["prenom"]
             )
 
-        # Beneficiaires Effectifs
-        unite_legale_processed["liste_beneficiaires"] = []
-        (
-            unite_legale_processed["beneficiaires_effectifs"],
-            unite_legale_processed["liste_beneficiaires"],
-        ) = format_personnes_physiques(
-            unite_legale["beneficiaires_effectifs"],
-            unite_legale_processed["liste_beneficiaires"],
-        )
-
         # Élus
         unite_legale_processed["liste_elus"] = create_list_names_elus(
             unite_legale_processed["colter_elus"]
