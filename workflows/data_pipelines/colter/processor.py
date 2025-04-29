@@ -1,5 +1,6 @@
 import logging
 
+import numpy as np
 import pandas as pd
 
 from dag_datalake_sirene.helpers import DataProcessor
@@ -75,7 +76,7 @@ class ColterProcessor(DataProcessor):
             elif colter_code_insee == "67A":
                 # Collectivité Européenne d'Alsace https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000038872957
                 return "6AE"
-            elif colter_code_insee == "75056":
+            elif colter_code_insee == "75":
                 # Paris https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006070633/LEGISCTA000006164590/
                 return "75C"
             return colter_code_insee + "D"
@@ -87,7 +88,7 @@ class ColterProcessor(DataProcessor):
             elif colter_code_insee in ["974", "971"]:
                 # Guadeloupe et La Réunion https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006070633/LEGISCTA000006149273/
                 return "Département d'outre-mer"
-            elif colter_code_insee == "75056":
+            elif colter_code_insee == "75":
                 return "Ville de Paris"
             elif colter_code_insee == "691":
                 return "Métropole de Lyon"
@@ -147,7 +148,7 @@ class ColterProcessor(DataProcessor):
             )
             .rename(columns={"siren_epci": "siren"})
             .assign(
-                colter_code_insee=None,
+                colter_code_insee=np.nan,
                 colter_niveau="EPCI",
                 colter_code=lambda df: df["siren"],
             )
@@ -174,8 +175,10 @@ class ColterProcessor(DataProcessor):
                 }
             )
             .query(
+                # Paris https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006070633/LEGISCTA000006164590/
+                # Removed, already included in Départements
                 "colter_code_insee != '75056'"
-            )  # Remove Paris, already in Départements
+            )
             .assign(
                 colter_code=lambda df: df["colter_code_insee"],
                 colter_niveau="Commune",
@@ -251,6 +254,9 @@ class ElusProcessor(DataProcessor):
         super().__init__(ELUS_CONFIG)
 
     def preprocess_data(self):
+        if not COLTER_CONFIG.url_minio:
+            raise ValueError("MinIO file not specified in COLTER_CONFIG.")
+
         df_colter = pd.read_csv(COLTER_CONFIG.url_minio, dtype=str)
         # Conseillers régionaux
         elus = self.process_elus_files(
