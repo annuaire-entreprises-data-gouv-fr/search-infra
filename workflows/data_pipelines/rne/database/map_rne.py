@@ -9,7 +9,6 @@ from dag_datalake_sirene.workflows.data_pipelines.rne.database.rne_model import 
 from dag_datalake_sirene.workflows.data_pipelines.rne.database.ul_model import (
     Activite,
     Adresse,
-    Beneficiaire,
     DirigeantsPM,
     DirigeantsPP,
     Etablissement,
@@ -73,11 +72,6 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     company_dirigeants = get_dirigeants(rne_company)
     unite_legale.dirigeants = map_dirigeants_rne_to_dirigeants_list_ul(
         company_dirigeants
-    )
-
-    company_beneficiaires = get_beneficiaires(rne_company)
-    unite_legale.beneficiaires = map_beneficiaire_rne_to_beneficiaire_ul(
-        company_beneficiaires
     )
 
     unite_legale = get_denomination_personne_physique(rne_company, unite_legale)
@@ -217,11 +211,6 @@ def get_dirigeants(rne_company: RNECompany):
     return composition.pouvoirs if composition else []
 
 
-def get_beneficiaires(rne_company: RNECompany):
-    beneficiaires = get_value(rne_company, "beneficiairesEffectifs", None)
-    return beneficiaires
-
-
 def map_address_rne_to_ul(address_rne):
     address_ul = Adresse()
     address_ul.pays = address_rne.pays
@@ -310,34 +299,6 @@ def map_dirigeants_rne_to_dirigeants_list_ul(dirigeants_rne):
             )
 
     return list_dirigeants
-
-
-def map_beneficiaire_rne_to_beneficiaire_ul(beneficiaires):
-    if not beneficiaires:
-        return None
-    list_beneficiaires = []
-
-    for beneficiaire in beneficiaires:
-        beneficiaire_ul = Beneficiaire()
-        beneficiaire_ul.actif = beneficiaire.actif
-
-        personne = beneficiaire.beneficiaire.descriptionPersonne
-        beneficiaire_ul.date_de_naissance = personne.dateDeNaissance
-        beneficiaire_ul.nom = personne.nom
-        beneficiaire_ul.nom_usage = personne.nomUsage
-
-        beneficiaire_ul.prenoms = (
-            " ".join(personne.prenoms)
-            if isinstance(personne.prenoms, list)
-            else personne.prenoms
-        )
-        beneficiaire_ul.genre = personne.genre
-        beneficiaire_ul.role = personne.role
-        beneficiaire_ul.nationalite = personne.nationalite
-        beneficiaire_ul.situation_matrimoniale = personne.situationMatrimoniale
-
-        list_beneficiaires.append(beneficiaire_ul)
-    return list_beneficiaires
 
 
 def map_rne_etablissements_to_ul(etablissements_rne):

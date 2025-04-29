@@ -114,20 +114,6 @@ class DirigeantPMMapping(InnerDoc):
     date_mise_a_jour = Date()
 
 
-class BeneficiaireEffectifMapping(InnerDoc):
-    # Indexing the field 'nom' as both a keyword (exactly how it is given to the index)
-    # and as text (analysed with the french analyser), allows us to search both the
-    # exact match for a query and an analysed version of it (without stop words for
-    # example)
-    nom = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
-    nom_usage = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
-    prenoms = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
-    date_de_naissance = Date()
-    nationalite = Text()
-    role = Text(analyzer=annuaire_analyzer)
-    date_mise_a_jour = Date()
-
-
 class EtablissementMapping(InnerDoc):
     activite_principale = Text()
     activite_principale_registre_metier = Keyword()
@@ -308,7 +294,6 @@ class UniteLegaleMapping(InnerDoc):
     activite_principale_unite_legale = Keyword()
     annee_categorie_entreprise = Date()
     annee_tranche_effectif_salarie = Date()
-    beneficiaires_effectifs = Nested(BeneficiaireEffectifMapping)
     bilan_financier = Nested(BilanFinancierMapping)
     caractere_employeur = Keyword()
     code_categorie_entreprise = Integer()
@@ -359,7 +344,6 @@ class UniteLegaleMapping(InnerDoc):
     from_rne = Boolean()
     identifiant_association_unite_legale = Keyword()
     immatriculation = Nested(ImmatriculationMapping)
-    liste_beneficiaires = Text(analyzer=annuaire_analyzer)
     liste_dirigeants = Text(analyzer=annuaire_analyzer)
     liste_elus = Text(analyzer=annuaire_analyzer)
     liste_idcc_unite_legale = Text()

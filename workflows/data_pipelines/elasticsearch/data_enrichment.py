@@ -361,7 +361,7 @@ def map_roles(codes):
     return [mapping_role_dirigeants.get(str(code), None) for code in codes]
 
 
-# Perosnnes physiques (dirigeants pp et beneficiaires effectifs)
+# Perosnnes physiques (dirigeants pp)
 def format_personnes_physiques(list_personnes_physiques_sqlite, list_all_personnes=[]):
     personnes_physiques = json.loads(list_personnes_physiques_sqlite)
     personnes_physiques_processed = []
