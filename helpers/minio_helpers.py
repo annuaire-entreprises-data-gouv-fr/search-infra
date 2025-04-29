@@ -195,7 +195,7 @@ class MinIOClient:
             logging.warning("No .gz files found in the specified path.")
 
     def delete_file(self, file_path: str):
-        """/!\ USE WITH CAUTION"""
+        """!! USE WITH CAUTION !!"""
         try:
             self.client.stat_object(self.bucket, file_path)
             self.client.remove_object(self.bucket, f"{file_path}")
