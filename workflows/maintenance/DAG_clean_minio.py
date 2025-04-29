@@ -56,7 +56,7 @@ with DAG(
     "delete_old_minio_file",
     default_args=default_args,
     description="Delete old MinIO files",
-    schedule_interval="0 12 * * *",  # run every day at 12:00 PM (UTC)
+    schedule="0 12 * * *",  # run every day at 12:00 PM (UTC)
     dagrun_timeout=timedelta(minutes=30),
     start_date=datetime(2023, 12, 28),
     catchup=False,  # False to ignore past runs

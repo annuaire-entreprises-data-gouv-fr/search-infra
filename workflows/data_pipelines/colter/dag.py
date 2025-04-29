@@ -29,7 +29,7 @@ dataset_colter = Dataset(COLTER_CONFIG.name)
 @dag(
     tags=["collectivités", "communes", "régions", "départements"],
     default_args=default_args,
-    schedule_interval="0 16 * * *",
+    schedule="0 16 * * *",
     start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=60),
     on_failure_callback=Notification.send_notification_mattermost,

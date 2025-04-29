@@ -24,7 +24,7 @@ with DAG(
     dag_id="get_flux_rne",
     default_args=default_args,
     start_date=datetime(2023, 10, 18),
-    schedule_interval="0 1 * * *",  # Run every day at 1 AM
+    schedule="0 1 * * *",  # Run every day at 1 AM
     catchup=False,
     max_active_runs=1,
     dagrun_timeout=timedelta(days=30),

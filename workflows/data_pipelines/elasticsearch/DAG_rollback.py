@@ -26,7 +26,7 @@ default_args = {
 with DAG(
     dag_id=AIRFLOW_SNAPSHOT_ROLLBACK_DAG_NAME,
     default_args=default_args,
-    schedule_interval=None,
+    schedule=None,
     start_date=datetime(2024, 1, 1),
     dagrun_timeout=timedelta(minutes=60 * 2),
     tags=["siren"],
