@@ -1,3 +1,5 @@
+import logging
+
 import pandas as pd
 
 from dag_datalake_sirene.helpers import DataProcessor
@@ -184,6 +186,64 @@ class ColterProcessor(DataProcessor):
         del df_communes
 
         df_colter.to_csv(self.config.file_output, index=False)
+
+    def data_validation(self) -> None:
+        if not self.config.file_output:
+            raise ValueError("Output file not specified in config.")
+
+        df_colter = pd.read_csv(self.config.file_output, dtype="string")
+        validations = {}
+
+        # Validate volume thresholds
+        niveau_thresholds = {
+            "Région": 12,
+            "Département": 91,
+            "Commune": 30_000,
+            "EPCI": 1_000,
+        }
+        for niveau, threshold in niveau_thresholds.items():
+            count = df_colter[df_colter["colter_niveau"] == niveau].shape[0]
+            validations[niveau] = count >= threshold
+            logging.info(
+                f"Valid? {validations[niveau]}: {niveau}: {count} entries, Threshold: {threshold}"
+            )
+
+        # Validate special cases
+        special_code_insee = {
+            "Collectivité territoriale unique": ["02", "03"],
+            "Collectivité de Corse": ["94"],
+            "Région d'outre-mer": ["01", "04"],
+            "Département de Mayotte": ["976D"],
+            "Département d'outre-mer": ["974D", "971D"],
+            "Ville de Paris": ["75C"],
+            "Métropole de Lyon": ["69M"],
+            "Collectivité Européenne d'Alsace": ["6AE"],
+        }
+        for niveau, expected_codes in special_code_insee.items():
+            actual_codes = list(
+                df_colter[df_colter["colter_niveau"] == niveau]["colter_code"].unique()
+            )
+            validations[niveau] = set(expected_codes).issubset(set(actual_codes))
+            logging.info(
+                f"Valid? {validations[niveau]}: {niveau}: Expected {expected_codes}, Found {actual_codes}"
+            )
+
+        # Validate for uniqueness (ignoring nulls)
+        columns_to_validate = ["siren", "colter_code"]
+        for column in columns_to_validate:
+            duplicates = list(
+                df_colter[column][df_colter[column].dropna().duplicated(keep=False)]
+            )
+            validations[column] = duplicates == []
+            logging.info(
+                f"Valid? {duplicates == []}: {column} has {duplicates} duplicated elements."
+            )
+
+        # Overall validation result
+        overall_validation = all(validations.values())
+        logging.info(f"Overall validation? {overall_validation}")
+        if not overall_validation:
+            raise ValueError("Data validation failed.")
 
 
 class ElusProcessor(DataProcessor):
