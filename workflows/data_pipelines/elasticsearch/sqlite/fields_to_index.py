@@ -379,6 +379,8 @@ select_fields_to_index_query = """SELECT
              egapro_renseignee,
             (SELECT est_achats_responsables FROM achats_responsables WHERE siren = ul.siren) as
              est_achats_responsables,
+            (SELECT est_alim_confiance FROM est_alim_confiance WHERE siren = ul.siren) as
+             est_alim_confiance,
             (SELECT est_patrimoine_vivant FROM patrimoine_vivant WHERE siren = ul.siren) as
              est_patrimoine_vivant,
             (SELECT DISTINCT colter_code_insee FROM colter WHERE siren = ul.siren) as
