@@ -16,6 +16,9 @@ from dag_datalake_sirene.workflows.data_pipelines.achats_responsables.config imp
 from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
+from dag_datalake_sirene.workflows.data_pipelines.alim_confiance.config import (
+    ALIM_CONFIANCE_CONFIG,
+)
 from dag_datalake_sirene.workflows.data_pipelines.bilans_financiers.config import (
     BILANS_FINANCIERS_CONFIG,
 )
@@ -74,6 +77,7 @@ def create_data_source_last_modified_file(**kwargs):
         MARCHE_INCLUSION_CONFIG.url_minio_metadata: "marche_inclusion",
         ACHATS_RESPONSABLES_CONFIG.url_minio_metadata: "achats_responsables",
         PATRIMOINE_VIVANT_CONFIG.url_minio_metadata: "patrimoine_vivant",
+        ALIM_CONFIANCE_CONFIG.url_minio_metadata: "alim_confiance",
     }
 
     json_file_path = os.path.join(

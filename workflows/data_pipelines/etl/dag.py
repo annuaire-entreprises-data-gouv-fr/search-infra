@@ -19,6 +19,9 @@ from dag_datalake_sirene.workflows.data_pipelines.achats_responsables.config imp
 from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
+from dag_datalake_sirene.workflows.data_pipelines.alim_confiance.config import (
+    ALIM_CONFIANCE_CONFIG,
+)
 from dag_datalake_sirene.workflows.data_pipelines.bilans_financiers.config import (
     BILANS_FINANCIERS_CONFIG,
 )
@@ -331,6 +334,7 @@ def database_constructor():
         MARCHE_INCLUSION_CONFIG,
         ACHATS_RESPONSABLES_CONFIG,
         PATRIMOINE_VIVANT_CONFIG,
+        ALIM_CONFIANCE_CONFIG,
     ]
     tasks = []
     for config in config_list:
