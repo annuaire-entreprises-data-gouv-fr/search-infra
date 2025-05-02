@@ -22,7 +22,7 @@ default_args = {
     tags=["sirene", "flux"],
     default_args=default_args,
     schedule_interval="0 3 2-31 * *",  # Daily at 3 AM except the 1st of every month
-    start_date=days_ago(1),
+    start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=60 * 12),
     params={},
     catchup=False,
