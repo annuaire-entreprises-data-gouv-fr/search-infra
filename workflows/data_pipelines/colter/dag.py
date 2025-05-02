@@ -54,6 +54,10 @@ def data_processing_collectivite_territoriale():
     def preprocess_data():
         return colter_processor.preprocess_data()
 
+    @task()
+    def data_validation():
+        return colter_processor.data_validation()
+
     @task
     def save_date_last_modified():
         return colter_processor.save_date_last_modified()
@@ -70,6 +74,7 @@ def data_processing_collectivite_territoriale():
         clean_previous_outputs()
         >> download_data()
         >> preprocess_data()
+        >> data_validation()
         >> save_date_last_modified()
         >> send_file_to_minio()
         >> compare_files_minio()
