@@ -8,6 +8,7 @@ from dag_datalake_sirene.config import (
     AIRFLOW_SNAPSHOT_DAG_NAME,
     EMAIL_LIST,
 )
+from dag_datalake_sirene.helpers import Notification
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.downstream import (
     wait_for_downstream_import,
 )
@@ -37,6 +38,7 @@ with DAG(
     tags=["siren"],
     catchup=False,  # False to ignore past runs
     max_active_runs=1,
+    on_failure_callback=Notification.send_notification_mattermost,
 ) as dag:
     snapshot_elastic_index = PythonOperator(
         task_id="snapshot_elastic_index",
