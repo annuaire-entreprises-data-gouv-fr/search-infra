@@ -58,7 +58,7 @@ SELECT ul.etat_administratif_unite_legale as etat_administratif,
     ) as est_achats_responsables,
     (
         SELECT est_alim_confiance
-        FROM est_alim_confiance
+        FROM alim_confiance
         WHERE siren = ul.siren
     ) as est_alim_confiance,
     (
