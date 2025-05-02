@@ -25,7 +25,7 @@ default_args = {
 @dag(
     tags=["rne", "stock", "download"],
     default_args=default_args,
-    schedule="0 16 * * *",
+    schedule_interval=None,  # <- No automatic scheduling
     start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=60 * 18),
     params={},
