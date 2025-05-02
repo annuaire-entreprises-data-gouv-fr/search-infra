@@ -26,7 +26,7 @@ default_args = {
 @dag(
     tags=["publication", "data.gouv"],
     default_args=default_args,
-    schedule_interval="0 17 * * *",  # Executes daily at 5 PM
+    schedule="0 17 * * *",  # Executes daily at 5 PM
     start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=60 * 3),
     params={},

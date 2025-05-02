@@ -21,7 +21,7 @@ default_args = {
 @dag(
     tags=["sirene", "stock", "historique", "unité légale", "établissement"],
     default_args=default_args,
-    schedule_interval="0 0 * * *",  # Run everyday
+    schedule="0 0 * * *",  # Run everyday
     start_date=days_ago(1),
     dagrun_timeout=timedelta(minutes=60),
     params={},

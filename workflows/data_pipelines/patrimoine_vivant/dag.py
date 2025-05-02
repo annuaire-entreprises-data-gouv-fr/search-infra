@@ -21,7 +21,7 @@ default_args = {
 @dag(
     tags=["entreprise_patrimoine_vivant", "label"],
     default_args=default_args,
-    schedule_interval="0 16 * * *",
+    schedule="0 16 * * *",
     start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=60 * 5),
     params={},

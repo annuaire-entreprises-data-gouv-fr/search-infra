@@ -21,7 +21,7 @@ default_args = {
 @dag(
     tags=["marche inclusion"],
     default_args=default_args,
-    schedule_interval="0 1 * * *",
+    schedule="0 1 * * *",
     start_date=days_ago(1),
     dagrun_timeout=timedelta(minutes=60),
     params={},
