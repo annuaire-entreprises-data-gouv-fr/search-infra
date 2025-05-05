@@ -606,3 +606,18 @@ def fetch_hyperlink_from_page(url: str, search_text: str) -> str:
     logging.info(f"Likely found the hyperlink: {hyperlink}")
 
     return hyperlink
+
+
+def clean_siren_column(siren: pd.Series) -> pd.Series:
+    """
+    Clean the SIREN column by removing unwanted characters and adding leading zeros.
+    """
+    siren = siren.str.replace(" ", "").str.replace("?", "").str.zfill(9)
+
+    if not siren.str.isdigit().all():
+        logging.warning("SIREN column contains non-digit characters.")
+
+    if not siren.str.len().eq(9).all():
+        logging.warning("SIREN column should be 9 values long.")
+
+    return siren
