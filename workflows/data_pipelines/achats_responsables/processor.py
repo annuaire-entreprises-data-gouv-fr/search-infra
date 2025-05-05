@@ -1,6 +1,7 @@
 import pandas as pd
 
 from dag_datalake_sirene.helpers import DataProcessor, Notification
+from dag_datalake_sirene.helpers.utils import clean_siren_column
 from dag_datalake_sirene.workflows.data_pipelines.achats_responsables.config import (
     ACHATS_RESPONSABLES_CONFIG,
 )
@@ -26,7 +27,7 @@ class AchatsResponsablesProcessor(DataProcessor):
             )
             .assign(
                 est_achats_responsables=1,
-                siren=lambda df: df["siren"].str.replace(" ", "").str.zfill(9),
+                siren=lambda df: clean_siren_column(df["siren"]),
             )
             .dropna(subset=["siren"])
             .query("siren != ''")
