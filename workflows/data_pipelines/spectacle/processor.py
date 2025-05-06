@@ -20,11 +20,9 @@ class SpectacleProcessor(DataProcessor):
 
         df_spectacle = (
             df_spectacle.assign(
-                statut_du_recepisse=lambda x: x["Statut du récépissé"],
+                statut_du_recepisse=lambda x: x["statut_recepisse"],
                 est_entrepreneur_spectacle=1,
-                siren=lambda x: x[
-                    "SIRET (personne morale) / SIREN (personne physique)"
-                ].str[:9],
+                siren=lambda x: x["siren_siret"].str[:9],
             )
             .loc[
                 lambda x: x["siren"].notna() & x["siren"].str.isdigit(),
