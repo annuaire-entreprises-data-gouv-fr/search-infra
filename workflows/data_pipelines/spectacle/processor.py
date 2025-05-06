@@ -25,14 +25,18 @@ class SpectacleProcessor(DataProcessor):
                 siren=lambda x: x["siren_siret"].str[:9],
             )
             .loc[
-                lambda x: x["siren"].notna() & x["siren"].str.isdigit(),
-                ["siren", "statut_du_recepisse", "est_entrepreneur_spectacle"],
+                lambda x: (
+                    x["siren"].notna()
+                    & x["siren"].str.isdigit()
+                    & x["statut_recepisse"].isin(["Valide", "Invalide", "Invalidé"])
+                ),
+                ["siren", "statut_recepisse", "est_entrepreneur_spectacle"],
             ]
             .groupby(["siren", "est_entrepreneur_spectacle"])
             # If at least one of `statut` values is valid, then the value we keep is `valide
             .agg(
                 statut_entrepreneur_spectacle=(
-                    "statut_du_recepisse",
+                    "statut_recepisse",
                     lambda x: "valide" if "Valide" in x.unique() else "invalide",
                 )
             )
