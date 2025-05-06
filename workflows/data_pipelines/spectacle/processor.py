@@ -1,6 +1,7 @@
 import pandas as pd
 
 from dag_datalake_sirene.helpers import DataProcessor, Notification
+from dag_datalake_sirene.helpers.utils import clean_siren_column
 
 
 class SpectacleProcessor(DataProcessor):
@@ -20,22 +21,20 @@ class SpectacleProcessor(DataProcessor):
 
         df_spectacle = (
             df_spectacle.assign(
-                statut_du_recepisse=lambda x: x["Statut du récépissé"],
+                statut_du_recepisse=lambda x: x["statut_recepisse"],
                 est_entrepreneur_spectacle=1,
-                siren=lambda x: x[
-                    "SIRET (personne morale) / SIREN (personne physique)"
-                ].str[:9],
+                siren=lambda x: clean_siren_column(x["siren_siret"].str[:9]),
             )
             .loc[
-                lambda x: x["siren"].notna() & x["siren"].str.isdigit(),
-                ["siren", "statut_du_recepisse", "est_entrepreneur_spectacle"],
+                lambda x: (x["siren"].notna() & x["siren"].str.isdigit()),
+                ["siren", "statut_recepisse", "est_entrepreneur_spectacle"],
             ]
             .groupby(["siren", "est_entrepreneur_spectacle"])
-            # If at least one of `statut` values is valid, then the value we keep is `valide
+            # If at least one of `statut` values is valid, then the value we keep is `valide`
             .agg(
                 statut_entrepreneur_spectacle=(
-                    "statut_du_recepisse",
-                    lambda x: "valide" if "Valide" in x.unique() else "invalide",
+                    "statut_recepisse",
+                    lambda x: "valide" if "Valide" in x.unique() else "non_valide",
                 )
             )
             .reset_index()
