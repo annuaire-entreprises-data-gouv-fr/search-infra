@@ -57,6 +57,11 @@ SELECT ul.etat_administratif_unite_legale as etat_administratif,
         WHERE siren = ul.siren
     ) as est_achats_responsables,
     (
+        SELECT est_alim_confiance
+        FROM alim_confiance
+        WHERE siren = ul.siren
+    ) as est_alim_confiance,
+    (
         SELECT est_patrimoine_vivant
         FROM patrimoine_vivant
         WHERE siren = ul.siren

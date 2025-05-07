@@ -57,6 +57,7 @@ class DataGouvProcessor:
             "date_mise_a_jour_rne",
             "egapro_renseignee",
             "est_achats_responsables",
+            "est_alim_confiance",
             "est_association",
             "est_entrepreneur_individuel",
             "est_entrepreneur_spectacle",
@@ -168,6 +169,9 @@ class DataGouvProcessor:
             sqlite_str_to_bool
         )
         chunk["est_achats_responsables"] = chunk["est_achats_responsables"].apply(
+            sqlite_str_to_bool
+        )
+        chunk["est_alim_confiance"] = chunk["est_alim_confiance"].apply(
             sqlite_str_to_bool
         )
         chunk["est_patrimoine_vivant"] = chunk["est_patrimoine_vivant"].apply(

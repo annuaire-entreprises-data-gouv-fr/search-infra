@@ -278,6 +278,22 @@ def test_achats_responsables(api_response_tester):
     )
 
 
+def test_alim_confiance(api_response_tester):
+    path = "/search?est_alim_confiance=true"
+    api_response_tester.test_field_value(
+        path, 0, "complements.est_alim_confiance", True
+    )
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
+
+    path = "/search?est_alim_confiance=false"
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
+
+    path = "/search?q=343262622"  # LIDL
+    api_response_tester.test_field_value(
+        path, 0, "complements.est_alim_confiance", True
+    )
+
+
 def test_est_association(api_response_tester):
     path = "/search?est_association=True"
     response = api_response_tester.get_api_response(path)
