@@ -3,6 +3,7 @@ import logging
 import os
 
 import requests
+from airflow.decorators import task
 
 from dag_datalake_sirene.config import (
     AIRFLOW_ETL_DATA_DIR,
@@ -57,6 +58,7 @@ from dag_datalake_sirene.workflows.data_pipelines.uai.config import (
 )
 
 
+@task
 def create_data_source_last_modified_file(**kwargs):
     metadata_dict = {}
 

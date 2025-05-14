@@ -4,6 +4,8 @@ import os
 import shutil
 from datetime import datetime
 
+from airflow.decorators import task
+
 from dag_datalake_sirene.config import (
     AIRFLOW_ETL_DATA_DIR,
     SIRENE_MINIO_DATA_PATH,
@@ -19,6 +21,7 @@ def send_to_minio(list_files):
     )
 
 
+@task
 def upload_db_to_minio(**kwargs):
     # Zip database
     database_file_path = os.path.join(AIRFLOW_ETL_DATA_DIR, "sirene.db")
