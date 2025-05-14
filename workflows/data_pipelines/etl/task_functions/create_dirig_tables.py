@@ -3,6 +3,8 @@ import logging
 import os
 import shutil
 
+from airflow.decorators import task
+
 from dag_datalake_sirene.config import (
     AIRFLOW_ENV,
     RNE_DATABASE_LOCATION,
@@ -31,7 +33,8 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.dirigeants 
 )
 
 
-def get_latest_rne_database(**kwargs):
+@task
+def get_rne_database(**kwargs):
     latest_file_date = MinIOClient().get_latest_file(
         f"ae/{AIRFLOW_ENV}/rne/database/",
         f"{RNE_DATABASE_LOCATION}.gz",
@@ -47,6 +50,7 @@ def get_latest_rne_database(**kwargs):
     os.remove(f"{RNE_DATABASE_LOCATION}.gz")
 
 
+@task
 def create_dirig_pp_table():
     sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
     sqlite_client_dirig = SqliteClient(RNE_DATABASE_LOCATION)
@@ -76,6 +80,7 @@ def create_dirig_pp_table():
     sqlite_client_dirig.commit_and_close_conn()
 
 
+@task
 def create_dirig_pm_table():
     sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
     sqlite_client_dirig = SqliteClient(RNE_DATABASE_LOCATION)
