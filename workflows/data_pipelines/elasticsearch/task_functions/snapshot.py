@@ -174,6 +174,7 @@ def delete_old_snapshots(**kwargs):
         hosts=[ELASTIC_URL],
         http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
         retry_on_timeout=True,
+        timeout=60,
     )
 
     elastic_connection = connections.get_connection()
