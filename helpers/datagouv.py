@@ -44,8 +44,8 @@ def get_resource(
 
 
 def get_dataset_or_resource_metadata(
-    dataset_id: str,
-    resource_id: Optional[str] = None,
+    dataset_id: str = "",
+    resource_id: str = "",
 ):
     """Retrieve dataset or resource metadata from data.gouv.fr
 
@@ -59,9 +59,11 @@ def get_dataset_or_resource_metadata(
        json: return API result in a dictionnary containing metadatas
     """
     if resource_id:
-        url = f"{DATAGOUV_URL}/api/1/datasets/{dataset_id}/resources/{resource_id}/"
-    else:
+        url = f"{DATAGOUV_URL}/api/2/datasets/resources/{resource_id}/"
+    elif dataset_id:
         url = f"{DATAGOUV_URL}/api/1/datasets/{dataset_id}"
+    else:
+        raise ValueError("No argument provided.")
     r = datagouv_session.get(url)
     if r.status_code == 200:
         return r.json()
