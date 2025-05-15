@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 
 from airflow.models import Variable
 
@@ -44,6 +45,11 @@ class DataSourceConfig:
     auth_api: str | None = None
     table_ddl: str | None = None
 
+
+CURRENT_MONTH_STR: str = datetime.now().strftime("%Y-%m")
+PREVIOUS_MONTH_STR: str = (datetime.now().replace(day=1) - timedelta(days=1)).strftime(
+    "%Y-%m"
+)
 
 AIRFLOW_ENV = Variable.get("ENV", "dev")
 BASE_TMP_FOLDER = "/tmp"
@@ -148,8 +154,11 @@ API_URL = Variable.get("API_URL", "")
 API_IS_REMOTE = Variable.get("API_IS_REMOTE", "False").lower() not in ["false", "0"]
 
 # Datasets
-
-URL_STOCK_ETABLISSEMENTS = "https://files.data.gouv.fr/geo-sirene/last/dep/geo_siret"
+URL_STOCK_ETABLISSEMENTS = {
+    "last": "https://files.data.gouv.fr/geo-sirene/last/dep/geo_siret",
+    "current": f"https://files.data.gouv.fr/geo-sirene/{CURRENT_MONTH_STR}/dep/geo_siret",
+    "previous": f"https://files.data.gouv.fr/geo-sirene/{PREVIOUS_MONTH_STR}/dep/geo_siret",
+}
 URL_CC_DARES = "https://travail-emploi.gouv.fr/sites/travail-emploi/files"
 # Caution: DARES file is case sensitive or returns 404
 FILE_CC_DATE = "Dares_donnes_Identifiant_convention_collective_"
