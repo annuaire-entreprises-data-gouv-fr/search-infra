@@ -19,7 +19,7 @@ from dag_datalake_sirene.workflows.data_pipelines.sirene.stock.config import (
 
 def download_historique(data_dir):
     r = requests.get(
-        f"{STOCK_SIRENE_CONFIG.url_minio}StockUniteLegaleHistorique_utf8.zip",
+        STOCK_SIRENE_CONFIG.files_to_download["historique_unite_legale"]["destination"],
         allow_redirects=True,
     )
     open(data_dir + "StockUniteLegaleHistorique_utf8.zip", "wb").write(r.content)
@@ -34,7 +34,7 @@ def download_historique(data_dir):
 
 def download_stock(data_dir):
     r = requests.get(
-        f"{STOCK_SIRENE_CONFIG.url_minio}StockUniteLegale_utf8.zip",
+        STOCK_SIRENE_CONFIG.files_to_download["stock_unite_legale"]["destination"],
         allow_redirects=True,
     )
     open(data_dir + "StockUniteLegale_utf8.zip", "wb").write(r.content)

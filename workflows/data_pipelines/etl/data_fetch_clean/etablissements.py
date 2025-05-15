@@ -166,7 +166,9 @@ def download_flux(data_dir):
 
 def download_historique(data_dir):
     r = requests.get(
-        f"{STOCK_SIRENE_CONFIG.url_minio}StockEtablissementHistorique_utf8.zip",
+        STOCK_SIRENE_CONFIG.files_to_download["historique_etablissement"][
+            "destination"
+        ],
         allow_redirects=True,
     )
     open(data_dir + "StockEtablissementHistorique_utf8.zip", "wb").write(r.content)
