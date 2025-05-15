@@ -75,6 +75,9 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.create_diri
 )
 
 # fmt: on
+from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.determine_sirene_date import (
+    determine_sirene_date,
+)
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.upload_db import (
     upload_db_to_minio,
 )
@@ -220,6 +223,7 @@ def database_constructor():
 
     (
         clean_previous_tmp_folder()
+        >> determine_sirene_date()
         >> create_unite_legale_table()
         >> validate_unite_legale_stock_table()
         >> create_historique_unite_legale_table()
