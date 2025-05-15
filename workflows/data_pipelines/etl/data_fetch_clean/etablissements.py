@@ -20,7 +20,7 @@ from dag_datalake_sirene.workflows.data_pipelines.sirene.stock.config import (
 
 
 def download_stock(departement):
-    url = f"{URL_STOCK_ETABLISSEMENTS}_{departement}.csv.gz"
+    url = f"{URL_STOCK_ETABLISSEMENTS['last']}_{departement}.csv.gz"
     logging.info(f"Département file url: {url}")
     df_dep = pd.read_csv(
         url,
