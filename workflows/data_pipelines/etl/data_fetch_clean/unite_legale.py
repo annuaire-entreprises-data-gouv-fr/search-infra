@@ -7,7 +7,7 @@ import pandas as pd
 import requests
 from airflow.exceptions import AirflowSkipException
 
-from dag_datalake_sirene.config import CURRENT_MONTH_STR
+from dag_datalake_sirene.config import CURRENT_MONTH
 from dag_datalake_sirene.helpers.minio_helpers import File, MinIOClient
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.determine_sirene_date import (
     get_sirene_processing_month,
@@ -25,7 +25,7 @@ def download_historique(data_dir):
     filename = STOCK_SIRENE_CONFIG.files_to_download["historique_unite_legale"][
         "destination"
     ].split("/")[-1]
-    filename = filename.replace(CURRENT_MONTH_STR, year_month)
+    filename = filename.replace(CURRENT_MONTH, year_month)
     url = STOCK_SIRENE_CONFIG.url_minio + filename
 
     logging.info(f"Downloading and unpacking {url}..")
@@ -48,7 +48,7 @@ def download_stock(data_dir):
     filename = STOCK_SIRENE_CONFIG.files_to_download["stock_unite_legale"][
         "destination"
     ].split("/")[-1]
-    filename = filename.replace(CURRENT_MONTH_STR, year_month)
+    filename = filename.replace(CURRENT_MONTH, year_month)
     url = STOCK_SIRENE_CONFIG.url_minio + filename
 
     logging.info(f"Downloading and unpacking {url}..")

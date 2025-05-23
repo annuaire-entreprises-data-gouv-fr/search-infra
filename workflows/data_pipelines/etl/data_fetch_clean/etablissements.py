@@ -7,8 +7,8 @@ import requests
 from airflow.exceptions import AirflowSkipException
 
 from dag_datalake_sirene.config import (
-    CURRENT_MONTH_STR,
-    PREVIOUS_MONTH_STR,
+    CURRENT_MONTH,
+    PREVIOUS_MONTH,
     URL_STOCK_ETABLISSEMENTS,
 )
 from dag_datalake_sirene.helpers.minio_helpers import File, MinIOClient
@@ -25,9 +25,9 @@ from dag_datalake_sirene.workflows.data_pipelines.sirene.stock.config import (
 
 def download_stock(departement):
     year_month = get_sirene_processing_month()
-    if year_month == CURRENT_MONTH_STR:
+    if year_month == CURRENT_MONTH:
         stock_version = "current"
-    elif year_month == PREVIOUS_MONTH_STR:
+    elif year_month == PREVIOUS_MONTH:
         stock_version = "previous"
     else:
         raise NotImplementedError("No stock to download")
@@ -182,7 +182,7 @@ def download_historique(data_dir):
     filename = STOCK_SIRENE_CONFIG.files_to_download["historique_etablissement"][
         "destination"
     ].split("/")[-1]
-    filename = filename.replace(CURRENT_MONTH_STR, year_month)
+    filename = filename.replace(CURRENT_MONTH, year_month)
     url = STOCK_SIRENE_CONFIG.url_minio + filename
 
     r = requests.get(

@@ -636,7 +636,7 @@ def clean_siren_column(siren: pd.Series) -> pd.Series:
     return siren
 
 
-def is_url_ok(url: str) -> bool:
+def is_url_valid(url: str) -> bool:
     """
     Check if a URL is valid and working.
 

@@ -5,11 +5,11 @@ from airflow.decorators import task
 from airflow.operators.python import get_current_context
 
 from dag_datalake_sirene.config import (
-    CURRENT_MONTH_STR,
-    PREVIOUS_MONTH_STR,
+    CURRENT_MONTH,
+    PREVIOUS_MONTH,
     URL_STOCK_ETABLISSEMENTS,
 )
-from dag_datalake_sirene.helpers.utils import is_url_ok
+from dag_datalake_sirene.helpers.utils import is_url_valid
 from dag_datalake_sirene.workflows.data_pipelines.sirene.stock.config import (
     STOCK_SIRENE_CONFIG,
 )
@@ -17,9 +17,9 @@ from dag_datalake_sirene.workflows.data_pipelines.sirene.stock.config import (
 
 def get_datasets_urls(month_period: Literal["current", "previous"]) -> list[str]:
     if month_period == "current":
-        month = CURRENT_MONTH_STR
+        month = CURRENT_MONTH
     elif month_period == "previous":
-        month = PREVIOUS_MONTH_STR
+        month = PREVIOUS_MONTH
     else:
         raise NotImplementedError("Only 'current' and 'previous' are supported.")
 
@@ -40,8 +40,13 @@ def get_datasets_urls(month_period: Literal["current", "previous"]) -> list[str]
     return urls
 
 
-def check_urls_are_ok(month_period: Literal["current", "previous"]) -> bool:
-    urls_status = {url: is_url_ok(url) for url in get_datasets_urls(month_period)}
+def check_sirene_datasets_availability(
+    month_period: Literal["current", "previous"],
+) -> bool:
+    """ "
+    Check if all Sirene datasets are available for the given month.
+    """
+    urls_status = {url: is_url_valid(url) for url in get_datasets_urls(month_period)}
     are_urls_ok = all(urls_status.values())
     if not are_urls_ok:
         logging.info(f"Some of {month_period} month's Sirene data are unavailable:")
@@ -61,12 +66,12 @@ def determine_sirene_date() -> bool:
     """
 
     sirene_processing_month: str = ""
-    if check_urls_are_ok("current"):
+    if check_sirene_datasets_availability("current"):
         logging.info("Using current month Sirene data.")
-        sirene_processing_month = CURRENT_MONTH_STR
-    elif check_urls_are_ok("previous"):
+        sirene_processing_month = CURRENT_MONTH
+    elif check_sirene_datasets_availability("previous"):
         logging.warning("Using previous month Sirene data.")
-        sirene_processing_month = PREVIOUS_MONTH_STR
+        sirene_processing_month = PREVIOUS_MONTH
     else:
         raise ValueError(
             "Some of current and previous month's Sirene data are unavailable."
@@ -79,7 +84,7 @@ def determine_sirene_date() -> bool:
         value=sirene_processing_month,
     )
 
-    return sirene_processing_month == CURRENT_MONTH_STR
+    return sirene_processing_month == CURRENT_MONTH
 
 
 def get_sirene_processing_month() -> str:

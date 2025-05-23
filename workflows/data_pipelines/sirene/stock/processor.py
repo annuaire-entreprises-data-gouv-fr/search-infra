@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from dag_datalake_sirene.config import CURRENT_MONTH_STR
+from dag_datalake_sirene.config import CURRENT_MONTH
 from dag_datalake_sirene.helpers import DataProcessor
 from dag_datalake_sirene.helpers.datagouv import get_dataset_or_resource_metadata
 from dag_datalake_sirene.helpers.minio_helpers import File
@@ -45,7 +45,7 @@ class SireneStockProcessor(DataProcessor):
         if not year_month:
             raise Exception(f"Month not found in the title of {resource_id}")
 
-        return original_filename.replace(CURRENT_MONTH_STR, year_month)
+        return original_filename.replace(CURRENT_MONTH, year_month)
 
     def send_stock_to_minio(self):
         self.minio_client.send_files(
