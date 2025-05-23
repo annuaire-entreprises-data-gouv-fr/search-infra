@@ -1,14 +1,17 @@
 import ast
 import logging
 import shutil
-from datetime import datetime
 
 import minio
 import pandas as pd
 import requests
 from airflow.exceptions import AirflowSkipException
 
-from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
+from dag_datalake_sirene.config import CURRENT_MONTH
+from dag_datalake_sirene.helpers.minio_helpers import File, MinIOClient
+from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.determine_sirene_date import (
+    get_sirene_processing_month,
+)
 from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
     FLUX_SIRENE_CONFIG,
 )
@@ -18,8 +21,16 @@ from dag_datalake_sirene.workflows.data_pipelines.sirene.stock.config import (
 
 
 def download_historique(data_dir):
+    year_month = get_sirene_processing_month()
+    filename = STOCK_SIRENE_CONFIG.files_to_download["historique_unite_legale"][
+        "destination"
+    ].split("/")[-1]
+    filename = filename.replace(CURRENT_MONTH, year_month)
+    url = STOCK_SIRENE_CONFIG.url_minio + filename
+
+    logging.info(f"Downloading and unpacking {url}..")
     r = requests.get(
-        f"{STOCK_SIRENE_CONFIG.url_minio}StockUniteLegaleHistorique_utf8.zip",
+        url,
         allow_redirects=True,
     )
     open(data_dir + "StockUniteLegaleHistorique_utf8.zip", "wb").write(r.content)
@@ -33,8 +44,16 @@ def download_historique(data_dir):
 
 
 def download_stock(data_dir):
+    year_month = get_sirene_processing_month()
+    filename = STOCK_SIRENE_CONFIG.files_to_download["stock_unite_legale"][
+        "destination"
+    ].split("/")[-1]
+    filename = filename.replace(CURRENT_MONTH, year_month)
+    url = STOCK_SIRENE_CONFIG.url_minio + filename
+
+    logging.info(f"Downloading and unpacking {url}..")
     r = requests.get(
-        f"{STOCK_SIRENE_CONFIG.url_minio}StockUniteLegale_utf8.zip",
+        url,
         allow_redirects=True,
     )
     open(data_dir + "StockUniteLegale_utf8.zip", "wb").write(r.content)
@@ -46,17 +65,18 @@ def download_stock(data_dir):
 
 
 def download_flux(data_dir):
-    year_month = datetime.today().strftime("%Y-%m")
+    year_month = get_sirene_processing_month()
     try:
         logging.info(f"Downloading flux for : {year_month}")
         MinIOClient().get_files(
             list_files=[
-                {
-                    "source_path": FLUX_SIRENE_CONFIG.minio_path,
-                    "source_name": f"flux_unite_legale_{year_month}.csv.gz",
-                    "dest_path": f"{data_dir}",
-                    "dest_name": f"flux_unite_legale_{year_month}.csv.gz",
-                }
+                File(
+                    source_path=FLUX_SIRENE_CONFIG.minio_path,
+                    source_name=f"flux_unite_legale_{year_month}.csv.gz",
+                    dest_path=f"{data_dir}",
+                    dest_name=f"flux_unite_legale_{year_month}.csv.gz",
+                    content_type=None,
+                )
             ],
         )
         df_iterator = pd.read_csv(

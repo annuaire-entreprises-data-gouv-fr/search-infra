@@ -634,3 +634,21 @@ def clean_siren_column(siren: pd.Series) -> pd.Series:
         )
 
     return siren
+
+
+def is_url_valid(url: str) -> bool:
+    """
+    Check if a URL is valid and working.
+
+    Args:
+        url (str): The URL to check.
+
+    Returns:
+        bool: True if the URL is ok, False otherwise.
+    """
+    try:
+        response = requests.head(url)
+        return response.ok
+    except requests.RequestException as e:
+        logging.warning(f"Error checking URL status: {e}")
+        return False

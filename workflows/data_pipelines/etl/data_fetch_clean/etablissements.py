@@ -1,6 +1,5 @@
 import logging
 import shutil
-from datetime import datetime
 
 import minio
 import pandas as pd
@@ -8,9 +7,14 @@ import requests
 from airflow.exceptions import AirflowSkipException
 
 from dag_datalake_sirene.config import (
+    CURRENT_MONTH,
+    PREVIOUS_MONTH,
     URL_STOCK_ETABLISSEMENTS,
 )
-from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
+from dag_datalake_sirene.helpers.minio_helpers import File, MinIOClient
+from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.determine_sirene_date import (
+    get_sirene_processing_month,
+)
 from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
     FLUX_SIRENE_CONFIG,
 )
@@ -20,7 +24,15 @@ from dag_datalake_sirene.workflows.data_pipelines.sirene.stock.config import (
 
 
 def download_stock(departement):
-    url = f"{URL_STOCK_ETABLISSEMENTS}_{departement}.csv.gz"
+    year_month = get_sirene_processing_month()
+    if year_month == CURRENT_MONTH:
+        stock_version = "current"
+    elif year_month == PREVIOUS_MONTH:
+        stock_version = "previous"
+    else:
+        raise NotImplementedError("No stock to download")
+
+    url = f"{URL_STOCK_ETABLISSEMENTS[stock_version]}_{departement}.csv.gz"
     logging.info(f"Département file url: {url}")
     df_dep = pd.read_csv(
         url,
@@ -85,17 +97,18 @@ def download_stock(departement):
 
 
 def download_flux(data_dir):
-    year_month = datetime.today().strftime("%Y-%m")
+    year_month = get_sirene_processing_month()
     logging.info(f"Downloading flux for : {year_month}")
     try:
         MinIOClient().get_files(
             list_files=[
-                {
-                    "source_path": FLUX_SIRENE_CONFIG.minio_path,
-                    "source_name": f"flux_etablissement_{year_month}.csv.gz",
-                    "dest_path": f"{data_dir}",
-                    "dest_name": f"flux_etablissement_{year_month}.csv.gz",
-                }
+                File(
+                    source_path=FLUX_SIRENE_CONFIG.minio_path,
+                    source_name=f"flux_etablissement_{year_month}.csv.gz",
+                    dest_path=f"{data_dir}",
+                    dest_name=f"flux_etablissement_{year_month}.csv.gz",
+                    content_type=None,
+                )
             ],
         )
         df_flux = pd.read_csv(
@@ -165,8 +178,15 @@ def download_flux(data_dir):
 
 
 def download_historique(data_dir):
+    year_month = get_sirene_processing_month()
+    filename = STOCK_SIRENE_CONFIG.files_to_download["historique_etablissement"][
+        "destination"
+    ].split("/")[-1]
+    filename = filename.replace(CURRENT_MONTH, year_month)
+    url = STOCK_SIRENE_CONFIG.url_minio + filename
+
     r = requests.get(
-        f"{STOCK_SIRENE_CONFIG.url_minio}StockEtablissementHistorique_utf8.zip",
+        url,
         allow_redirects=True,
     )
     open(data_dir + "StockEtablissementHistorique_utf8.zip", "wb").write(r.content)
@@ -182,8 +202,10 @@ def download_historique(data_dir):
 def preprocess_etablissement_data(siret_file_type, departement=None, data_dir=None):
     if siret_file_type == "stock":
         df_etablissement = download_stock(departement)
-    if siret_file_type == "flux":
+    elif siret_file_type == "flux":
         df_etablissement = download_flux(data_dir)
+    else:
+        raise NotImplementedError("Only stock and flux are implemented")
 
     # Insert rows in database
     df_etablissement["etablissementSiege"] = df_etablissement[

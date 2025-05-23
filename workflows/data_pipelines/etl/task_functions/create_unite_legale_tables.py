@@ -1,6 +1,8 @@
 import logging
 import sqlite3
 
+from airflow.decorators import task
+
 from dag_datalake_sirene.config import (
     AIRFLOW_ETL_DATA_DIR,
     RNE_DATABASE_LOCATION,
@@ -68,6 +70,7 @@ def create_table(query, table_name, index, sirene_file_type):
     return count_unite_legale[0]
 
 
+@task(trigger_rule="all_done")
 def create_unite_legale_table(**kwargs):
     counts = create_table(
         create_table_unite_legale_query,
@@ -78,6 +81,7 @@ def create_unite_legale_table(**kwargs):
     kwargs["ti"].xcom_push(key="count_unite_legale", value=counts)
 
 
+@task(trigger_rule="all_done")
 def create_flux_unite_legale_table(**kwargs):
     counts = create_table(
         create_table_flux_unite_legale_query,
@@ -88,6 +92,7 @@ def create_flux_unite_legale_table(**kwargs):
     kwargs["ti"].xcom_push(key="count_flux_unite_legale", value=counts)
 
 
+@task
 def add_ancien_siege_flux_data(**kwargs):
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
 
@@ -112,13 +117,15 @@ def add_ancien_siege_flux_data(**kwargs):
     sqlite_client.commit_and_close_conn()
 
 
+@task(trigger_rule="all_done")
 def replace_unite_legale_table():
     return execute_query(
         query=replace_table_unite_legale_query,
     )
 
 
-def add_rne_data_to_unite_legale_table(**kwargs):
+@task
+def add_rne_siren_data_to_unite_legale_table(**kwargs):
     try:
         # Connect to the main database (SIRENE)
         sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
@@ -148,7 +155,8 @@ def add_rne_data_to_unite_legale_table(**kwargs):
         raise e
 
 
-def create_historique_unite_legale_tables(**kwargs):
+@task(trigger_rule="all_done")
+def create_historique_unite_legale_table(**kwargs):
     sqlite_client = create_table_model(
         table_name="ancien_siege",
         create_table_query=create_table_ancien_siege_query,
@@ -208,6 +216,7 @@ def create_historique_unite_legale_tables(**kwargs):
     )
 
 
+@task
 def create_date_fermeture_unite_legale_table(**kwargs):
     table_name = "date_fermeture_unite_legale"
     sqlite_client = create_table_model(
@@ -229,6 +238,7 @@ def create_date_fermeture_unite_legale_table(**kwargs):
     )
 
 
+@task(trigger_rule="all_done")
 def insert_date_fermeture_unite_legale(**kwargs):
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(insert_date_fermeture_unite_legale_query)

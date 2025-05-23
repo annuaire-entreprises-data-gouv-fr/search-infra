@@ -45,7 +45,16 @@ def data_processing_sirene_stock():
     def send_stock_file_to_minio():
         return sirene_stock_processor.send_stock_to_minio()
 
-    (clean_previous_outputs() >> download_stock() >> send_stock_file_to_minio())
+    @task.bash
+    def clean_up() -> str:
+        return f"rm -rf {sirene_stock_processor.config.tmp_folder}"
+
+    (
+        clean_previous_outputs()
+        >> download_stock()
+        >> send_stock_file_to_minio()
+        >> clean_up()
+    )
 
 
 # Instantiate the DAG
