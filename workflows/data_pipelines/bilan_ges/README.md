@@ -1,11 +1,11 @@
 # Documentation
 
-## data_processing_egapro
+## data_processing_bilan_ges
 
 | Information | Valeur |
 | -------- | -------- |
 | Fichier source | `dag.py` |
-| Description | Ce traitement permet de récupérer l'index égalité professionnelle F/H des entreprises de plus de 250 salariés. |
+| Description | Ce traitement permet de récupérer l’ensemble des données publiques issues des Bilans GES publiés par les organisations sur la plateforme de l’ADEME, qu’elles soient obligées ou non par la réglementation. |
 | Fréquence | Quotidienne |
-| Données sources | [Index Egalité Professionnelle F/H](https://www.data.gouv.fr/fr/datasets/61a73dcfe3171089843587bf/) |
+| Données sources | [Bilan GES](https://www.data.gouv.fr/fr/datasets/bilan-ges/) |
 | Données de sorties | Minio |
