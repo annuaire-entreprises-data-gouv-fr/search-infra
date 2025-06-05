@@ -377,6 +377,8 @@ select_fields_to_index_query = """SELECT
               as statut_entrepreneur_spectacle,
             (SELECT egapro_renseignee FROM egapro WHERE siren = ul.siren) as
              egapro_renseignee,
+            (SELECT bilan_ges_renseigne FROM bilan_ges WHERE siren = ul.siren) as
+             bilan_ges_renseigne,
             (SELECT est_achats_responsables FROM achats_responsables WHERE siren = ul.siren) as
              est_achats_responsables,
             (SELECT est_alim_confiance FROM alim_confiance WHERE siren = ul.siren) as

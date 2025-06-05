@@ -319,6 +319,7 @@ class UniteLegaleMapping(InnerDoc):
     dirigeants_pp = Nested(DirigeantPPMapping)
     dirigeants_pm = Nested(DirigeantPMMapping)
     economie_sociale_solidaire_unite_legale = Keyword()
+    bilan_ges_renseigne = Boolean()
     est_entrepreneur_individuel = Boolean()
     est_entrepreneur_spectacle = Boolean()
     egapro_renseignee = Boolean()
