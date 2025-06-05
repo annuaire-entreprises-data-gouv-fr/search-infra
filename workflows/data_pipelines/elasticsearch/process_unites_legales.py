@@ -175,6 +175,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["egapro_renseignee"]
         )
 
+        # Bilans GES
+        unite_legale_processed["bilan_ges_renseigne"] = sqlite_str_to_bool(
+            unite_legale["bilan_ges_renseigne"]
+        )
+
         # Achats Responsables
         unite_legale_processed["est_achats_responsables"] = sqlite_str_to_bool(
             unite_legale["est_achats_responsables"]
