@@ -159,7 +159,7 @@ insert_remaining_rne_data_into_main_table_query = """
                 nature_juridique AS nature_juridique_unite_legale,
                 activite_principale AS activite_principale_unite_legale,
                 NULL AS economie_sociale_solidaire_unite_legale,
-                statut_diffusion AS statut_diffusion_unite_legale,
+                NULL AS statut_diffusion_unite_legale,
                 NULL AS est_societe_mission,
                 NULL AS annee_categorie_entreprise,
                 NULL AS annee_tranche_effectif_salarie,
