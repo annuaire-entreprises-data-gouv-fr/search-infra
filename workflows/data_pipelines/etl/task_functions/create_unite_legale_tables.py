@@ -70,6 +70,7 @@ def create_table(query, table_name, index, sirene_file_type):
     return count_unite_legale[0]
 
 
+@task
 def create_unite_legale_table(**kwargs):
     counts = create_table(
         create_table_unite_legale_query,
@@ -80,6 +81,7 @@ def create_unite_legale_table(**kwargs):
     kwargs["ti"].xcom_push(key="count_unite_legale", value=counts)
 
 
+@task
 def create_flux_unite_legale_table(**kwargs):
     counts = create_table(
         create_table_flux_unite_legale_query,
@@ -115,6 +117,7 @@ def add_ancien_siege_flux_data(**kwargs):
     sqlite_client.commit_and_close_conn()
 
 
+@task
 def replace_unite_legale_table():
     return execute_query(
         query=replace_table_unite_legale_query,
@@ -152,6 +155,7 @@ def add_rne_siren_data_to_unite_legale_table(**kwargs):
         raise e
 
 
+@task
 def create_historique_unite_legale_table(**kwargs):
     sqlite_client = create_table_model(
         table_name="ancien_siege",
@@ -234,6 +238,7 @@ def create_date_fermeture_unite_legale_table(**kwargs):
     )
 
 
+@task
 def insert_date_fermeture_unite_legale(**kwargs):
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(insert_date_fermeture_unite_legale_query)

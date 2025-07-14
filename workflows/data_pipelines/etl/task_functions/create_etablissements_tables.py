@@ -75,6 +75,7 @@ def create_etablissement_table():
     sqlite_client.commit_and_close_conn()
 
 
+@task
 def create_flux_etablissement_table():
     sqlite_client = create_table_model(
         table_name="flux_etablissement",
@@ -134,6 +135,7 @@ def replace_siege_table():
     )
 
 
+@task
 def count_nombre_etablissement():
     sqlite_client = create_table_model(
         table_name="count_etablissement",
@@ -160,6 +162,7 @@ def count_nombre_etablissement_ouvert():
     sqlite_client.commit_and_close_conn()
 
 
+@task
 def add_rne_data_to_siege_table(**kwargs):
     # Connect to the first database
     sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
@@ -191,6 +194,7 @@ def add_rne_data_to_siege_table(**kwargs):
         raise error
 
 
+@task
 def create_historique_etablissement_table(**kwargs):
     table_name = "historique_etablissement"
     sqlite_client = create_table_model(
