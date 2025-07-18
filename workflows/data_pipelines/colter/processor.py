@@ -45,7 +45,7 @@ class ColterProcessor(DataProcessor):
                 dtype="string",
                 sep=";",
                 usecols=[
-                    "Code Insee 2023 Région",
+                    "Code Insee 2024 Région",
                     "Code Siren Collectivité",
                     "Exercice",
                 ],
@@ -53,7 +53,7 @@ class ColterProcessor(DataProcessor):
             .loc[lambda df: df["Exercice"] == df["Exercice"].max()]
             .rename(
                 columns={
-                    "Code Insee 2023 Région": "colter_code_insee",
+                    "Code Insee 2024 Région": "colter_code_insee",
                     "Code Siren Collectivité": "siren",
                 }
             )
@@ -107,7 +107,7 @@ class ColterProcessor(DataProcessor):
                 dtype="string",
                 sep=";",
                 usecols=[
-                    "Code Insee 2023 Département",
+                    "Code Insee 2024 Département",
                     "Code Siren Collectivité",
                     "Exercice",
                 ],
@@ -115,7 +115,7 @@ class ColterProcessor(DataProcessor):
             .loc[lambda df: df["Exercice"] == df["Exercice"].max()]
             .rename(
                 columns={
-                    "Code Insee 2023 Département": "colter_code_insee",
+                    "Code Insee 2024 Département": "colter_code_insee",
                     "Code Siren Collectivité": "siren",
                 }
             )
