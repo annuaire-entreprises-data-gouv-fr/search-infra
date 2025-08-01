@@ -3,6 +3,11 @@ from datetime import date, datetime
 from pydantic import BaseModel
 
 
+class Contact(BaseModel):
+    mail: str | None = None
+    telephone: str | None = None
+
+
 class Adresse(BaseModel):
     pays: str | None = None
     codePays: str | None = None
@@ -30,11 +35,16 @@ class AdresseEntreprise(BaseModel):
 
 
 class Description(BaseModel):
+    indicateurAssocieUnique: bool | None = None
+    ess: bool | None = None
     montantCapital: float | None = None
     capitalVariable: bool | None = None
     deviseCapital: str | None = None
+    societeMission: bool | None = None
     dateClotureExerciceSocial: str | None = None
     duree: int | None = None
+    dateFinExistence: str | None = None
+    formeCooperative: bool | None = None
 
 
 class DescriptionPersonne(BaseModel):
@@ -49,6 +59,12 @@ class DescriptionPersonne(BaseModel):
     lieuDeNaissance: str | None = None
     nationalite: str | None = None
     situationMatrimoniale: str | None = None
+
+
+class Conjoint(BaseModel):
+    contact: Contact | None = None
+    descriptionPersonne: DescriptionPersonne | None = None
+    adresseDomicile: Adresse | None = None
 
 
 class Modalite(BaseModel):
@@ -67,32 +83,41 @@ class BeneficiaireEffectif(BaseModel):
 
 
 class PouvoirIndividu(BaseModel):
-    descriptionPersonne: DescriptionPersonne | None = DescriptionPersonne()
-    adresseDomicile: Adresse | None = Adresse()
+    descriptionPersonne: DescriptionPersonne | None = None
+    contact: Contact | None = None
+    adresseDomicile: Adresse | None = None
+    roleConjoint: str | None = None
+    conjoint: Conjoint | None = None
 
 
 class PouvoirEntreprise(BaseModel):
-    pays: str | None = None
     siren: str | None = None
-    denomination: str | None = None
-    roleEntreprise: str | None = None
     formeJuridique: str | None = None
-    autreIdentifiantEtranger: str | None = None
-    nicSiege: str | None = None
+    denomination: str | None = None
     nomCommercial: str | None = None
+    roleEntreprise: str | None = None
+    pays: str | None = None
+    individuRepresentant: PouvoirIndividu | None = None
 
 
 class Pouvoir(BaseModel):
+    individu: PouvoirIndividu | None = None
+    entreprise: PouvoirEntreprise | None = None
+    qualiteArtisan: str | None = None
+    dateDebut: str | None = None
+    dateFin: str | None = None
+    actif: bool | None = None
     roleEntreprise: str | None = None
+    autreRoleEntreprise: str | None = None
     libelleRoleEntreprise: str | None = None
     typeDePersonne: str | None = None
-    individu: PouvoirIndividu | None = PouvoirIndividu()
-    entreprise: PouvoirEntreprise | None = PouvoirEntreprise()
-    adresseEntreprise: Adresse | None = Adresse()
+    adresseEntreprise: Adresse | None = None
+    secondRoleEntreprise: str | None = None
+    libelleSecondRoleEntreprise: str | None = None
 
 
 class Composition(BaseModel):
-    pouvoirs: list[Pouvoir] | None = Pouvoir()
+    pouvoirs: list[Pouvoir] | None = None
 
 
 class DescriptionEtablissement(BaseModel):
@@ -162,17 +187,6 @@ class Etablissement(BaseModel):
     isPrincipal: bool | None = None
 
 
-class Contact(BaseModel):
-    mail: str | None = None
-    telephone: str | None = None
-
-
-class Conjoint(BaseModel):
-    contact: Contact | None = None
-    descriptionPersonne: DescriptionPersonne | None = None
-    adresseDomicile: Adresse | None = None
-
-
 class Entrepreneur(BaseModel):
     roleConjoint: str | None = None
     conjoint: Conjoint | None = None
@@ -197,25 +211,27 @@ class Entreprise(BaseModel):
 class Identite(BaseModel):
     entreprise: Entreprise | None = None
     entrepreneur: Entrepreneur | None = None  # Personne Physique uniquement
-    description: Description | None = None  ###### # Personne Morale uniquement
+    description: Description | None = None  # Personne Morale uniquement
 
 
 class Exploitation(BaseModel):
-    identite: Identite | None = Identite()
+    identite: Identite | None = None
+    adresseEntreprise: AdresseEntreprise | None = None
+    etablissementPrincipal: Etablissement | None = None
+    autresEtablissements: list[Etablissement] | None = None
+    detailCessationEntreprise: DetailCessation | None = None
+    beneficiairesEffectifs: list[BeneficiaireEffectif] | None = None
     composition: Composition | None = None
-    adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
-    etablissementPrincipal: Etablissement | None = Etablissement()
-    autresEtablissements: list[Etablissement] | None = [Etablissement()]
-    detailCessationEntreprise: DetailCessation | None = DetailCessation()
 
 
 class PersonneMorale(BaseModel):
-    identite: Identite | None = Identite()
+    identite: Identite | None = None
+    adresseEntreprise: AdresseEntreprise | None = None
+    etablissementPrincipal: Etablissement | None = None
+    autresEtablissements: list[Etablissement] | None = None
+    detailCessationEntreprise: DetailCessation | None = None
+    beneficiairesEffectifs: list[BeneficiaireEffectif] | None = None
     composition: Composition | None = None
-    adresseEntreprise: AdresseEntreprise | None = AdresseEntreprise()
-    etablissementPrincipal: Etablissement | None = Etablissement()
-    autresEtablissements: list[Etablissement] | None = [Etablissement()]
-    detailCessationEntreprise: DetailCessation | None = DetailCessation()
 
 
 class PersonnePhysique(BaseModel):
@@ -225,7 +241,7 @@ class PersonnePhysique(BaseModel):
     autresEtablissements: list[Etablissement] | None = None
     detailCessationEntreprise: DetailCessation | None = None
     beneficiairesEffectifs: list[BeneficiaireEffectif] | None = None
-    composition: Composition | None = None  ####
+    composition: Composition | None = None
 
 
 class RAA(BaseModel):
@@ -292,9 +308,9 @@ class Content(BaseModel):
     succursaleOuFiliale: str | None = None
     formeExerciceActivitePrincipale: str | None = None
     natureCreation: NatureCreation | None = None
-    personnePhysique: PersonnePhysique | None = None  ########
-    personneMorale: PersonneMorale | None = None  ########
-    exploitation: Exploitation | None = None  ########
+    personnePhysique: PersonnePhysique | None = None
+    personneMorale: PersonneMorale | None = None
+    exploitation: Exploitation | None = None
     registreAnterieur: RegistreAnterieur | None = None
     inscriptionsOffices: list[InscriptionOffice] | None = None
 
