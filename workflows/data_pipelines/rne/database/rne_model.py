@@ -97,6 +97,7 @@ class PouvoirEntreprise(BaseModel):
     nomCommercial: str | None = None
     roleEntreprise: str | None = None
     pays: str | None = None
+    lieuRegistre: str | None = None
     individuRepresentant: PouvoirIndividu | None = None
 
 
@@ -133,14 +134,16 @@ class DescriptionEtablissement(BaseModel):
     indicateurEtablissementPrincipal: bool | None = None
 
 
+class Origine(BaseModel):
+    typeOrigine: str | None = None
+
+
 class Activite(BaseModel):
     indicateurPrincipal: bool | None = None
     indicateurArtisteAuteur: bool | None = None
     indicateurMarinProfessionnel: bool | None = None
     metierArt: bool | None = None
     activiteMicro: bool | None = None
-    indicateurActiviteViticole: bool | None = None
-    indicateurActiviteElevage: bool | None = None
     indicateurProlongement: bool | None = None
     activiteReguliere: str | None = None
     dateDebut: str | None = None
@@ -159,6 +162,7 @@ class Activite(BaseModel):
     statutPraticien: str | None = None  # médecin
     precisionActivite: str | None = None
     numPraticien: str | None = None
+    origine: Origine | None = None
 
 
 class Domaine(BaseModel):
