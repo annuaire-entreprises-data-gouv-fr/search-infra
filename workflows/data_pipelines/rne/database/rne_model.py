@@ -70,6 +70,9 @@ class Conjoint(BaseModel):
 class Modalite(BaseModel):
     dateEffet: str | None = None
     detentionPartDirecte: bool | None = None
+    modalitesDeControle: list[str] | None = None
+    detention25pCapital: bool | None = None
+    detention25pDroitVote: bool | None = None
 
 
 class Beneficiaire(BaseModel):
