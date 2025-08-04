@@ -17,6 +17,7 @@ class SpectacleProcessor(DataProcessor):
             self.config.files_to_download["spectacle"]["destination"],
             dtype=str,
             sep=";",
+            encoding="latin-1",
         )
 
         df_spectacle = (
