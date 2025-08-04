@@ -5,7 +5,7 @@ from dag_datalake_sirene.helpers.api_client import ApiClient
 
 class BioApiClient(ApiClient):
     BASE_URL = "https://opendata.agencebio.org/api/gouv/operateurs/"
-    BATCH_SIZE = 100
+    BATCH_SIZE = 1000
 
     def __init__(self) -> None:
         super().__init__(base_url=self.BASE_URL)
