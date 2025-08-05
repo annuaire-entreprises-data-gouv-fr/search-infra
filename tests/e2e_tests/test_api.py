@@ -208,7 +208,9 @@ def test_est_societe_a_mission(api_response_tester):
     """
     path = "/search?est_societe_mission=true"
     api_response_tester.test_number_of_results(path, 500)
-    api_response_tester.test_field_value(path, "complements.est_societe_mission", True)
+    api_response_tester.test_field_value(
+        path, 0, "complements.est_societe_mission", True
+    )
 
 
 def test_commune_filter(api_response_tester):
