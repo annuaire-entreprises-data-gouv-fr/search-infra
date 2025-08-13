@@ -227,7 +227,7 @@ def map_address_rne_to_ul(address_rne):
     return address_ul
 
 
-def map_rne_dirigeant_pp_to_ul(dirigeant_pp_rne):
+def map_rne_dirigeant_pp_to_ul(dirigeant_pp_rne, role_entreprise):
     dirigeant_pp_ul = DirigeantsPP()
     dirigeant_pp_ul.date_de_naissance = dirigeant_pp_rne.dateDeNaissance
     dirigeant_pp_ul.nom = dirigeant_pp_rne.nom
@@ -237,7 +237,7 @@ def map_rne_dirigeant_pp_to_ul(dirigeant_pp_rne):
     else:
         dirigeant_pp_ul.prenoms = dirigeant_pp_rne.prenoms
     dirigeant_pp_ul.genre = dirigeant_pp_rne.genre
-    dirigeant_pp_ul.role = dirigeant_pp_rne.role
+    dirigeant_pp_ul.role = role_entreprise
     dirigeant_pp_ul.nationalite = dirigeant_pp_rne.nationalite
     dirigeant_pp_ul.situation_matrimoniale = dirigeant_pp_rne.situationMatrimoniale
     return dirigeant_pp_ul
@@ -288,14 +288,16 @@ def map_dirigeants_rne_to_dirigeants_list_ul(dirigeants_rne):
         if hasattr(dirigeant, "typeDePersonne"):
             if dirigeant.typeDePersonne == "INDIVIDU":
                 list_dirigeants.append(
-                    map_rne_dirigeant_pp_to_ul(dirigeant.individu.descriptionPersonne)
+                    map_rne_dirigeant_pp_to_ul(
+                        dirigeant.individu.descriptionPersonne, dirigeant.roleEntreprise
+                    )
                 )
             elif dirigeant.typeDePersonne == "ENTREPRISE":
                 list_dirigeants.append(map_rne_dirigeant_pm_to_ul(dirigeant.entreprise))
         # Cas personne physique
         else:
             list_dirigeants.append(
-                map_rne_dirigeant_pp_to_ul(dirigeant.descriptionPersonne)
+                map_rne_dirigeant_pp_to_ul(dirigeant.descriptionPersonne, None)
             )
 
     return list_dirigeants
