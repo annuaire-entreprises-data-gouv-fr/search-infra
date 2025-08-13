@@ -11,15 +11,11 @@ from dag_datalake_sirene.config import (
     SIRENE_FLUX_FIRST_DAY,
 )
 from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
-
-# fmt: off
 from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.unite_legale import (
     preprocess_historique_unite_legale_data,
     preprocess_unite_legale_data,
     process_ancien_siege_flux,
 )
-
-# fmt: on
 from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
     create_index,
     create_table_model,
