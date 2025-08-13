@@ -3,7 +3,7 @@ from datetime import timedelta
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 
-from dag_datalake_sirene.config import EMAIL_LIST
+from dag_datalake_sirene.config import EMAIL_LIST, SIRENE_FLUX_FIRST_DAY
 from dag_datalake_sirene.helpers import Notification
 from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.processor import (
     SireneFluxProcessor,
@@ -21,7 +21,7 @@ default_args = {
 @dag(
     tags=["sirene", "flux"],
     default_args=default_args,
-    schedule_interval="0 3 2-31 * *",  # Daily at 3 AM except the 1st of every month
+    schedule_interval=f"0 3 {SIRENE_FLUX_FIRST_DAY}-31 * *",  # Daily at 3 AM except the 1st of every month
     start_date=days_ago(8),
     dagrun_timeout=timedelta(minutes=60 * 12),
     params={},

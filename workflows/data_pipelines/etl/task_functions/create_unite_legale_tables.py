@@ -1,5 +1,6 @@
 import logging
 import sqlite3
+from datetime import datetime
 
 from airflow.decorators import task
 
@@ -7,6 +8,7 @@ from dag_datalake_sirene.config import (
     AIRFLOW_ETL_DATA_DIR,
     RNE_DATABASE_LOCATION,
     SIRENE_DATABASE_LOCATION,
+    SIRENE_FLUX_FIRST_DAY,
 )
 from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 
@@ -39,14 +41,7 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.unite_legal
 )
 
 
-def create_table(query, table_name, index, sirene_file_type):
-    sqlite_client = create_table_model(
-        table_name=table_name,
-        create_table_query=query,
-        create_index_func=create_unique_index,
-        index_name=index,
-        index_column="siren",
-    )
+def create_table(sqlite_client, table_name, sirene_file_type):
     for df_unite_legale in preprocess_unite_legale_data(
         AIRFLOW_ETL_DATA_DIR, sirene_file_type
     ):
@@ -72,10 +67,19 @@ def create_table(query, table_name, index, sirene_file_type):
 
 @task
 def create_unite_legale_table(**kwargs):
+    table_name = "unite_legale"
+
+    sqlite_client = create_table_model(
+        table_name=table_name,
+        create_table_query=create_table_unite_legale_query,
+        create_index_func=create_unique_index,
+        index_name="index_siren",
+        index_column="siren",
+    )
+
     counts = create_table(
-        create_table_unite_legale_query,
-        "unite_legale",
-        "index_siren",
+        sqlite_client,
+        table_name,
         "stock",
     )
     kwargs["ti"].xcom_push(key="count_unite_legale", value=counts)
@@ -83,10 +87,28 @@ def create_unite_legale_table(**kwargs):
 
 @task
 def create_flux_unite_legale_table(**kwargs):
+    table_name = "flux_unite_legale"
+
+    sqlite_client = create_table_model(
+        table_name=table_name,
+        create_table_query=create_table_flux_unite_legale_query,
+        create_index_func=create_unique_index,
+        index_name="index_flux_siren",
+        index_column="siren",
+    )
+
+    if datetime.now().day < SIRENE_FLUX_FIRST_DAY:
+        logging.info("Creating empty flux_unite_legale table - flux data not available")
+        sqlite_client.commit_and_close_conn()
+        logging.info(
+            "************ 0 total records have been added to the flux_unite_legale table!"
+        )
+        kwargs["ti"].xcom_push(key="count_flux_unite_legale", value=0)
+        return
+
     counts = create_table(
-        create_table_flux_unite_legale_query,
-        "flux_unite_legale",
-        "index_flux_siren",
+        sqlite_client,
+        table_name,
         "flux",
     )
     kwargs["ti"].xcom_push(key="count_flux_unite_legale", value=counts)
@@ -94,6 +116,12 @@ def create_flux_unite_legale_table(**kwargs):
 
 @task
 def add_ancien_siege_flux_data(**kwargs):
+    if datetime.now().day < SIRENE_FLUX_FIRST_DAY:
+        logging.info(
+            "Skipping ancien_siege flux data processing - flux data not available"
+        )
+        return
+
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
 
     table_name = "ancien_siege"
