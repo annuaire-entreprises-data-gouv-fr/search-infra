@@ -35,7 +35,7 @@ def get_datasets_urls(month_period: Literal["current", "previous"]) -> list[str]
         URL_STOCK_ETABLISSEMENTS[month_period].replace("geo_siret", ""),
     ]
 
-    logging.info(f"URLs to check for {month_period} month: {urls}")
+    logging.info(f"Checking the following URLs for {month_period} month: {urls}")
 
     return urls
 

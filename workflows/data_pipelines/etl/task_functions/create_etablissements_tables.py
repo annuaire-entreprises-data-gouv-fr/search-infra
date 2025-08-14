@@ -1,5 +1,6 @@
 import logging
 import sqlite3
+from datetime import datetime
 
 from airflow.decorators import task
 
@@ -7,6 +8,7 @@ from dag_datalake_sirene.config import (
     AIRFLOW_ETL_DATA_DIR,
     RNE_DATABASE_LOCATION,
     SIRENE_DATABASE_LOCATION,
+    SIRENE_FLUX_FIRST_DAY,
 )
 
 # fmt: on
@@ -84,6 +86,13 @@ def create_flux_etablissement_table():
         index_name="index_flux_etablissement",
         index_column="siren",
     )
+
+    if datetime.now().day < SIRENE_FLUX_FIRST_DAY:
+        logging.info("Creating empty flux_etablissement table - flux data not available")
+        sqlite_client.commit_and_close_conn()
+        logging.info("************ 0 total records have been added to the flux_etablissement table!")
+        return
+
     # Upload flux data
     df_etablissement = preprocess_etablissement_data("flux", None, AIRFLOW_ETL_DATA_DIR)
     df_etablissement.to_sql(
