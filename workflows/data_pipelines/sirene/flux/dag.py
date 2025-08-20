@@ -1,7 +1,6 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from airflow.decorators import dag, task
-from airflow.utils.dates import days_ago
 
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
@@ -22,7 +21,7 @@ default_args = {
     tags=["sirene", "flux"],
     default_args=default_args,
     schedule_interval="0 4 2-31 * *",  # Daily at 4 AM except the 1st of every month
-    start_date=datetime(2025, 8, 20), # more naive than days_ago()
+    start_date=datetime(2025, 8, 20),  # more naive than days_ago()
     dagrun_timeout=timedelta(minutes=60 * 12),
     params={},
     catchup=False,
