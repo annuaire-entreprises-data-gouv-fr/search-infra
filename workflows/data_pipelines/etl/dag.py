@@ -117,8 +117,8 @@ default_args = {
     dag_id=AIRFLOW_ETL_DAG_NAME,
     tags=["database", "all-data"],
     default_args=default_args,
-    schedule="0 4 * * *",  # Run everyday at 4 am Paris time
-    start_date=datetime(2023, 12, 27),
+    schedule="0 5 * * *",  # Run everyday at 5 am local time
+    start_date=datetime(2025, 08, 20),
     dagrun_timeout=timedelta(minutes=60 * 5),
     params={},
     catchup=False,  # False to ignore past runs
