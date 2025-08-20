@@ -118,7 +118,7 @@ default_args = {
     tags=["database", "all-data"],
     default_args=default_args,
     schedule="0 5 * * *",  # Run everyday at 5 am local time
-    start_date=datetime(2025, 08, 20),
+    start_date=datetime(2025, 8, 20),
     dagrun_timeout=timedelta(minutes=60 * 5),
     params={},
     catchup=False,  # False to ignore past runs
