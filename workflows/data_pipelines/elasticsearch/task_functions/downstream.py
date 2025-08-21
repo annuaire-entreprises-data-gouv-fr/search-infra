@@ -49,18 +49,29 @@ def wait_for_downstream_index_import(elastic_index):
     while len(pending) > 0 and waited_for < timeout:
         for url in pending:
             response = requests.get(
-                f"{url}/{ELASTIC_DOWNSTREAM_ALIAS}",
+                f"{url}/{elastic_index}/_stats",
                 auth=(ELASTIC_DOWNSTREAM_USER, ELASTIC_DOWNSTREAM_PASSWORD),
             )
 
             if response.status_code == 404:
                 continue
+            if response.status_code != 200:
+                logging.warning(f"Erreur {response.status_code} sur {url}: {response.text}")
+                continue
+            
+            data = response.json()
 
-            indices = list(response.json().keys())
+            shards = data.get("_shards", {})
+            total = shards.get("total")
+            successful = shards.get("successful")
+            failed = shards.get("failed")
 
-            if elastic_index in indices:
+            if failed == 0 and total == successful and total > 0:
                 logging.info(f"Index available on {url}")
                 completed.append(url)
+            else:
+                continue
+
 
         pending = [url for url in downstream_urls if url not in completed]
 
