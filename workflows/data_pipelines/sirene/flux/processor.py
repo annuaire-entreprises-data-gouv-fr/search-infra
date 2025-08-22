@@ -49,7 +49,7 @@ class SireneFluxProcessor(DataProcessor):
         We should create empty CSVs if there is no flux file yet on MinIO
         and no date to process (self.current_dates is empty the first of the month).
         """
-        flux_file_exists = MinIOFile(output_path).does_exist()
+        flux_file_exists = MinIOFile.does_exist(output_path)
         return not flux_file_exists and not self.current_dates
 
     def _create_empty_csv_with_headers(self, fields: str, output_path: str) -> None:
@@ -75,8 +75,11 @@ class SireneFluxProcessor(DataProcessor):
         output_path = (
             f"{self.config.tmp_folder}flux_unite_legale_{self.current_month}.csv"
         )
+        minio_path = (
+            f"{self.config.minio_path}flux_unite_legale_{self.current_month}.csv"
+        )
 
-        if self._should_create_empty_csv(output_path):
+        if self._should_create_empty_csv(minio_path):
             self._create_empty_csv_with_headers(fields, output_path)
             zip_file(output_path)
             DataProcessor.push_message(
@@ -145,8 +148,11 @@ class SireneFluxProcessor(DataProcessor):
         output_path = (
             f"{self.config.tmp_folder}flux_etablissement_{self.current_month}.csv"
         )
+        minio_path = (
+            f"{self.config.minio_path}flux_etablissement_{self.current_month}.csv"
+        )
 
-        if self._should_create_empty_csv(output_path):
+        if self._should_create_empty_csv(minio_path):
             self._create_empty_csv_with_headers(fields, output_path)
             zip_file(output_path)
             DataProcessor.push_message(
