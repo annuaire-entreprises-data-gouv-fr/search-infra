@@ -365,21 +365,23 @@ class MinIOFile:
             > ...
             > remote_file.replace_with(local_file)
         """
+        if not self.does_exist(path):
+            raise FileNotFoundError(f"File '{path}' does not exist in MinIO.")
+
         self._path = Path(path)
         self.path = path
         self.filepath = str(self._path.parent) + "/"
         self.filename = self._path.name
         self.client = MinIOClient()
 
-        if not self.does_exist():
-            raise FileNotFoundError(f"File '{self.path}' does not exist in MinIO.")
-
-    def does_exist(self) -> bool:
+    @classmethod
+    def does_exist(cls, path: str) -> bool:
         try:
-            # TAKE /ae/dev into account
-            self.client.client.stat_object(
-                self.client.bucket,
-                os.path.join(self.client.get_root_dirpath(), self.path),
+            client = MinIOClient()
+            # TODO : TAKE /ae/dev into account
+            client.client.stat_object(
+                client.bucket,
+                os.path.join(client.get_root_dirpath(), path),
             )
             return True
         except S3Error as _:

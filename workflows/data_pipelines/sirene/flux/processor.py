@@ -4,9 +4,8 @@ from datetime import datetime
 import pandas as pd
 
 from dag_datalake_sirene.helpers.data_processor import DataProcessor, Notification
-from dag_datalake_sirene.helpers.minio_helpers import File
+from dag_datalake_sirene.helpers.minio_helpers import File, MinIOFile
 from dag_datalake_sirene.helpers.utils import (
-    get_dates_since_start_of_month,
     zip_file,
 )
 from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.api import (
@@ -36,13 +35,31 @@ class SireneFluxProcessor(DataProcessor):
         self.current_month = datetime.today().strftime("%Y-%m")
         # Descending order so we start by the most recent day
         # Higher priority to the latest SIRENE flux updates
-        self.current_dates = get_dates_since_start_of_month(
-            include_today=False, ascending=False
-        )
+        self.current_dates = []
+        # Testing if the code behaves correctly the 1st of the month
+        # To rollback before merging
+        # self.current_dates = get_dates_since_start_of_month(
+        #     include_today=False, ascending=False
+        # )
 
     @staticmethod
     def _construct_endpoint(base_endpoint: str, date: str, fields: str) -> str:
         return base_endpoint.format(date, fields)
+
+    def _should_create_empty_csv(self, minio_path: str) -> bool:
+        """
+        We should create empty CSVs if there is no flux file yet on MinIO
+        and no date to process (self.current_dates is empty the first of the month).
+        """
+        flux_file_exists = MinIOFile.does_exist(minio_path)
+        return not flux_file_exists and not self.current_dates
+
+    def _create_empty_csv_with_headers(self, fields: str, output_path: str) -> None:
+        """Create an empty CSV file with headers only."""
+        headers = fields.split(",")
+        empty_df = pd.DataFrame(columns=headers)
+        empty_df.to_csv(output_path, mode="w", header=True, index=False)
+        logging.info(f"Created empty CSV with headers at {output_path}")
 
     def get_current_flux_unite_legale(self):
         fields = (
@@ -60,6 +77,21 @@ class SireneFluxProcessor(DataProcessor):
         output_path = (
             f"{self.config.tmp_folder}flux_unite_legale_{self.current_month}.csv"
         )
+        minio_path = (
+            f"{self.config.minio_path}flux_unite_legale_{self.current_month}.csv.gz"
+        )
+
+        if self._should_create_empty_csv(minio_path):
+            self._create_empty_csv_with_headers(
+                fields + ",periodesUniteLegale", output_path
+            )
+            zip_file(output_path)
+            DataProcessor.push_message(
+                Notification.notification_xcom_key,
+                description="0 siren (empty file created)",
+            )
+            return
+
         siren_processed = pd.Series(dtype="string")
 
         logging.info(f"Processing the following dates: {self.current_dates}")
@@ -120,6 +152,19 @@ class SireneFluxProcessor(DataProcessor):
         output_path = (
             f"{self.config.tmp_folder}flux_etablissement_{self.current_month}.csv"
         )
+        minio_path = (
+            f"{self.config.minio_path}flux_etablissement_{self.current_month}.csv"
+        )
+
+        if self._should_create_empty_csv(minio_path):
+            self._create_empty_csv_with_headers(fields, output_path)
+            zip_file(output_path)
+            DataProcessor.push_message(
+                Notification.notification_xcom_key,
+                description="0 siret (empty file created)",
+            )
+            return
+
         siret_processed = pd.Series(dtype="string")
 
         logging.info(f"Processing the following dates: {self.current_dates}")
