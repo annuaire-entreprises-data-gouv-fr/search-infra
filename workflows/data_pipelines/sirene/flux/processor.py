@@ -6,7 +6,6 @@ import pandas as pd
 from dag_datalake_sirene.helpers.data_processor import DataProcessor, Notification
 from dag_datalake_sirene.helpers.minio_helpers import File, MinIOFile
 from dag_datalake_sirene.helpers.utils import (
-    get_dates_since_start_of_month,
     zip_file,
 )
 from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.api import (
@@ -36,9 +35,12 @@ class SireneFluxProcessor(DataProcessor):
         self.current_month = datetime.today().strftime("%Y-%m")
         # Descending order so we start by the most recent day
         # Higher priority to the latest SIRENE flux updates
-        self.current_dates = get_dates_since_start_of_month(
-            include_today=False, ascending=False
-        )
+        self.current_dates = []
+        # Testing if the code behaves correctly the 1st of the month
+        # To rollback before merging
+        # self.current_dates = get_dates_since_start_of_month(
+        #     include_today=False, ascending=False
+        # )
 
     @staticmethod
     def _construct_endpoint(base_endpoint: str, date: str, fields: str) -> str:
