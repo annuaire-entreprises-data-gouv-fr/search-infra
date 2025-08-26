@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 
 from dag_datalake_sirene.helpers.data_processor import DataProcessor, Notification
-from dag_datalake_sirene.helpers.minio_helpers import File, MinIOFile
+from dag_datalake_sirene.helpers.minio_helpers import File
 from dag_datalake_sirene.helpers.utils import (
     get_dates_since_start_of_month,
     zip_file,
@@ -44,14 +44,6 @@ class SireneFluxProcessor(DataProcessor):
     def _construct_endpoint(base_endpoint: str, date: str, fields: str) -> str:
         return base_endpoint.format(date, fields)
 
-    def _should_create_empty_csv(self, minio_path: str) -> bool:
-        """
-        We should create empty CSVs if there is no flux file yet on MinIO
-        and we are the 1st of the month (flux API is not expected to give results)
-        """
-        flux_file_exists = MinIOFile.does_exist(minio_path)
-        return not flux_file_exists and datetime.today().day == 1
-
     def _create_empty_csv_with_headers(self, fields: str, output_path: str) -> None:
         """Create an empty CSV file with headers only."""
         headers = fields.split(",")
@@ -75,11 +67,11 @@ class SireneFluxProcessor(DataProcessor):
         output_path = (
             f"{self.config.tmp_folder}flux_unite_legale_{self.current_month}.csv"
         )
-        minio_path = (
-            f"{self.config.minio_path}flux_unite_legale_{self.current_month}.csv.gz"
-        )
 
-        if self._should_create_empty_csv(minio_path):
+        if datetime.today().day == 1:
+            logging.info(
+                "First of the month, the flux API won't return any output. A headers only CSV is created instead."
+            )
             self._create_empty_csv_with_headers(
                 fields + ",periodesUniteLegale", output_path
             )
@@ -150,11 +142,11 @@ class SireneFluxProcessor(DataProcessor):
         output_path = (
             f"{self.config.tmp_folder}flux_etablissement_{self.current_month}.csv"
         )
-        minio_path = (
-            f"{self.config.minio_path}flux_etablissement_{self.current_month}.csv"
-        )
 
-        if self._should_create_empty_csv(minio_path):
+        if datetime.today().day == 1:
+            logging.info(
+                "First of the month, the flux API won't return any output. A headers only CSV is created instead."
+            )
             self._create_empty_csv_with_headers(fields, output_path)
             zip_file(output_path)
             DataProcessor.push_message(
