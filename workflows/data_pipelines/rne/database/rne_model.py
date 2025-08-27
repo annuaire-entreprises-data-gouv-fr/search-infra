@@ -252,9 +252,9 @@ class PersonnePhysique(BaseModel):
 
 
 class RAA(BaseModel):
-    estPresent: bool | None
-    dateDebut: str | None
-    dateFin: str | None
+    estPresent: bool | None = None
+    dateDebut: str | None = None
+    dateFin: str | None = None
 
 
 class RNM(BaseModel):
@@ -287,7 +287,7 @@ class InscriptionOffice(BaseModel):
     observation: str | None = None
     partnerCenter: str | None = None
     partnerCode: str | None = None
-    observationComplementaire: str | None
+    observationComplementaire: str | None = None
     mentions: list[Mention] | None = None  # schéma privé
 
 
@@ -297,10 +297,10 @@ class NatureCreation(BaseModel):
     formeJuridiqueInsee: str | None = None
     societeEtrangere: bool | None = None
     entrepriseAgricole: bool | None = None
+    relieeEntrepriseAgricole: bool | None = None
     eirl: bool | None = None
     typeExploitation: str | None = None
     microEntreprise: bool | None = None
-    relieeEntrepriseAgricole: bool | None = None
 
 
 class NatureCessationEntreprise(BaseModel):
@@ -340,16 +340,16 @@ class Formality(BaseModel):
     typePersonne: str | None = None
     codeAPE: str | None = None  # schéma privé
     diffusionCommerciale: bool | None = None
-    historique: Historique
+    historique: list[Historique] | None = None
     formeJuridique: str | None = None
     numRna: str | None = None
     created: datetime | None = None
-    updated: datetime | None = None
+    updated: datetime | None = None  # date màj formalité
 
 
 class RNECompany(BaseModel):
     createdAt: datetime | None = None
-    updatedAt: datetime | None = None
+    updatedAt: datetime | None = None  # date màj RNE
     nombreEtablissementsOuverts: int | None = None
     nombreRepresentantsActifs: int | None = None
     formality: Formality
