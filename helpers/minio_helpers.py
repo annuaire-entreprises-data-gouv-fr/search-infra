@@ -378,7 +378,6 @@ class MinIOFile:
     def does_exist(cls, path: str) -> bool:
         try:
             client = MinIOClient()
-            # TODO : TAKE /ae/dev into account
             client.client.stat_object(
                 client.bucket,
                 os.path.join(client.get_root_dirpath(), path),
