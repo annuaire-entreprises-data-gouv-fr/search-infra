@@ -44,6 +44,13 @@ class SireneFluxProcessor(DataProcessor):
     def _construct_endpoint(base_endpoint: str, date: str, fields: str) -> str:
         return base_endpoint.format(date, fields)
 
+    def _create_empty_csv_with_headers(self, fields: str, output_path: str) -> None:
+        """Create an empty CSV file with headers only."""
+        headers = fields.split(",")
+        empty_df = pd.DataFrame(columns=headers)
+        empty_df.to_csv(output_path, mode="w", header=True, index=False)
+        logging.info(f"Created empty CSV with headers at {output_path}")
+
     def get_current_flux_unite_legale(self):
         fields = (
             "siren,dateCreationUniteLegale,sigleUniteLegale,"
@@ -60,6 +67,21 @@ class SireneFluxProcessor(DataProcessor):
         output_path = (
             f"{self.config.tmp_folder}flux_unite_legale_{self.current_month}.csv"
         )
+
+        if datetime.today().day == 1:
+            logging.info(
+                "First of the month, the flux API won't return any output. A headers only CSV is created instead."
+            )
+            self._create_empty_csv_with_headers(
+                fields + ",periodesUniteLegale", output_path
+            )
+            zip_file(output_path)
+            DataProcessor.push_message(
+                Notification.notification_xcom_key,
+                description="0 siren (empty file created)",
+            )
+            return
+
         siren_processed = pd.Series(dtype="string")
 
         logging.info(f"Processing the following dates: {self.current_dates}")
@@ -120,6 +142,19 @@ class SireneFluxProcessor(DataProcessor):
         output_path = (
             f"{self.config.tmp_folder}flux_etablissement_{self.current_month}.csv"
         )
+
+        if datetime.today().day == 1:
+            logging.info(
+                "First of the month, the flux API won't return any output. A headers only CSV is created instead."
+            )
+            self._create_empty_csv_with_headers(fields, output_path)
+            zip_file(output_path)
+            DataProcessor.push_message(
+                Notification.notification_xcom_key,
+                description="0 siret (empty file created)",
+            )
+            return
+
         siret_processed = pd.Series(dtype="string")
 
         logging.info(f"Processing the following dates: {self.current_dates}")
