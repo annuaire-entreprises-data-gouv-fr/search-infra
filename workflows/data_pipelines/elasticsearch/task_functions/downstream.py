@@ -85,36 +85,42 @@ def wait_for_downstream_index_import(elastic_index):
         raise Exception("Downstream import is taking too long")
 
 def update_downstream_alias(**kwargs):
-    connections.create_connection(
-        hosts=[ELASTIC_DOWNSTREAM_URLS],
-        http_auth=(ELASTIC_DOWNSTREAM_USER, ELASTIC_DOWNSTREAM_PASSWORD),
-        retry_on_timeout=True,
-    )
-    elastic_connection = connections.get_connection()
-    alias = "siren-reader"
+    urls = [url.strip() for url in ELASTIC_DOWNSTREAM_URLS.split(",")]
+    aliases = ["siren-reader", "siren-blue", "siren-green"]
     elastic_index = kwargs["ti"].xcom_pull(
         key="elastic_index",
         task_ids="get_next_index_name",
         dag_id=AIRFLOW_ELK_DAG_NAME,
         include_prior_dates=True,
     )
-    indices = []
-    try:
-        config = elastic_connection.indices.get_alias(name=alias)
-        indices = config.keys() if config is not None else []
-    except NotFoundError:
-        pass
-    actions = [
-        {
-            "remove": {
-                "index": index,
-                "alias": alias,
-            }
-        }
-        for index in indices
-    ]
-    actions.append({"add": {"index": elastic_index, "alias": alias}})
-    logging.info(
-        f"Updating alias siren-reader : add {elastic_index}, remove {', '.join(indices)}"
-    )
-    elastic_connection.indices.update_aliases({"actions": actions})
+
+    for url in urls:
+        logging.info(f"Connecting to downstream cluster {url}")
+        es = Elasticsearch(
+            hosts=[url],
+            http_auth=(ELASTIC_DOWNSTREAM_USER, ELASTIC_DOWNSTREAM_PASSWORD),
+            retry_on_timeout=True,
+        )
+
+        actions = []
+
+        for alias in aliases:
+            try:
+                config = es.indices.get_alias(name=alias)
+                indices = list(config.keys())
+            except NotFoundError:
+                indices = []
+
+            for idx in indices:
+                actions.append({"remove": {"index": idx, "alias": alias}})
+
+        for alias in aliases:
+            actions.append({"add": {"index": new_index, "alias": alias}})
+
+        logging.info(
+            f"[{url}] Updating aliases {aliases}: add {new_index}, remove from old indexes"
+        )
+
+        # Envoi de la requête
+        if actions:
+            es.indices.update_aliases({"actions": actions})
