@@ -70,10 +70,12 @@ def wait_for_downstream_index_import(elastic_index):
             successful = shards.get("successful")
             failed = shards.get("failed")
 
-            if failed == 0 and total == successful and total > 0:
-                logging.info(f"Index available on {url}")
+            if failed == 0 and successful > 0:
+                logging.info(f"Index available (>= YELLOW) on {url} "
+                             f"(shards successful={successful}/{total})")
                 completed.append(url)
             else:
+                logging.info(f"successful: {successful} / failed : {failed} / total : {total}")
                 continue
 
 
@@ -117,10 +119,10 @@ def update_downstream_alias(**kwargs):
                 actions.append({"remove": {"index": idx, "alias": alias}})
 
         for alias in aliases:
-            actions.append({"add": {"index": new_index, "alias": alias}})
+            actions.append({"add": {"index": elastic_index, "alias": alias}})
 
         logging.info(
-            f"[{url}] Updating aliases {aliases}: add {new_index}, remove from old indexes"
+            f"[{url}] Updating aliases {aliases}: add {elastic_index}, remove from old indexes"
         )
 
         # Envoi de la requête
