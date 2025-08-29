@@ -4,6 +4,8 @@ import time
 import requests
 from elasticsearch import NotFoundError
 from elasticsearch_dsl import connections
+from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import NotFoundError
 
 from dag_datalake_sirene.config import (
     AIRFLOW_ELK_DAG_NAME,
