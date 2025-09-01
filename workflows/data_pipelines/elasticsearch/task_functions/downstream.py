@@ -70,8 +70,8 @@ def wait_for_downstream_index_import(elastic_index):
             successful = shards.get("successful")
             failed = shards.get("failed")
 
-            if failed == 0 and successful > 0:
-                logging.info(f"Index available (>= YELLOW) on {url} "
+            if failed == 0 and successful == total:
+                logging.info(f"Index available on {url} "
                              f"(shards successful={successful}/{total})")
                 completed.append(url)
             else:
