@@ -11,6 +11,7 @@ from dag_datalake_sirene.config import (
 from dag_datalake_sirene.helpers import Notification
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.downstream import (
     wait_for_downstream_import,
+    update_downstream_alias,
 )
 
 # fmt: off
@@ -58,6 +59,12 @@ with DAG(
         python_callable=wait_for_downstream_import,
     )
 
+    update_downstream_alias = PythonOperator(
+        task_id="update_downstream_alias",
+        provide_context=True,
+        python_callable=update_downstream_alias,
+    )
+
     delete_old_snapshots = PythonOperator(
         task_id="delete_old_snapshots",
         provide_context=True,
@@ -67,3 +74,4 @@ with DAG(
     snapshot_elastic_index.set_upstream(delete_old_snapshots)
     update_minio_current_index_version.set_upstream(snapshot_elastic_index)
     wait_for_downstream_import.set_upstream(update_minio_current_index_version)
+    update_downstream_alias.set_upstream(wait_for_downstream_import)
