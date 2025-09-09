@@ -11,6 +11,10 @@ from dag_datalake_sirene.config import (
     ELASTIC_DOWNSTREAM_USER,
 )
 
+from elasticsearch import NotFoundError
+from elasticsearch_dsl import connections
+from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import NotFoundError
 
 def wait_for_downstream_import(**kwargs):
     elastic_index = kwargs["ti"].xcom_pull(
