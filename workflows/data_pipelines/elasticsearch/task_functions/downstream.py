@@ -104,7 +104,7 @@ def update_downstream_alias(**kwargs):
 
         for alias in aliases:
             actions.append({"add": {"index": elastic_index, "alias": alias}})
-            actions.append({"remove": {"index": elastic_index, "alias": f"{alias}-next" })
+            actions.append({"remove": {"index": elastic_index, "alias": f"{alias}-next" }})
 
         logging.info(
             f"[{url}] Updating aliases {aliases}: add {elastic_index}, remove from old indexes"
