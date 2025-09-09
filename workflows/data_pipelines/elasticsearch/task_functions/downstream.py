@@ -12,7 +12,6 @@ from dag_datalake_sirene.config import (
 )
 
 from elasticsearch import NotFoundError
-from elasticsearch_dsl import connections
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 
