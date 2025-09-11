@@ -11,8 +11,8 @@ BILAN_GES_CONFIG = DataSourceConfig(
     file_name="bilan_ges",
     files_to_download={
         "bilan_ges": {
-            "url": f"{DATA_GOUV_BASE_URL}62a33491-61c2-473c-89af-7ccab392e50b",
-            "resource_id": "62a33491-61c2-473c-89af-7ccab392e50b",
+            "url": f"{DATA_GOUV_BASE_URL}ac766516-30f1-4ea8-9f66-4e41199d33b3",
+            "resource_id": "ac766516-30f1-4ea8-9f66-4e41199d33b3",
         }
     },
     url_minio=f"{MINIO_BASE_URL}bilan_ges/latest/bilan_ges.csv",
