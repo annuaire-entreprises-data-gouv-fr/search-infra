@@ -32,7 +32,7 @@ def get_resource(
 
     """
     with datagouv_session.get(
-        f"{DATAGOUV_URL}/fr/datasets/r/{resource_id}", stream=True
+        f"{DATAGOUV_URL}/datasets/r/{resource_id}", stream=True
     ) as r:
         r.raise_for_status()
         os.makedirs(os.path.dirname(file_to_store["dest_path"]), exist_ok=True)
