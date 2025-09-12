@@ -612,28 +612,28 @@ def clean_siren_column(siren: pd.Series) -> pd.Series:
     """
     Clean the SIREN column by removing unwanted characters and adding leading zeros.
     """
-    siren = siren.str.replace(" ", "").str.replace("?", "")
-    # Add leading zeros only to digits with at least 6 characters
-    # since no Siren have more than 3 leading zeros
-    siren = siren.apply(
-        lambda x: x.zfill(9) if pd.notna(x) and len(x) >= 6 else x
-    ).astype("string")
-
     # Check for non-digit characters
     non_digit_rows = siren.loc[~siren.str.isdigit()]
     if not non_digit_rows.empty:
         logging.warning(
-            f"SIREN column contains non-digit characters. Sample:\n{non_digit_rows.head().tolist()}"
+            f"SIREN column contains non-digit characters. Sample:\n{non_digit_rows.head().tolist()}\nRemoving non numeric characters.."
         )
 
+    clean_siren = siren.astype(str).str.replace(r"[^0-9]", "", regex=True)
+    # Add leading zeros only to digits with at least 6 characters
+    # since no Siren have more than 3 leading zeros
+    clean_siren = clean_siren.apply(
+        lambda x: x.zfill(9) if pd.notna(x) and len(x) >= 6 else x
+    ).astype("string")
+
     # Check for rows that are not 9 characters long
-    incorrect_length_rows = siren.loc[siren.str.len() != 9]
+    incorrect_length_rows = clean_siren.loc[clean_siren.str.len() != 9]
     if not incorrect_length_rows.empty:
         logging.warning(
             f"SIREN column should be 9 values long. Sample:\n{incorrect_length_rows.head().tolist()}"
         )
 
-    return siren
+    return clean_siren
 
 
 def is_url_valid(url: str) -> bool:
