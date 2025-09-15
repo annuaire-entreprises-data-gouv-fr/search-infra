@@ -53,7 +53,7 @@ PREVIOUS_MONTH: str = (datetime.now().replace(day=1) - timedelta(days=1)).strfti
 
 AIRFLOW_ENV = Variable.get("ENV", "dev")
 BASE_TMP_FOLDER = "/tmp"
-DATA_GOUV_BASE_URL = "https://www.data.gouv.fr/fr/datasets/r/"
+DATA_GOUV_BASE_URL = "https://www.data.gouv.fr/datasets/r/"
 MINIO_BASE_URL = f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/"
 
 # Airflow
@@ -162,12 +162,10 @@ URL_STOCK_ETABLISSEMENTS = {
 URL_CC_DARES = "https://travail-emploi.gouv.fr/sites/travail-emploi/files"
 # Caution: DARES file is case sensitive or returns 404
 FILE_CC_DATE = "Dares_donnes_Identifiant_convention_collective_"
-URL_CC_KALI = (
-    "https://www.data.gouv.fr/fr/datasets/r/02b67492-5243-44e8-8dd1-0cb3f90f35ff"
-)
+URL_CC_KALI = "https://www.data.gouv.fr/datasets/r/02b67492-5243-44e8-8dd1-0cb3f90f35ff"
 
 # DataGouv
 DATAGOUV_URL = "https://www.data.gouv.fr"
-DATAGOUV_RESOURCE_PATH = "/fr/datasets/r/"
+DATAGOUV_RESOURCE_PATH = "/datasets/r/"
 ORGA_REFERENCE = "646b7187b50b2a93b1ae3d45"
 DATAGOUV_SECRET_API_KEY = Variable.get("DATAGOUV_SECRET_API_KEY", "")
