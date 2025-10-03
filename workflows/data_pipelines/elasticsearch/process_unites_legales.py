@@ -21,6 +21,7 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
     is_association,
     is_entrepreneur_individuel,
     is_ess,
+    is_personne_morale_insee,
     is_service_public,
     label_section_from_activite,
     map_categorie_to_number,
@@ -45,8 +46,12 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         unite_legale_processed["nom_complet"] = format_nom_complet(
             unite_legale["nom"],
             unite_legale["nom_usage"],
-            unite_legale["nom_raison_sociale"],
             unite_legale["prenom"],
+            unite_legale["nom_raison_sociale"],
+            est_personne_morale_insee=is_personne_morale_insee(
+                unite_legale["nature_juridique_unite_legale"]
+            ),
+            is_non_diffusible=is_non_diffusible,
         )
 
         # Replace missing values with 0
@@ -74,6 +79,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         # Entrepreneur individuel
         unite_legale_processed["est_entrepreneur_individuel"] = (
             is_entrepreneur_individuel(unite_legale["nature_juridique_unite_legale"])
+        )
+
+        # Personne morale (INSEE)
+        unite_legale_processed["est_personne_morale_insee"] = is_personne_morale_insee(
+            unite_legale["nature_juridique_unite_legale"]
         )
 
         # Categorie entreprise

@@ -32,6 +32,7 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
     is_association,
     is_entrepreneur_individuel,
     is_ess,
+    is_personne_morale_insee,
     is_service_public,
 )
 
@@ -137,7 +138,14 @@ class DataGouvProcessor:
         chunk["colter_elus"] = chunk["colter_elus"].apply(json.loads)
         chunk["nom_complet"] = chunk.apply(
             lambda row: format_nom_complet(
-                row["nom"], row["nom_usage"], row["nom_raison_sociale"], row["prenom"]
+                row["nom"],
+                row["nom_usage"],
+                row["prenom"],
+                row["nom_raison_sociale"],
+                is_personne_morale_insee=is_personne_morale_insee(
+                    row["nature_juridique"]
+                ),
+                is_non_diffusible=row["statut_diffusion"] != "O",
             ),
             axis=1,
         )
