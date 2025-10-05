@@ -47,24 +47,36 @@ def format_nom_complet(
 ):
     """Build `nom_complet` from identity parts.
 
-    If `est_personne_morale_insee` is True, only keep `nom_raison_sociale` when present.
+    Returns `nom_raison_sociale` for personne morale, or builds personne physique name
+    in format: "PRENOM NOM_USAGE (NOM_NAISSANCE)".
+
+    Returns None if no data provided.
     """
     # Personne morale and non diffusible: keep only raison sociale when available
-    # (to avoid having [ND] mentions in nom_complet in non diffusible companies)
     if est_personne_morale_insee and is_non_diffusible and nom_raison_sociale:
         return nom_raison_sociale.upper().strip()
 
-    name = None
-    if prenom or nom or nom_usage:
-        if nom_usage:
-            formatted_name = f" {nom_usage} ({nom})" if nom else f" {nom_usage}"
-        else:
-            formatted_name = f" {nom}" if nom else ""
-
-        name = f"{prenom if prenom else ''}{formatted_name}"
+    # Raison sociale takes precedence for legal entities
     if nom_raison_sociale:
-        name = nom_raison_sociale
-    return name.upper().strip() if name else name
+        return nom_raison_sociale.upper().strip()
+
+    # Build natural person name
+    if not (prenom or nom or nom_usage):
+        return None
+
+    parts = []
+    if prenom:
+        parts.append(prenom)
+
+    if nom_usage:
+        if nom:
+            parts.append(f"{nom_usage} ({nom})")
+        else:
+            parts.append(nom_usage)
+    elif nom:
+        parts.append(nom)
+
+    return " ".join(parts).upper().strip()
 
 
 def get_nom_commercial(unite_legale):
