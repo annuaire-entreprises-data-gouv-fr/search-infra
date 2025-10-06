@@ -40,20 +40,43 @@ excluded_nature_juridique_L100_3 = set(
 def format_nom_complet(
     nom=None,
     nom_usage=None,
-    nom_raison_sociale=None,
     prenom=None,
+    nom_raison_sociale=None,
+    est_personne_morale_insee: bool = False,
+    is_non_diffusible: bool = False,
 ):
-    name = None
-    if prenom or nom or nom_usage:
-        if nom_usage:
-            formatted_name = f" {nom_usage} ({nom})" if nom else f" {nom_usage}"
-        else:
-            formatted_name = f" {nom}" if nom else ""
+    """Build `nom_complet` from identity parts.
 
-        name = f"{prenom if prenom else ''}{formatted_name}"
+    Returns `nom_raison_sociale` for personne morale, or builds personne physique name
+    in format: "PRENOM NOM_USAGE (NOM_NAISSANCE)".
+
+    Returns None if no data provided.
+    """
+    # Personne morale and non diffusible: keep only raison sociale when available
+    if est_personne_morale_insee and is_non_diffusible and nom_raison_sociale:
+        return nom_raison_sociale.upper().strip()
+
+    # Raison sociale takes precedence for legal entities
     if nom_raison_sociale:
-        name = nom_raison_sociale
-    return name.upper().strip() if name else name
+        return nom_raison_sociale.upper().strip()
+
+    # Build natural person name
+    if not (prenom or nom or nom_usage):
+        return None
+
+    parts = []
+    if prenom:
+        parts.append(prenom)
+
+    if nom_usage:
+        if nom:
+            parts.append(f"{nom_usage} ({nom})")
+        else:
+            parts.append(nom_usage)
+    elif nom:
+        parts.append(nom)
+
+    return " ".join(parts).upper().strip()
 
 
 def get_nom_commercial(unite_legale):
@@ -143,6 +166,19 @@ def is_entrepreneur_individuel(nature_juridique_unite_legale):
         return True
     else:
         return False
+
+
+def is_personne_morale_insee(nature_juridique_unite_legale):
+    """Return True if INSEE legal nature indicates personne morale.
+
+    Rules (personne physique are codes 1000 and  les unités non dotées de la personnalité morale start with '2') https://www.insee.fr/fr/information/7456564:
+    - Return False for personne physique and les unités non dotées de la personnalité morale
+    - Return True otherwise
+    """
+    if nature_juridique_unite_legale is None:
+        return True
+    nature = str(nature_juridique_unite_legale)
+    return not (nature == "1000" or nature.startswith("2"))
 
 
 # ESS

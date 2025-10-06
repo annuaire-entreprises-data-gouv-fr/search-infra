@@ -337,6 +337,7 @@ class UniteLegaleMapping(InnerDoc):
     est_rge = Boolean()
     est_service_public = Boolean()
     est_siae = Boolean()
+    est_personne_morale_insee = Boolean()
     est_societe_mission = Keyword()
     est_uai = Boolean()
     etablissements = Nested(EtablissementMapping)
