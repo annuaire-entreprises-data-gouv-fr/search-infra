@@ -142,7 +142,7 @@ class DataGouvProcessor:
                 row["nom_usage"],
                 row["prenom"],
                 row["nom_raison_sociale"],
-                is_personne_morale_insee=is_personne_morale_insee(
+                est_personne_morale_insee=is_personne_morale_insee(
                     row["nature_juridique"]
                 ),
                 is_non_diffusible=row["statut_diffusion"] != "O",
