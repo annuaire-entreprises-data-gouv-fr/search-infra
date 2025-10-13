@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from airflow.decorators import dag, task
-from airflow.utils.dates import days_ago
+import pendulum
 
 from data_pipelines_annuaire.config import EMAIL_LIST
 from data_pipelines_annuaire.helpers import Notification
@@ -22,7 +22,7 @@ default_args = {
     tags=["sirene", "stock", "historique", "unité légale", "établissement"],
     default_args=default_args,
     schedule="0 0 * * *",  # Run everyday
-    start_date=days_ago(1),
+    start_date=pendulum.today('UTC').add(days=-1),
     dagrun_timeout=timedelta(minutes=60),
     params={},
     catchup=False,
