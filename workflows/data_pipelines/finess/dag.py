@@ -5,12 +5,12 @@ import pendulum
 
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
-from dag_datalake_sirene.workflows.data_pipelines.rge.config import RGE_CONFIG
-from dag_datalake_sirene.workflows.data_pipelines.rge.processor import (
-    RgeProcessor,
+from dag_datalake_sirene.workflows.data_pipelines.finess.config import FINESS_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.finess.processor import (
+    FinessProcessor,
 )
 
-rge_processor = RgeProcessor()
+finess_processor = FinessProcessor()
 default_args = {
     "depends_on_past": False,
     "email_on_failure": True,
@@ -21,7 +21,7 @@ default_args = {
 
 
 @dag(
-    tags=["reconnu garant de l'environnement", "label", "ademe"],
+    tags=["domaine sanitaire et social"],
     default_args=default_args,
     schedule="0 16 * * *",
     start_date=pendulum.today('UTC').add(days=-8),
@@ -31,34 +31,41 @@ default_args = {
     on_failure_callback=Notification.send_notification_mattermost,
     on_success_callback=Notification.send_notification_mattermost,
 )
-def data_processing_rge():
+def data_processing_finess():
     @task.bash
     def clean_previous_outputs():
-        return f"rm -rf {RGE_CONFIG.tmp_folder} && mkdir -p {RGE_CONFIG.tmp_folder}"
+        return (
+            f"rm -rf {FINESS_CONFIG.tmp_folder} && mkdir -p {FINESS_CONFIG.tmp_folder}"
+        )
 
     @task
-    def preprocess_rge():
-        return rge_processor.preprocess_data()
+    def download_data():
+        return finess_processor.download_data()
+
+    @task
+    def preprocess_finess():
+        return finess_processor.preprocess_data()
 
     @task
     def save_date_last_modified():
-        return rge_processor.save_date_last_modified()
+        return finess_processor.save_date_last_modified()
 
     @task
     def send_file_to_minio():
-        return rge_processor.send_file_to_minio()
+        return finess_processor.send_file_to_minio()
 
     @task
     def compare_files_minio():
-        return rge_processor.compare_files_minio()
+        return finess_processor.compare_files_minio()
 
     (
         clean_previous_outputs()
-        >> preprocess_rge()
+        >> download_data()
+        >> preprocess_finess()
         >> save_date_last_modified()
         >> send_file_to_minio()
         >> compare_files_minio()
     )
 
 
-data_processing_rge()
+data_processing_finess()

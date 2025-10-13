@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from airflow.decorators import dag, task
-from airflow.utils.dates import days_ago
+import pendulum
 
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
@@ -25,7 +25,7 @@ default_args = {
     tags=["entrepreneur spectacle"],
     default_args=default_args,
     schedule="0 16 * * *",
-    start_date=days_ago(8),
+    start_date=pendulum.today('UTC').add(days=-8),
     dagrun_timeout=timedelta(minutes=60),
     params={},
     catchup=False,
