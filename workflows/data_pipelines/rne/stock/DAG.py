@@ -25,7 +25,7 @@ default_args = {
 @dag(
     tags=["rne", "stock", "download"],
     default_args=default_args,
-    schedule_interval=None,  # <- No automatic scheduling
+    schedule=None,  # <- No automatic scheduling
     start_date=pendulum.today('UTC').add(days=-8),
     dagrun_timeout=timedelta(minutes=60 * 18),
     params={},

@@ -4,7 +4,7 @@ from abc import ABC
 from datetime import datetime
 
 import requests
-from airflow.operators.python import get_current_context
+from airflow.sdk import get_current_context
 from dateutil.relativedelta import relativedelta
 
 from data_pipelines_annuaire.config import DataSourceConfig

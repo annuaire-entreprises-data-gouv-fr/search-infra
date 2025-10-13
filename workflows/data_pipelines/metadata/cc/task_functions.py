@@ -4,7 +4,7 @@ from datetime import datetime
 
 import pandas as pd
 import requests
-from airflow.operators.python import get_current_context
+from airflow.sdk import get_current_context
 from requests.exceptions import HTTPError
 
 from data_pipelines_annuaire.config import (
