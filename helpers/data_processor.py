@@ -4,7 +4,7 @@ from abc import ABC
 from datetime import datetime
 
 import requests
-from airflow.operators.python import get_current_context
+from airflow.sdk import get_current_context
 
 from dag_datalake_sirene.config import DataSourceConfig
 from dag_datalake_sirene.helpers.datagouv import (
