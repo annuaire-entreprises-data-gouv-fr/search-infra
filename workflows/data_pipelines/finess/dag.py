@@ -3,15 +3,14 @@ from datetime import timedelta
 from airflow.decorators import dag, task
 import pendulum
 
-from data_pipelines_annuaire.config import EMAIL_LIST
-from data_pipelines_annuaire.helpers import Notification
-from data_pipelines_annuaire.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
-from data_pipelines_annuaire.workflows.data_pipelines.egapro.processor import (
-    EgaproProcessor,
+from dag_datalake_sirene.config import EMAIL_LIST
+from dag_datalake_sirene.helpers import Notification
+from dag_datalake_sirene.workflows.data_pipelines.finess.config import FINESS_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.finess.processor import (
+    FinessProcessor,
 )
 
-egapro_processor = EgaproProcessor()
-
+finess_processor = FinessProcessor()
 default_args = {
     "depends_on_past": False,
     "email_on_failure": True,
@@ -22,7 +21,7 @@ default_args = {
 
 
 @dag(
-    tags=["egapro"],
+    tags=["domaine sanitaire et social"],
     default_args=default_args,
     schedule="0 16 * * *",
     start_date=pendulum.today('UTC').add(days=-8),
@@ -32,37 +31,41 @@ default_args = {
     on_failure_callback=Notification.send_notification_mattermost,
     on_success_callback=Notification.send_notification_mattermost,
 )
-def data_processing_egapro():
+def data_processing_finess():
     @task.bash
     def clean_previous_outputs():
         return (
-            f"rm -rf {EGAPRO_CONFIG.tmp_folder} && mkdir -p {EGAPRO_CONFIG.tmp_folder}"
+            f"rm -rf {FINESS_CONFIG.tmp_folder} && mkdir -p {FINESS_CONFIG.tmp_folder}"
         )
 
     @task
-    def preprocess_egapro():
-        return egapro_processor.preprocess_data()
+    def download_data():
+        return finess_processor.download_data()
+
+    @task
+    def preprocess_finess():
+        return finess_processor.preprocess_data()
 
     @task
     def save_date_last_modified():
-        return egapro_processor.save_date_last_modified()
+        return finess_processor.save_date_last_modified()
 
     @task
     def send_file_to_minio():
-        return egapro_processor.send_file_to_minio()
+        return finess_processor.send_file_to_minio()
 
     @task
     def compare_files_minio():
-        return egapro_processor.compare_files_minio()
+        return finess_processor.compare_files_minio()
 
     (
         clean_previous_outputs()
-        >> preprocess_egapro()
+        >> download_data()
+        >> preprocess_finess()
         >> save_date_last_modified()
         >> send_file_to_minio()
         >> compare_files_minio()
     )
 
 
-# Instantiate the DAG
-data_processing_egapro()
+data_processing_finess()
