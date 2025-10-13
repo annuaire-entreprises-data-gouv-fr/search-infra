@@ -21,7 +21,7 @@ default_args = {
 @dag(
     tags=["alim_confiance", "label"],
     default_args=default_args,
-    schedule_interval="0 16 * * *",
+    schedule="0 16 * * *",
     start_date=pendulum.today('UTC').add(days=-8),
     dagrun_timeout=timedelta(minutes=60 * 5),
     params={},
