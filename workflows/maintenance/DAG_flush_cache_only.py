@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
-from airflow.utils.dates import days_ago
+import pendulum
 
 from data_pipelines_annuaire.config import (
     EMAIL_LIST,
@@ -28,7 +28,7 @@ with DAG(
     dag_id=DAG_NAME,
     default_args=default_args,
     schedule="0 23 10 * *",
-    start_date=days_ago(10),
+    start_date=pendulum.today('UTC').add(days=-10),
     dagrun_timeout=timedelta(minutes=5),
     tags=["flush cache only"],
 ) as dag:
