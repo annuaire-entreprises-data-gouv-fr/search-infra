@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from airflow.models import DAG
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
@@ -65,7 +65,7 @@ with DAG(
     delete_old_rne_databases = PythonOperator(
         task_id="delete_old_rne_databases",
         python_callable=delete_old_files,
-        provide_context=True,
+        
         op_kwargs={
             "prefix": f"ae/{AIRFLOW_ENV}/rne/database/",
             "keep_latest": 5,
@@ -77,7 +77,7 @@ with DAG(
     delete_old_sirene_databases = PythonOperator(
         task_id="delete_old_sirene_databases",
         python_callable=delete_old_files,
-        provide_context=True,
+        
         op_kwargs={
             "prefix": f"ae/{AIRFLOW_ENV}/sirene/database/",
             "keep_latest": 2,
