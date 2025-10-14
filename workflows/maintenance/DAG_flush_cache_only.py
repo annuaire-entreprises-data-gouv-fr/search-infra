@@ -34,7 +34,7 @@ with DAG(
 ) as dag:
     flush_cache = PythonOperator(
         task_id="flush_cache",
-        provide_context=True,
+        
         python_callable=flush_cache,
         op_args=(
             REDIS_HOST,

@@ -35,13 +35,12 @@ with DAG(
 ) as dag:
     rollback_object_storage_file = PythonOperator(
         task_id="rollback_object_storage_current_index_version",
-        provide_context=True,
         python_callable=rollback_object_storage_current_index_version,
     )
 
     wait_for_downstream = PythonOperator(
         task_id="wait_for_downstream_rollback_import",
-        provide_context=True,
+
         python_callable=wait_for_downstream_rollback_import,
     )
 
