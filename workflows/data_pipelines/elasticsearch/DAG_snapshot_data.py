@@ -43,31 +43,31 @@ with DAG(
 ) as dag:
     snapshot_elastic_index = PythonOperator(
         task_id="snapshot_elastic_index",
-        provide_context=True,
+        
         python_callable=snapshot_elastic_index,
     )
 
     update_minio_current_index_version = PythonOperator(
         task_id="update_minio_current_index_version",
-        provide_context=True,
+        
         python_callable=update_minio_current_index_version,
     )
 
     wait_for_downstream_import = PythonOperator(
         task_id="wait_for_downstream_import",
-        provide_context=True,
+        
         python_callable=wait_for_downstream_import,
     )
 
     update_downstream_alias = PythonOperator(
         task_id="update_downstream_alias",
-        provide_context=True,
+        
         python_callable=update_downstream_alias,
     )
 
     delete_old_snapshots = PythonOperator(
         task_id="delete_old_snapshots",
-        provide_context=True,
+        
         python_callable=delete_old_snapshots,
     )
 
