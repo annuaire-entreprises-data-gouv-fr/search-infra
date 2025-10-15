@@ -1,4 +1,4 @@
-from airflow.models import Variable
+from airflow.sdk import Variable
 
 from data_pipelines_annuaire.config import (
     OBJECT_STORAGE_BASE_URL,
