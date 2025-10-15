@@ -42,9 +42,7 @@ def delete_old_runs(**kwargs):
     """
     Query and delete runs older than the threshold date (2 weeks ago).
     """
-    oldest_run_date = datetime.utcnow().replace(tzinfo=timezone.utc) - timedelta(
-        days=14
-    )
+    oldest_run_date = datetime.now(timezone.utc) - timedelta(days=14)
 
     # Create a session to interact with the metadata database
     session = Session()
