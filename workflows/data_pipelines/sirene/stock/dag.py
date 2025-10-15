@@ -49,7 +49,7 @@ def data_processing_sirene_stock():
     def clean_up() -> str:
         return f"rm -rf {sirene_stock_processor.config.tmp_folder}"
 
-    (
+    return (
         clean_previous_outputs()
         >> download_stock()
         >> send_stock_file_to_minio()

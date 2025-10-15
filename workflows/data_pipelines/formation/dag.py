@@ -59,7 +59,7 @@ def data_processing_organisme_formation():
     def compare_files_minio():
         return formation_processor.compare_files_minio()
 
-    (
+    return (
         clean_previous_outputs()
         >> download_data()
         >> preprocess_data()

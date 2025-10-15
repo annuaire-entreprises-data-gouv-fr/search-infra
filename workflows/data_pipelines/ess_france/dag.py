@@ -55,7 +55,7 @@ def data_processing_ess_france():
     def compare_files_minio():
         return ess_france_processor.compare_files_minio()
 
-    (
+    return (
         clean_previous_outputs()
         >> preprocess_ess_france()
         >> save_date_last_modified()

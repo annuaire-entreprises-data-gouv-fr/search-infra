@@ -52,7 +52,7 @@ def data_processing_rge():
     def compare_files_minio():
         return rge_processor.compare_files_minio()
 
-    (
+    return (
         clean_previous_outputs()
         >> preprocess_rge()
         >> save_date_last_modified()

@@ -58,7 +58,7 @@ def data_processing_finess():
     def compare_files_minio():
         return finess_processor.compare_files_minio()
 
-    (
+    return (
         clean_previous_outputs()
         >> download_data()
         >> preprocess_finess()
