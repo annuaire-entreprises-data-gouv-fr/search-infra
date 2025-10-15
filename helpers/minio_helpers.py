@@ -256,7 +256,7 @@ class MinIOClient:
             )
             logging.info(f"Hash file 1 : {file_1['ETag']}")
             logging.info(f"Hash file 2 : {file_2['ETag']}")
-            logging.info(bool(file_1["ETag"] == file_2["ETag"]))
+            logging.info(f"Same hashes? {bool(file_1['ETag'] == file_2['ETag'])}")
 
             return bool(file_1["ETag"] == file_2["ETag"])
 
