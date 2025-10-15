@@ -1,8 +1,7 @@
 from datetime import timedelta
 
 import pendulum
-from airflow.datasets import Dataset
-from airflow.sdk import dag, task
+from airflow.sdk import Asset, dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST
 from data_pipelines_annuaire.helpers import Notification
@@ -23,7 +22,7 @@ default_args = {
     "retries": 1,
 }
 
-dataset_colter = Dataset(COLTER_CONFIG.name)
+dataset_colter = Asset(COLTER_CONFIG.name)
 
 
 @dag(
@@ -70,7 +69,7 @@ def data_processing_collectivite_territoriale():
     def compare_files_minio():
         return colter_processor.compare_files_minio()
 
-    (
+    _ = (
         clean_previous_outputs()
         >> download_data()
         >> preprocess_data()
@@ -115,7 +114,7 @@ def data_processing_collectivite_territoriale_elus():
     def compare_files_minio():
         return elus_processor.compare_files_minio()
 
-    (
+    _ = (
         clean_previous_outputs()
         >> preprocess_data()
         >> save_date_last_modified()
