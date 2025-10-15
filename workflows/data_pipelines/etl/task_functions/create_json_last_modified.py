@@ -3,7 +3,7 @@ import logging
 import os
 
 import requests
-from airflow.decorators import task
+from airflow.sdk import task
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ETL_DATA_DIR,
