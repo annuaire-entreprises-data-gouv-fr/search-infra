@@ -55,7 +55,7 @@ def data_processing_egapro():
     def compare_files_minio():
         return egapro_processor.compare_files_minio()
 
-    (
+    return (
         clean_previous_outputs()
         >> preprocess_egapro()
         >> save_date_last_modified()

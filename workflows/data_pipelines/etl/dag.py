@@ -235,7 +235,7 @@ def database_constructor():
         deferrable=False,
     )
 
-    (
+    return (
         clean_previous_tmp_folder()
         >> determine_sirene_date()
         >> create_unite_legale_table()
