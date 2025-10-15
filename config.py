@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
-from airflow.models import Variable
+from airflow.sdk import Variable
 
 
 @dataclass
