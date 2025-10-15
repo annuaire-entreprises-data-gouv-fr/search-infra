@@ -3,7 +3,7 @@ import logging
 import os
 import shutil
 
-from airflow.decorators import task
+from airflow.sdk import task
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
