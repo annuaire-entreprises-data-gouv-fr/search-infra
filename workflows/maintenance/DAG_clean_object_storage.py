@@ -32,7 +32,7 @@ def delete_old_files(
     for i, (file_name, last_modified) in enumerate(file_info_list):
         # Ensure both datetime objects are offset-aware
         last_modified = last_modified.replace(tzinfo=timezone.utc)
-        current_time = datetime.utcnow().replace(tzinfo=timezone.utc)
+        current_time = datetime.now(timezone.utc)
 
         age = current_time - last_modified
 
@@ -65,7 +65,6 @@ with DAG(
     delete_old_rne_databases = PythonOperator(
         task_id="delete_old_rne_databases",
         python_callable=delete_old_files,
-        
         op_kwargs={
             "prefix": f"ae/{AIRFLOW_ENV}/rne/database/",
             "keep_latest": 5,
@@ -77,7 +76,6 @@ with DAG(
     delete_old_sirene_databases = PythonOperator(
         task_id="delete_old_sirene_databases",
         python_callable=delete_old_files,
-        
         op_kwargs={
             "prefix": f"ae/{AIRFLOW_ENV}/sirene/database/",
             "keep_latest": 2,
