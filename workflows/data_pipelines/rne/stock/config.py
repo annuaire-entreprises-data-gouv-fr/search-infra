@@ -1,4 +1,4 @@
-from airflow.models import Variable
+from airflow.sdk import Variable
 
 from dag_datalake_sirene.config import (
     DataSourceConfig,
