@@ -1,8 +1,7 @@
 import logging
 from typing import Literal
 
-from airflow.decorators import task
-from airflow.sdk import get_current_context
+from airflow.sdk import get_current_context, task
 
 from dag_datalake_sirene.config import (
     CURRENT_MONTH,
