@@ -60,7 +60,7 @@ def data_processing_alim_confiance():
     def clean_up():
         return f"rm -rf {alim_confiance_processor.config.tmp_folder}"
 
-    (
+    return (
         clean_previous_outputs()
         >> download_data()
         >> preprocess_data()
