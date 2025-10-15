@@ -1,8 +1,8 @@
 from datetime import timedelta
 
-from airflow.datasets import Dataset
-from airflow.decorators import dag, task
 import pendulum
+from airflow.datasets import Dataset
+from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST
 from data_pipelines_annuaire.helpers import Notification
@@ -30,7 +30,7 @@ dataset_colter = Dataset(COLTER_CONFIG.name)
     tags=["collectivités", "communes", "régions", "départements"],
     default_args=default_args,
     schedule="0 16 * * *",
-    start_date=pendulum.today('UTC').add(days=-8),
+    start_date=pendulum.today("UTC").add(days=-8),
     dagrun_timeout=timedelta(minutes=60),
     on_failure_callback=Notification.send_notification_mattermost,
     on_success_callback=Notification.send_notification_mattermost,
@@ -85,7 +85,7 @@ def data_processing_collectivite_territoriale():
     tags=["collectivités", "élus", "conseillers", "epci"],
     default_args=default_args,
     schedule=[dataset_colter],
-    start_date=pendulum.today('UTC').add(days=-8),
+    start_date=pendulum.today("UTC").add(days=-8),
     dagrun_timeout=timedelta(minutes=60),
     on_failure_callback=Notification.send_notification_mattermost,
     on_success_callback=Notification.send_notification_mattermost,
