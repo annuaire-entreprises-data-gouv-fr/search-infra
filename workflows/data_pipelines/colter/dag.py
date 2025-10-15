@@ -69,7 +69,7 @@ def data_processing_collectivite_territoriale():
     def compare_files_minio():
         return colter_processor.compare_files_minio()
 
-    _ = (
+    return (
         clean_previous_outputs()
         >> download_data()
         >> preprocess_data()
@@ -114,7 +114,7 @@ def data_processing_collectivite_territoriale_elus():
     def compare_files_minio():
         return elus_processor.compare_files_minio()
 
-    _ = (
+    return (
         clean_previous_outputs()
         >> preprocess_data()
         >> save_date_last_modified()

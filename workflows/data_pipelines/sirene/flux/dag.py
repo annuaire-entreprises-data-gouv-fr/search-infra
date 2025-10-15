@@ -56,7 +56,7 @@ def data_processing_sirene_flux():
     def clean_up():
         return f"rm -rf {sirene_flux_processor.config.tmp_folder}"
 
-    (
+    return (
         clean_previous_outputs()
         >> get_flux_unites_legales()
         >> get_flux_etablissements()

@@ -78,7 +78,7 @@ def publish_files_in_data_gouv():
     def clean_outputs():
         return f"rm -rf {AIRFLOW_DAG_TMP}publish_data_gouv"
 
-    (
+    return (
         check_if_prod_env()
         >> clean_previous_outputs()
         >> get_latest_sqlite_db()
