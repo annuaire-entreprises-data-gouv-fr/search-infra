@@ -60,7 +60,7 @@ def data_processing_achats_responsables():
     def clean_up():
         return f"rm -rf {achats_responsables_processor.config.tmp_folder}"
 
-    (
+    return (
         clean_previous_outputs()
         >> download_data()
         >> preprocess_data()

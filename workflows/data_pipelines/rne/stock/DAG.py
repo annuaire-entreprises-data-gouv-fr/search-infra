@@ -50,7 +50,7 @@ def get_rne_stock():
     def unzip_files_and_upload_object_storage():
         rne_stock_processor.send_stock_to_object_storage()
 
-    (
+    return (
         clean_previous_outputs()
         >> get_rne_latest_stock()
         >> unzip_files_and_upload_object_storage()

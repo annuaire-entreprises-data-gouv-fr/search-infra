@@ -50,7 +50,7 @@ def get_metadata_cc():
     def upload_json_to_object_storage_task():
         upload_json_to_object_storage()
 
-    (
+    return (
         clean_previous_outputs()
         >> is_metadata_updated_task
         >> create_metadata_convention_collective_json_task()

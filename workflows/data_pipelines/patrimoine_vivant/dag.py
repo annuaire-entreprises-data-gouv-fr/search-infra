@@ -60,7 +60,7 @@ def data_processing_patrimoine_vivant():
     def clean_up():
         return f"rm -rf {patrimoine_vivant_processor.config.tmp_folder}"
 
-    (
+    return (
         clean_previous_outputs()
         >> download_data()
         >> preprocess_data()

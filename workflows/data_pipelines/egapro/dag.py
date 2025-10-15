@@ -59,7 +59,7 @@ def data_processing_egapro():
     def compare_files_object_storage():
         return egapro_processor.compare_files_object_storage()
 
-    (
+    return (
         clean_previous_outputs()
         >> download_data()
         >> preprocess_egapro()

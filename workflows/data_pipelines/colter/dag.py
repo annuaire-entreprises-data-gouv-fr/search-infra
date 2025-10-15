@@ -69,7 +69,7 @@ def data_processing_collectivite_territoriale():
     def compare_files_object_storage():
         return colter_processor.compare_files_object_storage()
 
-    _ = (
+    return (
         clean_previous_outputs()
         >> download_data()
         >> preprocess_data()
@@ -118,7 +118,7 @@ def data_processing_collectivite_territoriale_elus():
     def compare_files_object_storage():
         return elus_processor.compare_files_object_storage()
 
-    _ = (
+    return (
         clean_previous_outputs()
         >> download_data()
         >> preprocess_data()
