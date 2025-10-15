@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
-from airflow.decorators import dag, task
 from airflow.operators.python import ShortCircuitOperator
+from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST, METADATA_CC_TMP_FOLDER
 from data_pipelines_annuaire.helpers import Notification
