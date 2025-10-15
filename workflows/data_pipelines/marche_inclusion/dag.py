@@ -52,7 +52,7 @@ def data_processing_marche_inclusion():
     def compare_files_object_storage():
         return marche_inclusion_processor.compare_files_object_storage()
 
-    (
+    return (
         clean_previous_outputs()
         >> preprocess_data()
         >> save_date_last_modified()

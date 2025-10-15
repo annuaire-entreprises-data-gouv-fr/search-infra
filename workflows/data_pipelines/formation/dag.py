@@ -59,7 +59,7 @@ def data_processing_organisme_formation():
     def compare_files_object_storage():
         return formation_processor.compare_files_object_storage()
 
-    (
+    return (
         clean_previous_outputs()
         >> download_data()
         >> preprocess_data()

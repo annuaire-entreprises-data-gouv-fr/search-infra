@@ -71,7 +71,7 @@ def data_processing_sirene_flux():
         deferrable=False,
     )
 
-    (
+    return (
         check_updates_availability()
         >> clean_previous_outputs()
         >> get_flux_unites_legales()
