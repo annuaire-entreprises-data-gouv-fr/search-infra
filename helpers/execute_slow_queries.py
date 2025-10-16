@@ -1,11 +1,13 @@
 import logging
 
 import requests
+from airflow.sdk import task
 
 from data_pipelines_annuaire.config import API_URL
 from data_pipelines_annuaire.helpers.slow_requests import SLOW_REQUESTS
 
 
+@task
 def execute_slow_requests():
     session = requests.Session()
     base_url = API_URL
