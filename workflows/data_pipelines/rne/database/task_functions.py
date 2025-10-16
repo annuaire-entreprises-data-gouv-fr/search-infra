@@ -7,6 +7,7 @@ import shutil
 from datetime import datetime, timedelta
 
 from botocore.exceptions import ClientError
+from airflow.sdk import get_current_context, task
 
 from data_pipelines_annuaire.config import (
     RNE_DB_TMP_FOLDER,
@@ -28,7 +29,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.rne.database.process_rne i
 )
 
 
-def get_start_date_object_storage(**kwargs):
+@task
+def get_start_date(**kwargs):
     object_storage_client = ObjectStorageClient()
     try:
         object_storage_client.get_files(
@@ -76,6 +78,7 @@ def create_db_path(start_date):
     return rne_database_location
 
 
+@task
 def create_db(**kwargs):
     """
     Create an RNE database, if it doesn't already exist.
@@ -105,6 +108,7 @@ def create_db(**kwargs):
     connection.close()
 
 
+@task
 def get_latest_db(**kwargs):
     """
     This function retrieves the RNE database file associated with the
@@ -146,6 +150,7 @@ def get_latest_db(**kwargs):
     )
 
 
+@task
 def process_stock_json_files(**kwargs):
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
     rne_db_path = kwargs["ti"].xcom_pull(key="rne_db_path", task_ids="create_db")
@@ -183,6 +188,7 @@ def process_stock_json_files(**kwargs):
         logging.info(f"******Removed file: {file_path}")
 
 
+@task
 def process_flux_json_files(**kwargs):
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
     rne_db_path = kwargs["ti"].xcom_pull(key="rne_db_path", task_ids="create_db")
@@ -247,6 +253,7 @@ def process_flux_json_files(**kwargs):
     kwargs["ti"].xcom_push(key="last_date_processed", value=last_date_processed)
 
 
+@task
 def remove_duplicates(**kwargs):
     rne_db_path = kwargs["ti"].xcom_pull(key="rne_db_path", task_ids="create_db")
     connection, cursor = connect_to_db(rne_db_path)
@@ -273,13 +280,14 @@ def remove_duplicates(**kwargs):
         connection.close()
 
 
+@task
 def check_db_count(
-    ti,
     min_ul_table_count=20000000,
     min_pp_table_count=11000000,
     min_pm_table_count=1000000,
     min_immat_table_count=20000000,
 ):
+    ti = get_current_context()["ti"]
     try:
         rne_db_path = ti.xcom_pull(key="rne_db_path", task_ids="create_db")
         count_ul, count_siege, count_pp, count_pm, count_immat = get_tables_count(
@@ -319,7 +327,8 @@ def send_to_object_storage(list_files):
     )
 
 
-def upload_db_to_object_storage(**kwargs):
+@task
+def upload_db_to_object_storage():
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
     last_date_processed = kwargs["ti"].xcom_pull(
         key="last_date_processed", task_ids="process_flux_json_files"
@@ -353,8 +362,10 @@ def upload_db_to_object_storage(**kwargs):
         logging.warning(f"Warning: Database file '{database_zip_file_path}' not found.")
 
 
-def upload_latest_date_rne_object_storage(ti):
+@task
+def upload_latest_date_rne_object_storage():
     """Start date saved is the next day"""
+    ti = get_current_context()["ti"]
     last_date_processed = ti.xcom_pull(
         key="last_date_processed", task_ids="process_flux_json_files"
     )
@@ -385,7 +396,9 @@ def upload_latest_date_rne_object_storage(ti):
     ti.xcom_push(key="latest_date", value=latest_date)
 
 
-def notification_mattermost(ti):
+@task
+def send_notification_mattermost():
+    ti = get_current_context()["ti"]
     start_date = ti.xcom_pull(key="start_date", task_ids="get_start_date")
     last_date_processed = ti.xcom_pull(
         key="last_date_processed", task_ids="process_flux_json_files"
