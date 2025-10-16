@@ -1,9 +1,11 @@
+import os
+import shutil
 from datetime import datetime, timedelta
 
 from airflow.models import DAG
-from airflow.operators.python import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
-from operators.clean_folder import CleanFolderOperator
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.sdk import task
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_DAG_FOLDER,
@@ -59,6 +61,10 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
+def clean_folders(folder_path):
+    if os.path.exists(folder_path) and os.path.isdir(folder_path):
+        shutil.rmtree(folder_path)
+
 with DAG(
     dag_id=AIRFLOW_ELK_DAG_NAME,
     default_args=default_args,
@@ -72,66 +78,65 @@ with DAG(
 ) as dag:
     get_next_index_name = PythonOperator(
         task_id="get_next_index_name",
-        
+
         python_callable=get_next_index_name,
     )
 
-    clean_previous_folder = CleanFolderOperator(
-        task_id="clean_previous_folder",
-        folder_path=f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ELK_DAG_NAME}",
-    )
+    @task
+    def clean_folder():
+        clean_folders(f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ELK_DAG_NAME}")
 
     get_latest_sqlite_database = create_sqlite_database = PythonOperator(
         task_id="get_latest_sqlite_db",
-        
+
         python_callable=get_latest_database,
     )
 
     delete_previous_elastic_indices = PythonOperator(
         task_id="delete_previous_elastic_indices",
-        
+
         python_callable=delete_previous_elastic_indices,
     )
 
     create_elastic_index = PythonOperator(
         task_id="create_elastic_index",
-        
+
         python_callable=create_elastic_index,
     )
 
     fill_elastic_siren_index = PythonOperator(
         task_id="fill_elastic_siren_index",
-        
+
         python_callable=fill_elastic_siren_index,
     )
 
     check_elastic_index = PythonOperator(
         task_id="check_elastic_index",
-        
+
         python_callable=check_elastic_index,
     )
 
     update_elastic_alias = PythonOperator(
         task_id="update_elastic_alias",
-        
+
         python_callable=update_elastic_alias,
     )
 
     create_sitemap = PythonOperator(
         task_id="create_sitemap",
-        
+
         python_callable=create_sitemap,
     )
 
     update_sitemap = PythonOperator(
         task_id="update_sitemap",
-        
+
         python_callable=update_sitemap,
     )
 
     test_api = PythonOperator(
         task_id="test_api",
-        
+
         python_callable=run_e2e_tests,
     )
 
@@ -145,8 +150,7 @@ with DAG(
         python_callable=sync_data_source_updates,
     )
 
-    clean_previous_folder.set_upstream(get_next_index_name)
-    get_latest_sqlite_database.set_upstream(clean_previous_folder)
+    get_next_index_name >> clean_folder() >> get_latest_sqlite_database
 
     delete_previous_elastic_indices.set_upstream(get_latest_sqlite_database)
     create_elastic_index.set_upstream(delete_previous_elastic_indices)
@@ -165,21 +169,16 @@ with DAG(
             deferrable=False,
         )
 
-        clean_folder = CleanFolderOperator(
-            task_id="clean_folder",
-            folder_path=f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ELK_DAG_NAME}",
-        )
-
         trigger_snapshot_dag.set_upstream(update_elastic_alias)
         sync_data_source_updates.set_upstream(trigger_snapshot_dag)
         test_api.set_upstream(trigger_snapshot_dag)
 
-        clean_folder.set_upstream([test_api, update_sitemap])
-        send_notification_mattermost.set_upstream([clean_folder, update_sitemap])
+        [test_api, update_sitemap] >> clean_folder() >> send_notification_mattermost
+        send_notification_mattermost.set_upstream(update_sitemap)
     else:
         flush_cache = PythonOperator(
             task_id="flush_cache",
-            
+
             python_callable=flush_cache,
             op_args=(
                 REDIS_HOST,
@@ -188,11 +187,6 @@ with DAG(
                 REDIS_PASSWORD,
             ),
         )
-        clean_folder = CleanFolderOperator(
-            task_id="clean_folder",
-            folder_path=f"{AIRFLOW_DAG_TMP}{AIRFLOW_DAG_FOLDER}{AIRFLOW_ELK_DAG_NAME}",
-        )
         sync_data_source_updates.set_upstream(update_elastic_alias)
         test_api.set_upstream(sync_data_source_updates)
-        clean_folder.set_upstream([test_api, update_sitemap])
-        flush_cache.set_upstream(clean_folder)
+        [test_api, update_sitemap] >> clean_folder() >> flush_cache

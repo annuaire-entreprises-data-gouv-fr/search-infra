@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from airflow.models import DAG
-from airflow.operators.python import PythonOperator
+from airflow.providers.standard.operators.python import PythonOperator
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_SNAPSHOT_ROLLBACK_DAG_NAME,
@@ -40,7 +40,6 @@ with DAG(
 
     wait_for_downstream = PythonOperator(
         task_id="wait_for_downstream_rollback_import",
-
         python_callable=wait_for_downstream_rollback_import,
     )
 
