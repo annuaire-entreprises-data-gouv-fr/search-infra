@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from airflow.models import DAG
-from airflow.operators.python import PythonOperator
+from airflow.providers.standard.operators.python import PythonOperator
 
 # fmt: on
 from data_pipelines_annuaire.config import (
@@ -43,31 +43,31 @@ with DAG(
 ) as dag:
     snapshot_elastic_index = PythonOperator(
         task_id="snapshot_elastic_index",
-        
+
         python_callable=snapshot_elastic_index,
     )
 
     update_minio_current_index_version = PythonOperator(
         task_id="update_minio_current_index_version",
-        
+
         python_callable=update_minio_current_index_version,
     )
 
     wait_for_downstream_import = PythonOperator(
         task_id="wait_for_downstream_import",
-        
+
         python_callable=wait_for_downstream_import,
     )
 
     update_downstream_alias = PythonOperator(
         task_id="update_downstream_alias",
-        
+
         python_callable=update_downstream_alias,
     )
 
     delete_old_snapshots = PythonOperator(
         task_id="delete_old_snapshots",
-        
+
         python_callable=delete_old_snapshots,
     )
 
