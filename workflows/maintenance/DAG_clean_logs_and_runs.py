@@ -1,12 +1,10 @@
 import logging
 import os
 import shutil
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
-from airflow.models import DAG
-from airflow.models.dagrun import DagRun
-from airflow.operators.python import PythonOperator
-from airflow.settings import Session
+import pendulum
+from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import (
     EMAIL_LIST,
@@ -14,7 +12,8 @@ from data_pipelines_annuaire.config import (
 
 
 # Define the Python function to delete old logs and directories
-def delete_old_logs_and_directories(**kwargs):
+@task
+def delete_logs(**kwargs):
     log_dir = "/opt/airflow/logs"
     cutoff_date = datetime.now() - timedelta(days=14)
 
@@ -38,33 +37,6 @@ def delete_old_logs_and_directories(**kwargs):
         logging.error(f"Log directory not found: {log_dir}")
 
 
-def delete_old_runs(**kwargs):
-    """
-    Query and delete runs older than the threshold date (2 weeks ago).
-    """
-    oldest_run_date = datetime.now(timezone.utc) - timedelta(days=14)
-
-    # Create a session to interact with the metadata database
-    session = Session()
-
-    try:
-        runs_to_delete = (
-            session.query(DagRun).filter(DagRun.execution_date <= oldest_run_date).all()
-        )
-        for run in runs_to_delete:
-            logging.info(
-                f"Deleting run: dag_id={run.dag_id}, "
-                f"execution_date={run.execution_date}"
-            )
-            session.delete(run)
-        session.commit()
-    except Exception as e:
-        logging.error(f"Error deleting old runs: {str(e)}")
-        session.rollback()
-    finally:
-        session.close()
-
-
 # Define default arguments for the DAG
 default_args = {
     "depends_on_past": False,
@@ -74,25 +46,20 @@ default_args = {
     "email_on_failure": True,
 }
 
-with DAG(
-    "delete_airflow_logs_and_runs",
+
+@dag(
+    tags=["maintenance"],
     default_args=default_args,
     description="Delete Airflow logs and runs older than 14 days",
-    schedule="0 16 * * 1",  # run every Monday at 4:00 PM (UTC)
-    dagrun_timeout=timedelta(minutes=30),
-    start_date=datetime(2023, 12, 28),
-    catchup=False,  # False to ignore past runs
-    max_active_runs=1,  # Allow only one execution at a time
-) as dag:
-    delete_old_logs_task = PythonOperator(
-        task_id="delete_logs",
-        python_callable=delete_old_logs_and_directories,
-        dag=dag,
-    )
+    schedule="0 16 * * 1",
+    start_date=pendulum.today("UTC").add(days=-8),
+    dagrun_timeout=timedelta(minutes=60),
+    params={},
+    catchup=False,
+    max_active_runs=1,
+)
+def delete_airflow_logs_and_runs():
+    return delete_logs()
 
-    delete_old_runs_task = PythonOperator(
-        task_id="delete_old_runs", python_callable=delete_old_runs, dag=dag
-    )
 
-    # Set the task dependency
-    delete_old_runs_task.set_upstream(delete_old_logs_task)
+delete_airflow_logs_and_runs()
