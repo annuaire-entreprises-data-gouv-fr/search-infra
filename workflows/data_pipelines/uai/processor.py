@@ -51,6 +51,7 @@ class UaiProcessor(DataProcessor):
                 siren=lambda x: x["siret"].str[:9],
             )
             .filter(target_columns)
+            .astype({col: "string" for col in target_columns})
         )
 
         df_mesr = (
@@ -76,6 +77,7 @@ class UaiProcessor(DataProcessor):
                 statut_prive=None,
             )
             .filter(target_columns)
+            .astype({col: "string" for col in target_columns})
         )
 
         df_onisep = (
@@ -103,6 +105,7 @@ class UaiProcessor(DataProcessor):
                 statut_prive=None,
             )
             .filter(target_columns)
+            .astype({col: "string" for col in target_columns})
         )
 
         annuaire_uai = (
@@ -110,7 +113,8 @@ class UaiProcessor(DataProcessor):
             .drop_duplicates(subset=["uai"], keep="first")
             .groupby(["siret"])["uai"]
             .agg(lambda x: str(list(x)))
-            .reset_index(name="liste_uai")
+            .reset_index()
+            .rename(columns={"uai": "liste_uai"})
             .filter(["siret", "liste_uai"])
         )
         annuaire_uai.to_csv(self.config.file_output, index=False)
