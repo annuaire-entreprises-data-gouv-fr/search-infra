@@ -6,6 +6,8 @@ import re
 import shutil
 from datetime import datetime, timedelta
 
+from airflow.sdk import get_current_context, task
+
 from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
     RNE_DEFAULT_START_DATE,
@@ -208,12 +210,14 @@ def get_and_save_daily_flux_rne(
         os.remove(f"{json_file_path}.gz")
 
 
-def get_every_day_flux(ti):
+@task
+def get_every_day_flux():
     """
     Fetches daily flux data from the Registre National des Entreprises (RNE) API
     and saves it to JSON files for a range of dates. This function iterates through
     a date range and calls the `get_and_save_daily_flux_rne` function for each day.
     """
+    ti = get_current_context()["ti"]
     # Get the start and end date
     start_date = compute_start_date()
     end_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
@@ -237,6 +241,7 @@ def get_every_day_flux(ti):
     ti.xcom_push(key="rne_flux_end_date", value=end_date)
 
 
+@task
 def send_notification_success_mattermost(**kwargs):
     rne_flux_start_date = kwargs["ti"].xcom_pull(
         key="rne_flux_start_date", task_ids="get_every_day_flux"
