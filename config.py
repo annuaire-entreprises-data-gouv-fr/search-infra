@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
-from airflow.models import Variable
+from airflow.sdk import Variable
 
 
 @dataclass
@@ -145,7 +145,9 @@ ELASTIC_SNAPSHOT_MINIO_STATE_PATH = Variable.get(
 )
 
 ELASTIC_DOWNSTREAM_ALIAS = Variable.get("ELASTIC_DOWNSTREAM_ALIAS", "siren-reader")
-ELASTIC_DOWNSTREAM_ALIAS_NEXT = Variable.get("ELASTIC_DOWNSTREAM_ALIAS_NEXT", "siren-reader-next")
+ELASTIC_DOWNSTREAM_ALIAS_NEXT = Variable.get(
+    "ELASTIC_DOWNSTREAM_ALIAS_NEXT", "siren-reader-next"
+)
 # comma separated URL
 ELASTIC_DOWNSTREAM_URLS = Variable.get("ELASTIC_DOWNSTREAM_URLS", "")
 ELASTIC_DOWNSTREAM_USER = Variable.get("ELASTIC_DOWNSTREAM_USER", "")

@@ -1,8 +1,7 @@
 from datetime import timedelta
 
-from airflow.models import DAG
-from airflow.operators.python import PythonOperator
-from airflow.utils.dates import days_ago
+import pendulum
+from airflow.sdk import dag
 
 from dag_datalake_sirene.config import (
     EMAIL_LIST,
@@ -13,8 +12,6 @@ from dag_datalake_sirene.config import (
 )
 from dag_datalake_sirene.helpers.flush_cache import flush_cache
 
-DAG_NAME = "flush_cache_only"
-
 default_args = {
     "depends_on_past": False,
     "email": EMAIL_LIST,
@@ -24,22 +21,23 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
-with DAG(
-    dag_id=DAG_NAME,
+
+@dag(
+    tags=["maintenance", "flush cache only"],
     default_args=default_args,
     schedule="0 23 10 * *",
-    start_date=days_ago(10),
+    start_date=pendulum.today("UTC").add(days=-10),
     dagrun_timeout=timedelta(minutes=5),
-    tags=["flush cache only"],
-) as dag:
-    flush_cache = PythonOperator(
-        task_id="flush_cache",
-        provide_context=True,
-        python_callable=flush_cache,
-        op_args=(
-            REDIS_HOST,
-            REDIS_PORT,
-            REDIS_DB,
-            REDIS_PASSWORD,
-        ),
+    params={},
+    catchup=False,
+)
+def flush_cache_only():
+    flush_cache(
+        REDIS_HOST,
+        REDIS_PORT,
+        REDIS_DB,
+        REDIS_PASSWORD,
     )
+
+
+flush_cache_only()
