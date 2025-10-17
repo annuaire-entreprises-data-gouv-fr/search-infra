@@ -612,6 +612,8 @@ def clean_siren_column(siren: pd.Series) -> pd.Series:
     """
     Clean the SIREN column by removing unwanted characters and adding leading zeros.
     """
+    # Remove NaN
+    siren = siren.loc[~siren.isna()]
     # Check for non-digit characters
     non_digit_rows = siren.loc[~siren.str.isdigit()]
     if not non_digit_rows.empty:
