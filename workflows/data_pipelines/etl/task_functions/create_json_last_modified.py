@@ -34,7 +34,12 @@ from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CO
 from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import (
     ESS_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.finess.config import FINESS_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.finess.geographique.config import (
+    FINESS_GEOGRAPHIQUE_CONFIG,
+)
+from dag_datalake_sirene.workflows.data_pipelines.finess.juridique.config import (
+    FINESS_JURIDIQUE_CONFIG,
+)
 from dag_datalake_sirene.workflows.data_pipelines.formation.config import (
     FORMATION_CONFIG,
 )
@@ -72,7 +77,8 @@ def create_data_source_last_modified_file(**kwargs):
         EGAPRO_CONFIG.url_minio_metadata: "egapro",
         AGENCE_BIO_CONFIG.url_minio_metadata: "agence_bio",
         SPECTACLE_CONFIG.url_minio_metadata: "entrepreneur_spectacle",
-        FINESS_CONFIG.url_minio_metadata: "finess",
+        FINESS_JURIDIQUE_CONFIG.url_minio_metadata: "finess_juridique",
+        FINESS_GEOGRAPHIQUE_CONFIG.url_minio_metadata: "finess_geographique",
         BILANS_FINANCIERS_CONFIG.url_minio_metadata: "bilan_financier",
         FORMATION_CONFIG.url_minio_metadata: "organisme_formation",
         CONVENTION_COLLECTIVE_CONFIG.url_minio_metadata: "convention_collective",
