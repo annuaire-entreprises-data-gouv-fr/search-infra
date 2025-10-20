@@ -182,7 +182,7 @@ select_fields_to_index_query = """SELECT
                         s.libelle_pays_etranger as libelle_pays_etranger,
                         s.libelle_voie as libelle_voie,
                         s.longitude as longitude,
-                        (SELECT liste_finess FROM finess WHERE siret = s.siret) as
+                        (SELECT liste_finess_geographique FROM finess_geographique WHERE siret = s.siret) as
                         liste_finess,
                         (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
                         liste_id_bio,
@@ -292,7 +292,7 @@ select_fields_to_index_query = """SELECT
                         s.libelle_commune_etranger as libelle_commune_etranger,
                         s.libelle_pays_etranger as libelle_pays_etranger,
                         s.libelle_voie as libelle_voie,
-                        (SELECT liste_finess FROM finess WHERE siret = s.siret) as
+                        (SELECT liste_finess_geographique FROM finess_geographique WHERE siret = s.siret) as
                         liste_finess,
                         (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
                         liste_id_bio,
@@ -323,6 +323,8 @@ select_fields_to_index_query = """SELECT
              est_entrepreneur_spectacle,
             (SELECT statut_entrepreneur_spectacle FROM spectacle WHERE siren = ul.siren)
               as statut_entrepreneur_spectacle,
+            (SELECT finess_juridique FROM finess_juridique  siren = ul.siren)
+              as liste_finess_juridique,
             (SELECT egapro_renseignee FROM egapro WHERE siren = ul.siren) as
              egapro_renseignee,
             (SELECT bilan_ges_renseigne FROM bilan_ges WHERE siren = ul.siren) as
