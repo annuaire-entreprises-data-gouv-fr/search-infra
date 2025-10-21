@@ -323,6 +323,7 @@ class UniteLegaleMapping(InnerDoc):
     liste_dirigeants = Text(analyzer=annuaire_analyzer)
     liste_elus = Text(analyzer=annuaire_analyzer)
     liste_idcc_unite_legale = Text()
+    liste_finess_juridique = Text()
     nature_juridique_unite_legale = Keyword()
     nom = Text(analyzer=annuaire_analyzer)
     nom_raison_sociale = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})

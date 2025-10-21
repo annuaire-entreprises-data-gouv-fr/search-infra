@@ -239,6 +239,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["est_qualiopi"]
         )
 
+        # Finess
+        unite_legale_processed["liste_finess_juridique"] = str_to_list(
+            unite_legale_processed["liste_finess_juridique"]
+        )
+
         # Siege
         unite_legale_processed["siege"] = format_siege_unite_legale(
             unite_legale["siege"], is_non_diffusible
