@@ -323,7 +323,7 @@ select_fields_to_index_query = """SELECT
              est_entrepreneur_spectacle,
             (SELECT statut_entrepreneur_spectacle FROM spectacle WHERE siren = ul.siren)
               as statut_entrepreneur_spectacle,
-            (SELECT finess_juridique FROM finess_juridique  siren = ul.siren)
+            (SELECT liste_finess_juridique FROM finess_juridique WHERE siren = ul.siren)
               as liste_finess_juridique,
             (SELECT egapro_renseignee FROM egapro WHERE siren = ul.siren) as
              egapro_renseignee,
@@ -394,4 +394,5 @@ select_fields_to_index_query = """SELECT
                 siege st
             ON
                 ul.siren = st.siren
-            WHERE ul.siren IS NOT NULL;"""
+            WHERE ul.siren IS NOT NULL;
+    """
