@@ -247,13 +247,14 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         # Slug Nom Complet
         unite_legale_processed["slug"] = format_slug(
             unite_legale_processed["nom_complet"],
+            unite_legale["siren"],
             unite_legale["sigle"],
             get_nom_commercial(unite_legale_processed),
             unite_legale["denomination_usuelle_1_unite_legale"],
             unite_legale["denomination_usuelle_2_unite_legale"],
             unite_legale["denomination_usuelle_3_unite_legale"],
-            unite_legale["siren"],
             unite_legale["statut_diffusion_unite_legale"],
+            unite_legale["nature_jurdidique_unite_legale"],
         )
 
         # Convention collective

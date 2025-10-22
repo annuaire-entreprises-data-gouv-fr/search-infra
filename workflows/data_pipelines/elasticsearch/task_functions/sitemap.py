@@ -62,13 +62,14 @@ def create_sitemap():
                 )
                 slug = format_slug(
                     nom_complet,
+                    ul["siren"],
                     ul["sigle"],
                     ul["nom_commercial"],
                     ul["denomination_usuelle_1_unite_legale"],
                     ul["denomination_usuelle_2_unite_legale"],
                     ul["denomination_usuelle_3_unite_legale"],
-                    ul["siren"],
                     ul["statut_diffusion_unite_legale"],
+                    ul["nature_juridique_unite_legale"],
                 )
 
                 code_localisation = ul["code_postal"]
