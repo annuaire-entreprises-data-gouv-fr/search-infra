@@ -9,6 +9,7 @@ from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
     format_nom_complet,
     format_slug,
+    is_personne_morale_insee,
 )
 from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.sqlite.sitemap import (
     select_sitemap_fields_query,
@@ -49,7 +50,10 @@ def create_sitemap():
             if (
                 ul["etat_administratif_unite_legale"] == "A"
                 and ul["nature_juridique_unite_legale"] != "1000"
-                and ul["statut_diffusion_unite_legale"] == "O"
+                and (
+                    ul["statut_diffusion_unite_legale"] == "O"
+                    or is_personne_morale_insee(ul["nature_juridique_unite_legale"])
+                )
             ):
                 if not ul["code_postal"]:
                     ul["code_postal"] = ""
