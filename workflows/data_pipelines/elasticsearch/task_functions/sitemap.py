@@ -55,8 +55,6 @@ def create_sitemap():
                     or is_personne_morale_insee(ul["nature_juridique_unite_legale"])
                 )
             ):
-                if not ul["code_postal"]:
-                    ul["code_postal"] = ""
                 if not ul["activite_principale_unite_legale"]:
                     ul["activite_principale_unite_legale"] = ""
                 nom_complet = format_nom_complet(
@@ -72,8 +70,19 @@ def create_sitemap():
                     ul["siren"],
                     ul["statut_diffusion_unite_legale"],
                 )
+
+                code_localisation = ul["code_postal"]
+                if not code_localisation or code_localisation == "[ND]":
+                    code_localisation = ul["code_commune"]
+                if not code_localisation and ul["code_pays_etranger"]:
+                    code_localisation = ul["code_pays_etranger"]
+                if not code_localisation:
+                    code_localisation = ""
+                # Clean the field to avoid corrupted sitemap csv entries
+                code_localisation = code_localisation.replace(",", "").replace("'", "")
+
                 slugs = (
-                    f"{slugs}{ul['code_postal']},"
+                    f"{slugs}{code_localisation},"
                     f"{ul['activite_principale_unite_legale']},{slug}\n"
                 )
 
