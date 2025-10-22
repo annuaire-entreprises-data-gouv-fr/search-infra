@@ -70,9 +70,8 @@ def index_unites_legales_by_chunk(
 
     logger = 0
     doc_count = 0
-    chunk_unites_legales_sqlite = 1
+    chunk_unites_legales_sqlite = cursor.fetchmany(elastic_bulk_size)
     while chunk_unites_legales_sqlite:
-        chunk_unites_legales_sqlite = cursor.fetchmany(elastic_bulk_size)
         unite_legale_columns = tuple([x[0] for x in cursor.description])
         liste_unites_legales_sqlite = []
         # Group all fetched unites_legales from sqlite in one list
@@ -115,6 +114,8 @@ def index_unites_legales_by_chunk(
         except Exception as e:
             logging.error(f"Failed to send to Elasticsearch: {e}")
         logging.info(f"Number of documents indexed: {doc_count}")
+
+        chunk_unites_legales_sqlite = cursor.fetchmany(elastic_bulk_size)
 
     # rollback to the original value
     elastic_connection.indices.put_settings(
