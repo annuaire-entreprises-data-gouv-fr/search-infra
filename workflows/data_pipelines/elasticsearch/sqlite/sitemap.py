@@ -12,7 +12,8 @@ select_sitemap_fields_query = """SELECT
         st.code_pays_etranger as code_pays_etranger,
         st.nom_commercial as nom_commercial,
         ul.activite_principale_unite_legale as activite_principale_unite_legale,
-        ul.statut_diffusion_unite_legale as statut_diffusion_unite_legale
+        ul.statut_diffusion_unite_legale as statut_diffusion_unite_legale,
+        ul.nature_juridique_unite_legale
         FROM
             unite_legale ul
         JOIN

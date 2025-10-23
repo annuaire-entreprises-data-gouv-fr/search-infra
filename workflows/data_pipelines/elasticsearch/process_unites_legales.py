@@ -254,7 +254,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["denomination_usuelle_2_unite_legale"],
             unite_legale["denomination_usuelle_3_unite_legale"],
             unite_legale["statut_diffusion_unite_legale"],
-            unite_legale["nature_jurdidique_unite_legale"],
+            unite_legale["nature_juridique_unite_legale"],
         )
 
         # Convention collective
