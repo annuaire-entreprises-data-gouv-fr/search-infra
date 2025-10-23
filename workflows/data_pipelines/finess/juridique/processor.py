@@ -26,6 +26,8 @@ class FinessJuridiqueProcessor(DataProcessor):
             .loc[lambda x: x["siren"].notna()]
         )
 
+        valid_finess_ids = df_finess_geographique["finess_juridique"].unique()
+
         df_finess_juridique = (
             pd.read_csv(
                 self.config.files_to_download["finess_juridique"]["destination"],
@@ -38,6 +40,7 @@ class FinessJuridiqueProcessor(DataProcessor):
             .rename(columns={1: "finess_juridique", 20: "siren"})
             .filter(["finess_juridique", "siren"])
             .loc[lambda x: x["siren"].notna()]
+            .loc[lambda x: x["finess_juridique"].isin(valid_finess_ids)]
         )
 
         df_list_finess_juridique = (
