@@ -98,9 +98,6 @@ def format_slug(
     siren,
     sigle=None,
     nom_commercial_siege=None,
-    denomination_usuelle_1=None,
-    denomination_usuelle_2=None,
-    denomination_usuelle_3=None,
     statut_diffusion=None,
     nature_juridique_unite_legale=None,
 ):
@@ -117,28 +114,6 @@ def format_slug(
     # Handle the case of nom_commercial_siege
     if nom_commercial_siege:
         slug_parts.append(nom_commercial_siege)
-    else:
-        # Combine and filter out "SUPPRESSION DU NOM COMMERCIAL" from denom usuelles
-        denom_usuelle_fields: list = [
-            denomination_usuelle_1,
-            denomination_usuelle_2,
-            denomination_usuelle_3,
-        ]
-
-        # Log when any denomination is "SUPPRESSION DU NOM COMMERCIAL"
-        if any(x == "SUPPRESSION DU NOM COMMERCIAL" for x in denom_usuelle_fields):
-            logging.warning(
-                f"Suppression du nom commercial detected in usuelle fields: {siren}"
-            )
-
-        denomination_usuelle = " ".join(
-            filter(
-                lambda x: x and x != "SUPPRESSION DU NOM COMMERCIAL",
-                denom_usuelle_fields,
-            )
-        )
-        if denomination_usuelle:
-            slug_parts.append(denomination_usuelle)
 
     # Sigle is not a diffusible field for non-diffusible personnes morales
     if sigle and statut_diffusion == "O":
