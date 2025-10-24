@@ -206,7 +206,7 @@ select_fields_to_index_query = """SELECT
                         s.libelle_voie as libelle_voie,
                         s.libelle_voie_2 as libelle_voie_2,
                         s.longitude as longitude,
-                        (SELECT liste_finess FROM finess WHERE siret = s.siret) as
+                        (SELECT liste_finess_geographique FROM finess_geographique WHERE siret = s.siret) as
                         liste_finess,
                         (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
                         liste_id_bio,
@@ -342,7 +342,7 @@ select_fields_to_index_query = """SELECT
                         s.libelle_pays_etranger_2 as libelle_pays_etranger_2,
                         s.libelle_voie as libelle_voie,
                         s.libelle_voie_2 as libelle_voie_2,
-                        (SELECT liste_finess FROM finess WHERE siret = s.siret) as
+                        (SELECT liste_finess_geographique FROM finess_geographique WHERE siret = s.siret) as
                         liste_finess,
                         (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
                         liste_id_bio,
@@ -375,6 +375,8 @@ select_fields_to_index_query = """SELECT
              est_entrepreneur_spectacle,
             (SELECT statut_entrepreneur_spectacle FROM spectacle WHERE siren = ul.siren)
               as statut_entrepreneur_spectacle,
+            (SELECT liste_finess_juridique FROM finess_juridique WHERE siren = ul.siren)
+              as liste_finess_juridique,
             (SELECT egapro_renseignee FROM egapro WHERE siren = ul.siren) as
              egapro_renseignee,
             (SELECT bilan_ges_renseigne FROM bilan_ges WHERE siren = ul.siren) as
@@ -444,4 +446,5 @@ select_fields_to_index_query = """SELECT
                 siege st
             ON
                 ul.siren = st.siren
-            WHERE ul.siren IS NOT NULL;"""
+            WHERE ul.siren IS NOT NULL;
+    """

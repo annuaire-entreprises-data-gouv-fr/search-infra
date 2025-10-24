@@ -74,6 +74,7 @@ class DataGouvProcessor:
             "liste_idcc",
             "est_siae",
             "type_siae",
+            "liste_finess",
         ]
         self.etab_columns = [
             "siren",
@@ -203,6 +204,10 @@ class DataGouvProcessor:
             ),
             axis=1,
         )
+        chunk["liste_finess_juridique"] = chunk["liste_finess_juridique"].apply(
+            str_to_list
+        )
+
         return chunk
 
     def process_etablissement_chunk(self, chunk):
@@ -237,7 +242,9 @@ class DataGouvProcessor:
         chunk["liste_idcc"] = chunk["liste_idcc"].apply(str_to_list)
         chunk["liste_rge"] = chunk["liste_rge"].apply(str_to_list)
         chunk["liste_uai"] = chunk["liste_uai"].apply(str_to_list)
-        chunk["liste_finess"] = chunk["liste_finess"].apply(str_to_list)
+        chunk["liste_finess_geographique"] = chunk["liste_finess_geographique"].apply(
+            str_to_list
+        )
         chunk["liste_id_bio"] = chunk["liste_id_bio"].apply(str_to_list)
         return chunk
 

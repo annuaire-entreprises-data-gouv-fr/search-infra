@@ -222,7 +222,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         for field in [
             "convention_collective_renseignee",
             "est_bio",
-            "est_finess",
             "est_rge",
             "est_uai",
         ]:
@@ -237,6 +236,16 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
         unite_legale_processed["est_qualiopi"] = sqlite_str_to_bool(
             unite_legale_processed["est_qualiopi"]
+        )
+
+        # Finess
+        # liste_finess_juridique is enough to calculate est_finess since
+        # an Document can't have a finess géographique without a finess juridique
+        unite_legale_processed["est_finess"] = (
+            True if unite_legale_processed["liste_finess_juridique"] else False
+        )
+        unite_legale_processed["liste_finess_juridique"] = str_to_list(
+            unite_legale_processed["liste_finess_juridique"]
         )
 
         # Siege

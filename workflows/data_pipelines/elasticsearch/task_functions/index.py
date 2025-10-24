@@ -10,6 +10,7 @@ from dag_datalake_sirene.config import (
     ELASTIC_BULK_SIZE,
     ELASTIC_BULK_THREAD_COUNT,
     ELASTIC_MAX_LIVE_VERSIONS,
+    ELASTIC_MIN_DOC_COUNT_EXPECTED,
     ELASTIC_PASSWORD,
     ELASTIC_URL,
     ELASTIC_USER,
@@ -81,10 +82,11 @@ def check_elastic_index(**kwargs):
     )
     logging.info(f"******************** Documents indexed: {doc_count}")
 
-    if float(doc_count) < 26000000:
+    if int(doc_count) < ELASTIC_MIN_DOC_COUNT_EXPECTED:
         raise ValueError(
             f"*******The data has not been correctly indexed: "
             f"{doc_count} documents indexed."
+            f"Expected at least {ELASTIC_MIN_DOC_COUNT_EXPECTED}."
         )
 
 
