@@ -491,7 +491,6 @@ def format_etablissements_and_complements(
     complements = {
         "est_uai": False,
         "est_rge": False,
-        "est_finess": False,
         "est_organisme_formation": False,
         "est_bio": False,
         "convention_collective_renseignee": False,
