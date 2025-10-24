@@ -95,17 +95,20 @@ def get_nom_commercial(unite_legale):
 
 def format_slug(
     nom_complet,
+    siren,
     sigle=None,
     nom_commercial_siege=None,
     denomination_usuelle_1=None,
     denomination_usuelle_2=None,
     denomination_usuelle_3=None,
-    siren=None,
     statut_diffusion=None,
+    nature_juridique_unite_legale=None,
 ):
     """Generate a slug based on company information."""
-    # If the company is private (statut_diffusion == "P"), use the SIREN as the slug
-    if statut_diffusion == "P" and siren:
+    # If a personne physique company is non-diffusible, use only the SIREN as the slug
+    if statut_diffusion == "P" and not is_personne_morale_insee(
+        nature_juridique_unite_legale
+    ):
         return slugify(siren)
 
     # Initialize slug parts with the nom_complet
@@ -116,7 +119,7 @@ def format_slug(
         slug_parts.append(nom_commercial_siege)
     else:
         # Combine and filter out "SUPPRESSION DU NOM COMMERCIAL" from denom usuelles
-        denom_usuelle_fields = [
+        denom_usuelle_fields: list = [
             denomination_usuelle_1,
             denomination_usuelle_2,
             denomination_usuelle_3,
@@ -137,8 +140,8 @@ def format_slug(
         if denomination_usuelle:
             slug_parts.append(denomination_usuelle)
 
-    # Add sigle and siren if they exist
-    if sigle:
+    # Sigle is not a diffusible field for non-diffusible personnes morales
+    if sigle and statut_diffusion == "O":
         slug_parts.append(sigle)
     if siren:
         slug_parts.append(siren)
