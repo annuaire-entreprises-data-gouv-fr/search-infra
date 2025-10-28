@@ -53,16 +53,30 @@ class SireneFluxProcessor(DataProcessor):
 
     def get_current_flux_unite_legale(self):
         fields = (
-            "siren,dateCreationUniteLegale,sigleUniteLegale,"
-            "prenomUsuelUniteLegale,identifiantAssociationUniteLegale,"
-            "trancheEffectifsUniteLegale,dateDernierTraitementUniteLegale,"
-            "categorieEntreprise,etatAdministratifUniteLegale,nomUniteLegale,"
-            "nomUsageUniteLegale,denominationUniteLegale,denominationUsuelle1UniteLegale,"
-            "denominationUsuelle2UniteLegale,denominationUsuelle3UniteLegale,"
-            "categorieJuridiqueUniteLegale,activitePrincipaleUniteLegale,"
-            "economieSocialeSolidaireUniteLegale,statutDiffusionUniteLegale,"
-            "societeMissionUniteLegale,anneeCategorieEntreprise,anneeEffectifsUniteLegale,"
-            "caractereEmployeurUniteLegale,nicSiegeUniteLegale"
+            "siren,"
+            "dateCreationUniteLegale,"
+            "sigleUniteLegale,"
+            "prenomUsuelUniteLegale,"
+            "identifiantAssociationUniteLegale,"
+            "trancheEffectifsUniteLegale,"
+            "dateDernierTraitementUniteLegale,"
+            "categorieEntreprise,"
+            "etatAdministratifUniteLegale,"
+            "nomUniteLegale,"
+            "nomUsageUniteLegale,"
+            "denominationUniteLegale,"
+            "denominationUsuelle1UniteLegale,"
+            "denominationUsuelle2UniteLegale,"
+            "denominationUsuelle3UniteLegale,"
+            "categorieJuridiqueUniteLegale,"
+            "activitePrincipaleUniteLegale,"
+            "economieSocialeSolidaireUniteLegale,"
+            "statutDiffusionUniteLegale,"
+            "societeMissionUniteLegale,"
+            "anneeCategorieEntreprise,"
+            "anneeEffectifsUniteLegale,"
+            "caractereEmployeurUniteLegale,"
+            "nicSiegeUniteLegale"
         )
         output_path = (
             f"{self.config.tmp_folder}flux_unite_legale_{self.current_month}.csv"
@@ -117,25 +131,37 @@ class SireneFluxProcessor(DataProcessor):
 
     def get_current_flux_etablissement(self):
         fields = (
-            "siren,siret,dateCreationEtablissement,trancheEffectifsEtablissement,"
-            "activitePrincipaleRegistreMetiersEtablissement,etablissementSiege,"
-            "anneeEffectifsEtablissement,libelleVoieEtablissement,codePostalEtablissement,"
-            "numeroVoieEtablissement,dateDernierTraitementEtablissement,"
-            "libelleCommuneEtablissement,libelleCedexEtablissement,typeVoieEtablissement,"
-            "codeCommuneEtablissement,codeCedexEtablissement,"
-            "complementAdresseEtablissement,distributionSpecialeEtablissement,"
-            "complementAdresse2Etablissement,indiceRepetition2Etablissement,"
-            "libelleCedex2Etablissement,codeCedex2Etablissement,"
-            "numeroVoie2Etablissement,typeVoie2Etablissement,libelleVoie2Etablissement,"
-            "codeCommune2Etablissement,libelleCommune2Etablissement,"
-            "distributionSpeciale2Etablissement,dateDebut,etatAdministratifEtablissement,"
-            "enseigne1Etablissement,enseigne1Etablissement,enseigne2Etablissement,"
-            "enseigne3Etablissement,denominationUsuelleEtablissement,"
-            "activitePrincipaleEtablissement,indiceRepetitionEtablissement,"
-            "libelleCommuneEtrangerEtablissement,codePaysEtrangerEtablissement,"
-            "libellePaysEtrangerEtablissement,libelleCommuneEtranger2Etablissement,"
-            "codePaysEtranger2Etablissement,libellePaysEtranger2Etablissement,"
-            "statutDiffusionEtablissement,caractereEmployeurEtablissement,"
+            "siren,"
+            "siret,"
+            "dateCreationEtablissement,"
+            "trancheEffectifsEtablissement,"
+            "activitePrincipaleRegistreMetiersEtablissement,"
+            "etablissementSiege,"
+            "anneeEffectifsEtablissement,"
+            "libelleVoieEtablissement,"
+            "codePostalEtablissement,"
+            "numeroVoieEtablissement,"
+            "dateDernierTraitementEtablissement,"
+            "libelleCommuneEtablissement,"
+            "libelleCedexEtablissement,"
+            "typeVoieEtablissement,"
+            "codeCommuneEtablissement,"
+            "codeCedexEtablissement,"
+            "complementAdresseEtablissement,"
+            "distributionSpecialeEtablissement,"
+            "dateDebut,"
+            "etatAdministratifEtablissement,"
+            "enseigne1Etablissement,"
+            "enseigne2Etablissement,"
+            "enseigne3Etablissement,"
+            "denominationUsuelleEtablissement,"
+            "activitePrincipaleEtablissement,"
+            "indiceRepetitionEtablissement,"
+            "libelleCommuneEtrangerEtablissement,"
+            "codePaysEtrangerEtablissement,"
+            "libellePaysEtrangerEtablissement,"
+            "statutDiffusionEtablissement,"
+            "caractereEmployeurEtablissement,"
             "coordonneeLambertAbscisseEtablissement,"
             "coordonneeLambertOrdonneeEtablissement"
         )
@@ -145,7 +171,7 @@ class SireneFluxProcessor(DataProcessor):
 
         if datetime.today().day == 1:
             logging.info(
-                "First of the month, the flux API won't return any output. A headers only CSV is created instead."
+                "First day of the month, the flux API won't return any output. A headers only CSV is created instead."
             )
             self._create_empty_csv_with_headers(fields, output_path)
             zip_file(output_path)
@@ -164,11 +190,12 @@ class SireneFluxProcessor(DataProcessor):
                 self.BASE_ETABLISSEMENT_ENDPOINT, date, fields
             )
             df = self.client.fetch_data(endpoint, "etablissements")
-            for prefix in ["adresseEtablissement_", "adresse2Etablissement_"]:
-                df.columns = [
-                    col.replace(prefix, "") if prefix in col else col
-                    for col in df.columns
-                ]
+            df.columns = [
+                col.replace("adresseEtablissement_", "")
+                if "adresseEtablissement_" in col
+                else col
+                for col in df.columns
+            ]
 
             # Remove any SIRET we already got the last update from
             df = df[~df["siret"].isin(siret_processed)]
