@@ -133,6 +133,7 @@ class SireneFluxProcessor(DataProcessor):
         fields = (
             "siren,"
             "siret,"
+            "categorieJuridiqueUniteLegale,"
             "dateCreationEtablissement,"
             "trancheEffectifsEtablissement,"
             "activitePrincipaleRegistreMetiersEtablissement,"
