@@ -10,7 +10,15 @@ class FinessGeographiqueProcessor(DataProcessor):
         super().__init__(FINESS_GEOGRAPHIQUE_CONFIG)
 
     def preprocess_data(self):
+        """
+        Create a list of all the Finess Géographique IDs related to a Siret.
+
+        CSV Output columns:
+            - siret
+            - liste_juridique_geographique: list of Finess Géographiques of the siret
+        """
         df_finess_geographique = (
+            # Load the data..
             pd.read_csv(
                 self.config.files_to_download["finess_geographique"]["destination"],
                 dtype=str,
@@ -19,6 +27,7 @@ class FinessGeographiqueProcessor(DataProcessor):
                 skiprows=1,
                 header=None,
             )
+            # Clean it..
             .rename(
                 columns={
                     1: "finess_geographique",
@@ -27,6 +36,7 @@ class FinessGeographiqueProcessor(DataProcessor):
             )
             .filter(["finess_geographique", "siret"])
             .loc[lambda x: x["siret"].notna()]
+            # And group by Siret to get the list of unique Finess Géographique
             .groupby(["siret"], as_index=False)
             .agg(
                 liste_finess_geographique=(
