@@ -21,8 +21,11 @@ class FinessJuridiqueProcessor(DataProcessor):
             )
             .rename(columns={2: "finess_juridique", 22: "siret"})
             .filter(["finess_juridique", "siret"])
-            .assign(siren=lambda df: df["siret"].str[:9])
-            .filter(["finess_juridique", "siren"])
+            .assign(
+                siren=lambda df: df["siret"].str[:9],
+                source=lambda df: "geographique",
+            )
+            .filter(["finess_juridique", "siren", "source"])
             .loc[lambda x: x["siren"].notna()]
         )
 
@@ -39,22 +42,29 @@ class FinessJuridiqueProcessor(DataProcessor):
             )
             .rename(columns={1: "finess_juridique", 20: "siren"})
             .filter(["finess_juridique", "siren"])
+            .assign(source=lambda df: "juridique")
             .loc[lambda x: x["siren"].notna()]
             .loc[lambda x: x["finess_juridique"].isin(valid_finess_ids)]
         )
 
-        df_list_finess_juridique = (
-            pd.concat(
-                [df_finess_geographique, df_finess_juridique],
-                ignore_index=True,
-            )
-            .groupby(["siren"], as_index=False)
-            .agg(
-                liste_finess_juridique=(
-                    "finess_juridique",
-                    lambda x: str(list(x.unique())),
-                )
-            )
+        df_combined = pd.concat(
+            [df_finess_geographique, df_finess_juridique],
+            ignore_index=True,
+        )
+
+        finess_geographique_only = set(
+            df_combined[df_combined["source"] == "geographique"]["finess_juridique"]
+        ) - set(df_combined[df_combined["source"] == "juridique"]["finess_juridique"])
+
+        df_list_finess_juridique = df_combined.groupby(["siren"], as_index=False).agg(
+            liste_finess_juridique=(
+                "finess_juridique",
+                lambda x: str(list(x.unique())),
+            ),
+            has_finess_from_geographique_only=(
+                "finess_juridique",
+                lambda x: any(fid in finess_geographique_only for fid in x.unique()),
+            ),
         )
         df_list_finess_juridique.to_csv(
             f"{self.config.tmp_folder}/finess_juridique.csv", index=False
