@@ -28,7 +28,8 @@ FINESS_JURIDIQUE_CONFIG = DataSourceConfig(
         CREATE TABLE IF NOT EXISTS finess_juridique
         (
             siren TEXT PRIMARY KEY,
-            liste_finess_juridique TEXT
+            liste_finess_juridique TEXT,
+            has_finess_from_geographique_only BOOLEAN
         );
         COMMIT;
     """,
