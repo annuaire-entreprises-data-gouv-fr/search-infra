@@ -134,15 +134,31 @@ def get_latest_db(**kwargs):
                 shutil.copyfileobj(f_in, f_out)
         os.remove(f"{db_path}.gz")
 
-    count_ul, count_siege, count_pp, count_pm, count_immat = get_tables_count(
-        RNE_DB_TMP_FOLDER + f"rne_{start_date}.db"
-    )
+    (
+        count_ul,
+        count_siege,
+        count_pp,
+        count_pm,
+        count_immat,
+        count_etab,
+        count_activite,
+        count_beneficiaire,
+        count_historique,
+        count_inscription,
+        count_mention,
+    ) = get_tables_count(RNE_DB_TMP_FOLDER + f"rne_{start_date}.db")
     logging.info(
         f"*****Count ul : {count_ul}, "
         f"*****Count siege : {count_siege}, "
         f"*****Count pp : {count_pp}, "
-        f"*****Count pm : {count_pm}",
-        f"*****Count immat : {count_immat}",
+        f"*****Count pm : {count_pm}, "
+        f"*****Count immat : {count_immat}, "
+        f"*****Count etab : {count_etab}, "
+        f"*****Count activite : {count_activite}, "
+        f"*****Count beneficiaire : {count_beneficiaire}, "
+        f"*****Count historique : {count_historique}, "
+        f"*****Count inscription : {count_inscription}, "
+        f"*****Count mention : {count_mention}",
     )
 
 
@@ -282,15 +298,31 @@ def check_db_count(
 ):
     try:
         rne_db_path = ti.xcom_pull(key="rne_db_path", task_ids="create_db")
-        count_ul, count_siege, count_pp, count_pm, count_immat = get_tables_count(
-            rne_db_path
-        )
+        (
+            count_ul,
+            count_siege,
+            count_pp,
+            count_pm,
+            count_immat,
+            count_etab,
+            count_activite,
+            count_beneficiaire,
+            count_historique,
+            count_inscription,
+            count_mention,
+        ) = get_tables_count(rne_db_path)
         logging.info(
             f"*****Count ul:: {count_ul}, "
             f"Count siege: {count_siege}, "
             f"Count pp : {count_pp}, "
             f"Count pm : {count_pm}, "
-            f"Count immat : {count_immat}"
+            f"Count immat : {count_immat}, "
+            f"Count etab : {count_etab}, "
+            f"Count activite : {count_activite}, "
+            f"Count beneficiaire : {count_beneficiaire}, "
+            f"Count historique : {count_historique}, "
+            f"Count inscription : {count_inscription}, "
+            f"Count mention : {count_mention}"
         )
 
         if (
@@ -302,10 +334,10 @@ def check_db_count(
         ):
             raise Exception(
                 f"Counts below the minimum threshold: "
-                f"count ul : {count_ul}"
-                f"count siege : {count_siege}"
-                f"count pp : {count_pp}"
-                f"count pm : {count_pm}"
+                f"count ul : {count_ul}, "
+                f"count siege : {count_siege}, "
+                f"count pp : {count_pp}, "
+                f"count pm : {count_pm}, "
                 f"count immat : {count_immat}"
             )
 
