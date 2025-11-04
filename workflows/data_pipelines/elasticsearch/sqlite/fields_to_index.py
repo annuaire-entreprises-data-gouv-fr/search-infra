@@ -121,7 +121,7 @@ select_fields_to_index_query = """SELECT
                         'libelle_commune_etranger',libelle_commune_etranger,
                         'libelle_pays_etranger',libelle_pays_etranger,
                         'libelle_voie',libelle_voie,
-                        'liste_finess',liste_finess,
+                        'liste_finess_geographique',liste_finess_geographique,
                         'liste_id_bio',liste_id_bio,
                         'liste_idcc',liste_idcc,
                         'liste_rge',liste_rge,
@@ -183,7 +183,7 @@ select_fields_to_index_query = """SELECT
                         s.libelle_voie as libelle_voie,
                         s.longitude as longitude,
                         (SELECT liste_finess_geographique FROM finess_geographique WHERE siret = s.siret) as
-                        liste_finess,
+                        liste_finess_geographique,
                         (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
                         liste_id_bio,
                         (SELECT liste_idcc_etablissement FROM convention_collective
@@ -239,7 +239,7 @@ select_fields_to_index_query = """SELECT
                         'libelle_commune_etranger',libelle_commune_etranger,
                         'libelle_pays_etranger',libelle_pays_etranger,
                         'libelle_voie',libelle_voie,
-                        'liste_finess',liste_finess,
+                        'liste_finess_geographique',liste_finess_geographique,
                         'liste_id_bio',liste_id_bio,
                         'liste_idcc',liste_idcc,
                         'liste_rge',liste_rge,
@@ -293,7 +293,7 @@ select_fields_to_index_query = """SELECT
                         s.libelle_pays_etranger as libelle_pays_etranger,
                         s.libelle_voie as libelle_voie,
                         (SELECT liste_finess_geographique FROM finess_geographique WHERE siret = s.siret) as
-                        liste_finess,
+                        liste_finess_geographique,
                         (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
                         liste_id_bio,
                         (SELECT liste_idcc_etablissement FROM convention_collective
@@ -394,5 +394,6 @@ select_fields_to_index_query = """SELECT
                 siege st
             ON
                 ul.siren = st.siren
-            WHERE ul.siren IS NOT NULL;
+            WHERE ul.siren IS NOT NULL
+            ;
     """
