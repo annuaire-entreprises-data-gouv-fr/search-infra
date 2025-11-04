@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
-from airflow.decorators import dag, task
 from airflow.operators.python import ShortCircuitOperator
+from airflow.sdk import dag, task
 
 from dag_datalake_sirene.config import EMAIL_LIST, METADATA_CC_TMP_FOLDER
 from dag_datalake_sirene.helpers import Notification
@@ -50,7 +50,7 @@ def get_metadata_cc():
     def upload_json_to_minio_task():
         upload_json_to_minio()
 
-    (
+    return (
         clean_previous_outputs()
         >> is_metadata_updated_task
         >> create_metadata_convention_collective_json_task()
