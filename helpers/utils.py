@@ -593,7 +593,8 @@ def fetch_hyperlink_from_page(url: str, search_text: str) -> str:
 
     logging.info(f"Looking for the URL behind: {search_text}")
     match = re.search(
-        r'<a\s+href="([^"]+)">' + re.escape(search_text) + r"</a>", html_content
+        r'<a\s+[^>]*href="([^"]+)"[^>]*>' + re.escape(search_text) + r"</a>",
+        html_content,
     )
 
     if not match:
