@@ -87,7 +87,12 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.upload_db i
 from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.validation import (
     validate_table,
 )
-from dag_datalake_sirene.workflows.data_pipelines.finess.config import FINESS_CONFIG
+from dag_datalake_sirene.workflows.data_pipelines.finess.geographique.config import (
+    FINESS_GEOGRAPHIQUE_CONFIG,
+)
+from dag_datalake_sirene.workflows.data_pipelines.finess.juridique.config import (
+    FINESS_JURIDIQUE_CONFIG,
+)
 from dag_datalake_sirene.workflows.data_pipelines.formation.config import (
     FORMATION_CONFIG,
 )
@@ -186,7 +191,8 @@ def database_constructor():
             ELUS_CONFIG,
             ESS_CONFIG,
             RGE_CONFIG,
-            FINESS_CONFIG,
+            FINESS_JURIDIQUE_CONFIG,
+            FINESS_GEOGRAPHIQUE_CONFIG,
             EGAPRO_CONFIG,
             FORMATION_CONFIG,
             SPECTACLE_CONFIG,
