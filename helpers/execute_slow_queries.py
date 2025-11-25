@@ -1,11 +1,13 @@
 import logging
 
 import requests
+from airflow.sdk import task
 
 from dag_datalake_sirene.config import API_URL
 from dag_datalake_sirene.helpers.slow_requests import SLOW_REQUESTS
 
 
+@task
 def execute_slow_requests():
     session = requests.Session()
     base_url = API_URL

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from airflow.decorators import dag, task
+from airflow.sdk import dag, task
 
 from dag_datalake_sirene.config import EMAIL_LIST
 from dag_datalake_sirene.helpers import Notification
@@ -20,7 +20,7 @@ default_args = {
 @dag(
     tags=["sirene", "flux"],
     default_args=default_args,
-    schedule_interval="0 4 * * *",  # Daily at 4 AM
+    schedule="0 4 * * *",  # Daily at 4 AM
     start_date=datetime(2025, 8, 20),  # more naive than days_ago()
     dagrun_timeout=timedelta(minutes=60 * 12),
     params={},
@@ -56,7 +56,7 @@ def data_processing_sirene_flux():
     def clean_up():
         return f"rm -rf {sirene_flux_processor.config.tmp_folder}"
 
-    (
+    return (
         clean_previous_outputs()
         >> get_flux_unites_legales()
         >> get_flux_etablissements()

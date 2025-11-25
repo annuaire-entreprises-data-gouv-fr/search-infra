@@ -1,4 +1,4 @@
-from airflow.decorators import task
+from airflow.sdk import task
 
 from dag_datalake_sirene.config import (
     RNE_DATABASE_LOCATION,

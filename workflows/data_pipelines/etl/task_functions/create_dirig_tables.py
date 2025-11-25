@@ -3,7 +3,7 @@ import logging
 import os
 import shutil
 
-from airflow.decorators import task
+from airflow.sdk import task
 
 from dag_datalake_sirene.config import (
     AIRFLOW_ENV,
