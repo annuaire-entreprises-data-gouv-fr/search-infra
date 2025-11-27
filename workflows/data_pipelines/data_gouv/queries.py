@@ -126,7 +126,12 @@ SELECT ul.etat_administratif_unite_legale as etat_administratif,
         SELECT type_siae
         FROM marche_inclusion
         WHERE siren = ul.siren
-    ) as type_siae
+    ) as type_siae,
+    (
+        SELECT liste_finess_juridique
+        FROM finess_juridique
+        WHERE siren = ul.siren
+    ) as liste_finess_juridique,
 FROM unite_legale ul
     LEFT JOIN siege st ON ul.siren = st.siren
 WHERE ul.siren IS NOT NULL;
@@ -166,8 +171,8 @@ etab_fields_to_select = """SELECT s.activite_principale as activite_principale,
     s.libelle_pays_etranger as libelle_pays_etranger,
     s.libelle_voie as libelle_voie,
     (
-        SELECT liste_finess
-        FROM finess
+        SELECT liste_finess_geographique
+        FROM finess_geographique
         WHERE siret = s.siret
     ) as liste_finess,
     (
@@ -202,4 +207,4 @@ etab_fields_to_select = """SELECT s.activite_principale as activite_principale,
     s.x as x,
     s.y as y
 FROM etablissement s;
-                        """
+"""

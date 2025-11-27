@@ -148,7 +148,8 @@ with DAG(
     clean_previous_folder.set_upstream(get_next_index_name)
     get_latest_sqlite_database.set_upstream(clean_previous_folder)
 
-    create_elastic_index.set_upstream(get_latest_sqlite_database)
+    delete_previous_elastic_indices.set_upstream(get_latest_sqlite_database)
+    create_elastic_index.set_upstream(delete_previous_elastic_indices)
     fill_elastic_siren_index.set_upstream(create_elastic_index)
     check_elastic_index.set_upstream(fill_elastic_siren_index)
     update_elastic_alias.set_upstream(check_elastic_index)
