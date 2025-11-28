@@ -11,7 +11,6 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment 
     create_list_names_elus,
     format_dirigeants_pm,
     format_etablissements_and_complements,
-    format_nom,
     format_nom_complet,
     format_personnes_physiques,
     format_siege_unite_legale,
@@ -107,20 +106,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["dirigeants_pm"], unite_legale_processed["liste_dirigeants"]
         )
 
-        if unite_legale_processed["est_entrepreneur_individuel"]:
-            unite_legale_processed["liste_dirigeants"].append(
-                unite_legale_processed["nom_complet"]
-            )
-            unite_legale_processed["dirigeants_pp"] = []
-            unite_legale_processed["dirigeants_pp"].append({})
-            unite_legale_processed["dirigeants_pp"][0]["nom"] = format_nom(
-                unite_legale_processed["nom"], unite_legale_processed["nom_usage"]
-            )
-
-            unite_legale_processed["dirigeants_pp"][0]["prenoms"] = (
-                unite_legale_processed["prenom"]
-            )
-
         # Élus
         unite_legale_processed["liste_elus"] = create_list_names_elus(
             unite_legale_processed["colter_elus"]
@@ -134,20 +119,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["nature_juridique_unite_legale"],
             unite_legale_processed["identifiant_association_unite_legale"],
         )
-
-        if unite_legale_processed["est_entrepreneur_individuel"]:
-            unite_legale_processed["liste_dirigeants"].append(
-                unite_legale_processed["nom_complet"]
-            )
-            unite_legale_processed["dirigeants_pp"] = []
-            unite_legale_processed["dirigeants_pp"].append({})
-            unite_legale_processed["dirigeants_pp"][0]["nom"] = format_nom(
-                unite_legale_processed["nom"], unite_legale_processed["nom_usage"]
-            )
-
-            unite_legale_processed["dirigeants_pp"][0]["prenoms"] = (
-                unite_legale_processed["prenom"]
-            )
 
         unite_legale_processed["section_activite_principale"] = (
             label_section_from_activite(
