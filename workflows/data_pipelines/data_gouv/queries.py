@@ -131,7 +131,7 @@ SELECT ul.etat_administratif_unite_legale as etat_administratif,
         SELECT liste_finess_juridique
         FROM finess_juridique
         WHERE siren = ul.siren
-    ) as liste_finess_juridique,
+    ) as liste_finess_juridique
 FROM unite_legale ul
     LEFT JOIN siege st ON ul.siren = st.siren
 WHERE ul.siren IS NOT NULL;
