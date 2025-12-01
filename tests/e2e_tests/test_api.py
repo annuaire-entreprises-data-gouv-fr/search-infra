@@ -395,7 +395,7 @@ def test_id_convention_collective(api_response_tester):
 
 
 def test_est_finess(api_response_tester):
-    path = "search?est_finess=true"
+    path = "/search?est_finess=true"
     api_response_tester.assert_api_response_code_200(path)
     api_response_tester.test_field_value(path, 0, "complements.est_finess", True)
     api_response_tester.test_number_of_results(path, min_total_results_filters)
@@ -416,14 +416,14 @@ def test_est_finess(api_response_tester):
         "when est_finess=True and an établissement has a liste_finess populated"
     )
 
-    path = "search?est_finess=false"
+    path = "/search?est_finess=false"
     api_response_tester.test_field_value(path, 0, "complements.est_finess", False)
     api_response_tester.test_number_of_results(path, min_total_results_filters)
 
 
 def test_id_finess(api_response_tester):
     # Finess Géographique
-    path = "search?id_finess=010003853"
+    path = "/search?id_finess=010003853"
     api_response_tester.assert_api_response_code_200(path)
     response = api_response_tester.get_api_response(path)
     assert (
@@ -434,7 +434,7 @@ def test_id_finess(api_response_tester):
 
 def test_est_finess_matching_id_finess(api_response_tester):
     # Siren with a Finess Géographique
-    path = "search?id_finess=940008048&est_finess=true"
+    path = "/search?id_finess=940008048&est_finess=true"
     api_response_tester.assert_api_response_code_200(path)
     api_response_tester.test_field_value(path, 0, "siren", "490414091")
 
