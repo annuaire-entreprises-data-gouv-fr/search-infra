@@ -74,7 +74,7 @@ class DataGouvProcessor:
             "liste_idcc",
             "est_siae",
             "type_siae",
-            "liste_finess",
+            "liste_finess_juridique",
         ]
         self.etab_columns = [
             "siren",
