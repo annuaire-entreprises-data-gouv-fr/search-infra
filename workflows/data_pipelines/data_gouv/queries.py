@@ -174,7 +174,7 @@ etab_fields_to_select = """SELECT s.activite_principale as activite_principale,
         SELECT liste_finess_geographique
         FROM finess_geographique
         WHERE siret = s.siret
-    ) as liste_finess,
+    ) as liste_finess_geographique,
     (
         SELECT liste_id_bio
         FROM agence_bio
