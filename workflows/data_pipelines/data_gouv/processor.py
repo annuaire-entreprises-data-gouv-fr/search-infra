@@ -84,7 +84,7 @@ class DataGouvProcessor:
             "adresse",
             "etat_administratif",
             "statut_diffusion",
-            "liste_finess",
+            "liste_finess_geographique",
             "liste_id_bio",
             "liste_idcc",
             "liste_rge",
