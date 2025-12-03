@@ -1,7 +1,16 @@
 {
     "4110": "Établissement public national à caractère administratif",
     "4120": "Établissement public national à caractère industriel ou commercial",
+    "4130": "Exploitant public ",
     "4140": "Établissement public local à caractère industriel ou commercial",
     "4150": "Régie d'une collectivité locale à caractère industriel ou commercial",
-    "7410": "Groupement d'intérêt public (GIP)"
+    "7130": "Non renseigné (2 Siren en sommeil)",
+    "7321": "Association syndicale autorisée ",
+    "7322": "Association foncière urbaine ",
+    "7323": "Association foncière de remembrement ",
+    "7349": "Autre établissement public local de coopération non spécialisé ou entente ",
+    "7410": "Groupement d'intérêt public (GIP)",
+    "7490": "Autre personne morale de droit administratif ",
+    "7510": "Non rensiegné (Siren en sommeil)",
+    "7520": "Non rensiegné (Siren en sommeil)"
 }
