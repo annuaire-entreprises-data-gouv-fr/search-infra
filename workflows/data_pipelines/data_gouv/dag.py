@@ -38,10 +38,6 @@ default_args = {
 def publish_files_in_data_gouv():
     data_gouv_processor = DataGouvProcessor()
 
-    @task.short_circuit
-    def check_if_prod_env():
-        return check_if_prod()
-
     @task.bash
     def clean_previous_outputs():
         return f"rm -rf {AIRFLOW_DAG_TMP}publish_data_gouv && mkdir -p {AIRFLOW_DAG_TMP}publish_data_gouv"
@@ -66,6 +62,10 @@ def publish_files_in_data_gouv():
     def fill_etablissement_file():
         return data_gouv_processor.fill_etab_file()
 
+    @task.short_circuit
+    def check_if_prod_env():
+        return check_if_prod()
+
     @task
     def upload_etablissement_file_to_minio():
         return data_gouv_processor.upload_etab_to_minio()
@@ -74,18 +74,18 @@ def publish_files_in_data_gouv():
     def send_files_to_data_gouv():
         return data_gouv_processor.publish_to_datagouv()
 
-    @task.bash
+    @task.bash(trigger_rule="all_done")
     def clean_outputs():
         return f"rm -rf {AIRFLOW_DAG_TMP}publish_data_gouv"
 
     (
-        check_if_prod_env()
-        >> clean_previous_outputs()
+        clean_previous_outputs()
         >> get_latest_sqlite_db()
         >> fill_unite_legale_file()
         >> fill_liste_administration_file()
         >> upload_unite_legale_and_administration_files_to_minio()
         >> fill_etablissement_file()
+        >> check_if_prod_env()
         >> upload_etablissement_file_to_minio()
         >> send_files_to_data_gouv()
         >> clean_outputs()
