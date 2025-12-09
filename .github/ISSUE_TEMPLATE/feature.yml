@@ -1,0 +1,30 @@
+name: Demande de fonctionnalité
+description: Modèle d'issue pour demander une fonctionnalité
+title: "[FEATURE]: "
+projects: ["annuaire-entreprises-data-gouv-fr/projects/1"]
+assignees:
+  - hacherix
+  - HAEKADI
+type: task
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci beaucoup de prendre le temps de remplir ce formulaire ! Nous vous répondrons au plus vite.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Décrire la fonctionnalité que vous aimeriez voir implémenter. Être aussi détaillé que possible.
+    validations:
+      required: true
+  - type: textarea
+    id: exemples
+    attributes:
+      label: Exemples
+      description: Donner des exemples d'usages et/ou de résultats.
+  - type: textarea
+    id: solution
+    attributes:
+      label: Potentielle solution
+      description: Si vous le pouvez, indiquer comment vous implémenteriez cette fonctionnalité.
