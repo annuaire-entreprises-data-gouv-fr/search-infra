@@ -6,8 +6,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import TypedDict
 
-import boto3
-import botocore
 from minio import Minio, S3Error
 from minio.commonconfig import CopySource
 
@@ -238,29 +236,27 @@ class MinIOClient:
         """
         if self.bucket is None:
             raise AttributeError("A bucket has to be specified.")
-        s3 = boto3.client(
-            "s3",
-            endpoint_url=f"https://{self.url}",
-            aws_access_key_id=self.user,
-            aws_secret_access_key=self.password,
-        )
 
         try:
-            logging.info(f"ae/{AIRFLOW_ENV}/{file_path_1}{file_name_1}")
-            logging.info(f"ae/{AIRFLOW_ENV}/{file_path_2}{file_name_2}")
-            file_1 = s3.head_object(
-                Bucket=self.bucket, Key=f"ae/{AIRFLOW_ENV}/{file_path_1}{file_name_1}"
-            )
-            file_2 = s3.head_object(
-                Bucket=self.bucket, Key=f"ae/{AIRFLOW_ENV}/{file_path_2}{file_name_2}"
-            )
-            logging.info(f"Hash file 1 : {file_1['ETag']}")
-            logging.info(f"Hash file 2 : {file_2['ETag']}")
-            logging.info(bool(file_1["ETag"] == file_2["ETag"]))
+            file_1_key = f"ae/{AIRFLOW_ENV}/{file_path_1}{file_name_1}"
+            file_2_key = f"ae/{AIRFLOW_ENV}/{file_path_2}{file_name_2}"
 
-            return bool(file_1["ETag"] == file_2["ETag"])
+            logging.info(file_1_key)
+            logging.info(file_2_key)
 
-        except botocore.exceptions.ClientError as e:
+            file_1_stat = self.client.stat_object(self.bucket, file_1_key)
+            file_2_stat = self.client.stat_object(self.bucket, file_2_key)
+
+            file_1_etag = file_1_stat.etag
+            file_2_etag = file_2_stat.etag
+
+            logging.info(f"Hash file 1 : {file_1_etag}")
+            logging.info(f"Hash file 2 : {file_2_etag}")
+            logging.info(bool(file_1_etag == file_2_etag))
+
+            return bool(file_1_etag == file_2_etag)
+
+        except S3Error as e:
             logging.error(f"Error loading files: {e}")
             return None
 
