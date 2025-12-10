@@ -1,0 +1,67 @@
+name: Rapport de Bug
+description: Modèle d'issue pour déclarer un problème
+title: "[BUG]: "
+labels: ["bug"]
+projects: ["annuaire-entreprises-data-gouv-fr/projects/1"]
+assignees:
+  - hacherix
+  - HAEKADI
+type: bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci beaucoup de prendre le temps de remplir ce formulaire ! Nous vous répondrons au plus vite.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Résumer rapidement le problème rencontré.
+    validations:
+      required: true
+  - type: dropdown
+    id: criticite
+    attributes:
+      label: Criticité
+      options:
+        - Critique
+        - Modéré
+        - Faible
+    validations:
+      required: true
+  - type: textarea
+    id: reproduire
+    attributes:
+      label: Reproduction du bug
+      description: Décrire de manière séquentielle les toutes les étapes pour reproduire le problème.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Quel est le comportement problématique actuel ?
+      description: Décrire ce qu'il se passe et ce que vous observez en détails.
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Quel est le comportement attendu ?
+      description: Décrire ce à quoi vous attenderiez comme résultat.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs et screenshots pertinents
+      description: Copier les logs en utilisant les code blocks pour faciliter la lecture. Être exhaustif.
+  - type: textarea
+    id: solution
+    attributes:
+      label: Potentielle solution
+      description: Optionnel. Si vous le pouvez, indiquer dans le code ce qui vous semble être le cause du problème.
+  - type: textarea
+    id: informations
+    attributes:
+      label: Informations complémentaires
