@@ -39,6 +39,13 @@ class SireneFluxProcessor(DataProcessor):
         self.current_dates = get_dates_since_start_of_month(
             include_today=False, ascending=False
         )
+        # 2025-12-10 HOTFIX TO REVERT AT ANYTIME IN 2026
+        # Sirene Flux API is returning 404 for the following days:
+        # 2025-12-06 and 2025-12-07
+        problematic_dates = ["2025-12-06", "2025-12-07"]
+        self.current_dates = [
+            date for date in self.current_dates if date not in problematic_dates
+        ]
 
     @staticmethod
     def _construct_endpoint(base_endpoint: str, date: str, fields: str) -> str:
