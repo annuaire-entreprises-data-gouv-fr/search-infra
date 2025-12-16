@@ -2,7 +2,6 @@ import logging
 from datetime import datetime
 
 import pandas as pd
-
 from dag_datalake_sirene.helpers.data_processor import DataProcessor, Notification
 from dag_datalake_sirene.helpers.minio_helpers import File
 from dag_datalake_sirene.helpers.utils import (
@@ -39,10 +38,25 @@ class SireneFluxProcessor(DataProcessor):
         self.current_dates = get_dates_since_start_of_month(
             include_today=False, ascending=False
         )
-        # 2025-12-10 HOTFIX TO REVERT AT ANYTIME IN 2026
-        # Sirene Flux API is returning 404 for the following days:
-        # 2025-12-06 and 2025-12-07
-        problematic_dates = ["2025-12-06", "2025-12-07"]
+        # 2025-12-16 HOTFIX TO REVERT AT ANYTIME IN 2026
+        # New stock released the 16th of December
+        problematic_dates = [
+            "2025-12-01",
+            "2025-12-02",
+            "2025-12-03",
+            "2025-12-04",
+            "2025-12-05",
+            "2025-12-06",
+            "2025-12-07",
+            "2025-12-08",
+            "2025-12-09",
+            "2025-12-10",
+            "2025-12-11",
+            "2025-12-12",
+            "2025-12-13",
+            "2025-12-14",
+            "2025-12-15",
+        ]
         self.current_dates = [
             date for date in self.current_dates if date not in problematic_dates
         ]
