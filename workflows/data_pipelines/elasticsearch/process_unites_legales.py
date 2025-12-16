@@ -1,12 +1,12 @@
 import json
 from datetime import datetime
 
-from dag_datalake_sirene.helpers.utils import (
+from data_pipelines_annuaire.helpers.utils import (
     convert_date_format,
     sqlite_str_to_bool,
     str_to_list,
 )
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichment import (
     calculate_company_size_factor,
     create_list_names_elus,
     format_dirigeants_pm,

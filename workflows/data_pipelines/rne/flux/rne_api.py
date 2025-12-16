@@ -7,7 +7,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.exceptions import SSLError
 
-from dag_datalake_sirene.config import RNE_API_DIFF_URL, RNE_API_TOKEN_URL, RNE_AUTH
+from data_pipelines_annuaire.config import RNE_API_DIFF_URL, RNE_API_TOKEN_URL, RNE_AUTH
 
 
 class ApiRNEClient:

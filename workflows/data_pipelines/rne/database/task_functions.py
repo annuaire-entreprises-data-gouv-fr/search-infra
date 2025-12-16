@@ -8,19 +8,19 @@ from datetime import datetime, timedelta
 
 from minio.error import S3Error
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     RNE_DB_TMP_FOLDER,
     RNE_LATEST_DATE_FILE,
     RNE_MINIO_DATA_PATH,
     RNE_MINIO_FLUX_DATA_PATH,
     RNE_MINIO_STOCK_DATA_PATH,
 )
-from dag_datalake_sirene.helpers.mattermost import send_message
-from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
-from dag_datalake_sirene.workflows.data_pipelines.rne.database.db_connexion import (
+from data_pipelines_annuaire.helpers.mattermost import send_message
+from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.workflows.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
 )
-from dag_datalake_sirene.workflows.data_pipelines.rne.database.process_rne import (
+from data_pipelines_annuaire.workflows.data_pipelines.rne.database.process_rne import (
     create_tables,
     get_tables_count,
     inject_records_into_db,

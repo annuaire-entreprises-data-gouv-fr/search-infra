@@ -1,5 +1,5 @@
-from dag_datalake_sirene.helpers.mattermost import send_message
-from dag_datalake_sirene.helpers.tchap import send_message_tchap
+from data_pipelines_annuaire.helpers.mattermost import send_message
+from data_pipelines_annuaire.helpers.tchap import send_message_tchap
 
 
 def send_notification_success_mattermost(**kwargs):

@@ -1,9 +1,9 @@
 import logging
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     MINIO_DATA_SOURCE_UPDATE_DATES_FILE,
 )
-from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
 
 
 def sync_data_source_updates():

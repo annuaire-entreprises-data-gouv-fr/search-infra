@@ -9,8 +9,8 @@ from typing import TypedDict
 from minio import Minio, S3Error
 from minio.commonconfig import CopySource
 
-import dag_datalake_sirene.helpers.filesystem as filesystem
-from dag_datalake_sirene.config import (
+import data_pipelines_annuaire.helpers.filesystem as filesystem
+from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
     MINIO_BUCKET,
     MINIO_PASSWORD,

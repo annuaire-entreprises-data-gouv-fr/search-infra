@@ -5,60 +5,60 @@ import os
 import requests
 from airflow.decorators import task
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     AIRFLOW_ETL_DATA_DIR,
     MINIO_DATA_SOURCE_UPDATE_DATES_FILE,
 )
-from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
-from dag_datalake_sirene.helpers.utils import simplify_date
-from dag_datalake_sirene.workflows.data_pipelines.achats_responsables.config import (
+from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.utils import simplify_date
+from data_pipelines_annuaire.workflows.data_pipelines.achats_responsables.config import (
     ACHATS_RESPONSABLES_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.alim_confiance.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.alim_confiance.config import (
     ALIM_CONFIANCE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.bilans_financiers.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.bilans_financiers.config import (
     BILANS_FINANCIERS_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.colter.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.colter.config import (
     COLTER_CONFIG,
     ELUS_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.convcollective.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.convcollective.config import (
     CONVENTION_COLLECTIVE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
-from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
+from data_pipelines_annuaire.workflows.data_pipelines.ess_france.config import (
     ESS_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.finess.geographique.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.finess.geographique.config import (
     FINESS_GEOGRAPHIQUE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.finess.juridique.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.finess.juridique.config import (
     FINESS_JURIDIQUE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.formation.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.formation.config import (
     FORMATION_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.marche_inclusion.config import (
     MARCHE_INCLUSION_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.patrimoine_vivant.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.patrimoine_vivant.config import (
     PATRIMOINE_VIVANT_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.rge.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.rge.config import (
     RGE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.sirene.flux.config import (
     FLUX_SIRENE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.spectacle.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.spectacle.config import (
     SPECTACLE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.uai.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.uai.config import (
     UAI_CONFIG,
 )
 

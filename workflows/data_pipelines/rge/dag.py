@@ -3,10 +3,10 @@ from datetime import timedelta
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 
-from dag_datalake_sirene.config import EMAIL_LIST
-from dag_datalake_sirene.helpers import Notification
-from dag_datalake_sirene.workflows.data_pipelines.rge.config import RGE_CONFIG
-from dag_datalake_sirene.workflows.data_pipelines.rge.processor import (
+from data_pipelines_annuaire.config import EMAIL_LIST
+from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.workflows.data_pipelines.rge.config import RGE_CONFIG
+from data_pipelines_annuaire.workflows.data_pipelines.rge.processor import (
     RgeProcessor,
 )
 

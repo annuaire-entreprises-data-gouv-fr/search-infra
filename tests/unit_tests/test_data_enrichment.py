@@ -1,6 +1,6 @@
 """
 import pytest
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichment import (
     is_service_public,
 )
 

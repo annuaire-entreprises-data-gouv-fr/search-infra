@@ -14,8 +14,8 @@ from urllib.parse import urlparse
 import pandas as pd
 import requests
 
-from dag_datalake_sirene.config import AIRFLOW_ENV
-from dag_datalake_sirene.helpers.datagouv import fetch_last_modified_date
+from data_pipelines_annuaire.config import AIRFLOW_ENV
+from data_pipelines_annuaire.helpers.datagouv import fetch_last_modified_date
 
 
 def check_if_prod():
@@ -563,7 +563,7 @@ def get_dates_since_start_of_month(
 
 
 def load_file(file_name: str):
-    labels_file_path = "dags/dag_datalake_sirene/helpers/labels/"
+    labels_file_path = "dags/data_pipelines_annuaire/helpers/labels/"
 
     with open(f"{labels_file_path}{file_name}") as json_file:
         file_decoded = json.load(json_file)

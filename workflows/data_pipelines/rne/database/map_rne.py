@@ -1,12 +1,12 @@
 import logging
 
-from dag_datalake_sirene.helpers.utils import (
+from data_pipelines_annuaire.helpers.utils import (
     remove_spaces,
 )
-from dag_datalake_sirene.workflows.data_pipelines.rne.database.rne_model import (
+from data_pipelines_annuaire.workflows.data_pipelines.rne.database.rne_model import (
     RNECompany,
 )
-from dag_datalake_sirene.workflows.data_pipelines.rne.database.ul_model import (
+from data_pipelines_annuaire.workflows.data_pipelines.rne.database.ul_model import (
     Activite,
     Adresse,
     DirigeantsPM,

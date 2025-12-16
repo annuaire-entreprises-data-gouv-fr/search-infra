@@ -3,29 +3,29 @@ import sqlite3
 
 from airflow.decorators import task
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     AIRFLOW_ETL_DATA_DIR,
     RNE_DATABASE_LOCATION,
     SIRENE_DATABASE_LOCATION,
 )
 
 # fmt: on
-from dag_datalake_sirene.helpers.labels.departements import all_deps
-from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
+from data_pipelines_annuaire.helpers.labels.departements import all_deps
+from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.etablissements import (
+from data_pipelines_annuaire.workflows.data_pipelines.etl.data_fetch_clean.etablissements import (
     preprocess_etablissement_data,
     preprocess_historique_etablissement_data,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
+from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.helpers import (
     create_index,
     create_table_model,
     create_unique_index,
     execute_query,
     get_table_count,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.etablissements import (
+from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.queries.etablissements import (
     count_nombre_etablissement_ouvert_query,
     count_nombre_etablissement_query,
     create_table_count_etablissement_ouvert_query,

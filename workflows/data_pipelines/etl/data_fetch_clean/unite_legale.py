@@ -7,15 +7,15 @@ import pandas as pd
 import requests
 from airflow.exceptions import AirflowSkipException
 
-from dag_datalake_sirene.config import CURRENT_MONTH
-from dag_datalake_sirene.helpers.minio_helpers import File, MinIOClient
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.determine_sirene_date import (
+from data_pipelines_annuaire.config import CURRENT_MONTH
+from data_pipelines_annuaire.helpers.minio_helpers import File, MinIOClient
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.determine_sirene_date import (
     get_sirene_processing_month,
 )
-from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.sirene.flux.config import (
     FLUX_SIRENE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.sirene.stock.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.sirene.stock.config import (
     STOCK_SIRENE_CONFIG,
 )
 

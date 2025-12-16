@@ -1,7 +1,7 @@
 import pandas as pd
 
-from dag_datalake_sirene.helpers import DataProcessor, Notification
-from dag_datalake_sirene.workflows.data_pipelines.patrimoine_vivant.config import (
+from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.workflows.data_pipelines.patrimoine_vivant.config import (
     PATRIMOINE_VIVANT_CONFIG,
 )
 

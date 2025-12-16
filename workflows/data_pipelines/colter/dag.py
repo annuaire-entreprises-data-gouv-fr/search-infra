@@ -4,13 +4,13 @@ from airflow.datasets import Dataset
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 
-from dag_datalake_sirene.config import EMAIL_LIST
-from dag_datalake_sirene.helpers import Notification
-from dag_datalake_sirene.workflows.data_pipelines.colter.config import (
+from data_pipelines_annuaire.config import EMAIL_LIST
+from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.workflows.data_pipelines.colter.config import (
     COLTER_CONFIG,
     ELUS_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.colter.processor import (
+from data_pipelines_annuaire.workflows.data_pipelines.colter.processor import (
     ColterProcessor,
     ElusProcessor,
 )

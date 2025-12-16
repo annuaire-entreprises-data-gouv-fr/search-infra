@@ -6,14 +6,14 @@ from datetime import datetime
 import requests
 from airflow.operators.python import get_current_context
 
-from dag_datalake_sirene.config import DataSourceConfig
-from dag_datalake_sirene.helpers.datagouv import (
+from data_pipelines_annuaire.config import DataSourceConfig
+from data_pipelines_annuaire.helpers.datagouv import (
     fetch_last_modified_date,
     fetch_last_resource_from_dataset,
 )
-from dag_datalake_sirene.helpers.minio_helpers import File, MinIOClient
-from dag_datalake_sirene.helpers.notification import Notification, monitoring_logger
-from dag_datalake_sirene.helpers.utils import (
+from data_pipelines_annuaire.helpers.minio_helpers import File, MinIOClient
+from data_pipelines_annuaire.helpers.notification import Notification, monitoring_logger
+from data_pipelines_annuaire.helpers.utils import (
     download_file,
     fetch_hyperlink_from_page,
     get_date_last_modified,

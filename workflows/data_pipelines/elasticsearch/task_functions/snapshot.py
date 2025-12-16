@@ -4,7 +4,7 @@ from datetime import datetime
 
 from elasticsearch_dsl import connections
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DAG_NAME,
     AIRFLOW_ENV,
     ELASTIC_PASSWORD,
@@ -14,7 +14,7 @@ from dag_datalake_sirene.config import (
     ELASTIC_URL,
     ELASTIC_USER,
 )
-from dag_datalake_sirene.helpers.filesystem import (
+from data_pipelines_annuaire.helpers.filesystem import (
     Filesystem,
     JsonSerializer,
 )

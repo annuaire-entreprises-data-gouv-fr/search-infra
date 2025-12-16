@@ -1,10 +1,10 @@
 from airflow.decorators import task
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     RNE_DATABASE_LOCATION,
     SIRENE_DATABASE_LOCATION,
 )
-from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
+from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 
 
 @task

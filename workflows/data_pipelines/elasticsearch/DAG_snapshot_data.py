@@ -4,18 +4,18 @@ from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 
 # fmt: on
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     AIRFLOW_SNAPSHOT_DAG_NAME,
     EMAIL_LIST,
 )
-from dag_datalake_sirene.helpers import Notification
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.downstream import (
-    wait_for_downstream_import,
+from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.downstream import (
     update_downstream_alias,
+    wait_for_downstream_import,
 )
 
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.snapshot import (
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.snapshot import (
     delete_old_snapshots,
     snapshot_elastic_index,
     update_minio_current_index_version,

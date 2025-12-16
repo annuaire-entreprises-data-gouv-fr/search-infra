@@ -2,8 +2,10 @@ import logging
 import time
 
 import requests
+from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import NotFoundError
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DAG_NAME,
     ELASTIC_DOWNSTREAM_ALIAS_NEXT,
     ELASTIC_DOWNSTREAM_PASSWORD,
@@ -11,9 +13,6 @@ from dag_datalake_sirene.config import (
     ELASTIC_DOWNSTREAM_USER,
 )
 
-from elasticsearch import NotFoundError
-from elasticsearch import Elasticsearch
-from elasticsearch.exceptions import NotFoundError
 
 def wait_for_downstream_import(**kwargs):
     elastic_index = kwargs["ti"].xcom_pull(
@@ -73,6 +72,7 @@ def wait_for_downstream_index_import(elastic_index):
 
     if len(pending) > 0:
         raise Exception("Downstream import is taking too long")
+
 
 def update_downstream_alias(**kwargs):
     urls = [url.strip() for url in ELASTIC_DOWNSTREAM_URLS.split(",")]

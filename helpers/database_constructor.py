@@ -2,8 +2,8 @@ import logging
 
 import pandas as pd
 
-from dag_datalake_sirene.config import DataSourceConfig
-from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
+from data_pipelines_annuaire.config import DataSourceConfig
+from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 
 
 class DatabaseTableConstructor:

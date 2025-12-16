@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from dag_datalake_sirene.config import CURRENT_MONTH
-from dag_datalake_sirene.helpers import DataProcessor
-from dag_datalake_sirene.helpers.datagouv import get_dataset_or_resource_metadata
-from dag_datalake_sirene.helpers.minio_helpers import File
-from dag_datalake_sirene.workflows.data_pipelines.sirene.stock.config import (
+from data_pipelines_annuaire.config import CURRENT_MONTH
+from data_pipelines_annuaire.helpers import DataProcessor
+from data_pipelines_annuaire.helpers.datagouv import get_dataset_or_resource_metadata
+from data_pipelines_annuaire.helpers.minio_helpers import File
+from data_pipelines_annuaire.workflows.data_pipelines.sirene.stock.config import (
     STOCK_SIRENE_CONFIG,
 )
 

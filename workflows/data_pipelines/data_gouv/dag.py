@@ -3,13 +3,13 @@ from datetime import timedelta
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     AIRFLOW_DAG_TMP,
     EMAIL_LIST,
 )
-from dag_datalake_sirene.helpers import Notification
-from dag_datalake_sirene.helpers.utils import check_if_prod
-from dag_datalake_sirene.workflows.data_pipelines.data_gouv.processor import (
+from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.helpers.utils import check_if_prod
+from data_pipelines_annuaire.workflows.data_pipelines.data_gouv.processor import (
     DataGouvProcessor,
 )
 

@@ -2,14 +2,14 @@ import json
 import logging
 import os
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     AIRFLOW_ETL_DATA_DIR,
     DATABASE_VALIDATION_MINIO_PATH,
 )
-from dag_datalake_sirene.helpers.filesystem import LocalFile
-from dag_datalake_sirene.helpers.minio_helpers import MinIOFile
-from dag_datalake_sirene.helpers.notification import monitoring_logger
-from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
+from data_pipelines_annuaire.helpers.filesystem import LocalFile
+from data_pipelines_annuaire.helpers.minio_helpers import MinIOFile
+from data_pipelines_annuaire.helpers.notification import monitoring_logger
+from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 
 
 def validate_table(

@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 from typing import Literal
 
-import dag_datalake_sirene.helpers.minio_helpers as minio
+import data_pipelines_annuaire.helpers.minio_helpers as minio
 
 
 class LocalFile:
