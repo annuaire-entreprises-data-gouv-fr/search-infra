@@ -333,8 +333,6 @@ def upload_db_to_minio(**kwargs):
         with gzip.open(database_zip_file_path, "wb") as f_out:
             shutil.copyfileobj(f_in, f_out)
 
-    os.remove(database_file_path)
-
     logging.info(f"Sending database: rne_{start_date}.db.gz")
     send_to_minio(
         [
@@ -346,7 +344,9 @@ def upload_db_to_minio(**kwargs):
             }
         ]
     )
-    # Delete the local file after uploading to Minio
+
+    # Delete local files after uploading to Minio
+    os.remove(database_file_path)
     if os.path.exists(database_zip_file_path):
         os.remove(database_zip_file_path)
     else:
