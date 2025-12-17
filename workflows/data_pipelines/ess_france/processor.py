@@ -1,7 +1,9 @@
 import pandas as pd
 
-from dag_datalake_sirene.helpers import DataProcessor, Notification
-from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import ESS_CONFIG
+from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.workflows.data_pipelines.ess_france.config import (
+    ESS_CONFIG,
+)
 
 
 class EssFranceProcessor(DataProcessor):

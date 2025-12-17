@@ -2,9 +2,9 @@ from datetime import datetime
 
 import pandas as pd
 
-from dag_datalake_sirene.helpers import DataProcessor, Notification
-from dag_datalake_sirene.helpers.utils import get_fiscal_year
-from dag_datalake_sirene.workflows.data_pipelines.bilans_financiers.config import (
+from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers.utils import get_fiscal_year
+from data_pipelines_annuaire.workflows.data_pipelines.bilans_financiers.config import (
     BILANS_FINANCIERS_CONFIG,
 )
 

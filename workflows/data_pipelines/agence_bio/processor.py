@@ -3,13 +3,13 @@ from typing import Any, Literal
 
 import pandas as pd
 
-from dag_datalake_sirene.helpers import DataProcessor, Notification
-from dag_datalake_sirene.helpers.minio_helpers import File
-from dag_datalake_sirene.helpers.utils import flatten_object
-from dag_datalake_sirene.workflows.data_pipelines.agence_bio.api import (
+from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers.minio_helpers import File
+from data_pipelines_annuaire.helpers.utils import flatten_object
+from data_pipelines_annuaire.workflows.data_pipelines.agence_bio.api import (
     BioApiClient,
 )
-from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
 

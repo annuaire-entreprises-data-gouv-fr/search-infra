@@ -3,10 +3,10 @@ import logging
 
 from slugify import slugify
 
-from dag_datalake_sirene.helpers.geolocalisation import (
+from data_pipelines_annuaire.helpers.geolocalisation import (
     transform_coordinates,
 )
-from dag_datalake_sirene.helpers.utils import (
+from data_pipelines_annuaire.helpers.utils import (
     drop_exact_duplicates,
     get_empty_string_if_none,
     load_file,
@@ -14,12 +14,12 @@ from dag_datalake_sirene.helpers.utils import (
     str_to_bool,
     str_to_list,
 )
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.clean_data import (
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.clean_data import (
     drop_duplicates_dirigeants_pm,
     drop_duplicates_personnes_physiques,
     unique_qualites,
 )
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.es_fields import (
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.es_fields import (
     get_elasticsearch_field_name,
 )
 

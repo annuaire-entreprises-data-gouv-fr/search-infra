@@ -22,7 +22,7 @@ jobs:
       # Include `--format=github` to enable automatic inline annotations.
       - name: Run Ruff
         # --extend-select I not working yet as ruff is considering
-        # dag_datalake_sirene as a third party package since the repo is named search-infra
+        # data_pipelines_annuaire as a third party package since the repo is named search-infra
         # run: ruff check --extend-select I --diff -- --format=github .
         run: ruff check --diff -- --format=github .
       - name: Run Mypy

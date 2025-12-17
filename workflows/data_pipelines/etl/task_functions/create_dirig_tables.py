@@ -5,27 +5,27 @@ import shutil
 
 from airflow.decorators import task
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
     RNE_DATABASE_LOCATION,
     SIRENE_DATABASE_LOCATION,
 )
-from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
 
 # fmt: on
-from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
+from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.etl.data_fetch_clean.dirigeants import (
+from data_pipelines_annuaire.workflows.data_pipelines.etl.data_fetch_clean.dirigeants import (
     preprocess_dirigeant_pm,
     preprocess_personne_physique,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.helpers import (
+from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.helpers import (
     create_index,
     drop_table,
     get_distinct_column_count,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.sqlite.queries.dirigeants import (
+from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.queries.dirigeants import (
     create_table_dirigeant_pm_query,
     create_table_dirigeant_pp_query,
     get_chunk_dirig_pm_from_db_query,

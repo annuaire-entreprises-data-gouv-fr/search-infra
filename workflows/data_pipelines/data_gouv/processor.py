@@ -8,22 +8,25 @@ from datetime import datetime
 
 import pandas as pd
 
-from dag_datalake_sirene.config import AIRFLOW_DATAGOUV_DATA_DIR, SIRENE_MINIO_DATA_PATH
-from dag_datalake_sirene.helpers.datagouv import post_resource
-from dag_datalake_sirene.helpers.geolocalisation import transform_coordinates
-from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
-from dag_datalake_sirene.helpers.sqlite_client import SqliteClient
-from dag_datalake_sirene.helpers.utils import (
+from data_pipelines_annuaire.config import (
+    AIRFLOW_DATAGOUV_DATA_DIR,
+    SIRENE_MINIO_DATA_PATH,
+)
+from data_pipelines_annuaire.helpers.datagouv import post_resource
+from data_pipelines_annuaire.helpers.geolocalisation import transform_coordinates
+from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
+from data_pipelines_annuaire.helpers.utils import (
     convert_date_format,
     sqlite_str_to_bool,
     str_to_bool,
     str_to_list,
 )
-from dag_datalake_sirene.workflows.data_pipelines.data_gouv.queries import (
+from data_pipelines_annuaire.workflows.data_pipelines.data_gouv.queries import (
     etab_fields_to_select,
     ul_fields_to_select,
 )
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichment import (
     create_list_names_elus,
     format_adresse_complete,
     format_departement,

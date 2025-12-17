@@ -3,8 +3,8 @@ import logging
 import pandas as pd
 import requests
 
-from dag_datalake_sirene.helpers import DataProcessor, Notification
-from dag_datalake_sirene.workflows.data_pipelines.rge.config import RGE_CONFIG
+from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.workflows.data_pipelines.rge.config import RGE_CONFIG
 
 
 class RgeProcessor(DataProcessor):

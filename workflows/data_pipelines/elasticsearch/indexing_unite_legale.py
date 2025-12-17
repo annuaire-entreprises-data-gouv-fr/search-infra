@@ -3,12 +3,12 @@ import time
 
 from elasticsearch.helpers import parallel_bulk
 
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.mapping_index import (
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.mapping_index import (
     StructureMapping,
 )
 
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch\
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch\
     .process_unites_legales import process_unites_legales
 
 # fmt: on

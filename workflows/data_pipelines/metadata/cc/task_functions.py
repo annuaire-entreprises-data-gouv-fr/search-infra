@@ -7,16 +7,16 @@ import requests
 from airflow.operators.python import get_current_context
 from requests.exceptions import HTTPError
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     FILE_CC_DATE,
     METADATA_CC_MINIO_PATH,
     METADATA_CC_TMP_FOLDER,
     URL_CC_DARES,
     URL_CC_KALI,
 )
-from dag_datalake_sirene.helpers.minio_helpers import File, MinIOClient
-from dag_datalake_sirene.helpers.notification import Notification
-from dag_datalake_sirene.helpers.utils import get_previous_months
+from data_pipelines_annuaire.helpers.minio_helpers import File, MinIOClient
+from data_pipelines_annuaire.helpers.notification import Notification
+from data_pipelines_annuaire.helpers.utils import get_previous_months
 
 
 def get_month_year_french():

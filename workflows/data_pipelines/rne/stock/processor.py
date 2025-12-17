@@ -3,10 +3,10 @@ import os
 import subprocess
 import zipfile
 
-from dag_datalake_sirene.config import AIRFLOW_DAG_HOME
-from dag_datalake_sirene.helpers import DataProcessor
-from dag_datalake_sirene.helpers.minio_helpers import File
-from dag_datalake_sirene.workflows.data_pipelines.rne.stock.config import (
+from data_pipelines_annuaire.config import AIRFLOW_DAG_HOME
+from data_pipelines_annuaire.helpers import DataProcessor
+from data_pipelines_annuaire.helpers.minio_helpers import File
+from data_pipelines_annuaire.workflows.data_pipelines.rne.stock.config import (
     RNE_STOCK_CONFIG,
 )
 
@@ -22,7 +22,7 @@ class RneStockProcessor(DataProcessor):
 
         script_path = os.path.join(
             AIRFLOW_DAG_HOME,
-            "dag_datalake_sirene/workflows/data_pipelines/rne/stock/get_stock.sh",
+            "data_pipelines_annuaire/workflows/data_pipelines/rne/stock/get_stock.sh",
         )
 
         # Ensure tmp folder exists

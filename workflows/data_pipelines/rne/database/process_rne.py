@@ -1,16 +1,16 @@
 import json
 import logging
 
-from dag_datalake_sirene.workflows.data_pipelines.rne.database.db_connexion import (
+from data_pipelines_annuaire.workflows.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
 )
-from dag_datalake_sirene.workflows.data_pipelines.rne.database.map_rne import (
+from data_pipelines_annuaire.workflows.data_pipelines.rne.database.map_rne import (
     map_rne_company_to_ul,
 )
-from dag_datalake_sirene.workflows.data_pipelines.rne.database.rne_model import (
+from data_pipelines_annuaire.workflows.data_pipelines.rne.database.rne_model import (
     RNECompany,
 )
-from dag_datalake_sirene.workflows.data_pipelines.rne.database.ul_model import (
+from data_pipelines_annuaire.workflows.data_pipelines.rne.database.ul_model import (
     UniteLegale,
 )
 

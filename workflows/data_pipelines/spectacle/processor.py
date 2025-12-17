@@ -1,12 +1,12 @@
 import pandas as pd
 
-from dag_datalake_sirene.helpers import DataProcessor, Notification
-from dag_datalake_sirene.helpers.utils import clean_siren_column
+from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers.utils import clean_siren_column
 
 
 class SpectacleProcessor(DataProcessor):
     def __init__(self):
-        from dag_datalake_sirene.workflows.data_pipelines.spectacle.config import (
+        from data_pipelines_annuaire.workflows.data_pipelines.spectacle.config import (
             SPECTACLE_CONFIG,
         )
 

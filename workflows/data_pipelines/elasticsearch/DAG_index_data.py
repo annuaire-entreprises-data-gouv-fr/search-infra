@@ -5,7 +5,7 @@ from airflow.operators.python import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from operators.clean_folder import CleanFolderOperator
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     AIRFLOW_DAG_FOLDER,
     AIRFLOW_DAG_TMP,
     AIRFLOW_ELK_DAG_NAME,
@@ -17,13 +17,13 @@ from dag_datalake_sirene.config import (
     REDIS_PASSWORD,
     REDIS_PORT,
 )
-from dag_datalake_sirene.helpers.flush_cache import flush_cache
+from data_pipelines_annuaire.helpers.flush_cache import flush_cache
 
 # fmt: on
-from dag_datalake_sirene.tests.e2e_tests.run_tests import run_e2e_tests
+from data_pipelines_annuaire.tests.e2e_tests.run_tests import run_e2e_tests
 
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.\
     index import (
     check_elastic_index,
     create_elastic_index,
@@ -32,21 +32,21 @@ from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
     get_next_index_name,
     update_elastic_alias,
 )
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.\
     send_notification import (
     send_notification_failure_mattermost,
     send_notification_success_mattermost,
 )
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.\
     sitemap import (
     create_sitemap,
     update_sitemap,
 )
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.\
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.\
     source_updates import (
     sync_data_source_updates,
 )
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.task_functions.fetch_db import (
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.fetch_db import (
     get_latest_database,
 )
 

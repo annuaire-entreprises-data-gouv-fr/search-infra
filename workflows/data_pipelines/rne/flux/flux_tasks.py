@@ -6,16 +6,18 @@ import re
 import shutil
 from datetime import datetime, timedelta
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
     RNE_DEFAULT_START_DATE,
     RNE_FLUX_DATADIR,
     RNE_MINIO_FLUX_DATA_PATH,
 )
-from dag_datalake_sirene.helpers.mattermost import send_message
-from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
-from dag_datalake_sirene.helpers.utils import get_last_line
-from dag_datalake_sirene.workflows.data_pipelines.rne.flux.rne_api import ApiRNEClient
+from data_pipelines_annuaire.helpers.mattermost import send_message
+from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.utils import get_last_line
+from data_pipelines_annuaire.workflows.data_pipelines.rne.flux.rne_api import (
+    ApiRNEClient,
+)
 
 
 def get_last_json_file_date():

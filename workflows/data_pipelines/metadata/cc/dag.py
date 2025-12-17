@@ -3,9 +3,9 @@ from datetime import datetime, timedelta
 from airflow.decorators import dag, task
 from airflow.operators.python import ShortCircuitOperator
 
-from dag_datalake_sirene.config import EMAIL_LIST, METADATA_CC_TMP_FOLDER
-from dag_datalake_sirene.helpers import Notification
-from dag_datalake_sirene.workflows.data_pipelines.metadata.cc.task_functions import (
+from data_pipelines_annuaire.config import EMAIL_LIST, METADATA_CC_TMP_FOLDER
+from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.workflows.data_pipelines.metadata.cc.task_functions import (
     create_metadata_convention_collective_json,
     is_metadata_not_updated,
     upload_json_to_minio,

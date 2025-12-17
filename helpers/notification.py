@@ -1,7 +1,7 @@
 import logging
 from enum import Enum
 
-from dag_datalake_sirene.helpers import mattermost
+from data_pipelines_annuaire.helpers import mattermost
 
 
 def monitoring_logger(key: str, value: int) -> None:
@@ -35,7 +35,7 @@ class Notification:
 
         [Optional] In the relevant @task, use the following code to provide additional
         context for the notification:
-            >> from dag_datalake_sirene.helpers import Notification
+            >> from data_pipelines_annuaire.helpers import Notification
             >> ti.xcom_push(key=Notification.notification_xcom_key, value=error_message)
     """
 

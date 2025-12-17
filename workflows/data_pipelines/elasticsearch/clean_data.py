@@ -1,6 +1,6 @@
 import logging
 
-from dag_datalake_sirene.helpers.utils import normalize_string
+from data_pipelines_annuaire.helpers.utils import normalize_string
 
 
 def unique_qualites(qualite_string):

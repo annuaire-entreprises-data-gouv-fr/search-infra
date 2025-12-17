@@ -4,13 +4,13 @@ from typing import Literal
 from airflow.decorators import task
 from airflow.operators.python import get_current_context
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     CURRENT_MONTH,
     PREVIOUS_MONTH,
     URL_STOCK_ETABLISSEMENTS,
 )
-from dag_datalake_sirene.helpers.utils import is_url_valid
-from dag_datalake_sirene.workflows.data_pipelines.sirene.stock.config import (
+from data_pipelines_annuaire.helpers.utils import is_url_valid
+from data_pipelines_annuaire.workflows.data_pipelines.sirene.stock.config import (
     STOCK_SIRENE_CONFIG,
 )
 

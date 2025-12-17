@@ -5,11 +5,11 @@ import re
 import shutil
 from datetime import datetime
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DATA_DIR,
     SIRENE_MINIO_DATA_PATH,
 )
-from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
 
 current_date = datetime.now().date()
 

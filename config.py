@@ -59,7 +59,7 @@ MINIO_BASE_URL = f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/"
 # Airflow
 AIRFLOW_DAG_HOME = Variable.get("AIRFLOW_DAG_HOME", "/opt/airflow/dags/")
 AIRFLOW_DAG_TMP = Variable.get("AIRFLOW_DAG_TMP", "/tmp/")
-AIRFLOW_DAG_FOLDER = "dag_datalake_sirene/"
+AIRFLOW_DAG_FOLDER = "data_pipelines_annuaire/"
 AIRFLOW_ETL_DAG_NAME = "extract_transform_load_db"
 AIRFLOW_ELK_DAG_NAME = "index_elasticsearch"
 AIRFLOW_SNAPSHOT_DAG_NAME = "snapshot_index"
@@ -89,7 +89,7 @@ RNE_STOCK_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rne/stock/"
 RNE_STOCK_ZIP_FILE_PATH = f"{RNE_STOCK_TMP_FOLDER}stock_rne.zip"
 RNE_STOCK_EXTRACTED_FILES_PATH = f"{RNE_STOCK_TMP_FOLDER}extracted/"
 RNE_STOCK_DATADIR = f"{RNE_STOCK_TMP_FOLDER}data"
-RNE_DAG_FOLDER = "dag_datalake_sirene/workflows/data_pipelines/"
+RNE_DAG_FOLDER = "data_pipelines_annuaire/workflows/data_pipelines/"
 METADATA_CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}metadata/cc/"
 METADATA_CC_MINIO_PATH = "metadata/cc/"
 INSEE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/ul/"

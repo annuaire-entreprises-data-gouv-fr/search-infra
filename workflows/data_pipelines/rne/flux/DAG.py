@@ -4,8 +4,8 @@ from airflow.models import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 
-from dag_datalake_sirene.config import EMAIL_LIST, RNE_FLUX_TMP_FOLDER
-from dag_datalake_sirene.workflows.data_pipelines.rne.flux.flux_tasks import (
+from data_pipelines_annuaire.config import EMAIL_LIST, RNE_FLUX_TMP_FOLDER
+from data_pipelines_annuaire.workflows.data_pipelines.rne.flux.flux_tasks import (
     get_every_day_flux,
     send_notification_failure_mattermost,
     send_notification_success_mattermost,

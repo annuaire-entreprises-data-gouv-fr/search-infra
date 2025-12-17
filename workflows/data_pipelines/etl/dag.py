@@ -4,41 +4,45 @@ from datetime import datetime, timedelta
 from airflow.decorators import dag, task, task_group
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DAG_NAME,
     AIRFLOW_ETL_DAG_NAME,
     EMAIL_LIST,
     SIRENE_DATABASE_LOCATION,
 )
-from dag_datalake_sirene.helpers import Notification
-from dag_datalake_sirene.helpers.database_constructor import DatabaseTableConstructor
-from dag_datalake_sirene.workflows.data_pipelines.achats_responsables.config import (
+from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.helpers.database_constructor import (
+    DatabaseTableConstructor,
+)
+from data_pipelines_annuaire.workflows.data_pipelines.achats_responsables.config import (
     ACHATS_RESPONSABLES_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.agence_bio.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.alim_confiance.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.alim_confiance.config import (
     ALIM_CONFIANCE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.bilan_ges.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.bilan_ges.config import (
     BILAN_GES_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.bilans_financiers.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.bilans_financiers.config import (
     BILANS_FINANCIERS_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.colter.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.colter.config import (
     COLTER_CONFIG,
     ELUS_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.convcollective.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.convcollective.config import (
     CONVENTION_COLLECTIVE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
-from dag_datalake_sirene.workflows.data_pipelines.ess_france.config import ESS_CONFIG
+from data_pipelines_annuaire.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
+from data_pipelines_annuaire.workflows.data_pipelines.ess_france.config import (
+    ESS_CONFIG,
+)
 
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.\
     create_etablissements_tables import (
     add_rne_data_to_siege_table,
     count_nombre_etablissement,
@@ -52,15 +56,15 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     replace_etablissement_table,
     replace_siege_table,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.\
     create_immatriculation_table import (
     copy_immatriculation_table,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.\
     create_json_last_modified import (
     create_data_source_last_modified_file,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.\
     create_unite_legale_tables import (
     add_ancien_siege_flux_data,
     add_rne_siren_data_to_unite_legale_table,
@@ -71,42 +75,42 @@ from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.\
     insert_date_fermeture_unite_legale,
     replace_unite_legale_table,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.create_dirig_tables import (
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_dirig_tables import (
     create_dirig_pm_table,
     create_dirig_pp_table,
     get_rne_database,
 )
 
 # fmt: on
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.determine_sirene_date import (
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.determine_sirene_date import (
     determine_sirene_date,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.upload_db import (
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.upload_db import (
     upload_db_to_minio,
 )
-from dag_datalake_sirene.workflows.data_pipelines.etl.task_functions.validation import (
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.validation import (
     validate_table,
 )
-from dag_datalake_sirene.workflows.data_pipelines.finess.geographique.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.finess.geographique.config import (
     FINESS_GEOGRAPHIQUE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.finess.juridique.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.finess.juridique.config import (
     FINESS_JURIDIQUE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.formation.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.formation.config import (
     FORMATION_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.marche_inclusion.config import (
     MARCHE_INCLUSION_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.patrimoine_vivant.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.patrimoine_vivant.config import (
     PATRIMOINE_VIVANT_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.rge.config import RGE_CONFIG
-from dag_datalake_sirene.workflows.data_pipelines.spectacle.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.rge.config import RGE_CONFIG
+from data_pipelines_annuaire.workflows.data_pipelines.spectacle.config import (
     SPECTACLE_CONFIG,
 )
-from dag_datalake_sirene.workflows.data_pipelines.uai.config import UAI_CONFIG
+from data_pipelines_annuaire.workflows.data_pipelines.uai.config import UAI_CONFIG
 
 default_args = {
     "depends_on_past": False,

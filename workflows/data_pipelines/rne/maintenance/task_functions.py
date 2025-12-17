@@ -1,4 +1,4 @@
-from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
 
 
 def rename_old_rne_folders(**kwargs):

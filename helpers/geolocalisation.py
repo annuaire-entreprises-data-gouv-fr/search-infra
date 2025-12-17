@@ -2,7 +2,7 @@ from functools import lru_cache
 
 from pyproj import Transformer
 
-from dag_datalake_sirene.helpers.utils import is_valid_number
+from data_pipelines_annuaire.helpers.utils import is_valid_number
 
 # Mapping between department codes and EPSG codes
 department_epsg_mapping = {

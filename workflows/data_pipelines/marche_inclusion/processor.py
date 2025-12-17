@@ -2,9 +2,9 @@ import logging
 
 import pandas as pd
 
-from dag_datalake_sirene.helpers import DataProcessor, Notification
-from dag_datalake_sirene.helpers.api_client import ApiClient
-from dag_datalake_sirene.workflows.data_pipelines.marche_inclusion.config import (
+from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers.api_client import ApiClient
+from data_pipelines_annuaire.workflows.data_pipelines.marche_inclusion.config import (
     MARCHE_INCLUSION_CONFIG,
 )
 

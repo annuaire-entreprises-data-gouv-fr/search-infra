@@ -3,7 +3,7 @@ from typing import Any
 
 import requests
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
     MATTERMOST_WEBHOOK,
 )

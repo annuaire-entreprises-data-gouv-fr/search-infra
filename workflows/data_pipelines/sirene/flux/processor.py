@@ -2,16 +2,17 @@ import logging
 from datetime import datetime
 
 import pandas as pd
-from dag_datalake_sirene.helpers.data_processor import DataProcessor, Notification
-from dag_datalake_sirene.helpers.minio_helpers import File
-from dag_datalake_sirene.helpers.utils import (
+
+from data_pipelines_annuaire.helpers.data_processor import DataProcessor, Notification
+from data_pipelines_annuaire.helpers.minio_helpers import File
+from data_pipelines_annuaire.helpers.utils import (
     get_dates_since_start_of_month,
     zip_file,
 )
-from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.api import (
+from data_pipelines_annuaire.workflows.data_pipelines.sirene.flux.api import (
     SireneApiClient,
 )
-from dag_datalake_sirene.workflows.data_pipelines.sirene.flux.config import (
+from data_pipelines_annuaire.workflows.data_pipelines.sirene.flux.config import (
     FLUX_SIRENE_CONFIG,
 )
 

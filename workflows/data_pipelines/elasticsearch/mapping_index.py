@@ -16,7 +16,7 @@ from elasticsearch_dsl import (
     tokenizer,
 )
 
-from dag_datalake_sirene.config import ELASTIC_REPLICAS, ELASTIC_SHARDS
+from data_pipelines_annuaire.config import ELASTIC_REPLICAS, ELASTIC_SHARDS
 
 # Define filters
 french_stop = token_filter("french_stop", type="stop", stopwords="_french_")

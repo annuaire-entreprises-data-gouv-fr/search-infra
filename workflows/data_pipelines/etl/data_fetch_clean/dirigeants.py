@@ -1,7 +1,7 @@
 import pandas as pd
 
 # fmt: off
-from dag_datalake_sirene.workflows.data_pipelines.elasticsearch.data_enrichment import (
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichment import (
     map_roles,
 )
 

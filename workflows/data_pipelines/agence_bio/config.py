@@ -1,4 +1,4 @@
-from dag_datalake_sirene.config import MINIO_BASE_URL, DataSourceConfig
+from data_pipelines_annuaire.config import MINIO_BASE_URL, DataSourceConfig
 
 AGENCE_BIO_CONFIG = DataSourceConfig(
     name="agence_bio",

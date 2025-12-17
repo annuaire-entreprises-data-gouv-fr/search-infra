@@ -8,7 +8,7 @@ from airflow.models.dagrun import DagRun
 from airflow.operators.python_operator import PythonOperator
 from airflow.settings import Session
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     EMAIL_LIST,
 )
 

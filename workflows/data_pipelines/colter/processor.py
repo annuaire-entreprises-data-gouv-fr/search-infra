@@ -3,8 +3,8 @@ import logging
 import numpy as np
 import pandas as pd
 
-from dag_datalake_sirene.helpers import DataProcessor
-from dag_datalake_sirene.workflows.data_pipelines.colter.config import (
+from data_pipelines_annuaire.helpers import DataProcessor
+from data_pipelines_annuaire.workflows.data_pipelines.colter.config import (
     COLTER_CONFIG,
     ELUS_CONFIG,
 )

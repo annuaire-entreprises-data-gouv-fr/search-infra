@@ -4,11 +4,11 @@ from datetime import datetime, timedelta, timezone
 from airflow.models import DAG
 from airflow.operators.python_operator import PythonOperator
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
     EMAIL_LIST,
 )
-from dag_datalake_sirene.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
 
 
 def delete_old_files(

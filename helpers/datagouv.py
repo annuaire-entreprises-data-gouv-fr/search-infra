@@ -4,7 +4,7 @@ from typing import Optional, Tuple, TypedDict
 
 import requests
 
-from dag_datalake_sirene.config import (
+from data_pipelines_annuaire.config import (
     DATA_GOUV_BASE_URL,
     DATAGOUV_SECRET_API_KEY,
     DATAGOUV_URL,
