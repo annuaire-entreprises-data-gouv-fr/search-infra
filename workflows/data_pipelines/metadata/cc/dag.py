@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from airflow.operators.python import ShortCircuitOperator
+from airflow.providers.standard.operators.python import ShortCircuitOperator
 from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST, METADATA_CC_TMP_FOLDER

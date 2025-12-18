@@ -3,8 +3,8 @@ import shutil
 from datetime import datetime, timedelta
 
 from airflow.models import DAG
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.sdk import task
 
 from data_pipelines_annuaire.config import (
