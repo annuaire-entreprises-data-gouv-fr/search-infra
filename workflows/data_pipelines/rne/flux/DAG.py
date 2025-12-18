@@ -33,7 +33,7 @@ default_args = {
 def get_flux_rne():
     @task.bash
     def clean_outputs():
-        return (f"rm -rf {RNE_FLUX_TMP_FOLDER} && mkdir -p {RNE_FLUX_TMP_FOLDER}",)
+        return f"rm -rf {RNE_FLUX_TMP_FOLDER} && mkdir -p {RNE_FLUX_TMP_FOLDER}"
 
     return (
         clean_outputs()
