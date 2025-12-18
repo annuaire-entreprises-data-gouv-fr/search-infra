@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta
 
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.sdk import dag, task, task_group
 
 from data_pipelines_annuaire.config import (
