@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 import pendulum
-from airflow.decorators import dag, task
+from airflow.sdk import dag, task
 from data_pipelines_annuaire.config import EMAIL_LIST
 from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.workflows.data_pipelines.finess.juridique.config import (
