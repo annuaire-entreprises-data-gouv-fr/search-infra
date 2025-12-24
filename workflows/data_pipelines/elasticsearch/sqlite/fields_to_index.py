@@ -373,6 +373,7 @@ select_fields_to_index_query = """SELECT
                     'capital_social', capital_social,
                     'date_cloture_exercice', date_cloture_exercice,
                     'duree_personne_morale', duree_personne_morale,
+                    'date_fin_existence', date_fin_existence,
                     'nature_entreprise', nature_entreprise,
                     'date_debut_activite', date_debut_activite,
                     'capital_variable', capital_variable,
@@ -382,7 +383,7 @@ select_fields_to_index_query = """SELECT
                 (
                     SELECT date_immatriculation, date_radiation,
                     indicateur_associe_unique, capital_social,
-                    date_cloture_exercice, duree_personne_morale, nature_entreprise,
+                    date_cloture_exercice, duree_personne_morale, date_fin_existence, nature_entreprise,
                     date_debut_activite, capital_variable, devise_capital
                     FROM immatriculation
                     WHERE siren = ul.siren

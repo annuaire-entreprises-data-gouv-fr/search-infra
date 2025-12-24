@@ -246,6 +246,7 @@ class ImmatriculationMapping(InnerDoc):
     capital_social = Long()
     date_cloture_exercice = Text()
     duree_personne_morale = Integer()
+    date_fin_existence = Date()
     nature_entreprise = Text()
     date_debut_activite = Text()
     capital_variable = Boolean()
