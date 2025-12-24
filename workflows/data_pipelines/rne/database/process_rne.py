@@ -108,6 +108,7 @@ def create_tables(cursor):
             capital_social REAL,
             date_cloture_exercice TEXT,
             duree_personne_morale INT,
+            date_fin_existence DATE,
             nature_entreprise TEXT,
             date_debut_activite TEXT,
             capital_variable TEXT,
@@ -578,6 +579,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             "capital_variable",
             "devise_capital",
             "duree_personne_morale",
+            "date_fin_existence",
             "file_name",
         ]
 
@@ -599,6 +601,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 immatriculation.capital_variable,
                 immatriculation.devise_capital,
                 immatriculation.duree_personne_morale,
+                immatriculation.date_fin_existence,
                 file_path,
             ),
         )

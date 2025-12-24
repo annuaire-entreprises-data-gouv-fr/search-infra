@@ -23,6 +23,7 @@ class Description(BaseModel):
     deviseCapital: str | None = None
     dateClotureExerciceSocial: str | None = None
     duree: int | None = None
+    dateFinExistence: str | None = None
 
 
 class DescriptionPersonne(BaseModel):
