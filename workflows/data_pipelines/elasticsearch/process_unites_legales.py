@@ -120,12 +120,6 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["identifiant_association_unite_legale"],
         )
 
-        unite_legale_processed["section_activite_principale"] = (
-            label_section_from_activite(
-                unite_legale["activite_principale_unite_legale"]
-            )
-        )
-
         # Immatriculation
         immatriculation = unite_legale.get("immatriculation")
         if immatriculation:
