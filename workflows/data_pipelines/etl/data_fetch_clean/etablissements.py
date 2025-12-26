@@ -213,7 +213,7 @@ def preprocess_etablissement_data(siret_file_type, departement=None, data_dir=No
             "enseigne2Etablissement": "enseigne_2",
             "enseigne3Etablissement": "enseigne_3",
             "activitePrincipaleEtablissement": "activite_principale",
-            "activitePrincipaleNAF25Etablissement": "activite_principale_naf_25",
+            "activitePrincipaleNAF25Etablissement": "activite_principale_naf25",
             "indiceRepetitionEtablissement": "indice_repetition",
             "denominationUsuelleEtablissement": "nom_commercial",
             "libelleCommuneEtrangerEtablissement": "libelle_commune_etranger",

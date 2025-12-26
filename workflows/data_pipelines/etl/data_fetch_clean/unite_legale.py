@@ -155,7 +155,7 @@ def preprocess_unite_legale_data(data_dir, sirene_file_type):
                 "denominationUsuelle3UniteLegale": "denomination_usuelle_3",
                 "categorieJuridiqueUniteLegale": "nature_juridique_unite_legale",
                 "activitePrincipaleUniteLegale": "activite_principale_unite_legale",
-                "activitePrincipaleNAF25UniteLegale": "activite_principale_naf_25_unite_legale",
+                "activitePrincipaleNAF25UniteLegale": "activite_principale_naf25_unite_legale",
                 "economieSocialeSolidaireUniteLegale": "economie_sociale_solidaire"
                 "_unite_legale",
                 "identifiantAssociationUniteLegale": "identifiant_association"

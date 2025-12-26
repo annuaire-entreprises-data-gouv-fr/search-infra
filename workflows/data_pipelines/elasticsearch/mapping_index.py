@@ -116,7 +116,7 @@ class DirigeantPMMapping(InnerDoc):
 
 class EtablissementMapping(InnerDoc):
     activite_principale = Text()
-    activite_principale_naf_25 = Text()
+    activite_principale_naf25 = Text()
     activite_principale_registre_metier = Keyword()
     adresse = Text(analyzer=annuaire_analyzer)
     ancien_siege = Boolean()
@@ -175,7 +175,7 @@ class EtablissementMapping(InnerDoc):
 
 class SiegeMapping(InnerDoc):
     activite_principale = Text()
-    activite_principale_naf_25 = Text()
+    activite_principale_naf25 = Text()
     activite_principale_registre_metier = Keyword()
     adresse = Text(analyzer=annuaire_analyzer)
     annee_tranche_effectif_salarie = Date()
@@ -268,7 +268,7 @@ class UniteLegaleMapping(InnerDoc):
     """
 
     activite_principale_unite_legale = Keyword()
-    activite_principale_naf_25_unite_legale = Keyword()
+    activite_principale_naf25_unite_legale = Keyword()
     annee_categorie_entreprise = Date()
     annee_tranche_effectif_salarie = Date()
     bilan_financier = Nested(BilanFinancierMapping)
