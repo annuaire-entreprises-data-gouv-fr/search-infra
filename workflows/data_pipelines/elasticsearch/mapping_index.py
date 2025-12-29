@@ -115,15 +115,15 @@ class DirigeantPMMapping(InnerDoc):
 
 
 class EtablissementMapping(InnerDoc):
-    activite_principale = Text()
-    activite_principale_naf25 = Text()
+    activite_principale = Keyword()
+    activite_principale_naf25 = Keyword()
     activite_principale_registre_metier = Keyword()
     adresse = Text(analyzer=annuaire_analyzer)
     ancien_siege = Boolean()
     annee_tranche_effectif_salarie = Date()
     caractere_employeur = Keyword()
     cedex = Keyword()
-    code_pays_etranger = Text()
+    code_pays_etranger = Keyword()
     code_postal = Text(analyzer=annuaire_analyzer)
     # Using analyzer to be able to search using multi-match
     commune = Text(analyzer=annuaire_analyzer)
@@ -137,7 +137,7 @@ class EtablissementMapping(InnerDoc):
     date_fermeture = Date()
     date_mise_a_jour_insee = Date()
     departement = Keyword()
-    distribution_speciale = Text()
+    distribution_speciale = Keyword()
     enseigne_1 = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     enseigne_2 = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     enseigne_3 = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
@@ -147,7 +147,7 @@ class EtablissementMapping(InnerDoc):
     geo_adresse = Text(analyzer=annuaire_analyzer)
     geo_id = Keyword()
     geo_score = Keyword()
-    indice_repetition = Text()
+    indice_repetition = Keyword()
     latitude = Text()
     liste_finess_geographique = Text()
     liste_id_bio = Text()
@@ -174,14 +174,14 @@ class EtablissementMapping(InnerDoc):
 
 
 class SiegeMapping(InnerDoc):
-    activite_principale = Text()
-    activite_principale_naf25 = Text()
+    activite_principale = Keyword()
+    activite_principale_naf25 = Keyword()
     activite_principale_registre_metier = Keyword()
     adresse = Text(analyzer=annuaire_analyzer)
     annee_tranche_effectif_salarie = Date()
     caractere_employeur = Keyword()
     cedex = Keyword()
-    code_pays_etranger = Text()
+    code_pays_etranger = Keyword()
     code_postal = Keyword()
     commune = Keyword()
     coordonnees = GeoPoint()
@@ -193,7 +193,7 @@ class SiegeMapping(InnerDoc):
     date_mise_a_jour_insee = Date()
     date_mise_a_jour_rne = Date()
     departement = Keyword()
-    distribution_speciale = Text()
+    distribution_speciale = Keyword()
     enseigne_1 = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     enseigne_2 = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     enseigne_3 = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
@@ -203,7 +203,7 @@ class SiegeMapping(InnerDoc):
     geo_adresse = Text(analyzer=annuaire_analyzer)
     geo_id = Keyword()
     geo_score = Keyword()
-    indice_repetition = Text()
+    indice_repetition = Keyword()
     latitude = Text()
     liste_finess_geographique = Text()
     liste_id_bio = Text()
@@ -230,7 +230,7 @@ class EluMapping(InnerDoc):
     nom = Text()
     prenom = Text()
     date_naissance = Date()
-    sexe = Text()
+    sexe = Keyword()
     fonction = Text()
 
 
@@ -307,7 +307,7 @@ class UniteLegaleMapping(InnerDoc):
     est_bio = Boolean()
     est_ess = Boolean()
     est_organisme_formation = Boolean()
-    liste_id_organisme_formation = Text()
+    liste_id_organisme_formation = Keyword()
     est_qualiopi = Boolean()
     est_l100_3 = Boolean()
     est_patrimoine_vivant = Boolean()
@@ -343,7 +343,7 @@ class UniteLegaleMapping(InnerDoc):
     slug = Text()
     statut_diffusion_unite_legale = Keyword()
     statut_entrepreneur_spectacle = Text()
-    type_siae = Text()
+    type_siae = Keyword()
     tranche_effectif_salarie_unite_legale = Keyword()
 
 
