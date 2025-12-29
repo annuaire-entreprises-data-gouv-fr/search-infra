@@ -317,7 +317,17 @@ class ElusProcessor(DataProcessor):
         df_colter_elus.to_csv(self.config.file_output, index=False)
 
     def process_elus_files(self, url, colname):
-        df_elus = pd.read_csv(url, dtype=str, sep=";")
+        try:
+            df_elus = pd.read_csv(url, dtype=str, sep=";")
+            # Check if we got multiple columns (successful parse)
+            if len(df_elus.columns) == 1:
+                raise ValueError("Only one column found, wrong separator")
+        except (pd.errors.ParserError, ValueError):
+            logging.warning(
+                f"***** Separator might be different than semicolon for {url}"
+            )
+            df_elus = pd.read_csv(url, dtype=str, sep=",")
+
         df_elus.rename(columns=lambda x: x.replace("’", "'"), inplace=True)
 
         column_mapping = {
