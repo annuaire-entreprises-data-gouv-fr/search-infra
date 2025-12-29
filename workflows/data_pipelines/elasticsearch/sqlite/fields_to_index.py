@@ -1,5 +1,6 @@
 select_fields_to_index_query = """SELECT
             ul.activite_principale_unite_legale as activite_principale_unite_legale,
+            ul.activite_principale_naf25_unite_legale as activite_principale_naf25_unite_legale,
             ul.caractere_employeur as caractere_employeur,
             ul.categorie_entreprise as categorie_entreprise,
             ul.date_creation_unite_legale as date_creation_unite_legale,
@@ -93,6 +94,7 @@ select_fields_to_index_query = """SELECT
             (SELECT json_group_array(
                     json_object(
                         'activite_principale',activite_principale,
+                        'activite_principale_naf25',activite_principale_naf25,
                         'activite_principale_registre_metier',
                         activite_principale_registre_metier,
                         'ancien_siege',ancien_siege,
@@ -144,6 +146,7 @@ select_fields_to_index_query = """SELECT
                     (
                         SELECT
                         s.activite_principale as activite_principale,
+                        s.activite_principale_naf25 as activite_principale_naf25,
                         s.activite_principale_registre_metier as
                         activite_principale_registre_metier,
                         CASE
@@ -210,6 +213,7 @@ select_fields_to_index_query = """SELECT
                 ) as etablissements,
             (SELECT json_object(
                         'activite_principale',activite_principale,
+                        'activite_principale_naf25', activite_principale_naf25,
                         'activite_principale_registre_metier',
                         activite_principale_registre_metier,
                         'caractere_employeur',caractere_employeur,
@@ -264,6 +268,7 @@ select_fields_to_index_query = """SELECT
                     (
                         SELECT
                         s.activite_principale as activite_principale,
+                        s.activite_principale_naf25 as activite_principale_naf25,
                         s.activite_principale_registre_metier as
                         activite_principale_registre_metier,
                         s.caractere_employeur as caractere_employeur,
