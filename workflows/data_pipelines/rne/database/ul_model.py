@@ -15,7 +15,7 @@ class Immatriculation(BaseModel):
     capital_social: float | None = None
     date_cloture_exercice: str | None = None
     duree_personne_morale: int | None = None
-    date_fin_existence: str | None = None
+    date_fin_existence: date | None = None
     nature_entreprise: str | None = None
     date_debut_activite: str | None = None
     capital_variable: bool | None = None
