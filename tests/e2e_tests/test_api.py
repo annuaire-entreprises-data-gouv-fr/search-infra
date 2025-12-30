@@ -647,31 +647,37 @@ def test_immatriculation(api_response_tester):
     """
     Test immatriculation object.
     """
-    # Test for "la poste" : deactivated awaiting inpi response
-    """
-    path_la_poste = "search?q=la%20poste&include_admin=immatriculation"
-    api_response_tester.assert_api_response_code_200(path_la_poste)
 
-    immatriculation_data_la_poste = {
-        "duree_personne_morale": 99,
-        "date_immatriculation": "1992-03-19",
-        "date_debut_activite": "1991-01-01",
+    # Test "EDF"
+    path_edf = "/search?q=electricite%20de%20france&include_admin=immatriculation"
+    api_response_tester.assert_api_response_code_200(path_edf)
+
+    immatriculation_data_edf = {
+        "duree_personne_morale": 148,
+        "date_immatriculation": "1955-06-17",
+        "date_debut_activite": None,
         "capital_variable": False,
         "devise_capital": "EUR",
         "indicateur_associe_unique": False,
-        "capital_social": 5857785892,
-        "nature_entreprise": ["Commerciale"],
+        "capital_social": 2084365041,
+        "nature_entreprise": [
+            "Agent commercial",
+            "Libérale réglementée",
+            "Libérale non réglementée",
+            "Gestion de biens",
+            "Commerciale",
+        ],
         "date_cloture_exercice": "3112",
         "date_radiation": None,
+        "date_fin_existence": "2103-11-19",
     }
 
-    for field, expected_value in immatriculation_data_la_poste.items():
+    for field, expected_value in immatriculation_data_edf.items():
         api_response_tester.test_field_value(
-            path_la_poste, 0, f"immatriculation.{field}", expected_value
+            path_edf, 0, f"immatriculation.{field}", expected_value
         )
-    """
 
-    # Test for "ganymede"
+    # Test "Ganymede"
     path_gan = "/search?q=880878145&include_admin=immatriculation"
     api_response_tester.assert_api_response_code_200(path_gan)
 
@@ -699,6 +705,24 @@ def test_ul_sans_siege(api_response_tester):
     api_response_tester.assert_api_response_code_200(path)
     api_response_tester.test_number_of_results(path, 1)
     api_response_tester.test_field_value(path, 0, "siege", {})
+
+
+def test_patrimoine_vivant(api_response_tester):
+    path = "/search?est_patrimoine_vivant=true"
+    api_response_tester.assert_api_response_code_200(path)
+
+    api_response_tester.test_field_value(
+        path, 0, "complements.est_patrimoine_vivant", True
+    )
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
+
+    path = "/search?est_patrimoine_vivant=false"
+    api_response_tester.test_number_of_results(path, min_total_results_filters)
+
+    path = "/search?q=397743634"
+    api_response_tester.test_field_value(
+        path, 0, "complements.est_patrimoine_vivant", True
+    )
 
 
 def test_search_type_validation(api_response_tester):
