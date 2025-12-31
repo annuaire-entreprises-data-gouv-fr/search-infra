@@ -1,6 +1,10 @@
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.bilan_ges.config import (
     BILAN_GES_CONFIG,
 )
@@ -23,6 +27,9 @@ class BilanGesProcessor(DataProcessor):
             .drop_duplicates(subset=["siren"], keep="first")
             .assign(bilan_ges_renseigne=1)
         )
+
+        # Clean siren column and remove invalid rows
+        df_bilan_ges = clean_sirent_column(df_bilan_ges, column_type="siren")
 
         df_bilan_ges.to_csv(f"{self.config.tmp_folder}/bilan_ges.csv", index=False)
 

@@ -2,7 +2,11 @@ import logging
 
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.helpers.api_client import ApiClient
 from data_pipelines_annuaire.workflows.data_pipelines.marche_inclusion.config import (
     MARCHE_INCLUSION_CONFIG,
@@ -60,6 +64,12 @@ class MarcheInclusionProcessor(DataProcessor):
                 est_siae=1,
             )
             .sort_values(by=["siren"])
+        )
+
+        # Clean siren column and remove invalid rows
+        df_inclusion = clean_sirent_column(
+            df_inclusion,
+            column_type="siren",
         )
 
         df_inclusion.to_csv(

@@ -1,6 +1,10 @@
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.egapro.config import EGAPRO_CONFIG
 
 
@@ -16,8 +20,15 @@ class EgaproProcessor(DataProcessor):
         )
         df_egapro = df_egapro.drop_duplicates(subset=["SIREN"], keep="first")
         df_egapro = df_egapro[["SIREN"]]
-        df_egapro["egapro_renseignee"] = 1
-        df_egapro = df_egapro.rename(columns={"SIREN": "siren"})
+        df_egapro = (
+            df_egapro[["SIREN"]]
+            .assign(egapro_renseignee=1)
+            .rename(columns={"SIREN": "siren"})
+        )
+
+        # Clean siren column and remove invalid rows
+        df_egapro = clean_sirent_column(df_egapro, column_type="siren")
+
         df_egapro.to_csv(f"{self.config.tmp_folder}/egapro.csv", index=False)
 
         DataProcessor.push_message(

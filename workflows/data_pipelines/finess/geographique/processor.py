@@ -1,5 +1,9 @@
 import pandas as pd
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.finess.geographique.config import (
     FINESS_GEOGRAPHIQUE_CONFIG,
 )
@@ -45,6 +49,13 @@ class FinessGeographiqueProcessor(DataProcessor):
                 )
             )
         )
+
+        # Clean siret column and remove invalid rows
+        df_finess_geographique = clean_sirent_column(
+            df_finess_geographique,
+            column_type="siret",
+        )
+
         df_finess_geographique.to_csv(
             f"{self.config.tmp_folder}/finess_geographique.csv", index=False
         )

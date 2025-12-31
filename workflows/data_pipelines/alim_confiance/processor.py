@@ -1,6 +1,10 @@
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.alim_confiance.config import (
     ALIM_CONFIANCE_CONFIG,
 )
@@ -22,12 +26,13 @@ class AlimConfianceProcessor(DataProcessor):
                 est_alim_confiance=1,
                 siren=lambda df: df["SIRET"].str.replace(" ", "").str[:9].str.zfill(9),
             )
-            .loc[
-                lambda x: x["siren"].notna() & x["siren"].str.isdigit(),
-                ["siren", "est_alim_confiance"],
-            ]
-            .query("siren != ''")
+            .filter(["siren", "est_alim_confiance"])
             .drop_duplicates(subset=["siren"])
+        )
+
+        df_alim = clean_sirent_column(
+            df=df_alim,
+            column_type="siren",
         )
 
         df_alim.to_csv(self.config.file_output, index=False)

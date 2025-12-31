@@ -2,7 +2,11 @@ from datetime import datetime
 
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.helpers.utils import get_fiscal_year
 from data_pipelines_annuaire.workflows.data_pipelines.bilans_financiers.config import (
     BILANS_FINANCIERS_CONFIG,
@@ -92,6 +96,9 @@ class BilansFinanciersProcessor(DataProcessor):
 
         df_bilan["ca"] = df_bilan["ca"].astype(float)
         df_bilan["resultat_net"] = df_bilan["resultat_net"].astype(float)
+
+        # Clean siren column and remove invalid rows
+        df_bilan = clean_sirent_column(df_bilan, column_type="siren")
 
         df_bilan.to_csv(
             self.config.file_output,

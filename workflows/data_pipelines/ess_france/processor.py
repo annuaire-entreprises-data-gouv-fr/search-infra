@@ -1,6 +1,10 @@
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.ess_france.config import (
     ESS_CONFIG,
 )
@@ -13,9 +17,12 @@ class EssFranceProcessor(DataProcessor):
     def preprocess_data(self):
         df_ess = pd.read_csv(self.config.files_to_download["ess"]["url"], dtype=str)
         df_ess["SIREN"] = df_ess["SIREN"].str.zfill(9)
-        df_ess.rename(columns={"SIREN": "siren"}, inplace=True)
-        df_ess["est_ess_france"] = 1
-        df_ess = df_ess[["siren", "est_ess_france"]]
+        df_ess = df_ess.rename(columns={"SIREN": "siren"}).assign(est_ess_france=1)[
+            ["siren", "est_ess_france"]
+        ]
+
+        # Clean siren column and remove invalid rows
+        df_ess = clean_sirent_column(df_ess, column_type="siren")
 
         df_ess.to_csv(f"{self.config.tmp_folder}/ess.csv", index=False)
 

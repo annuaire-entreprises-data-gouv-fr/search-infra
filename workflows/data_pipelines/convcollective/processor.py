@@ -1,6 +1,10 @@
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.convcollective.config import (
     CONVENTION_COLLECTIVE_CONFIG,
 )
@@ -59,6 +63,9 @@ class ConventionCollectiveProcessor(DataProcessor):
         df_cc = df_list_cc_per_siret.merge(
             df_list_cc_per_siren, on="siren", how="left"
         ).merge(df_list_cc, on="siren", how="left")
+
+        # Clean siren column and remove invalid rows
+        df_cc = clean_sirent_column(df_cc, column_type="siren")
 
         df_cc.to_csv(self.config.file_output, index=False)
 
