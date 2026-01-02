@@ -5,6 +5,7 @@ from datetime import datetime
 
 import requests
 from airflow.operators.python import get_current_context
+from dateutil.relativedelta import relativedelta
 
 from data_pipelines_annuaire.config import DataSourceConfig
 from data_pipelines_annuaire.helpers.datagouv import (
@@ -44,31 +45,81 @@ class DataProcessor(ABC):
             - dataset_id (optional, str): Indicates the resource has to be fetched from the dataset.
             - pattern (optional, str): The pattern to search for in the URL page to find the actual file link.
         """
+        ti = get_current_context()["ti"]
+
         for name, params in self.config.files_to_download.items():
             try:
                 if "dataset_id" in params:
-                    _, url = fetch_last_resource_from_dataset(params["url"])
+                    _, file_url = fetch_last_resource_from_dataset(params["url"])
                 elif "pattern" in params:
                     url = params["url"]
 
+                    # In case a placeholder is found in the URL, replace it with the corresponding value.
+                    # For placeholders with fallback logic, this will be handled only if the first option
+                    # returns no result.
                     placeholders = {
                         "%%current_year%%": str(datetime.now().year),
                         "%%current_month%%": str(datetime.now().strftime("%Y-%m")),
                         "%%current_day%%": str(datetime.now().strftime("%Y-%m-%d")),
+                        "%%current_or_previous_year%%": str(datetime.now().year),
+                        "%%current_or_previous_month%%": str(
+                            datetime.now().strftime("%Y-%m")
+                        ),
+                        "%%current_or_previous_day%%": str(
+                            datetime.now().strftime("%Y-%m-%d")
+                        ),
                     }
                     search_text = params["pattern"]
                     for key, value in placeholders.items():
                         search_text = search_text.replace(key, value)
 
-                    url = fetch_hyperlink_from_page(url, search_text)
-                else:
-                    url = params["url"]
+                    try:
+                        file_url = fetch_hyperlink_from_page(url, search_text)
+                    except ValueError as e:
+                        logging.info(
+                            "Failed to find the URL. Looking for fallback options.."
+                        )
+                        # First try did not succeed to find the URL
+                        # so trying a second time with fallback options.
+                        placeholders.update(
+                            {
+                                "%%current_or_previous_year%%": str(
+                                    datetime.now().year - 1
+                                ),
+                                "%%current_or_previous_month%%": str(
+                                    (datetime.now() - relativedelta(months=1)).strftime(
+                                        "%Y-%m"
+                                    )
+                                ),
+                                "%%current_or_previous_day%%": str(
+                                    (datetime.now() - relativedelta(days=1)).strftime(
+                                        "%Y-%m-%d"
+                                    )
+                                ),
+                            }
+                        )
+                        search_text = params["pattern"]
+                        for key, value in placeholders.items():
+                            search_text = search_text.replace(key, value)
 
-                download_file(url, params["destination"])
+                        try:
+                            file_url = fetch_hyperlink_from_page(url, search_text)
+                            # Add information message to the Mattermost notification
+                            # that only the previous file was found.
+                            ti.xcom_push(
+                                key=Notification.notification_xcom_key,
+                                value=f"Only previous file found: {search_text}",
+                            )
+                        except ValueError as new_e:
+                            raise new_e from e
+
+                else:
+                    file_url = params["url"]
+
+                download_file(file_url, params["destination"])
 
             except (requests.exceptions.RequestException, ValueError):
                 error_message = f"Failed to download {name} from {params['url']}"
-                ti = get_current_context()["ti"]
                 ti.xcom_push(
                     key=Notification.notification_xcom_key, value=error_message
                 )
