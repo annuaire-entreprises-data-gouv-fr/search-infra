@@ -39,28 +39,6 @@ class SireneFluxProcessor(DataProcessor):
         self.current_dates = get_dates_since_start_of_month(
             include_today=False, ascending=False
         )
-        # 2025-12-16 HOTFIX TO REVERT AT ANYTIME IN 2026
-        # New stock released the 16th of December
-        problematic_dates = [
-            "2025-12-01",
-            "2025-12-02",
-            "2025-12-03",
-            "2025-12-04",
-            "2025-12-05",
-            "2025-12-06",
-            "2025-12-07",
-            "2025-12-08",
-            "2025-12-09",
-            "2025-12-10",
-            "2025-12-11",
-            "2025-12-12",
-            "2025-12-13",
-            "2025-12-14",
-            "2025-12-15",
-        ]
-        self.current_dates = [
-            date for date in self.current_dates if date not in problematic_dates
-        ]
 
     @staticmethod
     def _construct_endpoint(base_endpoint: str, date: str, fields: str) -> str:
