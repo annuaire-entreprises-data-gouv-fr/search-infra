@@ -277,9 +277,7 @@ class SireneFluxProcessor(DataProcessor):
                     date_str = collection_data.get("dateDerniereMiseADisposition")
                     if date_str:
                         # Parse the date (format: "2026-01-02T07:40:39.000")
-                        date_obj = datetime.fromisoformat(
-                            date_str.replace("Z", "+00:00")
-                        ).date()
+                        date_obj = datetime.fromisoformat(date_str).date()
                         is_today = date_obj == today
                         status = "✓" if is_today else "✗"
                         logging.info(
