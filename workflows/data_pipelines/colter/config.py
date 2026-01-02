@@ -22,7 +22,9 @@ COLTER_CONFIG = DataSourceConfig(
         },
         "colter_epci": {
             "url": "https://www.collectivites-locales.gouv.fr/etudes-et-statistiques/acces-par-thematique/perimetre-des-intercommunalites/liste-et-composition-des-epci-fiscalite-propre",
-            "pattern": "Liste des EPCI au 1er janvier %%current_year%% (xls)",
+            # The list is not available straight away the 1st of the year
+            # So we take the current year once available, otherwise we fallback to the previous year
+            "pattern": "Liste des EPCI au 1er janvier %%current_or_previous_year%% (xls)",
             "destination": f"{DataSourceConfig.base_tmp_folder}/colter/epci-download.xlsx",
         },
         "colter_communes": {
