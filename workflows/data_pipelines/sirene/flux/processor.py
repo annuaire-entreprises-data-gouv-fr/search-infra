@@ -1,5 +1,6 @@
 import logging
-from datetime import datetime
+import time
+from datetime import date, datetime
 
 import pandas as pd
 
@@ -100,10 +101,10 @@ class SireneFluxProcessor(DataProcessor):
         siren_processed = pd.Series(dtype="string")
 
         logging.info(f"Processing the following dates: {self.current_dates}")
-        for i_date, date in enumerate(self.current_dates):
-            logging.info(f"{date} -- processing..")
+        for i_date, processing_date in enumerate(self.current_dates):
+            logging.info(f"{processing_date} -- processing..")
             endpoint = self._construct_endpoint(
-                self.BASE_UNITE_LEGALE_ENDPOINT, date, fields
+                self.BASE_UNITE_LEGALE_ENDPOINT, processing_date, fields
             )
             df = self.client.fetch_data(endpoint, "unitesLegales")
 
@@ -117,7 +118,9 @@ class SireneFluxProcessor(DataProcessor):
             else:
                 df.to_csv(output_path, mode="a", header=False, index=False)
 
-            logging.info(f"{date} -- processed: {df['siren'].nunique()} siren")
+            logging.info(
+                f"{processing_date} -- processed: {df['siren'].nunique()} siren"
+            )
             del df
 
         n_siren_processed = len(siren_processed)
@@ -187,10 +190,10 @@ class SireneFluxProcessor(DataProcessor):
         siret_processed = pd.Series(dtype="string")
 
         logging.info(f"Processing the following dates: {self.current_dates}")
-        for i_date, date in enumerate(self.current_dates):
-            logging.info(f"{date} -- processing..")
+        for i_date, processing_date in enumerate(self.current_dates):
+            logging.info(f"{processing_date} -- processing..")
             endpoint = self._construct_endpoint(
-                self.BASE_ETABLISSEMENT_ENDPOINT, date, fields
+                self.BASE_ETABLISSEMENT_ENDPOINT, processing_date, fields
             )
             df = self.client.fetch_data(endpoint, "etablissements")
             df.columns = [
@@ -210,7 +213,9 @@ class SireneFluxProcessor(DataProcessor):
             else:
                 df.to_csv(output_path, mode="a", header=False, index=False)
 
-            logging.info(f"{date} -- processed: {df['siret'].nunique()} siret")
+            logging.info(
+                f"{processing_date} -- processed: {df['siret'].nunique()} siret"
+            )
             del df
 
         n_siret_processed = len(siret_processed)
@@ -222,6 +227,86 @@ class SireneFluxProcessor(DataProcessor):
             Notification.notification_xcom_key,
             description=f"{n_siret_processed} siret",
         )
+
+    def check_updates_availability(self) -> str:
+        """
+        Check that INSEE API has today's data available.
+        If not, wait 5 minutes and retry until it is today.
+        If it's 9 AM or later and still not today, continue without waiting.
+
+        Returns:
+            str: Success message when data is available for today or when continuing at 9 AM
+        """
+        today = date.today()
+        max_wait_time = datetime.now().replace(
+            hour=9, minute=0, second=0, microsecond=0
+        )
+
+        while True:
+            try:
+                # Check if we've reached 9 AM before making the API call
+                current_time = datetime.now()
+                if current_time >= max_wait_time:
+                    logging.info(
+                        f"It's 9 AM or later. Continuing DAG without waiting for today's update ({today})."
+                    )
+                    return f"************Continuing at 9 AM without waiting for update ({today})."
+
+                data = self.client.get_api_information_status()
+
+                # Check all collections for dateDerniereMiseADisposition
+                dates_dernieres_mises_a_jour = data.get(
+                    "datesDernieresMisesAJourDesDonnees", []
+                )
+
+                if not dates_dernieres_mises_a_jour:
+                    raise ValueError(
+                        "No datesDernieresMisesAJourDesDonnees found in API response"
+                    )
+
+                # Check and log all dates
+                logging.info(
+                    f"Checking API availability for today ({today}). Found {len(dates_dernieres_mises_a_jour)} collections:"
+                )
+                all_today = True
+                for collection_data in dates_dernieres_mises_a_jour:
+                    date_str = collection_data.get("dateDerniereMiseADisposition")
+                    if date_str:
+                        # Parse the date (format: "2026-01-02T07:40:39.000")
+                        date_obj = datetime.fromisoformat(
+                            date_str.replace("Z", "+00:00")
+                        ).date()
+                        is_today = date_obj == today
+                        status = "✓" if is_today else "✗"
+                        logging.info(
+                            f"  {status} dateDerniereMiseADisposition = {date_str} "
+                            f"(parsed: {date_obj}, is_today: {is_today})"
+                        )
+                        if not is_today:
+                            all_today = False
+                    else:
+                        logging.warning(" ⚠⚠⚠⚠⚠ No dateDerniereMiseADisposition found")
+                        all_today = False
+
+                if all_today:
+                    # All collections have today's date - DAG can continue
+                    return f"All collections have today's date ({today}). API is ready."
+
+                # Wait 5 minutes before retrying
+                logging.info(
+                    f"Data not yet available for today ({today}). Waiting 5 minutes before retry..."
+                )
+                time.sleep(300)  # 5 minutes in seconds
+
+            except ValueError as e:
+                error_msg = f"Error processing API response: {str(e)}"
+                logging.error(error_msg)
+                raise ValueError(error_msg) from e
+            except Exception as e:
+                # Handle any other exceptions from API calls
+                error_msg = f"Unexpected error checking API availability: {str(e)}"
+                logging.error(error_msg)
+                raise ValueError(error_msg) from e
 
     def send_flux_to_minio(self):
         self.minio_client.send_files(

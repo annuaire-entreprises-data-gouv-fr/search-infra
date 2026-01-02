@@ -80,3 +80,20 @@ class SireneApiClient(ApiClient):
 
         new_params = {**current_params, "curseur": next_cursor}
         return data, new_params
+
+    def get_api_information_status(self) -> dict[str, Any]:
+        """
+        Fetch API information from INSEE Sirene API.
+
+        Returns:
+            dict: Raw API response containing service status and update dates
+        """
+        try:
+            # Use the base get() method which includes retry logic
+            # The informations endpoint is at the same base URL
+            response = self.get("informations")
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logging.error(f"Error calling INSEE API: {str(e)}")
+            raise ValueError(f"Error calling INSEE API: {str(e)}") from e
