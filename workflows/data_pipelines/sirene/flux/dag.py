@@ -1,8 +1,12 @@
 from datetime import datetime, timedelta
 
 from airflow.decorators import dag, task
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
-from data_pipelines_annuaire.config import EMAIL_LIST
+from data_pipelines_annuaire.config import (
+    AIRFLOW_ETL_DAG_NAME,
+    EMAIL_LIST,
+)
 from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.workflows.data_pipelines.sirene.flux.processor import (
     SireneFluxProcessor,
@@ -32,6 +36,10 @@ default_args = {
 def data_processing_sirene_flux():
     sirene_flux_processor = SireneFluxProcessor()
 
+    @task
+    def check_updates_availability():
+        return sirene_flux_processor.check_updates_availability()
+
     @task.bash
     def clean_previous_outputs():
         return f"rm -rf {sirene_flux_processor.config.tmp_folder} && mkdir -p {sirene_flux_processor.config.tmp_folder}"
@@ -56,13 +64,22 @@ def data_processing_sirene_flux():
     def clean_up():
         return f"rm -rf {sirene_flux_processor.config.tmp_folder}"
 
+    trigger_etl_dag = TriggerDagRunOperator(
+        task_id="trigger_indexing_dag",
+        trigger_dag_id=AIRFLOW_ETL_DAG_NAME,
+        wait_for_completion=False,
+        deferrable=False,
+    )
+
     (
-        clean_previous_outputs()
+        check_updates_availability()
+        >> clean_previous_outputs()
         >> get_flux_unites_legales()
         >> get_flux_etablissements()
         >> save_date_last_modified()
         >> send_flux_to_minio()
         >> clean_up()
+        >> trigger_etl_dag
     )
 
 
