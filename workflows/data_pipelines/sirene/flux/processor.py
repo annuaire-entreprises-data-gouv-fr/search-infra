@@ -1,6 +1,7 @@
 import logging
 import time
-from datetime import date, datetime
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 
@@ -237,15 +238,18 @@ class SireneFluxProcessor(DataProcessor):
         Returns:
             str: Success message when data is available for today or when continuing at 9 AM
         """
-        today = date.today()
-        max_wait_time = datetime.now().replace(
-            hour=9, minute=0, second=0, microsecond=0
-        )
+        paris_tz = ZoneInfo("Europe/Paris")
 
         while True:
             try:
-                # Check if we've reached 9 AM before making the API call
-                current_time = datetime.now()
+                # Get current time in Paris timezone
+                current_time = datetime.now(paris_tz)
+                today = current_time.date()
+                max_wait_time = current_time.replace(
+                    hour=9, minute=0, second=0, microsecond=0
+                )
+
+                # Check if we've reached 9 AM before making the API call (in Paris time)
                 if current_time >= max_wait_time:
                     logging.info(
                         f"It's 9 AM or later. Continuing DAG without waiting for today's update ({today})."
