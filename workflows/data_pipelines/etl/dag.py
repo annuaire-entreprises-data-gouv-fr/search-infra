@@ -126,7 +126,7 @@ default_args = {
     dag_id=AIRFLOW_ETL_DAG_NAME,
     tags=["database", "all-data"],
     default_args=default_args,
-    schedule="0 5 * * *",  # Run everyday at 5 am local time
+    schedule=None,  # triggered by sirene flux dag (everyday at 9 am at the latest)
     start_date=datetime(2025, 8, 20),
     dagrun_timeout=timedelta(minutes=60 * 5),
     params={},
