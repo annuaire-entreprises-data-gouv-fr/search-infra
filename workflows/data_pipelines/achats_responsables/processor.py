@@ -34,7 +34,14 @@ class AchatsResponsablesProcessor(DataProcessor):
         )
 
         # Clean siren column and remove invalid rows
-        df_achats = clean_sirent_column(df_achats, column_type="siren")
+        df_achats = clean_sirent_column(
+            df_achats,
+            column_type="siren",
+            # Leading zeros are missing like for 58801481 and 55800296
+            add_leading_zeros=True,
+            # Around 3% of the Siren are missing
+            max_removal_percentage=5,
+        )
         df_achats = df_achats.drop_duplicates(subset=["siren"])
 
         df_achats.to_csv(self.config.file_output, index=False)

@@ -64,12 +64,15 @@ class MarcheInclusionProcessor(DataProcessor):
                 est_siae=1,
             )
             .sort_values(by=["siren"])
+            .loc[lambda x: x["siren"].notna()]
         )
 
         # Clean siren column and remove invalid rows
         df_inclusion = clean_sirent_column(
             df_inclusion,
             column_type="siren",
+            # Empty Siren values
+            max_removal_percentage=1,
         )
 
         df_inclusion.to_csv(

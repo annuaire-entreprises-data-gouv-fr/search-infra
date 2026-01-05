@@ -33,7 +33,6 @@ class PatrimoineVivantProcessor(DataProcessor):
                 siren=lambda df: df["siret"].str[:9],
                 est_patrimoine_vivant=1,
             )
-            .query("siren != ''")
             .drop_duplicates(subset=["siren"])
             .drop(columns=["siret"])
         )

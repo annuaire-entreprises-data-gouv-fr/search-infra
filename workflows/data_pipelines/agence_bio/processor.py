@@ -190,6 +190,7 @@ class AgenceBioProcessor(DataProcessor):
             df = clean_sirent_column(
                 df=df,
                 column_type="siret",
+                max_removal_percentage=5,
             )
             file_path = f"{self.config.tmp_folder}/agence_bio_{name}.csv"
             df.to_csv(file_path, index=False)
