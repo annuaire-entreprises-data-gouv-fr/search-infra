@@ -24,7 +24,7 @@ default_args = {
 @dag(
     tags=["sirene", "flux"],
     default_args=default_args,
-    schedule_interval="0 4 * * *",  # Daily at 4 AM
+    schedule_interval="30 6 * * *",  # Daily at 6:30 AM
     start_date=datetime(2025, 8, 20),  # more naive than days_ago()
     dagrun_timeout=timedelta(minutes=60 * 12),
     params={},
