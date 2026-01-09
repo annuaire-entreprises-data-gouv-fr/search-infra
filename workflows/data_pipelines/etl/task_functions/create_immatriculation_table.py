@@ -1,4 +1,4 @@
-from airflow.decorators import task
+from airflow.sdk import task
 
 from data_pipelines_annuaire.config import (
     RNE_DATABASE_LOCATION,

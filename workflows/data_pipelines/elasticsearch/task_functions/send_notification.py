@@ -21,7 +21,7 @@ def send_notification_success_tchap(**kwargs):
     doc_count = kwargs["ti"].xcom_pull(
         key="doc_count", task_ids="fill_elastic_siren_index"
     )
-    send_message_tchap()(
+    send_message_tchap(
         f"\U0001f7e2 Données :"
         f"\nDAG d'indexation a été exécuté avec succès."
         f"\n - Nombre de documents indexés : {doc_count}"

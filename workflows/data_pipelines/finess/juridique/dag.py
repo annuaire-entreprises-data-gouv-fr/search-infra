@@ -1,7 +1,7 @@
 from datetime import timedelta
 
-from airflow.decorators import dag, task
-from airflow.utils.dates import days_ago
+import pendulum
+from airflow.sdk import dag, task
 from data_pipelines_annuaire.config import EMAIL_LIST
 from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.workflows.data_pipelines.finess.juridique.config import (
@@ -24,7 +24,7 @@ default_args = {
     tags=["finess", "domaine sanitaire et social"],
     default_args=default_args,
     schedule="0 16 * * *",
-    start_date=days_ago(8),
+    start_date=pendulum.today("UTC").add(days=-8),
     dagrun_timeout=timedelta(minutes=60),
     params={},
     catchup=False,
