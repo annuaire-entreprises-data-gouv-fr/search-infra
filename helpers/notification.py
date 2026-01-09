@@ -86,7 +86,14 @@ class Notification:
             if notification_message is not None:
                 notification_messages.append(f"- {notification_message}")
             elif notification_message is None and ti.state == "failed":
-                notification_messages.append(f"- {ti.task_id}({ti.state})")
+                # Add warning emoji only if the overall DAG run
+                # is successful to increase visibility
+                warning_emoji = (
+                    ":warning: " if self.status == self.Status.SUCCESS else ""
+                )
+                notification_messages.append(
+                    f"- {warning_emoji}{ti.task_id}({ti.state})"
+                )
 
         return notification_messages
 
