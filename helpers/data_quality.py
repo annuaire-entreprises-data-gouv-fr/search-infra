@@ -56,7 +56,7 @@ def clean_sirent_column(
     max_removal_percentage: float = 0.0,
 ) -> pd.DataFrame:
     """
-    Clean the Siren column in a DataFrame and remove invalid rows.
+    Clean the Siren and Siret column in a DataFrame and remove invalid rows.
 
     Args:
         df (pd.DataFrame): The DataFrame to process
