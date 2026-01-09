@@ -320,7 +320,6 @@ def get_date_last_modified(response=None, url=None) -> str | None:
                 get_response = requests.get(url)
                 get_response.raise_for_status()
                 last_modified_raw = get_response.headers.get("Last-Modified", None)
-                logging.info(get_response.headers)
         else:
             raise ValueError("Either a response or URL must be provided")
 
