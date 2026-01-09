@@ -154,9 +154,11 @@ class DataGouvProcessor:
             axis=1,
         )
         # Fill NA values in 'nombre_etablissements_ouverts'
-        chunk["nombre_etablissements_ouverts"] = chunk[
-            "nombre_etablissements_ouverts"
-        ].fillna(0)
+        chunk["nombre_etablissements_ouverts"] = (
+            pd.to_numeric(chunk["nombre_etablissements_ouverts"], errors="coerce")
+            .fillna(0)
+            .astype(int)
+        )
         chunk["est_entrepreneur_individuel"] = chunk["nature_juridique"].apply(
             is_entrepreneur_individuel
         )
