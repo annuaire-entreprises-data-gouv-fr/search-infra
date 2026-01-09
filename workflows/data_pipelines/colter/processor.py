@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor
+from data_pipelines_annuaire.helpers import DataProcessor, clean_sirent_column
 from data_pipelines_annuaire.workflows.data_pipelines.colter.config import (
     COLTER_CONFIG,
     ELUS_CONFIG,
@@ -185,8 +185,11 @@ class ColterProcessor(DataProcessor):
             )
         )
 
-        df_colter = pd.concat([df_colter, df_communes])
+        df_colter = pd.concat([df_colter, df_communes]).reset_index(drop=True)
         del df_communes
+
+        # Clean siren column and remove invalid rows
+        df_colter = clean_sirent_column(df_colter, column_type="siren")
 
         df_colter.to_csv(self.config.file_output, index=False)
 
@@ -312,6 +315,9 @@ class ElusProcessor(DataProcessor):
             df_colter_elus = df_colter_elus.rename(
                 columns={col: col.replace("_elu", "")}
             )
+
+        # Clean siren column and remove invalid rows
+        df_colter_elus = clean_sirent_column(df_colter_elus, column_type="siren")
 
         df_colter_elus.drop_duplicates(inplace=True, ignore_index=True)
         df_colter_elus.to_csv(self.config.file_output, index=False)

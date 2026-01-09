@@ -1,6 +1,10 @@
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.bilan_ges.config import (
     BILAN_GES_CONFIG,
 )
@@ -22,6 +26,15 @@ class BilanGesProcessor(DataProcessor):
             df_bilan_ges.rename(columns={"SIREN principal": "siren"})
             .drop_duplicates(subset=["siren"], keep="first")
             .assign(bilan_ges_renseigne=1)
+        )
+
+        # Clean siren column and remove invalid rows
+        # Can't add leading zeros because sometimes the Siren are truncated at the end instead like:
+        # "3 328 035" for Association Laïque de Gestion d’Etablissements d’E...
+        # which real Siren is 332 803 519
+        # And some Siren values are empty or completely wrong such as "/"
+        df_bilan_ges = clean_sirent_column(
+            df_bilan_ges, column_type="siren", max_removal_percentage=0.5
         )
 
         df_bilan_ges.to_csv(f"{self.config.tmp_folder}/bilan_ges.csv", index=False)

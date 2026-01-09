@@ -1,6 +1,10 @@
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.uai.config import (
     UAI_CONFIG,
 )
@@ -72,6 +76,12 @@ class UaiProcessor(DataProcessor):
                     "type d'établissement": "type",
                 }
             )
+            # Some Siret values look like: 82445767500059,82445767500018,18640005700102
+            # Split those values into one row per Siret
+            .assign(
+                siret=lambda x: x["siret"].str.split(","),
+            )
+            .explode(["siret"])
             .assign(
                 statut_prive=None,
             )
@@ -113,6 +123,14 @@ class UaiProcessor(DataProcessor):
             .reset_index(name="liste_uai")
             .filter(["siret", "liste_uai"])
         )
+
+        # Clean siret column and remove invalid rows
+        annuaire_uai = clean_sirent_column(
+            annuaire_uai,
+            column_type="siret",
+            max_removal_percentage=1,
+        )
+
         annuaire_uai.to_csv(self.config.file_output, index=False)
 
         self.push_message(

@@ -1,6 +1,10 @@
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.patrimoine_vivant.config import (
     PATRIMOINE_VIVANT_CONFIG,
 )
@@ -29,9 +33,14 @@ class PatrimoineVivantProcessor(DataProcessor):
                 siren=lambda df: df["siret"].str[:9],
                 est_patrimoine_vivant=1,
             )
-            .query("siren != ''")
             .drop_duplicates(subset=["siren"])
             .drop(columns=["siret"])
+        )
+
+        # Clean siren column and remove invalid rows
+        df_patrimoine = clean_sirent_column(
+            df_patrimoine,
+            column_type="siren",
         )
 
         df_patrimoine.to_csv(self.config.file_output, index=False)

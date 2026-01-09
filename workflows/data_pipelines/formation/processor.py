@@ -2,7 +2,11 @@ import logging
 
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.formation.config import (
     FORMATION_CONFIG,
 )
@@ -32,6 +36,12 @@ class FormationProcessor(DataProcessor):
                 est_qualiopi=("est_qualiopi", "max"),  # True takes priority over False
             )
             .sort_values("siren")
+        )
+
+        # Clean siren column and remove invalid rows
+        df_organisme_formation = clean_sirent_column(
+            df_organisme_formation,
+            column_type="siren",
         )
 
         df_organisme_formation.to_csv(self.config.file_output, index=False)

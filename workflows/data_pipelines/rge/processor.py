@@ -3,7 +3,11 @@ import logging
 import pandas as pd
 import requests
 
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.rge.config import RGE_CONFIG
 
 
@@ -49,6 +53,12 @@ class RgeProcessor(DataProcessor):
         )
         df_list_rge = df_list_rge[["siret", "liste_rge"]]
         df_list_rge["liste_rge"] = df_list_rge["liste_rge"].astype(str)
+
+        # Clean siren column and remove invalid rows
+        df_list_rge = clean_sirent_column(
+            df_list_rge,
+            column_type="siret",
+        )
 
         df_list_rge.to_csv(f"{self.config.tmp_folder}/rge.csv", index=False)
         DataProcessor.push_message(

@@ -1,7 +1,10 @@
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
-from data_pipelines_annuaire.helpers.utils import clean_siren_column
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.achats_responsables.config import (
     ACHATS_RESPONSABLES_CONFIG,
 )
@@ -27,12 +30,19 @@ class AchatsResponsablesProcessor(DataProcessor):
             )
             .assign(
                 est_achats_responsables=1,
-                siren=lambda df: clean_siren_column(df["siren"]),
             )
-            .dropna(subset=["siren"])
-            .query("siren != ''")
-            .drop_duplicates(subset=["siren"])
         )
+
+        # Clean siren column and remove invalid rows
+        df_achats = clean_sirent_column(
+            df_achats,
+            column_type="siren",
+            # Leading zeros are missing like for 58801481 and 55800296
+            add_leading_zeros=True,
+            # Around 3% of the Siren are missing
+            max_removal_percentage=5,
+        )
+        df_achats = df_achats.drop_duplicates(subset=["siren"])
 
         df_achats.to_csv(self.config.file_output, index=False)
 

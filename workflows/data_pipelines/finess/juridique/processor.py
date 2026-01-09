@@ -1,5 +1,9 @@
 import pandas as pd
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.finess.juridique.config import (
     FINESS_JURIDIQUE_CONFIG,
 )
@@ -86,6 +90,13 @@ class FinessJuridiqueProcessor(DataProcessor):
                 lambda x: any(fid in finess_geographique_only for fid in x.unique()),
             ),
         )
+
+        # Clean siren column and remove invalid rows
+        df_list_finess_juridique = clean_sirent_column(
+            df_list_finess_juridique,
+            column_type="siren",
+        )
+
         df_list_finess_juridique.to_csv(
             f"{self.config.tmp_folder}/finess_juridique.csv", index=False
         )

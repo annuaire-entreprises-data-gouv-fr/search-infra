@@ -1,7 +1,10 @@
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
-from data_pipelines_annuaire.helpers.utils import clean_siren_column
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 
 
 class SpectacleProcessor(DataProcessor):
@@ -24,7 +27,7 @@ class SpectacleProcessor(DataProcessor):
             df_spectacle.assign(
                 statut_du_recepisse=lambda x: x["statut_recepisse"],
                 est_entrepreneur_spectacle=1,
-                siren=lambda x: clean_siren_column(x["siren_siret"].str[:9]),
+                siren=lambda x: x["siren_siret"].str[:9],
             )
             .loc[
                 lambda x: (x["siren"].notna() & x["siren"].str.isdigit()),
@@ -39,6 +42,13 @@ class SpectacleProcessor(DataProcessor):
                 )
             )
             .reset_index()
+        )
+
+        # Clean siren column and remove invalid rows
+        df_spectacle = clean_sirent_column(
+            df_spectacle,
+            column_type="siren",
+            add_leading_zeros=True,
         )
 
         df_spectacle[

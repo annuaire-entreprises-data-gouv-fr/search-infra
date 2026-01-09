@@ -3,7 +3,11 @@ from typing import Any, Literal
 
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor, Notification
+from data_pipelines_annuaire.helpers import (
+    DataProcessor,
+    Notification,
+    clean_sirent_column,
+)
 from data_pipelines_annuaire.helpers.minio_helpers import File
 from data_pipelines_annuaire.helpers.utils import flatten_object
 from data_pipelines_annuaire.workflows.data_pipelines.agence_bio.api import (
@@ -77,8 +81,7 @@ class AgenceBioProcessor(DataProcessor):
         )
 
         df_cert = (
-            df_cert[df_cert["siret"].str.len() == 14]
-            .groupby("siret")
+            df_cert.groupby("siret")
             .agg(liste_id_bio=("id_bio", list), statut_bio=("etat_certification", list))
             .reset_index()
             .assign(
@@ -183,6 +186,12 @@ class AgenceBioProcessor(DataProcessor):
 
         # Save to CSV
         for name, df in processed_data.items():
+            # Apply SIRET cleaning to main bio data
+            df = clean_sirent_column(
+                df=df,
+                column_type="siret",
+                max_removal_percentage=5,
+            )
             file_path = f"{self.config.tmp_folder}/agence_bio_{name}.csv"
             df.to_csv(file_path, index=False)
             logging.info(f"Saved {name} data to {file_path}")
