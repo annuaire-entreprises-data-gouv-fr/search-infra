@@ -164,6 +164,7 @@ class EtablissementMapping(InnerDoc):
     nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     numero_voie = Text()
     region = Keyword()
+    sigle = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     siren = Keyword(required=True)
     siret = Keyword(required=True)
     statut_diffusion_etablissement = Keyword()

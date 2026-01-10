@@ -179,6 +179,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         etablissements_processed, complements = format_etablissements_and_complements(
             unite_legale["etablissements"],
             unite_legale_processed["nom_complet"],
+            unite_legale_processed["sigle"],
             is_non_diffusible,
         )
         unite_legale_processed["etablissements"] = etablissements_processed
