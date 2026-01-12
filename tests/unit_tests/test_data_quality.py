@@ -1,10 +1,159 @@
+import os
+import tempfile
+import zipfile
+
 import numpy as np
 import pandas as pd
 
 from data_pipelines_annuaire.helpers.data_quality import (
     _clean_sirent_series,
     clean_sirent_column,
+    validate_file,
 )
+
+
+def test_validate_file_csv():
+    """Test the validate_file() function with CSV files."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Test valid CSV with header and data
+        valid_csv_path = os.path.join(tmpdir, "valid.csv")
+        with open(valid_csv_path, "w", encoding="utf-8") as f:
+            f.write("header1,header2\n")
+            f.write("data1,data2\n")
+            f.write("data3,data4\n")
+
+        # Should not raise an exception
+        validate_file(valid_csv_path)
+
+        # Test CSV with only header (should fail)
+        header_only_csv_path = os.path.join(tmpdir, "header_only.csv")
+        with open(header_only_csv_path, "w", encoding="utf-8") as f:
+            f.write("header1,header2\n")
+
+        try:
+            validate_file(header_only_csv_path)
+            assert False, "Expected ValueError for CSV with only header"
+        except ValueError as e:
+            assert "has only 1 line(s)" in str(e)
+            assert "Expected at least 2 lines" in str(e)
+
+        # Test empty CSV (should fail)
+        empty_csv_path = os.path.join(tmpdir, "empty.csv")
+        with open(empty_csv_path, "w", encoding="utf-8") as f:
+            pass  # Create empty file
+
+        try:
+            validate_file(empty_csv_path)
+            assert False, "Expected ValueError for empty CSV"
+        except ValueError as e:
+            assert "has only 0 line(s)" in str(e)
+            assert "Expected at least 2 lines" in str(e)
+
+        # Test non-existent file (should fail)
+        non_existent_path = os.path.join(tmpdir, "non_existent.csv")
+        try:
+            validate_file(non_existent_path)
+            assert False, "Expected ValueError for non-existent file"
+        except ValueError as e:
+            assert "does not exist" in str(e)
+
+
+def test_validate_file_xlsx():
+    """Test the validate_file() function with XLSX files."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Test valid XLSX with data
+        valid_xlsx_path = os.path.join(tmpdir, "valid.xlsx")
+        df = pd.DataFrame({"col1": ["data1", "data2"], "col2": ["data3", "data4"]})
+        df.to_excel(valid_xlsx_path, index=False)
+
+        # Should not raise an exception
+        validate_file(valid_xlsx_path)
+
+        # Test XLSX with only header (should fail)
+        header_only_xlsx_path = os.path.join(tmpdir, "header_only.xlsx")
+        df_empty = pd.DataFrame({"col1": [], "col2": []})
+        df_empty.to_excel(header_only_xlsx_path, index=False)
+
+        try:
+            validate_file(header_only_xlsx_path)
+            assert False, "Expected ValueError for XLSX with only header"
+        except ValueError as e:
+            assert "has only 0 row(s)" in str(e)
+            assert "Expected at least 2 rows" in str(e)
+
+
+def test_validate_file_zip():
+    """Test the validate_file() function with ZIP files."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Test valid ZIP with files
+        valid_zip_path = os.path.join(tmpdir, "valid.zip")
+        with zipfile.ZipFile(valid_zip_path, "w") as zipf:
+            zipf.writestr("file1.txt", "content1")
+            zipf.writestr("file2.txt", "content2")
+
+        # Should not raise an exception
+        validate_file(valid_zip_path)
+
+        # Test empty ZIP (should fail)
+        empty_zip_path = os.path.join(tmpdir, "empty.zip")
+        with zipfile.ZipFile(empty_zip_path, "w") as zipf:
+            pass  # Create empty zip
+
+        try:
+            validate_file(empty_zip_path)
+            assert False, "Expected ValueError for empty ZIP"
+        except ValueError as e:
+            assert "ZIP file" in str(e)
+            assert "is empty" in str(e)
+
+        # Test ZIP with valid CSV file
+        valid_csv_zip_path = os.path.join(tmpdir, "valid_csv.zip")
+        with zipfile.ZipFile(valid_csv_zip_path, "w") as zipf:
+            csv_content = "header1,header2\ndata1,data2\ndata3,data4\n"
+            zipf.writestr("data.csv", csv_content)
+
+        # Should not raise an exception
+        validate_file(valid_csv_zip_path)
+
+        # Test ZIP with empty CSV file (should fail)
+        empty_csv_zip_path = os.path.join(tmpdir, "empty_csv.zip")
+        with zipfile.ZipFile(empty_csv_zip_path, "w") as zipf:
+            csv_content = "header1,header2\n"  # Only header
+            zipf.writestr("data.csv", csv_content)
+
+        try:
+            validate_file(empty_csv_zip_path)
+            assert False, "Expected ValueError for ZIP with empty CSV"
+        except ValueError as e:
+            assert "ZIP file" in str(e)
+            assert "contains invalid file" in str(e)
+            assert "data.csv" in str(e)
+
+        # Test ZIP with valid XLSX file
+        valid_xlsx_zip_path = os.path.join(tmpdir, "valid_xlsx.zip")
+        with zipfile.ZipFile(valid_xlsx_zip_path, "w") as zipf:
+            # Create a simple XLSX file in memory
+            df = pd.DataFrame({"col1": ["data1", "data2"], "col2": ["data3", "data4"]})
+            xlsx_path = os.path.join(tmpdir, "temp.xlsx")
+            df.to_excel(xlsx_path, index=False)
+            with open(xlsx_path, "rb") as f:
+                zipf.writestr("data.xlsx", f.read())
+            os.remove(xlsx_path)
+
+        # Should not raise an exception
+        validate_file(valid_xlsx_zip_path)
+
+
+def test_validate_file_unsupported_type():
+    """Test the validate_file() function with unsupported file types."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Test unsupported file type (should not raise exception, just return)
+        unsupported_path = os.path.join(tmpdir, "file.json")
+        with open(unsupported_path, "w", encoding="utf-8") as f:
+            f.write('{"key": "value"}')
+
+        # Should not raise an exception for unsupported types
+        validate_file(unsupported_path)
 
 
 def test_clean_sirent_series():
