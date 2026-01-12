@@ -494,6 +494,7 @@ def create_list_names_elus(list_elus):
 def format_etablissements_and_complements(
     list_etablissements_sqlite,
     nom_complet,
+    sigle,
     is_non_diffusible=False,
 ):
     etablissements = json.loads(list_etablissements_sqlite)
@@ -507,6 +508,7 @@ def format_etablissements_and_complements(
     }
     for etablissement in etablissements:
         etablissement["nom_complet"] = nom_complet
+        etablissement["sigle"] = sigle
         etablissement["adresse"] = format_adresse_complete(
             etablissement["complement_adresse"],
             etablissement["numero_voie"],
