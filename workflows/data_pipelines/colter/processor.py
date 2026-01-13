@@ -166,7 +166,9 @@ class ColterProcessor(DataProcessor):
                 dtype="string",
                 sep=";",
                 usecols=["siren", "insee"],
-                encoding="latin1",
+                encoding=self.config.files_to_download["colter_communes"].get(
+                    "encoding", "utf-8"
+                ),
             )
             .rename(
                 columns={

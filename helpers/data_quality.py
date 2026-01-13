@@ -7,7 +7,7 @@ from typing import Literal
 import pandas as pd
 
 
-def validate_file(file_path: str, min_rows: int = 2) -> None:
+def validate_file(file_path: str, min_rows: int = 2, csv_encoding="utf-8") -> None:
     """
     Validate that a file is not empty based on its type.
 
@@ -27,7 +27,7 @@ def validate_file(file_path: str, min_rows: int = 2) -> None:
         raise ValueError(f"File {file_path} does not exist")
 
     if file_path.endswith(".csv"):
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, "r", encoding=csv_encoding) as f:
             line_count = sum(1 for _ in f)
         if line_count < min_rows:
             raise ValueError(

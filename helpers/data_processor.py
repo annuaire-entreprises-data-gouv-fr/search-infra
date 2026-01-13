@@ -121,7 +121,10 @@ class DataProcessor(ABC):
 
                 try:
                     # Validate if the downloaded file contains at least 2 lines
-                    validate_file(params["destination"])
+                    validate_file(
+                        params["destination"],
+                        csv_encoding=params.get("encoding", "utf-8"),
+                    )
                 except ValueError as e:
                     error_message = f"File validation failed for {name}: {str(e)}"
                     ti.xcom_push(
@@ -130,7 +133,7 @@ class DataProcessor(ABC):
                     logging.error(error_message)
                     raise
 
-            except (requests.exceptions.RequestException, ValueError):
+            except requests.exceptions.RequestException:
                 error_message = f"Failed to download {name} from {params['url']}"
                 ti.xcom_push(
                     key=Notification.notification_xcom_key, value=error_message

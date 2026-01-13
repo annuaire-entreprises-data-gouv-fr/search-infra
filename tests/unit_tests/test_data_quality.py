@@ -156,6 +156,43 @@ def test_validate_file_unsupported_type():
         validate_file(unsupported_path)
 
 
+def test_validate_file_csv_encoding():
+    """Test the validate_file() function with different CSV encodings."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Test valid CSV with UTF-8 encoding (default)
+        utf8_csv_path = os.path.join(tmpdir, "utf8.csv")
+        with open(utf8_csv_path, "w", encoding="utf-8") as f:
+            f.write("header1,header2\n")
+            f.write("data1,data2\n")
+            f.write("data3,data4\n")
+
+        # Should not raise an exception with default encoding
+        validate_file(utf8_csv_path)
+        # Should not raise an exception with explicit UTF-8 encoding
+        validate_file(utf8_csv_path, csv_encoding="utf-8")
+
+        # Test CSV with ISO-8859-1 encoding containing non-ASCII characters
+        iso_csv_path = os.path.join(tmpdir, "iso.csv")
+        with open(iso_csv_path, "w", encoding="iso-8859-1") as f:
+            f.write("header1,header2\n")
+            f.write("café,naïve\n")  # French characters that work in ISO-8859-1
+            f.write("résumé,cliché\n")
+
+        # Should work with correct encoding
+        validate_file(iso_csv_path, csv_encoding="iso-8859-1")
+
+        # Test CSV with wrong encoding (should fail with non-ASCII content)
+        try:
+            validate_file(iso_csv_path, csv_encoding="utf-8")
+            assert False, "Expected UnicodeDecodeError for wrong encoding"
+        except UnicodeDecodeError:
+            # This is expected when using wrong encoding
+            pass
+        except ValueError as e:
+            # The function might catch the UnicodeDecodeError and re-raise as ValueError
+            assert "CSV file" in str(e)
+
+
 def test_clean_sirent_series():
     """Test the _clean_sirent_series() function with the "siren" type."""
     test_data = {

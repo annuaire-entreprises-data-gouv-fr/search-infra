@@ -31,6 +31,7 @@ COLTER_CONFIG = DataSourceConfig(
             "url": f"{DATA_GOUV_BASE_URL}1e3493b3-7fc0-4005-8aa7-240bdf17e617",
             "resource_id": "1e3493b3-7fc0-4005-8aa7-240bdf17e617",
             "destination": f"{DataSourceConfig.base_tmp_folder}/colter/communes-download.csv",
+            "encoding": "latin-1",
         },
     },
     url_minio=f"{MINIO_BASE_URL}colter/latest/colter.csv",
