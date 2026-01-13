@@ -38,8 +38,9 @@ def str_to_list(string):
     try:
         li = literal_eval(string)
         return li
-    except ValueError:
-        logging.info(f"////////////////Could not evaluate: {string}")
+    except (ValueError, SyntaxError):
+        logging.warning(f"////////////////Could not evaluate: {string}")
+        return None
 
 
 def str_to_bool(string):
