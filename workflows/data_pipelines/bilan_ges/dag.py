@@ -40,6 +40,10 @@ def data_processing_bilan_ges():
         return f"rm -rf {BILAN_GES_CONFIG.tmp_folder} && mkdir -p {BILAN_GES_CONFIG.tmp_folder}"
 
     @task
+    def download_data():
+        return bilan_ges_processor.download_data()
+
+    @task
     def preprocess_bilan_ges():
         return bilan_ges_processor.preprocess_data()
 
@@ -57,6 +61,7 @@ def data_processing_bilan_ges():
 
     (
         clean_previous_outputs()
+        >> download_data()
         >> preprocess_bilan_ges()
         >> save_date_last_modified()
         >> send_file_to_minio()

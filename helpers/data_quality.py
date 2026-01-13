@@ -1,7 +1,72 @@
 import logging
+import os
+import tempfile
+import zipfile
 from typing import Literal
 
 import pandas as pd
+
+
+def validate_file(file_path: str, min_rows: int = 2, csv_encoding="utf-8") -> None:
+    """
+    Validate that a file is not empty based on its type.
+
+    Args:
+        file_path (str): Path to the file to validate
+        min_rows (int): Minimum number of rows expected (for CSV/XLSX). Defaults to 2.
+
+    Raises:
+        ValueError: If the file is empty or invalid
+
+    Supported file types:
+        - CSV: Must have at least min_rows lines
+        - XLSX: Must have at least min_rows rows in the first sheet
+        - ZIP: Must contain at least one file, and any CSV/XLSX files within must be valid
+    """
+    if not os.path.exists(file_path):
+        raise ValueError(f"File {file_path} does not exist")
+
+    if file_path.endswith(".csv"):
+        with open(file_path, "r", encoding=csv_encoding) as f:
+            line_count = sum(1 for _ in f)
+        if line_count < min_rows:
+            raise ValueError(
+                f"CSV file {file_path} has only {line_count} line(s). "
+                f"Expected at least {min_rows} lines"
+            )
+
+    elif file_path.endswith(".xlsx"):
+        df = pd.read_excel(file_path)
+        if len(df) < min_rows:
+            raise ValueError(
+                f"XLSX file {file_path} has only {len(df)} row(s). "
+                f"Expected at least {min_rows} rows"
+            )
+
+    elif file_path.endswith(".zip"):
+        with zipfile.ZipFile(file_path, "r") as zip_ref:
+            file_list = zip_ref.namelist()
+            if len(file_list) == 0:
+                raise ValueError(f"ZIP file {file_path} is empty")
+
+            with tempfile.TemporaryDirectory() as temp_dir:
+                for file_name in file_list:
+                    if file_name.endswith((".csv", ".xlsx")):
+                        extract_path = os.path.join(
+                            temp_dir, os.path.basename(file_name)
+                        )
+                        with open(extract_path, "wb") as f:
+                            f.write(zip_ref.read(file_name))
+
+                        try:
+                            validate_file(extract_path, min_rows)
+                        except ValueError as e:
+                            raise ValueError(
+                                f"ZIP file {file_path} contains invalid file {file_name}: {str(e)}"
+                            ) from e
+
+    else:
+        logging.warning(f"Unsupported file type for {file_path}")
 
 
 def _clean_sirent_series(

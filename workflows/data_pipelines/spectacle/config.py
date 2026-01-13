@@ -14,6 +14,7 @@ SPECTACLE_CONFIG = DataSourceConfig(
             "resource_id": "fb6c3b2e-da8c-4e69-a719-6a96329e4cb2",
             "url": f"{DATA_GOUV_BASE_URL}fb6c3b2e-da8c-4e69-a719-6a96329e4cb2",
             "destination": f"{DataSourceConfig.base_tmp_folder}/spectacle/spectacle-download.csv",
+            "encoding": "latin-1",
         }
     },
     url_minio=f"{MINIO_BASE_URL}spectacle/latest/spectacle.csv",

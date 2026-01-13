@@ -8,6 +8,7 @@ from airflow.operators.python import get_current_context
 from dateutil.relativedelta import relativedelta
 
 from data_pipelines_annuaire.config import DataSourceConfig
+from data_pipelines_annuaire.helpers.data_quality import validate_file
 from data_pipelines_annuaire.helpers.datagouv import (
     fetch_last_modified_date,
     fetch_last_resource_from_dataset,
@@ -118,7 +119,21 @@ class DataProcessor(ABC):
 
                 download_file(file_url, params["destination"])
 
-            except (requests.exceptions.RequestException, ValueError):
+                try:
+                    # Validate if the downloaded file contains at least 2 lines
+                    validate_file(
+                        params["destination"],
+                        csv_encoding=params.get("encoding", "utf-8"),
+                    )
+                except ValueError as e:
+                    error_message = f"File validation failed for {name}: {str(e)}"
+                    ti.xcom_push(
+                        key=Notification.notification_xcom_key, value=error_message
+                    )
+                    logging.error(error_message)
+                    raise
+
+            except requests.exceptions.RequestException:
                 error_message = f"Failed to download {name} from {params['url']}"
                 ti.xcom_push(
                     key=Notification.notification_xcom_key, value=error_message
