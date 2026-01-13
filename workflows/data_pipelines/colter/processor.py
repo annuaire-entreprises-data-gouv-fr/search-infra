@@ -265,13 +265,13 @@ class ElusProcessor(DataProcessor):
         df_colter = pd.read_csv(COLTER_CONFIG.url_minio, dtype=str)
         # Conseillers régionaux
         elus = self.process_elus_files(
-            self.config.files_to_download["conseillers_regionaux"]["url"],
+            self.config.files_to_download["conseillers_regionaux"]["destination"],
             "Code de la région",
         )
 
         # Conseillers départementaux
         df_elus_deps = self.process_elus_files(
-            self.config.files_to_download["conseillers_departementaux"]["url"],
+            self.config.files_to_download["conseillers_departementaux"]["destination"],
             "Code du département",
         )
         df_elus_deps["colter_code"] = df_elus_deps["colter_code"] + "D"
@@ -280,7 +280,9 @@ class ElusProcessor(DataProcessor):
 
         # membres des assemblées des collectivités à statut particulier
         df_elus_part = self.process_elus_files(
-            self.config.files_to_download["assemblee_col_statut_particulier"]["url"],
+            self.config.files_to_download["assemblee_col_statut_particulier"][
+                "destination"
+            ],
             "Code de la collectivité à statut particulier",
         )
         df_elus_part.loc[df_elus_part["colter_code"] == "972", "colter_code"] = "02"
@@ -289,14 +291,14 @@ class ElusProcessor(DataProcessor):
 
         # Conseillers communautaires
         df_elus_epci = self.process_elus_files(
-            self.config.files_to_download["elus_epci"]["url"],
+            self.config.files_to_download["elus_epci"]["destination"],
             "N° SIREN",
         )
         elus = pd.concat([elus, df_elus_epci])
 
         # Conseillers municipaux
         df_elus_epci = self.process_elus_files(
-            self.config.files_to_download["conseillers_municipaux"]["url"],
+            self.config.files_to_download["conseillers_municipaux"]["destination"],
             "Code de la commune",
         )
         df_elus_epci.loc[df_elus_epci["colter_code"] == "75056", "colter_code"] = "75C"

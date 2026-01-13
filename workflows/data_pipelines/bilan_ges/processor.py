@@ -16,7 +16,7 @@ class BilanGesProcessor(DataProcessor):
 
     def preprocess_data(self):
         df_bilan_ges = pd.read_csv(
-            self.config.files_to_download["bilan_ges"]["url"],
+            self.config.files_to_download["bilan_ges"]["destination"],
             delimiter=";",
             dtype="str",
             usecols=["SIREN principal"],

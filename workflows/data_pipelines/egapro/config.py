@@ -13,6 +13,7 @@ EGAPRO_CONFIG = DataSourceConfig(
         "egapro": {
             "url": f"{DATA_GOUV_BASE_URL}d434859f-8d3b-4381-bcdb-ec9200653ae6",
             "resource_id": "d434859f-8d3b-4381-bcdb-ec9200653ae6",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/egapro/egapro-download.xlsx",
         }
     },
     url_minio=f"{MINIO_BASE_URL}egapro/latest/egapro.csv",

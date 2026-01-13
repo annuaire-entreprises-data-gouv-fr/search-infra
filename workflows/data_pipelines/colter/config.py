@@ -62,22 +62,27 @@ ELUS_CONFIG = DataSourceConfig(
         "assemblee_col_statut_particulier": {
             "url": f"{DATA_GOUV_BASE_URL}a595be27-cfab-4810-b9d4-22e193bffe35",
             "resource_id": "a595be27-cfab-4810-b9d4-22e193bffe35",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/colter_elus/col-statut-particulier-download.csv",
         },
         "conseillers_regionaux": {
             "url": f"{DATA_GOUV_BASE_URL}430e13f9-834b-4411-a1a8-da0b4b6e715c",
             "resource_id": "430e13f9-834b-4411-a1a8-da0b4b6e715c",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/colter_elus/region-download.csv",
         },
         "conseillers_departementaux": {
             "url": f"{DATA_GOUV_BASE_URL}601ef073-d986-4582-8e1a-ed14dc857fba",
             "resource_id": "601ef073-d986-4582-8e1a-ed14dc857fba",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/colter_elus/departement-download.csv",
         },
         "conseillers_municipaux": {
             "url": f"{DATA_GOUV_BASE_URL}d5f400de-ae3f-4966-8cb6-a85c70c6c24a",
             "resource_id": "d5f400de-ae3f-4966-8cb6-a85c70c6c24a",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/colter_elus/municipalite-download.csv",
         },
         "elus_epci": {
             "url": f"{DATA_GOUV_BASE_URL}41d95d7d-b172-4636-ac44-32656367cdc7",
             "resource_id": "41d95d7d-b172-4636-ac44-32656367cdc7",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/colter_elus/epci-download.csv",
         },
     },
     url_minio=f"{MINIO_BASE_URL}colter_elus/latest/elus.csv",
