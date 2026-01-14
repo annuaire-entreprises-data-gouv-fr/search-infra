@@ -1,13 +1,13 @@
 from data_pipelines_annuaire.config import (
     DATA_GOUV_BASE_URL,
-    MINIO_BASE_URL,
+    OBJECT_STORAGE_BASE_URL,
     DataSourceConfig,
 )
 
 BILAN_GES_CONFIG = DataSourceConfig(
     name="bilan_ges",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/bilan_ges",
-    minio_path="bilan_ges",
+    object_storage_path="bilan_ges",
     file_name="bilan_ges",
     files_to_download={
         "bilan_ges": {
@@ -16,8 +16,8 @@ BILAN_GES_CONFIG = DataSourceConfig(
             "destination": f"{DataSourceConfig.base_tmp_folder}/bilan_ges/bilans-ges-download.csv",
         }
     },
-    url_minio=f"{MINIO_BASE_URL}bilan_ges/latest/bilan_ges.csv",
-    url_minio_metadata=f"{MINIO_BASE_URL}bilan_ges/latest/metadata.json",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}bilan_ges/latest/bilan_ges.csv",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}bilan_ges/latest/metadata.json",
     table_ddl="""
         BEGIN;
         CREATE TABLE IF NOT EXISTS bilan_ges

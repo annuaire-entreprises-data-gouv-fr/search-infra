@@ -17,15 +17,15 @@ def delete_old_files(
     retention_days: int = 14,
 ):
     """
-    Delete old files from MinIO, keeping the specified number of latest files.
+    Delete old files from the object storage, keeping the specified number of latest files.
 
     Args:
         prefix (str): Prefix of the files to delete.
         keep_latest (int, optional): Number of latest files to retain. Defaults to 2.
         retention_days (int, optional): Number of days to retain files. Defaults to 14.
     """
-    minio_client = MinIOClient()
-    file_info_list = minio_client.get_files_and_last_modified(prefix)
+    object_storage_client = MinIOClient()
+    file_info_list = object_storage_client.get_files_and_last_modified(prefix)
 
     file_info_list.sort(key=lambda x: x[1], reverse=True)
 
@@ -39,7 +39,7 @@ def delete_old_files(
         if i < keep_latest or age < timedelta(days=retention_days):
             continue
         logging.info(f"***** Deleting file: {file_name}")
-        minio_client.delete_file(file_name)
+        object_storage_client.delete_file(file_name)
 
 
 default_args = {
@@ -50,12 +50,12 @@ default_args = {
     "email_on_failure": True,
 }
 
-# This DAG delete outdated RNE and SIRENE databases from MinIO if they are older than
+# This DAG delete outdated RNE and SIRENE databases from the object storage if they are older than
 # 3 days, while retaining a specified number of the most recent files.
 with DAG(
-    "delete_old_minio_file",
+    "delete_old_object_storage_file",
     default_args=default_args,
-    description="Delete old MinIO files",
+    description="Delete old object storage files",
     schedule="0 12 * * *",  # run every day at 12:00 PM (UTC)
     dagrun_timeout=timedelta(minutes=30),
     start_date=datetime(2023, 12, 28),

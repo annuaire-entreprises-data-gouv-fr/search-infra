@@ -13,7 +13,7 @@ class DataSourceConfig:
     Attributes:
         name (str): Unique name of the data source. Also used as the table name in the database.
         tmp_folder (str): Local path folder for storing temporary and intermediate files.
-        minio_path (str): Folder name in MinIO where files are stored.
+        object_storage_path (str): Folder name in object storage where files are stored.
         file_name (str): Name of the main file associated with the data source.
         files_to_download (dict[str, dict[str, str]]): Information about files to download.
             Keys represent unique file identifiers, and values are dictionaries with details about the files:
@@ -21,8 +21,8 @@ class DataSourceConfig:
             - resource_id (str, None): Data.gouv resource ID.
             - dataset_id (str, None): Data.gouv dataset ID (the most recent resource will be downloaded).
             - destination (str, None): Local path where the downloaded file will be saved.
-        url_minio (str | None): MinIO URL where the processed file will be stored. Defaults to None.
-        url_minio_metadata (str | None): MinIO URL where the metadata file will be stored. Defaults to None.
+        url_object_storage (str | None): Object storage URL where the processed file will be stored. Defaults to None.
+        url_object_storage_metadata (str | None): Object storage URL whe_object_storage metadata file will be stored. Defaults to None.
         file_output (str | None): Local file path of the output file. Defaults to None.
         base_tmp_folder (str, None): Base path for temporary folders. Defaults to "/tmp".
         url_api (str | None): URL of the API to fetch data from. Defaults to None.
@@ -33,11 +33,11 @@ class DataSourceConfig:
 
     name: str
     tmp_folder: str
-    minio_path: str
+    object_storage_path: str
     file_name: str | None = None
     files_to_download: dict[str, dict[str, str]] = field(default_factory=dict)
-    url_minio: str | None = None
-    url_minio_metadata: str | None = None
+    url_object_storage: str | None = None
+    url_object_storage_metadata: str | None = None
     file_output: str | None = None
     base_tmp_folder: str = "/tmp"
     url_api: str | None = None
@@ -54,7 +54,9 @@ PREVIOUS_MONTH: str = (datetime.now().replace(day=1) - timedelta(days=1)).strfti
 AIRFLOW_ENV = Variable.get("ENV", "dev")
 BASE_TMP_FOLDER = "/tmp"
 DATA_GOUV_BASE_URL = "https://www.data.gouv.fr/datasets/r/"
-MINIO_BASE_URL = f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/"
+OBJECT_STORAGE_BASE_URL = (
+    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/"
+)
 
 # Airflow
 AIRFLOW_DAG_HOME = Variable.get("AIRFLOW_DAG_HOME", "/opt/airflow/dags/")
@@ -74,14 +76,14 @@ AIRFLOW_ELK_DATA_DIR = (
 )
 AIRFLOW_DATAGOUV_DATA_DIR = AIRFLOW_DAG_TMP + AIRFLOW_PUBLISH_DAG_NAME + "/data/"
 SIRENE_DATABASE_LOCATION = AIRFLOW_ETL_DATA_DIR + "sirene.db"
-SIRENE_MINIO_DATA_PATH = "sirene/database/"
-DATABASE_VALIDATION_MINIO_PATH = "database/validation/"
+SIRENE_OBJECT_STORAGE_DATA_PATH = "sirene/database/"
+DATABASE_VALIDATION_OBJECT_STORAGE_PATH = "database/validation/"
 RNE_DATABASE_LOCATION = AIRFLOW_ETL_DATA_DIR + "rne.db"
 RNE_DB_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rne/database/"
-RNE_MINIO_DATA_PATH = "rne/database/"
+RNE_OBJECT_STORAGE_DATA_PATH = "rne/database/"
 RNE_LATEST_DATE_FILE = "latest_rne_date.json"
-RNE_MINIO_FLUX_DATA_PATH = "rne/flux/"
-RNE_MINIO_STOCK_DATA_PATH = "rne/stock/"
+RNE_OBJECT_STORAGE_FLUX_DATA_PATH = "rne/flux/"
+RNE_OBJECT_STORAGE_STOCK_DATA_PATH = "rne/stock/"
 RNE_FLUX_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}rne/flux/"
 RNE_FLUX_DATADIR = f"{RNE_FLUX_TMP_FOLDER}data"
 RNE_DEFAULT_START_DATE = "2025-04-03"
@@ -91,10 +93,10 @@ RNE_STOCK_EXTRACTED_FILES_PATH = f"{RNE_STOCK_TMP_FOLDER}extracted/"
 RNE_STOCK_DATADIR = f"{RNE_STOCK_TMP_FOLDER}data"
 RNE_DAG_FOLDER = "data_pipelines_annuaire/workflows/data_pipelines/"
 METADATA_CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}metadata/cc/"
-METADATA_CC_MINIO_PATH = "metadata/cc/"
+METADATA_CC_OBJECT_STORAGE_PATH = "metadata/cc/"
 INSEE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/ul/"
 CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
-MINIO_DATA_SOURCE_UPDATE_DATES_FILE = "data_source_updates.json"
+OBJECT_STORAGE_DATA_SOURCE_UPDATE_DATES_FILE = "data_source_updates.json"
 
 # Notification
 TCHAP_ANNUAIRE_WEBHOOK = Variable.get("TCHAP_ANNUAIRE_WEBHOOK", "")
@@ -102,12 +104,12 @@ TCHAP_ANNUAIRE_ROOM_ID = Variable.get("TCHAP_ANNUAIRE_ROOM_ID", "")
 MATTERMOST_WEBHOOK = Variable.get("MATTERMOST_WEBHOOK", "")
 EMAIL_LIST = Variable.get("EMAIl_LIST", "")
 
-# Minio
-MINIO_URL = Variable.get("MINIO_URL", "object.files.data.gouv.fr")
-MINIO_BUCKET = Variable.get("MINIO_BUCKET", "")
-MINIO_BUCKET_DATA_PIPELINE = Variable.get("MINIO_BUCKET_DATA_PIPELINE", None)
-MINIO_USER = Variable.get("MINIO_USER", "")
-MINIO_PASSWORD = Variable.get("MINIO_PASSWORD", "")
+# Object Storage
+OBJECT_STORAGE_URL = Variable.get("MINIO_URL", "object.files.data.gouv.fr")
+OBJECT_STORAGE_BUCKET = Variable.get("MINIO_BUCKET", "")
+OBJECT_STORAGE_BUCKET_DATA_PIPELINE = Variable.get("MINIO_BUCKET_DATA_PIPELINE", None)
+OBJECT_STORAGE_USER = Variable.get("MINIO_USER", "")
+OBJECT_STORAGE_PASSWORD = Variable.get("MINIO_PASSWORD", "")
 
 # RNE
 RNE_FTP_URL = Variable.get("RNE_FTP_URL", "")
@@ -143,8 +145,8 @@ ELASTIC_MAX_LIVE_VERSIONS = int(Variable.get("ELASTIC_MAX_LIVE_VERSIONS", 2))
 
 ELASTIC_SNAPSHOT_REPOSITORY = Variable.get("ELASTIC_SNAPSHOT_REPOSITORY", "data-prod")
 ELASTIC_SNAPSHOT_MAX_REVISIONS = 5
-ELASTIC_SNAPSHOT_MINIO_STATE_PATH = Variable.get(
-    "ELASTIC_SNAPSHOT_MINIO_STATE_PATH", "elastic_index_version"
+ELASTIC_SNAPSHOT_OBJECT_STORAGE_STATE_PATH = Variable.get(
+    "ELASTIC_SNAPSHOT_OBJECT_STORAGE_STATE_PATH", "elastic_index_version"
 )
 
 ELASTIC_DOWNSTREAM_ALIAS = Variable.get("ELASTIC_DOWNSTREAM_ALIAS", "siren-reader")

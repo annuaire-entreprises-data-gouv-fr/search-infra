@@ -1,12 +1,12 @@
 from data_pipelines_annuaire.config import (
-    MINIO_BASE_URL,
+    OBJECT_STORAGE_BASE_URL,
     DataSourceConfig,
 )
 
 RGE_CONFIG = DataSourceConfig(
     name="rge",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/rge",
-    minio_path="rge",
+    object_storage_path="rge",
     file_name="rge",
     files_to_download={
         "rge": {
@@ -14,8 +14,8 @@ RGE_CONFIG = DataSourceConfig(
             "liste-des-entreprises-rge-2/lines?size=10000&select=siret%2Ccode_qualification",
         }
     },
-    url_minio=f"{MINIO_BASE_URL}rge/latest/rge.csv",
-    url_minio_metadata=f"{MINIO_BASE_URL}rge/latest/metadata.json",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}rge/latest/rge.csv",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}rge/latest/metadata.json",
     table_ddl="""
         BEGIN;
         CREATE TABLE IF NOT EXISTS rge

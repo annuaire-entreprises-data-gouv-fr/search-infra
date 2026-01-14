@@ -49,20 +49,20 @@ def data_processing_convention_collective():
         return convention_collective_processor.save_date_last_modified()
 
     @task
-    def send_file_to_minio():
-        return convention_collective_processor.send_file_to_minio()
+    def send_file_to_object_storage():
+        return convention_collective_processor.send_file_to_object_storage()
 
     @task
-    def compare_files_minio():
-        return convention_collective_processor.compare_files_minio()
+    def compare_files_object_storage():
+        return convention_collective_processor.compare_files_object_storage()
 
     (
         clean_previous_outputs()
         >> download_data()
         >> preprocess_data()
         >> save_date_last_modified()
-        >> send_file_to_minio()
-        >> compare_files_minio()
+        >> send_file_to_object_storage()
+        >> compare_files_object_storage()
     )
 
 

@@ -11,7 +11,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functio
     wait_for_downstream_rollback_import,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.snapshot import (
-    rollback_minio_current_index_version,
+    rollback_object_storage_current_index_version,
 )
 
 default_args = {
@@ -33,10 +33,10 @@ with DAG(
     catchup=False,  # False to ignore past runs
     max_active_runs=1,
 ) as dag:
-    rollback_minio_file = PythonOperator(
-        task_id="rollback_minio_current_index_version",
+    rollback_object_storage_file = PythonOperator(
+        task_id="rollback_object_storage_current_index_version",
         provide_context=True,
-        python_callable=rollback_minio_current_index_version,
+        python_callable=rollback_object_storage_current_index_version,
     )
 
     wait_for_downstream = PythonOperator(
@@ -45,4 +45,4 @@ with DAG(
         python_callable=wait_for_downstream_rollback_import,
     )
 
-    wait_for_downstream.set_upstream(rollback_minio_file)
+    wait_for_downstream.set_upstream(rollback_object_storage_file)

@@ -1,13 +1,13 @@
 from data_pipelines_annuaire.config import (
     DATA_GOUV_BASE_URL,
-    MINIO_BASE_URL,
+    OBJECT_STORAGE_BASE_URL,
     DataSourceConfig,
 )
 
 EGAPRO_CONFIG = DataSourceConfig(
     name="egapro",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/egapro",
-    minio_path="egapro",
+    object_storage_path="egapro",
     file_name="egapro",
     files_to_download={
         "egapro": {
@@ -16,8 +16,8 @@ EGAPRO_CONFIG = DataSourceConfig(
             "destination": f"{DataSourceConfig.base_tmp_folder}/egapro/egapro-download.xlsx",
         }
     },
-    url_minio=f"{MINIO_BASE_URL}egapro/latest/egapro.csv",
-    url_minio_metadata=f"{MINIO_BASE_URL}egapro/latest/metadata.json",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}egapro/latest/egapro.csv",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}egapro/latest/metadata.json",
     table_ddl="""
         BEGIN;
         CREATE TABLE IF NOT EXISTS egapro

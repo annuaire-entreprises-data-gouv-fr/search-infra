@@ -86,7 +86,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.determi
     determine_sirene_date,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.upload_db import (
-    upload_db_to_minio,
+    upload_db_to_object_storage,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.validation import (
     validate_table,
@@ -267,7 +267,7 @@ def database_constructor():
         >> create_dirig_pm_table()
         >> copy_immatriculation_table()
         >> additional_data_enrichement()
-        >> upload_db_to_minio()
+        >> upload_db_to_object_storage()
         >> create_data_source_last_modified_file()
         >> clean_current_tmp_folder()
         >> trigger_indexing_dag

@@ -9,7 +9,7 @@ from requests.exceptions import HTTPError
 
 from data_pipelines_annuaire.config import (
     FILE_CC_DATE,
-    METADATA_CC_MINIO_PATH,
+    METADATA_CC_OBJECT_STORAGE_PATH,
     METADATA_CC_TMP_FOLDER,
     URL_CC_DARES,
     URL_CC_KALI,
@@ -48,7 +48,7 @@ def get_month_year_french():
 
 def is_metadata_not_updated() -> bool:
     last_run_date = MinIOClient().get_date_last_modified(
-        f"{METADATA_CC_MINIO_PATH}cc_kali.json"
+        f"{METADATA_CC_OBJECT_STORAGE_PATH}cc_kali.json"
     )
     if last_run_date is not None:
         last_run_date = datetime.fromisoformat(last_run_date)
@@ -86,7 +86,7 @@ def create_metadata_convention_collective_json():
         # The file is often unavailable, this is expected but
         # we need to be informed to act upon it if it has been too long
         last_run_date = MinIOClient().get_date_last_modified(
-            f"{METADATA_CC_MINIO_PATH}cc_kali.json"
+            f"{METADATA_CC_OBJECT_STORAGE_PATH}cc_kali.json"
         )
         if last_run_date is not None:
             date_diff = datetime.now() - datetime.fromisoformat(last_run_date)
@@ -150,13 +150,13 @@ def create_metadata_convention_collective_json():
         json.dump(metadata_json, json_file)
 
 
-def upload_json_to_minio():
+def upload_json_to_object_storage():
     MinIOClient().send_files(
         list_files=[
             File(
                 source_path=METADATA_CC_TMP_FOLDER,
                 source_name="metadata-cc-kali.json",
-                dest_path=METADATA_CC_MINIO_PATH,
+                dest_path=METADATA_CC_OBJECT_STORAGE_PATH,
                 dest_name="cc_kali.json",
                 content_type=None,
             )

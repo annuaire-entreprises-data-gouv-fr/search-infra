@@ -4,7 +4,7 @@ import os
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ETL_DATA_DIR,
-    DATABASE_VALIDATION_MINIO_PATH,
+    DATABASE_VALIDATION_OBJECT_STORAGE_PATH,
 )
 from data_pipelines_annuaire.helpers.filesystem import LocalFile
 from data_pipelines_annuaire.helpers.minio_helpers import MinIOFile
@@ -16,7 +16,7 @@ def validate_table(
     table_name: str, datatabase_location: str, validations: list, file_alias: str = ""
 ) -> None:
     """
-    Test table against values stored on Minio.
+    Test table against values stored on object storage.
     Raise an error if the test fails.
     """
     for validation in validations:
@@ -26,7 +26,7 @@ def validate_table(
     file_name = f"{table_name}__{file_alias}__stats"
 
     remote_path = os.path.join(
-        DATABASE_VALIDATION_MINIO_PATH,
+        DATABASE_VALIDATION_OBJECT_STORAGE_PATH,
         os.path.basename(datatabase_location),
         f"{file_name}.json",
     )
@@ -35,11 +35,11 @@ def validate_table(
         f"{file_name}.json",
     )
     try:
-        minio_stats_file = MinIOFile(remote_path)
-        local_stats_file = minio_stats_file.download_to(local_path=local_path)
+        object_storage_stats_file = MinIOFile(remote_path)
+        local_stats_file = object_storage_stats_file.download_to(local_path=local_path)
     except FileNotFoundError as _:
         logging.warning(
-            f"Validation file not found for table {table_name} in MinIO: '{remote_path}'."
+            f"Validation file not found for table {table_name} in object storage: '{remote_path}'."
             " Creating it from scratch. Stats will be reset."
         )
         local_stats_file = LocalFile(
@@ -59,7 +59,9 @@ def validate_table(
         monitoring_logger(key=file_name, value=previous_data["row_count"])
 
     local_stats_file.write(lines=json.dumps(previous_data), mode="w")
-    local_stats_file.upload_to_minio(minio_path=os.path.dirname(remote_path) + "/")
+    local_stats_file.upload_to_object_storage(
+        object_storage_path=os.path.dirname(remote_path) + "/"
+    )
     logging.info(f"Test passed for table {table_name} in {datatabase_location}")
     local_stats_file.delete()
 
