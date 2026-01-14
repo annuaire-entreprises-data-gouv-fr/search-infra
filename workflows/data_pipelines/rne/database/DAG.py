@@ -9,13 +9,13 @@ from data_pipelines_annuaire.workflows.data_pipelines.rne.database.task_function
     check_db_count,
     create_db,
     get_latest_db,
-    get_start_date_minio,
+    get_start_date_object_storage,
     notification_mattermost,
     process_flux_json_files,
     process_stock_json_files,
     remove_duplicates,
-    upload_db_to_minio,
-    upload_latest_date_rne_minio,
+    upload_db_to_object_storage,
+    upload_latest_date_rne_object_storage,
 )
 
 default_args = {
@@ -44,7 +44,7 @@ with DAG(
     )
 
     get_start_date = PythonOperator(
-        task_id="get_start_date", python_callable=get_start_date_minio
+        task_id="get_start_date", python_callable=get_start_date_object_storage
     )
     create_db = PythonOperator(task_id="create_db", python_callable=create_db)
     get_latest_db = PythonOperator(
@@ -63,12 +63,13 @@ with DAG(
     check_db_count = PythonOperator(
         task_id="check_db_count", python_callable=check_db_count
     )
-    upload_db_to_minio = PythonOperator(
-        task_id="upload_db_to_minio", python_callable=upload_db_to_minio
+    upload_db_to_object_storage = PythonOperator(
+        task_id="upload_db_to_object_storage",
+        python_callable=upload_db_to_object_storage,
     )
-    upload_latest_date_rne_minio = PythonOperator(
-        task_id="upload_latest_date_rne_minio",
-        python_callable=upload_latest_date_rne_minio,
+    upload_latest_date_rne_object_storage = PythonOperator(
+        task_id="upload_latest_date_rne_object_storage",
+        python_callable=upload_latest_date_rne_object_storage,
     )
 
     clean_outputs = BashOperator(
@@ -87,7 +88,7 @@ with DAG(
     process_flux_json_files.set_upstream(process_stock_json_files)
     remove_duplicates.set_upstream(process_flux_json_files)
     check_db_count.set_upstream(remove_duplicates)
-    upload_db_to_minio.set_upstream(check_db_count)
-    upload_latest_date_rne_minio.set_upstream(upload_db_to_minio)
-    clean_outputs.set_upstream(upload_latest_date_rne_minio)
+    upload_db_to_object_storage.set_upstream(check_db_count)
+    upload_latest_date_rne_object_storage.set_upstream(upload_db_to_object_storage)
+    clean_outputs.set_upstream(upload_latest_date_rne_object_storage)
     send_notification_mattermost.set_upstream(clean_outputs)

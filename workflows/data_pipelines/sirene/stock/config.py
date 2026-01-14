@@ -1,6 +1,6 @@
 from data_pipelines_annuaire.config import (
     CURRENT_MONTH,
-    MINIO_BASE_URL,
+    OBJECT_STORAGE_BASE_URL,
     DataSourceConfig,
 )
 
@@ -24,6 +24,6 @@ STOCK_SIRENE_CONFIG = DataSourceConfig(
             "destination": f"{DataSourceConfig.base_tmp_folder}/sirene/stock/StockEtablissementHistorique_{CURRENT_MONTH}.zip",
         },
     },
-    minio_path="insee/stock/",
-    url_minio=f"{MINIO_BASE_URL}insee/stock/",
+    object_storage_path="insee/stock/",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}insee/stock/",
 )

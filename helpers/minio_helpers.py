@@ -12,10 +12,10 @@ from minio.commonconfig import CopySource
 import data_pipelines_annuaire.helpers.filesystem as filesystem
 from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
-    MINIO_BUCKET,
-    MINIO_PASSWORD,
-    MINIO_URL,
-    MINIO_USER,
+    OBJECT_STORAGE_BUCKET,
+    OBJECT_STORAGE_PASSWORD,
+    OBJECT_STORAGE_URL,
+    OBJECT_STORAGE_USER,
 )
 
 
@@ -30,10 +30,10 @@ class File(TypedDict):
 
 class MinIOClient:
     def __init__(self):
-        self.url = MINIO_URL
-        self.user = MINIO_USER
-        self.password = MINIO_PASSWORD
-        self.bucket = MINIO_BUCKET
+        self.url = OBJECT_STORAGE_URL
+        self.user = OBJECT_STORAGE_USER
+        self.password = OBJECT_STORAGE_PASSWORD
+        self.bucket = OBJECT_STORAGE_BUCKET
         self.client = Minio(
             self.url,
             access_key=self.user,
@@ -112,42 +112,42 @@ class MinIOClient:
                 f"{file['dest_path']}{file['dest_name']}",
             )
 
-    def get_object_minio(
+    def get_object_object_storage(
         self,
-        minio_path: str,
+        object_storage_path: str,
         filename: str,
         local_path: str,
     ) -> None:
         self.client.fget_object(
             self.bucket,
-            f"{minio_path}{filename}",
+            f"{object_storage_path}{filename}",
             local_path,
         )
 
-    def put_object_minio(
+    def put_object_object_storage(
         self,
         filename: str,
-        minio_path: str,
+        object_storage_path: str,
         local_path: str,
         content_type: str = "application/octet-stream",
     ) -> None:
         self.client.fput_object(
             bucket_name=self.bucket,
-            object_name=minio_path,
+            object_name=object_storage_path,
             file_path=local_path + filename,
             content_type=content_type,
         )
 
     def get_latest_file(
         self,
-        minio_path: str,
+        object_storage_path: str,
         local_path: str,
     ):
         """
         Download the latest .db.gz file from Minio to the local file system.
 
         Args:
-            minio_path (str): The path within the Minio bucket where compressed .db
+            object_storage_path (str): The path within the Minio bucket where compressed .db
             files are located.
             local_path (str): The local directory where the downloaded file
             will be saved.
@@ -158,7 +158,7 @@ class MinIOClient:
         """
 
         objects = self.client.list_objects(
-            self.bucket, prefix=minio_path, recursive=True
+            self.bucket, prefix=object_storage_path, recursive=True
         )
 
         # Filter and sort .gz files based on their names and the date in the filename
@@ -388,7 +388,7 @@ class MinIOFile:
     ) -> filesystem.LocalFile:
         if os.path.isdir(local_path):
             local_path = os.path.join(local_path, self.filename)
-        self.client.get_object_minio(
+        self.client.get_object_object_storage(
             os.path.join(self.client.get_root_dirpath(), self.filepath),
             self.filename,
             local_path,

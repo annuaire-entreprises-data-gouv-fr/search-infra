@@ -1,13 +1,13 @@
 from data_pipelines_annuaire.config import (
     DATA_GOUV_BASE_URL,
-    MINIO_BASE_URL,
+    OBJECT_STORAGE_BASE_URL,
     DataSourceConfig,
 )
 
 ALIM_CONFIANCE_CONFIG = DataSourceConfig(
     name="alim_confiance",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/alim_confiance",
-    minio_path="alim_confiance",
+    object_storage_path="alim_confiance",
     file_name="alim_confiance",
     files_to_download={
         "alim_confiance": {
@@ -16,8 +16,8 @@ ALIM_CONFIANCE_CONFIG = DataSourceConfig(
             "destination": f"{DataSourceConfig.base_tmp_folder}/alim_confiance/alim-confiance-download.csv",
         },
     },
-    url_minio=f"{MINIO_BASE_URL}alim_confiance/latest/alim_confiance.csv",
-    url_minio_metadata=f"{MINIO_BASE_URL}alim_confiance/latest/metadata.json",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}alim_confiance/latest/alim_confiance.csv",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}alim_confiance/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/alim_confiance/alim_confiance.csv",
     table_ddl="""
         BEGIN;

@@ -7,7 +7,7 @@ from airflow.decorators import task
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ETL_DATA_DIR,
-    MINIO_DATA_SOURCE_UPDATE_DATES_FILE,
+    OBJECT_STORAGE_DATA_SOURCE_UPDATE_DATES_FILE,
 )
 from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
 from data_pipelines_annuaire.helpers.utils import simplify_date
@@ -68,28 +68,28 @@ def create_data_source_last_modified_file(**kwargs):
     metadata_dict = {}
 
     metadata_url_to_datasource = {
-        ESS_CONFIG.url_minio_metadata: "ess_france",
-        RGE_CONFIG.url_minio_metadata: "rge",
-        UAI_CONFIG.url_minio_metadata: "uai",
-        COLTER_CONFIG.url_minio_metadata: "collectivite_territoriale",
-        ELUS_CONFIG.url_minio_metadata: "collectivite_territoriale_elus",
-        FLUX_SIRENE_CONFIG.url_minio_metadata: "sirene",
-        EGAPRO_CONFIG.url_minio_metadata: "egapro",
-        AGENCE_BIO_CONFIG.url_minio_metadata: "agence_bio",
-        SPECTACLE_CONFIG.url_minio_metadata: "entrepreneur_spectacle",
-        FINESS_JURIDIQUE_CONFIG.url_minio_metadata: "finess_juridique",
-        FINESS_GEOGRAPHIQUE_CONFIG.url_minio_metadata: "finess_geographique",
-        BILANS_FINANCIERS_CONFIG.url_minio_metadata: "bilan_financier",
-        FORMATION_CONFIG.url_minio_metadata: "organisme_formation",
-        CONVENTION_COLLECTIVE_CONFIG.url_minio_metadata: "convention_collective",
-        MARCHE_INCLUSION_CONFIG.url_minio_metadata: "marche_inclusion",
-        ACHATS_RESPONSABLES_CONFIG.url_minio_metadata: "achats_responsables",
-        PATRIMOINE_VIVANT_CONFIG.url_minio_metadata: "patrimoine_vivant",
-        ALIM_CONFIANCE_CONFIG.url_minio_metadata: "alim_confiance",
+        ESS_CONFIG.url_object_storage_metadata: "ess_france",
+        RGE_CONFIG.url_object_storage_metadata: "rge",
+        UAI_CONFIG.url_object_storage_metadata: "uai",
+        COLTER_CONFIG.url_object_storage_metadata: "collectivite_territoriale",
+        ELUS_CONFIG.url_object_storage_metadata: "collectivite_territoriale_elus",
+        FLUX_SIRENE_CONFIG.url_object_storage_metadata: "sirene",
+        EGAPRO_CONFIG.url_object_storage_metadata: "egapro",
+        AGENCE_BIO_CONFIG.url_object_storage_metadata: "agence_bio",
+        SPECTACLE_CONFIG.url_object_storage_metadata: "entrepreneur_spectacle",
+        FINESS_JURIDIQUE_CONFIG.url_object_storage_metadata: "finess_juridique",
+        FINESS_GEOGRAPHIQUE_CONFIG.url_object_storage_metadata: "finess_geographique",
+        BILANS_FINANCIERS_CONFIG.url_object_storage_metadata: "bilan_financier",
+        FORMATION_CONFIG.url_object_storage_metadata: "organisme_formation",
+        CONVENTION_COLLECTIVE_CONFIG.url_object_storage_metadata: "convention_collective",
+        MARCHE_INCLUSION_CONFIG.url_object_storage_metadata: "marche_inclusion",
+        ACHATS_RESPONSABLES_CONFIG.url_object_storage_metadata: "achats_responsables",
+        PATRIMOINE_VIVANT_CONFIG.url_object_storage_metadata: "patrimoine_vivant",
+        ALIM_CONFIANCE_CONFIG.url_object_storage_metadata: "alim_confiance",
     }
 
     json_file_path = os.path.join(
-        AIRFLOW_ETL_DATA_DIR, MINIO_DATA_SOURCE_UPDATE_DATES_FILE
+        AIRFLOW_ETL_DATA_DIR, OBJECT_STORAGE_DATA_SOURCE_UPDATE_DATES_FILE
     )
 
     # Fetch metadata from each URL
@@ -126,14 +126,14 @@ def create_data_source_last_modified_file(**kwargs):
     with open(json_file_path, "w") as json_file:
         json.dump(metadata_dict, json_file, indent=4)
 
-    # Send the updated JSON file to Minio
+    # Send the updated JSON file to object storage
     MinIOClient().send_files(
         [
             {
                 "source_path": AIRFLOW_ETL_DATA_DIR,
-                "source_name": MINIO_DATA_SOURCE_UPDATE_DATES_FILE,
+                "source_name": OBJECT_STORAGE_DATA_SOURCE_UPDATE_DATES_FILE,
                 "dest_path": "metadata/updates/new/",
-                "dest_name": MINIO_DATA_SOURCE_UPDATE_DATES_FILE,
+                "dest_name": OBJECT_STORAGE_DATA_SOURCE_UPDATE_DATES_FILE,
             }
         ]
     )

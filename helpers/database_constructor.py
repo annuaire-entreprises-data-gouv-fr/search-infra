@@ -15,14 +15,14 @@ class DatabaseTableConstructor:
         self.config = config
 
     def etl_get_preprocessed_data(self) -> pd.DataFrame:
-        if self.config.url_minio:
-            return pd.read_csv(self.config.url_minio, dtype=str)
+        if self.config.url_object_storage:
+            return pd.read_csv(self.config.url_object_storage, dtype=str)
         else:
-            raise ValueError("No MinIO URL provided in the configuration.")
+            raise ValueError("No object storage URL provided in the configuration.")
 
     def etl_create_table(self, db_location: str) -> None:
         """
-        Creates a table in the SQLite database from the CSV output stored on minio.
+        Creates a table in the SQLite database from the CSV output stored on the object storage.
 
         Configurations:
             - self.config.table_ddl (str): The DDL to create the table in SQLite.

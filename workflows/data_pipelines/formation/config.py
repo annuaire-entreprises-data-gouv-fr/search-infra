@@ -1,9 +1,9 @@
-from data_pipelines_annuaire.config import MINIO_BASE_URL, DataSourceConfig
+from data_pipelines_annuaire.config import OBJECT_STORAGE_BASE_URL, DataSourceConfig
 
 FORMATION_CONFIG = DataSourceConfig(
     name="organisme_formation",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/formation",
-    minio_path="formation",
+    object_storage_path="formation",
     file_name="formation",
     files_to_download={
         "formation": {
@@ -13,8 +13,8 @@ FORMATION_CONFIG = DataSourceConfig(
             "destination": f"{DataSourceConfig.base_tmp_folder}/formation/qualiopi-download.csv",
         }
     },
-    url_minio=f"{MINIO_BASE_URL}formation/latest/formation.csv",
-    url_minio_metadata=f"{MINIO_BASE_URL}formation/latest/metadata.json",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}formation/latest/formation.csv",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}formation/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/formation/formation.csv",
     table_ddl="""
         BEGIN;
