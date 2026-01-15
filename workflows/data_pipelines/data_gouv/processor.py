@@ -10,7 +10,7 @@ import pandas as pd
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_DATAGOUV_DATA_DIR,
-    SIRENE_MINIO_DATA_PATH,
+    SIRENE_OBJECT_STORAGE_DATA_PATH,
 )
 from data_pipelines_annuaire.helpers.datagouv import post_resource
 from data_pipelines_annuaire.helpers.geolocalisation import transform_coordinates
@@ -97,15 +97,15 @@ class DataGouvProcessor:
         ]
 
     def get_latest_database(self):
-        """Get the latest database from MinIO storage"""
-        minio_client = MinIOClient()
-        database_files = minio_client.get_files_from_prefix(
-            prefix=SIRENE_MINIO_DATA_PATH,
+        """Get the latest database from object storage"""
+        object_storage_client = MinIOClient()
+        database_files = object_storage_client.get_files_from_prefix(
+            prefix=SIRENE_OBJECT_STORAGE_DATA_PATH,
         )
 
         if not database_files:
             raise Exception(
-                f"No database files were found in : {SIRENE_MINIO_DATA_PATH}"
+                f"No database files were found in : {SIRENE_OBJECT_STORAGE_DATA_PATH}"
             )
 
         # Extract dates from the db file names and sort them
@@ -116,10 +116,10 @@ class DataGouvProcessor:
         if dates:
             last_date = dates[-1]
             logging.info(f"***** Last database saved: {last_date}")
-            minio_client.get_files(
+            object_storage_client.get_files(
                 list_files=[
                     {
-                        "source_path": SIRENE_MINIO_DATA_PATH,
+                        "source_path": SIRENE_OBJECT_STORAGE_DATA_PATH,
                         "source_name": f"sirene_{last_date}.db.gz",
                         "dest_path": AIRFLOW_DATAGOUV_DATA_DIR,
                         "dest_name": "sirene.db.gz",
@@ -135,7 +135,7 @@ class DataGouvProcessor:
 
         else:
             raise Exception(
-                f"No dates in database files were found : {SIRENE_MINIO_DATA_PATH}"
+                f"No dates in database files were found : {SIRENE_OBJECT_STORAGE_DATA_PATH}"
             )
 
     def process_ul_chunk(self, chunk):
@@ -327,17 +327,17 @@ class DataGouvProcessor:
             with gzip.open(f"{filepath}.gz", "wb") as f_out:
                 shutil.copyfileobj(f_in, f_out)
 
-    def send_to_minio(self, list_files):
-        """Send files to MinIO storage"""
+    def send_to_object_storage(self, list_files):
+        """Send files to the object storage"""
         MinIOClient().send_files(list_files=list_files)
 
-    def upload_ul_and_administration_to_minio(self):
-        """Compress and upload unites legales and administration files to MinIO"""
+    def upload_ul_and_administration_to_object_storage(self):
+        """Compress and upload unites legales and administration files to the object storage"""
         self.compress_and_upload_file(
             f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{self.today_date}.csv"
         )
 
-        self.send_to_minio(
+        self.send_to_object_storage(
             [
                 {
                     "source_path": AIRFLOW_DATAGOUV_DATA_DIR,
@@ -354,13 +354,13 @@ class DataGouvProcessor:
             ]
         )
 
-    def upload_etab_to_minio(self):
-        """Compress and upload establishments file to MinIO"""
+    def upload_etab_to_object_storage(self):
+        """Compress and upload establishments file to the object storage"""
         self.compress_and_upload_file(
             f"{AIRFLOW_DATAGOUV_DATA_DIR}etablissements_{self.today_date}.csv"
         )
 
-        self.send_to_minio(
+        self.send_to_object_storage(
             [
                 {
                     "source_path": AIRFLOW_DATAGOUV_DATA_DIR,

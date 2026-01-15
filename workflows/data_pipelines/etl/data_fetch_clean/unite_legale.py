@@ -26,7 +26,7 @@ def download_historique(data_dir):
         "destination"
     ].split("/")[-1]
     filename = filename.replace(CURRENT_MONTH, year_month)
-    url = STOCK_SIRENE_CONFIG.url_minio + filename
+    url = STOCK_SIRENE_CONFIG.url_object_storage + filename
 
     logging.info(f"Downloading and unpacking {url}..")
     r = requests.get(
@@ -49,7 +49,7 @@ def download_stock(data_dir):
         "destination"
     ].split("/")[-1]
     filename = filename.replace(CURRENT_MONTH, year_month)
-    url = STOCK_SIRENE_CONFIG.url_minio + filename
+    url = STOCK_SIRENE_CONFIG.url_object_storage + filename
 
     logging.info(f"Downloading and unpacking {url}..")
     r = requests.get(
@@ -71,7 +71,7 @@ def download_flux(data_dir):
         MinIOClient().get_files(
             list_files=[
                 File(
-                    source_path=FLUX_SIRENE_CONFIG.minio_path,
+                    source_path=FLUX_SIRENE_CONFIG.object_storage_path,
                     source_name=f"flux_unite_legale_{year_month}.csv.gz",
                     dest_path=f"{data_dir}",
                     dest_name=f"flux_unite_legale_{year_month}.csv.gz",

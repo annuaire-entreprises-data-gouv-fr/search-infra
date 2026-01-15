@@ -47,13 +47,13 @@ def get_rne_stock():
         )
 
     @task
-    def unzip_files_and_upload_minio():
-        rne_stock_processor.send_stock_to_minio()
+    def unzip_files_and_upload_object_storage():
+        rne_stock_processor.send_stock_to_object_storage()
 
     (
         clean_previous_outputs()
         >> get_rne_latest_stock()
-        >> unzip_files_and_upload_minio()
+        >> unzip_files_and_upload_object_storage()
     )
 
 

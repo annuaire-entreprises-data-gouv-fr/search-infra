@@ -9,7 +9,7 @@ from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
     ELASTIC_PASSWORD,
     ELASTIC_SNAPSHOT_MAX_REVISIONS,
-    ELASTIC_SNAPSHOT_MINIO_STATE_PATH,
+    ELASTIC_SNAPSHOT_OBJECT_STORAGE_STATE_PATH,
     ELASTIC_SNAPSHOT_REPOSITORY,
     ELASTIC_URL,
     ELASTIC_USER,
@@ -20,23 +20,23 @@ from data_pipelines_annuaire.helpers.filesystem import (
 )
 
 filesystem = Filesystem(
-    f"ae/{AIRFLOW_ENV}/{ELASTIC_SNAPSHOT_MINIO_STATE_PATH}/",
+    f"ae/{AIRFLOW_ENV}/{ELASTIC_SNAPSHOT_OBJECT_STORAGE_STATE_PATH}/",
     JsonSerializer(),
 )
 
 
-def update_minio_current_index_version(**kwargs):
+def update_object_storage_current_index_version(**kwargs):
     """
-    An history of any new successfully indexed siren index is kept on a MinIO bucket and stored inside a "daily" folder.
+    An history of any new successfully indexed siren index is kept on a object storage bucket and stored inside a "daily" folder.
 
     The file structure is as follow:
         current:
-            file: reference the daily MinIO file containing the current state
+            file: reference the daily object storage file containing the current state
             index: the index name that should be restored by each downstream server
             snapshot: the name of the Elasticsearch snapshot where the index to restore can be found
 
         previous:
-            file: reference the daily MinIO file containing the previous state that can be used to rollback the live index
+            file: reference the daily object storage file containing the previous state that can be used to rollback the live index
             index: name of the previous live index
             snapshot: the name of the Elasticsearch snapshot containing the previous index
 
@@ -45,8 +45,8 @@ def update_minio_current_index_version(**kwargs):
     The snapshot/restore process of the new index is as follow :
         1. Airflow : create and index a date-versioned siren index
         2. Airflow : create a date-versioned Elasticsearch snapshot containing the new date-versioned siren index
-        3. this function : upload a daily MinIO file containing the new state
-        4. this function : upload the current.json MinIO file
+        3. this function : upload a daily object storage file containing the new state
+        4. this function : upload the current.json object storage file
         5. Any downstream server : read the current.json file and import the indicated current['index'] using the indicated['snapshot']
     """
 
@@ -77,7 +77,7 @@ def update_minio_current_index_version(**kwargs):
     filesystem.write("current.json", content)
 
 
-def rollback_minio_current_index_version(**kwargs):
+def rollback_object_storage_current_index_version(**kwargs):
     content = filesystem.read("current.json")
 
     if content is None:
@@ -109,7 +109,7 @@ def rollback_minio_current_index_version(**kwargs):
 
 def snapshot_elastic_index(**kwargs):
     """
-    Create and save Elastic index snapshot in MinIO
+    Create and save Elastic index snapshot in the object storage.
 
     https://www.elastic.co/guide/en/elasticsearch/reference/7.17/snapshot-restore.html
     """

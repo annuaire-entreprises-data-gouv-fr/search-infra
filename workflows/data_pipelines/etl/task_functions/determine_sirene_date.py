@@ -26,12 +26,15 @@ def get_datasets_urls(month_period: Literal["current", "previous"]) -> list[str]
     urls: list[str] = [
         # Flux files are not required to be available
         # For example, the first of the month no flux is expected
-        STOCK_SIRENE_CONFIG.url_minio
+        STOCK_SIRENE_CONFIG.url_object_storage
         + "StockEtablissementHistorique_"
         + month
         + ".zip",
-        STOCK_SIRENE_CONFIG.url_minio + "StockUniteLegale_" + month + ".zip",
-        STOCK_SIRENE_CONFIG.url_minio + "StockUniteLegaleHistorique_" + month + ".zip",
+        STOCK_SIRENE_CONFIG.url_object_storage + "StockUniteLegale_" + month + ".zip",
+        STOCK_SIRENE_CONFIG.url_object_storage
+        + "StockUniteLegaleHistorique_"
+        + month
+        + ".zip",
         URL_STOCK_ETABLISSEMENTS[month_period].replace("geo_siret", ""),
     ]
 

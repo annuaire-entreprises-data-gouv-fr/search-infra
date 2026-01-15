@@ -47,13 +47,13 @@ class SireneStockProcessor(DataProcessor):
 
         return original_filename.replace(CURRENT_MONTH, year_month)
 
-    def send_stock_to_minio(self):
-        self.minio_client.send_files(
+    def send_stock_to_object_storage(self):
+        self.object_storage_client.send_files(
             [
                 File(
                     source_path=f"{self.config.tmp_folder}",
                     source_name=file["destination"].split("/")[-1],
-                    dest_path=f"{self.config.minio_path}",
+                    dest_path=f"{self.config.object_storage_path}",
                     dest_name=self.stock_filename(
                         file["destination"].split("/")[-1], file["resource_id"]
                     ),

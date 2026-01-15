@@ -1,13 +1,13 @@
 from data_pipelines_annuaire.config import (
     DATA_GOUV_BASE_URL,
-    MINIO_BASE_URL,
+    OBJECT_STORAGE_BASE_URL,
     DataSourceConfig,
 )
 
 COLTER_CONFIG = DataSourceConfig(
     name="colter",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/colter",
-    minio_path="colter",
+    object_storage_path="colter",
     file_name="colter",
     files_to_download={
         "colter_regions": {
@@ -33,8 +33,8 @@ COLTER_CONFIG = DataSourceConfig(
             "destination": f"{DataSourceConfig.base_tmp_folder}/colter/communes-download.csv",
         },
     },
-    url_minio=f"{MINIO_BASE_URL}colter/latest/colter.csv",
-    url_minio_metadata=f"{MINIO_BASE_URL}colter/latest/metadata.json",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}colter/latest/colter.csv",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}colter/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/colter/colter.csv",
     # No unique key in the data
     table_ddl="""
@@ -55,7 +55,7 @@ COLTER_CONFIG = DataSourceConfig(
 ELUS_CONFIG = DataSourceConfig(
     name="elus",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/colter_elus",
-    minio_path="colter_elus",
+    object_storage_path="colter_elus",
     file_name="elus",
     files_to_download={
         "assemblee_col_statut_particulier": {
@@ -79,8 +79,8 @@ ELUS_CONFIG = DataSourceConfig(
             "resource_id": "41d95d7d-b172-4636-ac44-32656367cdc7",
         },
     },
-    url_minio=f"{MINIO_BASE_URL}colter_elus/latest/elus.csv",
-    url_minio_metadata=f"{MINIO_BASE_URL}colter_elus/latest/metadata.json",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}colter_elus/latest/elus.csv",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}colter_elus/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/colter_elus/elus.csv",
     # No unique key in the data
     table_ddl="""

@@ -48,19 +48,19 @@ def data_processing_bilan_ges():
         return bilan_ges_processor.save_date_last_modified()
 
     @task
-    def send_file_to_minio():
-        return bilan_ges_processor.send_file_to_minio()
+    def send_file_to_object_storage():
+        return bilan_ges_processor.send_file_to_object_storage()
 
     @task
-    def compare_files_minio():
-        return bilan_ges_processor.compare_files_minio()
+    def compare_files_object_storage():
+        return bilan_ges_processor.compare_files_object_storage()
 
     (
         clean_previous_outputs()
         >> preprocess_bilan_ges()
         >> save_date_last_modified()
-        >> send_file_to_minio()
-        >> compare_files_minio()
+        >> send_file_to_object_storage()
+        >> compare_files_object_storage()
     )
 
 
