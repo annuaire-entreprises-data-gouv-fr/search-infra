@@ -1,12 +1,15 @@
 import logging
 
+from airflow.sdk import task
+
 from data_pipelines_annuaire.config import (
     OBJECT_STORAGE_DATA_SOURCE_UPDATE_DATES_FILE,
 )
 from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 
 
-def sync_data_source_updates():
+@task
+def sync_data_source_updates_file():
     logging.info("Copying data sources' last update JSON file!!!")
 
     ObjectStorageClient().copy_file(
