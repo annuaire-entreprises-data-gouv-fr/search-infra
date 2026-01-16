@@ -14,8 +14,8 @@ from data_pipelines_annuaire.config import (
     URL_CC_DARES,
     URL_CC_KALI,
 )
-from data_pipelines_annuaire.helpers.minio_helpers import File, MinIOClient
 from data_pipelines_annuaire.helpers.notification import Notification
+from data_pipelines_annuaire.helpers.object_storage import File, ObjectStorageClient
 from data_pipelines_annuaire.helpers.utils import get_previous_months
 
 
@@ -47,7 +47,7 @@ def get_month_year_french():
 
 
 def is_metadata_not_updated() -> bool:
-    last_run_date = MinIOClient().get_date_last_modified(
+    last_run_date = ObjectStorageClient().get_date_last_modified(
         f"{METADATA_CC_OBJECT_STORAGE_PATH}cc_kali.json"
     )
     if last_run_date is not None:
@@ -85,7 +85,7 @@ def create_metadata_convention_collective_json():
     if not r.ok:
         # The file is often unavailable, this is expected but
         # we need to be informed to act upon it if it has been too long
-        last_run_date = MinIOClient().get_date_last_modified(
+        last_run_date = ObjectStorageClient().get_date_last_modified(
             f"{METADATA_CC_OBJECT_STORAGE_PATH}cc_kali.json"
         )
         if last_run_date is not None:
@@ -151,7 +151,7 @@ def create_metadata_convention_collective_json():
 
 
 def upload_json_to_object_storage():
-    MinIOClient().send_files(
+    ObjectStorageClient().send_files(
         list_files=[
             File(
                 source_path=METADATA_CC_TMP_FOLDER,

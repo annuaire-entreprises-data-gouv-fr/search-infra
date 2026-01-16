@@ -54,7 +54,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --upgrade apache-airflow[sentry]==2.9.3 minio==7.2.20 pandas==2.3.3 openpyxl==3.1.5 elasticsearch==7.17.0 elasticsearch_dsl==7.4.0 requests==2.32.5 pytest==8.4.2 pydantic==2.12.4 pyproj==3.7.2 psycopg2-binary==2.9.11 redis==7.1.0 sentry-sdk==2.43.0
+          python -m pip install --upgrade apache-airflow[sentry]==2.9.3 boto3==1.42.27 pandas==2.3.3 openpyxl==3.1.5 elasticsearch==7.17.0 elasticsearch_dsl==7.4.0 requests==2.32.5 pytest==8.4.2 pydantic==2.12.4 pyproj==3.7.2 psycopg2-binary==2.9.11 redis==7.1.0 sentry-sdk==2.43.0
       - name: unit tests
         run: |
           cd data_pipelines_annuaire

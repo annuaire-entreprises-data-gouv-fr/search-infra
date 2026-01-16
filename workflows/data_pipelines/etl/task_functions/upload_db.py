@@ -10,13 +10,13 @@ from data_pipelines_annuaire.config import (
     AIRFLOW_ETL_DATA_DIR,
     SIRENE_OBJECT_STORAGE_DATA_PATH,
 )
-from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 
 current_date = datetime.now().date()
 
 
 def send_to_object_storage(list_files):
-    MinIOClient().send_files(
+    ObjectStorageClient().send_files(
         list_files=list_files,
     )
 
