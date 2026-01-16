@@ -10,7 +10,7 @@ from data_pipelines_annuaire.config import (
     RNE_DATABASE_LOCATION,
     SIRENE_DATABASE_LOCATION,
 )
-from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 
 # fmt: on
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
@@ -35,7 +35,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.queries.dirigea
 
 @task
 def get_rne_database(**kwargs):
-    latest_file_date = MinIOClient().get_latest_file(
+    latest_file_date = ObjectStorageClient().get_latest_file(
         f"ae/{AIRFLOW_ENV}/rne/database/",
         f"{RNE_DATABASE_LOCATION}.gz",
     )

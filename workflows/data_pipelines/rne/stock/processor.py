@@ -5,7 +5,7 @@ import zipfile
 
 from data_pipelines_annuaire.config import AIRFLOW_DAG_HOME
 from data_pipelines_annuaire.helpers import DataProcessor
-from data_pipelines_annuaire.helpers.minio_helpers import File
+from data_pipelines_annuaire.helpers.object_storage import File
 from data_pipelines_annuaire.workflows.data_pipelines.rne.stock.config import (
     RNE_STOCK_CONFIG,
 )
@@ -41,8 +41,8 @@ class RneStockProcessor(DataProcessor):
             logging.error(error_msg)
             raise RuntimeError(error_msg)
 
-    def send_stock_to_minio(self) -> int:
-        """Sends the stock files from the zip to MinIO"""
+    def send_stock_to_object_storage(self) -> int:
+        """Sends the stock files from the zip to the object storage"""
         sent_files = 0
         zip_path = f"{self.config.tmp_folder}/stock_rne.zip"
 
@@ -51,13 +51,15 @@ class RneStockProcessor(DataProcessor):
                 # Extract each file one by one
                 z.extract(file_info, path=self.config.tmp_folder)
 
-                logging.info(f"Saving file {file_info.filename} in MinIO.....")
-                self.minio_client.send_files(
+                logging.info(
+                    f"Saving file {file_info.filename} in the object storage....."
+                )
+                self.object_storage_client.send_files(
                     list_files=[
                         File(
                             source_path=f"{self.config.tmp_folder}/",
                             source_name=file_info.filename,
-                            dest_path=f"{self.config.minio_path}/",
+                            dest_path=f"{self.config.object_storage_path}/",
                             dest_name=file_info.filename,
                         ),
                     ],

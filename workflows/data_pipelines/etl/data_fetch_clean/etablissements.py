@@ -1,17 +1,17 @@
 import logging
 import shutil
 
-import minio
 import pandas as pd
 import requests
 from airflow.exceptions import AirflowSkipException
+from botocore.exceptions import ClientError
 
 from data_pipelines_annuaire.config import (
     CURRENT_MONTH,
     PREVIOUS_MONTH,
     URL_STOCK_ETABLISSEMENTS,
 )
-from data_pipelines_annuaire.helpers.minio_helpers import File, MinIOClient
+from data_pipelines_annuaire.helpers.object_storage import File, ObjectStorageClient
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.determine_sirene_date import (
     get_sirene_processing_month,
 )
@@ -88,10 +88,10 @@ def download_flux(data_dir):
     year_month = get_sirene_processing_month()
     logging.info(f"Downloading flux for : {year_month}")
     try:
-        MinIOClient().get_files(
+        ObjectStorageClient().get_files(
             list_files=[
                 File(
-                    source_path=FLUX_SIRENE_CONFIG.minio_path,
+                    source_path=FLUX_SIRENE_CONFIG.object_storage_path,
                     source_name=f"flux_etablissement_{year_month}.csv.gz",
                     dest_path=f"{data_dir}",
                     dest_name=f"flux_etablissement_{year_month}.csv.gz",
@@ -144,12 +144,12 @@ def download_flux(data_dir):
         return df_flux
     # At the start of each month, a new stock file is published on data.gouv.
     # API Sirene returns an error when trying to get flux data for the new month
-    # which means it not yet available on MinIO.
+    # which means it not yet available on object storage.
     # This exception handling ensures that we skip downloading the flux data
-    # if it hasn't been uploaded to MinIO yet.
-    except minio.error.S3Error as e:
+    # if it hasn't been uploaded to object storage yet.
+    except ClientError as e:
         logging.warning(f"No flux data has been found for: {year_month}")
-        if e.code == "NoSuchKey":
+        if e.response["Error"]["Code"] == "NoSuchKey":
             raise AirflowSkipException("Skipping this task")
 
 
@@ -159,7 +159,7 @@ def download_historique(data_dir):
         "destination"
     ].split("/")[-1]
     filename = filename.replace(CURRENT_MONTH, year_month)
-    url = STOCK_SIRENE_CONFIG.url_minio + filename
+    url = STOCK_SIRENE_CONFIG.url_object_storage + filename
 
     r = requests.get(
         url,

@@ -1,13 +1,13 @@
 from data_pipelines_annuaire.config import (
     DATA_GOUV_BASE_URL,
-    MINIO_BASE_URL,
+    OBJECT_STORAGE_BASE_URL,
     DataSourceConfig,
 )
 
 BILANS_FINANCIERS_CONFIG = DataSourceConfig(
     name="bilan_financier",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/bilans_financiers",
-    minio_path="bilans_financiers",
+    object_storage_path="bilans_financiers",
     file_name="synthese_bilans",
     files_to_download={
         "bilans_financiers": {
@@ -16,8 +16,8 @@ BILANS_FINANCIERS_CONFIG = DataSourceConfig(
             "destination": f"{DataSourceConfig.base_tmp_folder}/bilans_financiers/bilans-financiers-download.csv",
         }
     },
-    url_minio=f"{MINIO_BASE_URL}bilans_financiers/latest/synthese_bilans.csv",
-    url_minio_metadata=f"{MINIO_BASE_URL}bilans_financiers/latest/metadata.json",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}bilans_financiers/latest/synthese_bilans.csv",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}bilans_financiers/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/bilans_financiers/synthese_bilans.csv",
     table_ddl="""
         BEGIN;

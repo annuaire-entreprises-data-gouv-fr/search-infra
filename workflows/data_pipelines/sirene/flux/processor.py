@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 
 from data_pipelines_annuaire.helpers.data_processor import DataProcessor, Notification
-from data_pipelines_annuaire.helpers.minio_helpers import File
+from data_pipelines_annuaire.helpers.object_storage import File
 from data_pipelines_annuaire.helpers.utils import (
     get_dates_since_start_of_month,
     zip_file,
@@ -310,27 +310,27 @@ class SireneFluxProcessor(DataProcessor):
                 logging.error(error_msg)
                 raise ValueError(error_msg) from e
 
-    def send_flux_to_minio(self):
-        self.minio_client.send_files(
+    def send_flux_to_object_storage(self):
+        self.object_storage_client.send_files(
             list_files=[
                 File(
                     source_path=self.config.tmp_folder,
                     source_name=f"flux_unite_legale_{self.current_month}.csv.gz",
-                    dest_path=self.config.minio_path,
+                    dest_path=self.config.object_storage_path,
                     dest_name=f"flux_unite_legale_{self.current_month}.csv.gz",
                     content_type=None,
                 ),
                 File(
                     source_path=self.config.tmp_folder,
                     source_name=f"flux_etablissement_{self.current_month}.csv.gz",
-                    dest_path=self.config.minio_path,
+                    dest_path=self.config.object_storage_path,
                     dest_name=f"flux_etablissement_{self.current_month}.csv.gz",
                     content_type=None,
                 ),
                 File(
                     source_path=self.config.tmp_folder,
                     source_name="metadata.json",
-                    dest_path=self.config.minio_path,
+                    dest_path=self.config.object_storage_path,
                     dest_name="metadata.json",
                     content_type=None,
                 ),

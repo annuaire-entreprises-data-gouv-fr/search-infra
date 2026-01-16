@@ -8,7 +8,7 @@
 | Description | Ce traitement permet de récupérer les bases SIRENE de l'INSEE. |
 | Fréquence | Quotidienne |
 | Données sources | [Base SIRENE StockUniteLegale<br />Base SIRENE StockUniteLegaleHistorique<br />Base SIRENE StockEtablissementHistorique](https://www.data.gouv.fr/datasets/5b7ffc618b4c4169d30727e0) |
-| Données de sorties | Minio |
+| Données de sorties | Object Storage |
 
 ### Note:
 

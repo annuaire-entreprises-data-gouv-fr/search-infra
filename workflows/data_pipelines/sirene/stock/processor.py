@@ -3,7 +3,7 @@ from datetime import datetime
 from data_pipelines_annuaire.config import CURRENT_MONTH
 from data_pipelines_annuaire.helpers import DataProcessor
 from data_pipelines_annuaire.helpers.datagouv import get_dataset_or_resource_metadata
-from data_pipelines_annuaire.helpers.minio_helpers import File
+from data_pipelines_annuaire.helpers.object_storage import File
 from data_pipelines_annuaire.workflows.data_pipelines.sirene.stock.config import (
     STOCK_SIRENE_CONFIG,
 )
@@ -47,13 +47,13 @@ class SireneStockProcessor(DataProcessor):
 
         return original_filename.replace(CURRENT_MONTH, year_month)
 
-    def send_stock_to_minio(self):
-        self.minio_client.send_files(
+    def send_stock_to_object_storage(self):
+        self.object_storage_client.send_files(
             [
                 File(
                     source_path=f"{self.config.tmp_folder}",
                     source_name=file["destination"].split("/")[-1],
-                    dest_path=f"{self.config.minio_path}",
+                    dest_path=f"{self.config.object_storage_path}",
                     dest_name=self.stock_filename(
                         file["destination"].split("/")[-1], file["resource_id"]
                     ),

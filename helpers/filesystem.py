@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 from typing import Literal
 
-import data_pipelines_annuaire.helpers.minio_helpers as minio
+import data_pipelines_annuaire.helpers.object_storage as object_storage
 
 
 class LocalFile:
@@ -74,36 +74,38 @@ class LocalFile:
         if not self.path.exists():
             raise FileNotFoundError(f"{self.path.absolute()} doesn't exist")
 
-    def upload_to_minio(
+    def upload_to_object_storage(
         self,
-        minio_path: str,
-        minio_filename: str | None = None,
-    ) -> minio.MinIOFile:
-        if minio_filename is None:
-            minio_filename = self.filename
+        object_storage_path: str,
+        object_storage_filename: str | None = None,
+    ) -> object_storage.ObjectStorageFile:
+        if object_storage_filename is None:
+            object_storage_filename = self.filename
 
-        if not minio_path.endswith("/"):
+        if not object_storage_path.endswith("/"):
             logging.warning(
-                f"minio_path should end with a '/', adding one to {minio_path}"
+                f"object_storage_path should end with a '/', adding one to {object_storage_path}"
             )
-            minio_path += "/"
+            object_storage_path += "/"
 
-        minio.MinIOClient().send_files(
+        object_storage.ObjectStorageClient().send_files(
             [
-                minio.File(
+                object_storage.File(
                     source_path=self.filepath,
                     source_name=self.filename,
-                    dest_path=minio_path,
-                    dest_name=minio_filename,
+                    dest_path=object_storage_path,
+                    dest_name=object_storage_filename,
                     content_type=None,
                 )
             ]
         )
 
-        # Wait for the file to be uploaded before creating MinIOFile object
+        # Wait for the file to be uploaded before creating object storage file
         time.sleep(15)
 
-        return minio.MinIOFile(minio_path + minio_filename)
+        return object_storage.ObjectStorageFile(
+            object_storage_path + object_storage_filename
+        )
 
     def delete(self) -> None:
         self.path.unlink()
@@ -122,7 +124,7 @@ class JsonSerializer:
 
 class Filesystem:
     def __init__(self, dirpath, serializer, tmp_dirpath="/tmp"):
-        self.client = minio.MinIOClient()
+        self.client = object_storage.ObjectStorageClient()
         self.dirpath = dirpath
         self.serializer = serializer
         self.tmp_dirpath = tmp_dirpath
@@ -132,7 +134,7 @@ class Filesystem:
             _, local_path = tempfile.mkstemp()
 
         try:
-            self.client.get_object_minio(self.dirpath, filename, local_path)
+            self.client.get_object_object_storage(self.dirpath, filename, local_path)
         except Exception as e:
             logging.error(e)
             return None
@@ -151,7 +153,7 @@ class Filesystem:
             tmp_file.write(serialized)
             tmp_file.flush()
 
-            self.client.put_object_minio(
+            self.client.put_object_object_storage(
                 tmp_file.name[len(self.tmp_dirpath) :],
                 f"{self.dirpath}{filename}",
                 self.tmp_dirpath,

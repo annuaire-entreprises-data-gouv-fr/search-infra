@@ -55,16 +55,16 @@ def publish_files_in_data_gouv():
         return data_gouv_processor.process_administration_list()
 
     @task
-    def upload_unite_legale_and_administration_files_to_minio():
-        return data_gouv_processor.upload_ul_and_administration_to_minio()
+    def upload_unite_legale_and_administration_files_to_object_storage():
+        return data_gouv_processor.upload_ul_and_administration_to_object_storage()
 
     @task
     def fill_etablissement_file():
         return data_gouv_processor.fill_etab_file()
 
     @task
-    def upload_etablissement_file_to_minio():
-        return data_gouv_processor.upload_etab_to_minio()
+    def upload_etablissement_file_to_object_storage():
+        return data_gouv_processor.upload_etab_to_object_storage()
 
     @task.short_circuit
     def check_if_prod_env():
@@ -83,9 +83,9 @@ def publish_files_in_data_gouv():
         >> get_latest_sqlite_db()
         >> fill_unite_legale_file()
         >> fill_liste_administration_file()
-        >> upload_unite_legale_and_administration_files_to_minio()
+        >> upload_unite_legale_and_administration_files_to_object_storage()
         >> fill_etablissement_file()
-        >> upload_etablissement_file_to_minio()
+        >> upload_etablissement_file_to_object_storage()
         >> check_if_prod_env()
         >> send_files_to_data_gouv()
         >> clean_outputs()

@@ -1,14 +1,14 @@
 from data_pipelines_annuaire.config import (
     DATA_GOUV_BASE_URL,
     DATAGOUV_URL,
-    MINIO_BASE_URL,
+    OBJECT_STORAGE_BASE_URL,
     DataSourceConfig,
 )
 
 UAI_CONFIG = DataSourceConfig(
     name="uai",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/uai",
-    minio_path="uai",
+    object_storage_path="uai",
     file_name="uai",
     files_to_download={
         "mesr": {
@@ -27,8 +27,8 @@ UAI_CONFIG = DataSourceConfig(
             "destination": f"{DataSourceConfig.base_tmp_folder}/uai/uai-onisep-download.csv",
         },
     },
-    url_minio=f"{MINIO_BASE_URL}uai/latest/uai.csv",
-    url_minio_metadata=f"{MINIO_BASE_URL}uai/latest/metadata.json",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}uai/latest/uai.csv",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}uai/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/uai/uai.csv",
     table_ddl="""
         BEGIN;

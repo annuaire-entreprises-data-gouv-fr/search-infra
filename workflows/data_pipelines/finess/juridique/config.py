@@ -1,13 +1,13 @@
 from data_pipelines_annuaire.config import (
     DATA_GOUV_BASE_URL,
-    MINIO_BASE_URL,
+    OBJECT_STORAGE_BASE_URL,
     DataSourceConfig,
 )
 
 FINESS_JURIDIQUE_CONFIG = DataSourceConfig(
     name="finess_juridique",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/finess_juridique",
-    minio_path="finess_juridique",
+    object_storage_path="finess_juridique",
     file_name="finess_juridique",
     files_to_download={
         "finess_geographique": {
@@ -21,8 +21,8 @@ FINESS_JURIDIQUE_CONFIG = DataSourceConfig(
             "destination": f"{DataSourceConfig.base_tmp_folder}/finess_juridique/finess-juridique-download.csv",
         },
     },
-    url_minio=f"{MINIO_BASE_URL}finess_juridique/latest/finess_juridique.csv",
-    url_minio_metadata=f"{MINIO_BASE_URL}finess_juridique/latest/metadata.json",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}finess_juridique/latest/finess_juridique.csv",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}finess_juridique/latest/metadata.json",
     table_ddl="""
         BEGIN;
         CREATE TABLE IF NOT EXISTS finess_juridique
