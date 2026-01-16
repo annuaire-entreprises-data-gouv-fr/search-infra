@@ -8,7 +8,7 @@ from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
     EMAIL_LIST,
 )
-from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 
 
 def delete_old_files(
@@ -24,7 +24,7 @@ def delete_old_files(
         keep_latest (int, optional): Number of latest files to retain. Defaults to 2.
         retention_days (int, optional): Number of days to retain files. Defaults to 14.
     """
-    object_storage_client = MinIOClient()
+    object_storage_client = ObjectStorageClient()
     file_info_list = object_storage_client.get_files_and_last_modified(prefix)
 
     file_info_list.sort(key=lambda x: x[1], reverse=True)

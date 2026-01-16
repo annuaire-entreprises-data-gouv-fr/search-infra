@@ -9,7 +9,7 @@ from data_pipelines_annuaire.config import (
     AIRFLOW_ETL_DATA_DIR,
     OBJECT_STORAGE_DATA_SOURCE_UPDATE_DATES_FILE,
 )
-from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 from data_pipelines_annuaire.helpers.utils import simplify_date
 from data_pipelines_annuaire.workflows.data_pipelines.achats_responsables.config import (
     ACHATS_RESPONSABLES_CONFIG,
@@ -127,7 +127,7 @@ def create_data_source_last_modified_file(**kwargs):
         json.dump(metadata_dict, json_file, indent=4)
 
     # Send the updated JSON file to object storage
-    MinIOClient().send_files(
+    ObjectStorageClient().send_files(
         [
             {
                 "source_path": AIRFLOW_ETL_DATA_DIR,

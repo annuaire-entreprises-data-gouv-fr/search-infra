@@ -6,7 +6,7 @@ import re
 import shutil
 from datetime import datetime, timedelta
 
-from minio.error import S3Error
+from botocore.exceptions import ClientError
 
 from data_pipelines_annuaire.config import (
     RNE_DB_TMP_FOLDER,
@@ -16,7 +16,7 @@ from data_pipelines_annuaire.config import (
     RNE_OBJECT_STORAGE_STOCK_DATA_PATH,
 )
 from data_pipelines_annuaire.helpers.mattermost import send_message
-from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 from data_pipelines_annuaire.workflows.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
 )
@@ -29,7 +29,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.rne.database.process_rne i
 
 
 def get_start_date_object_storage(**kwargs):
-    object_storage_client = MinIOClient()
+    object_storage_client = ObjectStorageClient()
     try:
         object_storage_client.get_files(
             list_files=[
@@ -49,8 +49,8 @@ def get_start_date_object_storage(**kwargs):
         previous_latest_date = datetime.strptime(previous_latest_date, "%Y-%m-%d")
         start_date = datetime.strftime(previous_latest_date, "%Y-%m-%d")
         kwargs["ti"].xcom_push(key="start_date", value=start_date)
-    except S3Error as e:
-        if e.code == "NoSuchKey":
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "NoSuchKey":
             logging.info(
                 f"The file {RNE_OBJECT_STORAGE_STOCK_DATA_PATH + RNE_LATEST_DATE_FILE} "
                 f"does not exist in the bucket {object_storage_client.bucket}."
@@ -117,7 +117,7 @@ def get_latest_db(**kwargs):
         previous_start_date = datetime.strftime(
             (previous_latest_date - timedelta(days=1)), "%Y-%m-%d"
         )
-        MinIOClient().get_files(
+        ObjectStorageClient().get_files(
             list_files=[
                 {
                     "source_path": RNE_OBJECT_STORAGE_DATA_PATH,
@@ -150,7 +150,7 @@ def process_stock_json_files(**kwargs):
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
     rne_db_path = kwargs["ti"].xcom_pull(key="rne_db_path", task_ids="create_db")
 
-    object_storage_client = MinIOClient()
+    object_storage_client = ObjectStorageClient()
 
     # Only process stock files if a date doesn't already exist
     if start_date is not None:
@@ -187,7 +187,7 @@ def process_flux_json_files(**kwargs):
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
     rne_db_path = kwargs["ti"].xcom_pull(key="rne_db_path", task_ids="create_db")
 
-    object_storage_client = MinIOClient()
+    object_storage_client = ObjectStorageClient()
 
     json_daily_flux_files = object_storage_client.get_files_from_prefix(
         prefix=RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
@@ -314,7 +314,7 @@ def check_db_count(
 
 
 def send_to_object_storage(list_files):
-    MinIOClient().send_files(
+    ObjectStorageClient().send_files(
         list_files=list_files,
     )
 

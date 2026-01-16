@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 
 from data_pipelines_annuaire.helpers.data_processor import DataProcessor, Notification
-from data_pipelines_annuaire.helpers.minio_helpers import File
+from data_pipelines_annuaire.helpers.object_storage import File
 from data_pipelines_annuaire.helpers.utils import (
     get_dates_since_start_of_month,
     zip_file,

@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 from typing import Literal
 
-import data_pipelines_annuaire.helpers.minio_helpers as minio
+import data_pipelines_annuaire.helpers.object_storage as object_storage
 
 
 class LocalFile:
@@ -78,7 +78,7 @@ class LocalFile:
         self,
         object_storage_path: str,
         object_storage_filename: str | None = None,
-    ) -> minio.MinIOFile:
+    ) -> object_storage.ObjectStorageFile:
         if object_storage_filename is None:
             object_storage_filename = self.filename
 
@@ -88,9 +88,9 @@ class LocalFile:
             )
             object_storage_path += "/"
 
-        minio.MinIOClient().send_files(
+        object_storage.ObjectStorageClient().send_files(
             [
-                minio.File(
+                object_storage.File(
                     source_path=self.filepath,
                     source_name=self.filename,
                     dest_path=object_storage_path,
@@ -103,7 +103,9 @@ class LocalFile:
         # Wait for the file to be uploaded before creating object storage file
         time.sleep(15)
 
-        return minio.MinIOFile(object_storage_path + object_storage_filename)
+        return object_storage.ObjectStorageFile(
+            object_storage_path + object_storage_filename
+        )
 
     def delete(self) -> None:
         self.path.unlink()
@@ -122,7 +124,7 @@ class JsonSerializer:
 
 class Filesystem:
     def __init__(self, dirpath, serializer, tmp_dirpath="/tmp"):
-        self.client = minio.MinIOClient()
+        self.client = object_storage.ObjectStorageClient()
         self.dirpath = dirpath
         self.serializer = serializer
         self.tmp_dirpath = tmp_dirpath

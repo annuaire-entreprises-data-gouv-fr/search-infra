@@ -5,7 +5,7 @@ import zipfile
 
 from data_pipelines_annuaire.config import AIRFLOW_DAG_HOME
 from data_pipelines_annuaire.helpers import DataProcessor
-from data_pipelines_annuaire.helpers.minio_helpers import File
+from data_pipelines_annuaire.helpers.object_storage import File
 from data_pipelines_annuaire.workflows.data_pipelines.rne.stock.config import (
     RNE_STOCK_CONFIG,
 )

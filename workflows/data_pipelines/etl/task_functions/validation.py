@@ -7,8 +7,8 @@ from data_pipelines_annuaire.config import (
     DATABASE_VALIDATION_OBJECT_STORAGE_PATH,
 )
 from data_pipelines_annuaire.helpers.filesystem import LocalFile
-from data_pipelines_annuaire.helpers.minio_helpers import MinIOFile
 from data_pipelines_annuaire.helpers.notification import monitoring_logger
+from data_pipelines_annuaire.helpers.object_storage import ObjectStorageFile
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 
 
@@ -35,7 +35,7 @@ def validate_table(
         f"{file_name}.json",
     )
     try:
-        object_storage_stats_file = MinIOFile(remote_path)
+        object_storage_stats_file = ObjectStorageFile(remote_path)
         local_stats_file = object_storage_stats_file.download_to(local_path=local_path)
     except FileNotFoundError as _:
         logging.warning(

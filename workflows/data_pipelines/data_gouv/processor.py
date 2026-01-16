@@ -14,7 +14,7 @@ from data_pipelines_annuaire.config import (
 )
 from data_pipelines_annuaire.helpers.datagouv import post_resource
 from data_pipelines_annuaire.helpers.geolocalisation import transform_coordinates
-from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 from data_pipelines_annuaire.helpers.utils import (
     convert_date_format,
@@ -98,7 +98,7 @@ class DataGouvProcessor:
 
     def get_latest_database(self):
         """Get the latest database from object storage"""
-        object_storage_client = MinIOClient()
+        object_storage_client = ObjectStorageClient()
         database_files = object_storage_client.get_files_from_prefix(
             prefix=SIRENE_OBJECT_STORAGE_DATA_PATH,
         )
@@ -329,7 +329,7 @@ class DataGouvProcessor:
 
     def send_to_object_storage(self, list_files):
         """Send files to the object storage"""
-        MinIOClient().send_files(list_files=list_files)
+        ObjectStorageClient().send_files(list_files=list_files)
 
     def upload_ul_and_administration_to_object_storage(self):
         """Compress and upload unites legales and administration files to the object storage"""

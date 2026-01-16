@@ -13,7 +13,7 @@ from data_pipelines_annuaire.config import (
     RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
 )
 from data_pipelines_annuaire.helpers.mattermost import send_message
-from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 from data_pipelines_annuaire.helpers.utils import get_last_line
 from data_pipelines_annuaire.workflows.data_pipelines.rne.flux.rne_api import (
     ApiRNEClient,
@@ -21,7 +21,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.rne.flux.rne_api import (
 
 
 def get_last_json_file_date():
-    json_daily_flux_files = MinIOClient().get_files_from_prefix(
+    json_daily_flux_files = ObjectStorageClient().get_files_from_prefix(
         prefix=RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
     )
 
@@ -44,7 +44,7 @@ def get_last_json_file_date():
 def get_latest_json_file(ti):
     start_date = compute_start_date()
     last_json_file_path = f"{RNE_FLUX_DATADIR}/rne_flux_{start_date}.json"
-    MinIOClient().get_object_object_storage(
+    ObjectStorageClient().get_object_object_storage(
         f"ae/{AIRFLOW_ENV}/{RNE_OBJECT_STORAGE_FLUX_DATA_PATH}",
         f"rne_flux_{start_date}.json.gz",
         f"{last_json_file_path}.gz",
@@ -136,7 +136,7 @@ def get_and_save_daily_flux_rne(
     json_file_name = f"rne_flux_{start_date}.json"
     json_file_path = f"{RNE_FLUX_DATADIR}/{json_file_name}"
 
-    object_storage_client = MinIOClient()
+    object_storage_client = ObjectStorageClient()
 
     if not os.path.exists(RNE_FLUX_DATADIR):
         logging.info(f"********** Creating {RNE_FLUX_DATADIR}")
