@@ -10,7 +10,7 @@ from data_pipelines_annuaire.config import (
     REDIS_PASSWORD,
     REDIS_PORT,
 )
-from data_pipelines_annuaire.helpers.flush_cache import flush_cache
+from data_pipelines_annuaire.helpers.flush_cache import flush_redis_cache
 
 default_args = {
     "depends_on_past": False,
@@ -32,12 +32,7 @@ default_args = {
     catchup=False,
 )
 def flush_cache_only():
-    flush_cache(
-        REDIS_HOST,
-        REDIS_PORT,
-        REDIS_DB,
-        REDIS_PASSWORD,
-    )
+    return flush_redis_cache(REDIS_HOST, REDIS_PORT, REDIS_DB, REDIS_PASSWORD)
 
 
 flush_cache_only()

@@ -13,7 +13,7 @@ from data_pipelines_annuaire.config import (
 from data_pipelines_annuaire.helpers.execute_slow_queries import (
     execute_slow_requests,
 )
-from data_pipelines_annuaire.helpers.flush_cache import flush_cache
+from data_pipelines_annuaire.helpers.flush_cache import flush_redis_cache
 
 default_args = {
     "depends_on_past": False,
@@ -33,7 +33,7 @@ default_args = {
 )
 def flush_cache_and_execute_queries():
     return (
-        flush_cache(REDIS_HOST, REDIS_PORT, REDIS_DB, REDIS_PASSWORD)
+        flush_redis_cache(REDIS_HOST, REDIS_PORT, REDIS_DB, REDIS_PASSWORD)
         >> execute_slow_requests()
     )
 

@@ -5,7 +5,7 @@ from airflow.sdk import task
 
 
 @task
-def flush_cache(host, port, db, password):
+def flush_redis_cache(host, port, db, password):
     redis_client = redis.Redis(
         host=host,
         port=port,
