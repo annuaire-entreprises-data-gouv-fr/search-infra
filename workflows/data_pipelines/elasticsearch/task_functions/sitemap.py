@@ -1,5 +1,7 @@
 import os
 
+from airflow.sdk import task
+
 from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DATA_DIR,
     AIRFLOW_ENV,
@@ -19,6 +21,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.sqlite.sitem
 filename = "sitemap-" + AIRFLOW_ENV.split("-")[0] + ".csv"
 
 
+@task
 def create_sitemap():
     sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db")
     sqlite_client.execute(select_sitemap_fields_query)
@@ -88,6 +91,7 @@ def create_sitemap():
             f.write(slugs)
 
 
+@task
 def update_sitemap():
     ObjectStorageClient().send_files(
         list_files=[

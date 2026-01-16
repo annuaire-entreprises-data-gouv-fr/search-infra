@@ -5,6 +5,8 @@ import re
 import shutil
 from datetime import datetime
 
+from airflow.sdk import task
+
 from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DATA_DIR,
     SIRENE_OBJECT_STORAGE_DATA_PATH,
@@ -14,7 +16,8 @@ from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 current_date = datetime.now().date()
 
 
-def get_latest_database(**kwargs):
+@task
+def get_latest_database():
     object_storage_client = ObjectStorageClient()
     database_files = object_storage_client.get_files_from_prefix(
         prefix=SIRENE_OBJECT_STORAGE_DATA_PATH,
