@@ -1,8 +1,8 @@
 import os
 from datetime import datetime, timedelta
 
-from airflow.decorators import dag, task, task_group
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.sdk import dag, task, task_group
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DAG_NAME,
@@ -235,7 +235,7 @@ def database_constructor():
         deferrable=False,
     )
 
-    (
+    return (
         clean_previous_tmp_folder()
         >> determine_sirene_date()
         >> create_unite_legale_table()

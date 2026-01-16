@@ -5,6 +5,8 @@ import re
 import shutil
 from datetime import datetime
 
+from airflow.sdk import task
+
 from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DATA_DIR,
     SIRENE_MINIO_DATA_PATH,
@@ -14,7 +16,8 @@ from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
 current_date = datetime.now().date()
 
 
-def get_latest_database(**kwargs):
+@task
+def get_latest_sqlite_database():
     minio_client = MinIOClient()
     database_files = minio_client.get_files_from_prefix(
         prefix=SIRENE_MINIO_DATA_PATH,
