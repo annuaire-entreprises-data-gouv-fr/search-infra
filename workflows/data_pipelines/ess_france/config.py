@@ -1,13 +1,13 @@
 from data_pipelines_annuaire.config import (
     DATA_GOUV_BASE_URL,
-    MINIO_BASE_URL,
+    OBJECT_STORAGE_BASE_URL,
     DataSourceConfig,
 )
 
 ESS_CONFIG = DataSourceConfig(
     name="ess_france",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/ess",
-    minio_path="ess",
+    object_storage_path="ess",
     file_name="ess",
     files_to_download={
         "ess": {
@@ -16,8 +16,8 @@ ESS_CONFIG = DataSourceConfig(
             "destination": f"{DataSourceConfig.base_tmp_folder}/ess/ess-download.csv",
         },
     },
-    url_minio=f"{MINIO_BASE_URL}ess/latest/ess.csv",
-    url_minio_metadata=f"{MINIO_BASE_URL}ess/latest/metadata.json",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}ess/latest/ess.csv",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}ess/latest/metadata.json",
     table_ddl="""
         BEGIN;
         CREATE TABLE IF NOT EXISTS ess_france

@@ -1,13 +1,13 @@
 from data_pipelines_annuaire.config import (
     DATA_GOUV_BASE_URL,
-    MINIO_BASE_URL,
+    OBJECT_STORAGE_BASE_URL,
     DataSourceConfig,
 )
 
 PATRIMOINE_VIVANT_CONFIG = DataSourceConfig(
     name="patrimoine_vivant",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/patrimoine_vivant",
-    minio_path="patrimoine_vivant",
+    object_storage_path="patrimoine_vivant",
     file_name="patrimoine_vivant",
     files_to_download={
         "patrimoine_vivant": {
@@ -16,8 +16,8 @@ PATRIMOINE_VIVANT_CONFIG = DataSourceConfig(
             "destination": f"{DataSourceConfig.base_tmp_folder}/patrimoine_vivant/patrimoine-vivant-download.csv",
         },
     },
-    url_minio=f"{MINIO_BASE_URL}patrimoine_vivant/latest/patrimoine_vivant.csv",
-    url_minio_metadata=f"{MINIO_BASE_URL}patrimoine_vivant/latest/metadata.json",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}patrimoine_vivant/latest/patrimoine_vivant.csv",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}patrimoine_vivant/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/patrimoine_vivant/patrimoine_vivant.csv",
     table_ddl="""
         BEGIN;

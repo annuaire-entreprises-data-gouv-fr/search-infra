@@ -259,10 +259,10 @@ class ElusProcessor(DataProcessor):
         super().__init__(ELUS_CONFIG)
 
     def preprocess_data(self):
-        if not COLTER_CONFIG.url_minio:
-            raise ValueError("MinIO file not specified in COLTER_CONFIG.")
+        if not COLTER_CONFIG.url_object_storage:
+            raise ValueError("Object storage file not specified in COLTER_CONFIG.")
 
-        df_colter = pd.read_csv(COLTER_CONFIG.url_minio, dtype=str)
+        df_colter = pd.read_csv(COLTER_CONFIG.url_object_storage, dtype=str)
         # Conseillers régionaux
         elus = self.process_elus_files(
             self.config.files_to_download["conseillers_regionaux"]["destination"],

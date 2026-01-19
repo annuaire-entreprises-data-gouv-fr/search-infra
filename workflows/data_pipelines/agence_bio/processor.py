@@ -207,91 +207,91 @@ class AgenceBioProcessor(DataProcessor):
             description="siret",
         )
 
-    def send_file_to_minio(self) -> None:
-        """Overide of DataProcessor.send_file_to_minio() to manage multiple files."""
-        self.minio_client.send_files(
+    def send_file_to_object_storage(self) -> None:
+        """Overide of DataProcessor.send_file_to_object_storage() to manage multiple files."""
+        self.object_storage_client.send_files(
             list_files=[
                 File(
                     source_path=f"{self.config.tmp_folder}/",
                     source_name="agence_bio_principal.csv",
-                    dest_path=f"{self.config.minio_path}/new/",
+                    dest_path=f"{self.config.object_storage_path}/new/",
                     dest_name="agence_bio_principal.csv",
                     content_type=None,
                 ),
                 File(
                     source_path=f"{self.config.tmp_folder}/",
                     source_name="agence_bio_certifications.csv",
-                    dest_path=f"{self.config.minio_path}/new/",
+                    dest_path=f"{self.config.object_storage_path}/new/",
                     dest_name="agence_bio_certifications.csv",
                     content_type=None,
                 ),
                 File(
                     source_path=f"{self.config.tmp_folder}/",
                     source_name="agence_bio_productions.csv",
-                    dest_path=f"{self.config.minio_path}/new/",
+                    dest_path=f"{self.config.object_storage_path}/new/",
                     dest_name="agence_bio_productions.csv",
                     content_type=None,
                 ),
                 File(
                     source_path=f"{self.config.tmp_folder}/",
                     source_name="agence_bio_adresses.csv",
-                    dest_path=f"{self.config.minio_path}/new/",
+                    dest_path=f"{self.config.object_storage_path}/new/",
                     dest_name="agence_bio_adresses.csv",
                     content_type=None,
                 ),
                 File(
                     source_path=f"{self.config.tmp_folder}/",
                     source_name="metadata.json",
-                    dest_path=f"{self.config.minio_path}/new/",
+                    dest_path=f"{self.config.object_storage_path}/new/",
                     dest_name="metadata.json",
                     content_type=None,
                 ),
             ],
         )
 
-    def compare_files_minio(self) -> bool:
-        """Overide of DataProcessor.compare_files_minio() to manage multiple files."""
-        is_same = self.minio_client.compare_files(
-            file_path_1=f"{self.config.minio_path}/new/",
+    def compare_files_object_storage(self) -> bool:
+        """Overide of DataProcessor.compare_files_object_storage() to manage multiple files."""
+        is_same = self.object_storage_client.compare_files(
+            file_path_1=f"{self.config.object_storage_path}/new/",
             file_name_2=f"{self.config.file_name}.csv",
-            file_path_2=f"{self.config.minio_path}/latest/",
+            file_path_2=f"{self.config.object_storage_path}/latest/",
             file_name_1=f"{self.config.file_name}.csv",
         )
         if not is_same:
-            self.minio_client.send_files(
+            self.object_storage_client.send_files(
                 list_files=[
                     File(
                         source_path=f"{self.config.tmp_folder}/",
                         source_name="agence_bio_principal.csv",
-                        dest_path=f"{self.config.minio_path}/latest/",
+                        dest_path=f"{self.config.object_storage_path}/latest/",
                         dest_name="agence_bio_principal.csv",
                         content_type=None,
                     ),
                     File(
                         source_path=f"{self.config.tmp_folder}/",
                         source_name="agence_bio_certifications.csv",
-                        dest_path=f"{self.config.minio_path}/latest/",
+                        dest_path=f"{self.config.object_storage_path}/latest/",
                         dest_name="agence_bio_certifications.csv",
                         content_type=None,
                     ),
                     File(
                         source_path=f"{self.config.tmp_folder}/",
                         source_name="agence_bio_productions.csv",
-                        dest_path=f"{self.config.minio_path}/latest/",
+                        dest_path=f"{self.config.object_storage_path}/latest/",
                         dest_name="agence_bio_productions.csv",
                         content_type=None,
                     ),
                     File(
                         source_path=f"{self.config.tmp_folder}/",
                         source_name="agence_bio_adresses.csv",
-                        dest_path=f"{self.config.minio_path}/latest/",
+                        dest_path=f"{self.config.object_storage_path}/latest/",
                         dest_name="agence_bio_adresses.csv",
                         content_type=None,
                     ),
                     File(
                         source_path=f"{self.config.tmp_folder}/",
                         source_name="metadata.json",
-                        dest_path=f"{self.config.minio_path}/latest/",
+                        dest_path=f"{self.config.object_storage_path}/latest/",
                         dest_name="metadata.json",
                         content_type=None,
                     ),

@@ -1,13 +1,13 @@
 from data_pipelines_annuaire.config import (
     DATA_GOUV_BASE_URL,
-    MINIO_BASE_URL,
+    OBJECT_STORAGE_BASE_URL,
     DataSourceConfig,
 )
 
 ACHATS_RESPONSABLES_CONFIG = DataSourceConfig(
     name="achats_responsables",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/achats_responsables",
-    minio_path="achats_responsables",
+    object_storage_path="achats_responsables",
     file_name="achats_responsables",
     files_to_download={
         "achats_responsables": {
@@ -16,8 +16,8 @@ ACHATS_RESPONSABLES_CONFIG = DataSourceConfig(
             "destination": f"{DataSourceConfig.base_tmp_folder}/achats_responsables/achats-responsables-download.csv",
         },
     },
-    url_minio=f"{MINIO_BASE_URL}achats_responsables/latest/achats_responsables.csv",
-    url_minio_metadata=f"{MINIO_BASE_URL}achats_responsables/latest/metadata.json",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}achats_responsables/latest/achats_responsables.csv",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}achats_responsables/latest/metadata.json",
     file_output=f"{DataSourceConfig.base_tmp_folder}/achats_responsables/achats_responsables.csv",
     table_ddl="""
         BEGIN;

@@ -10,7 +10,7 @@ from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
     RNE_DEFAULT_START_DATE,
     RNE_FLUX_DATADIR,
-    RNE_MINIO_FLUX_DATA_PATH,
+    RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
 )
 from data_pipelines_annuaire.helpers.mattermost import send_message
 from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
@@ -22,7 +22,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.rne.flux.rne_api import (
 
 def get_last_json_file_date():
     json_daily_flux_files = MinIOClient().get_files_from_prefix(
-        prefix=RNE_MINIO_FLUX_DATA_PATH,
+        prefix=RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
     )
 
     if not json_daily_flux_files:
@@ -44,8 +44,8 @@ def get_last_json_file_date():
 def get_latest_json_file(ti):
     start_date = compute_start_date()
     last_json_file_path = f"{RNE_FLUX_DATADIR}/rne_flux_{start_date}.json"
-    MinIOClient().get_object_minio(
-        f"ae/{AIRFLOW_ENV}/{RNE_MINIO_FLUX_DATA_PATH}",
+    MinIOClient().get_object_object_storage(
+        f"ae/{AIRFLOW_ENV}/{RNE_OBJECT_STORAGE_FLUX_DATA_PATH}",
         f"rne_flux_{start_date}.json.gz",
         f"{last_json_file_path}.gz",
     )
@@ -124,7 +124,7 @@ def get_and_save_daily_flux_rne(
 ):
     """
     Fetches daily flux data from RNE API,
-    stores it in a JSON file, and sends the file to a MinIO server.
+    stores it in a JSON file, and sends the file to the object storage server.
 
     Args:
         start_date (str): The start date for data retrieval in the format 'YYYY-MM-DD'.
@@ -136,7 +136,7 @@ def get_and_save_daily_flux_rne(
     json_file_name = f"rne_flux_{start_date}.json"
     json_file_path = f"{RNE_FLUX_DATADIR}/{json_file_name}"
 
-    minio_client = MinIOClient()
+    object_storage_client = MinIOClient()
 
     if not os.path.exists(RNE_FLUX_DATADIR):
         logging.info(f"********** Creating {RNE_FLUX_DATADIR}")
@@ -169,12 +169,12 @@ def get_and_save_daily_flux_rne(
                     with open(json_file_path, "rb") as f_in:
                         with gzip.open(f"{json_file_path}.gz", "wb") as f_out:
                             shutil.copyfileobj(f_in, f_out)
-                    minio_client.send_files(
+                    object_storage_client.send_files(
                         list_files=[
                             {
                                 "source_path": f"{RNE_FLUX_DATADIR}/",
                                 "source_name": f"{json_file_name}.gz",
-                                "dest_path": RNE_MINIO_FLUX_DATA_PATH,
+                                "dest_path": RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
                                 "dest_name": f"{json_file_name}.gz",
                             },
                         ],
@@ -192,17 +192,17 @@ def get_and_save_daily_flux_rne(
             with gzip.open(f"{json_file_path}.gz", "wb") as f_out:
                 shutil.copyfileobj(f_in, f_out)
 
-        minio_client.send_files(
+        object_storage_client.send_files(
             list_files=[
                 {
                     "source_path": f"{RNE_FLUX_DATADIR}/",
                     "source_name": f"{json_file_name}.gz",
-                    "dest_path": RNE_MINIO_FLUX_DATA_PATH,
+                    "dest_path": RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
                     "dest_name": f"{json_file_name}.gz",
                 },
             ],
         )
-        logging.info(f"****** Sent file to MinIO: {json_file_name}.gz")
+        logging.info(f"****** Sent file to the object storage: {json_file_name}.gz")
         logging.info(f"****** Deleting file: {json_file_path}")
         os.remove(json_file_path)
         os.remove(f"{json_file_path}.gz")

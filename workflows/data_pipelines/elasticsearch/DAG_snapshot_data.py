@@ -18,7 +18,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functio
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.snapshot import (
     delete_old_snapshots,
     snapshot_elastic_index,
-    update_minio_current_index_version,
+    update_object_storage_current_index_version,
 )
 
 default_args = {
@@ -47,10 +47,10 @@ with DAG(
         python_callable=snapshot_elastic_index,
     )
 
-    update_minio_current_index_version = PythonOperator(
-        task_id="update_minio_current_index_version",
+    update_object_storage_current_index_version = PythonOperator(
+        task_id="update_object_storage_current_index_version",
         provide_context=True,
-        python_callable=update_minio_current_index_version,
+        python_callable=update_object_storage_current_index_version,
     )
 
     wait_for_downstream_import = PythonOperator(
@@ -72,6 +72,6 @@ with DAG(
     )
 
     snapshot_elastic_index.set_upstream(delete_old_snapshots)
-    update_minio_current_index_version.set_upstream(snapshot_elastic_index)
-    wait_for_downstream_import.set_upstream(update_minio_current_index_version)
+    update_object_storage_current_index_version.set_upstream(snapshot_elastic_index)
+    wait_for_downstream_import.set_upstream(update_object_storage_current_index_version)
     update_downstream_alias.set_upstream(wait_for_downstream_import)

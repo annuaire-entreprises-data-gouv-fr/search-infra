@@ -27,12 +27,12 @@ class DataProcessor(ABC):
     """Abstract base class for processing data.
 
     This class provides methods for preprocessing data, saving metadata,
-    sending files to MinIO, comparing files in MinIO, and sending notifications.
+    sending files to the object storage, comparing files in the object storage, and sending notifications.
     """
 
     def __init__(self, config: DataSourceConfig) -> None:
         self.config = config
-        self.minio_client = MinIOClient()
+        self.object_storage_client = MinIOClient()
 
     def download_data(self) -> None:
         """
@@ -245,58 +245,58 @@ class DataProcessor(ABC):
             f"Last modified date ({date_last_modified}) saved successfully to {metadata_path}"
         )
 
-    def send_file_to_minio(self):
+    def send_file_to_object_storage(self):
         """
-        Sends the CSV file and metadata JSON to the specified MinIO path.
+        Sends the CSV file and metadata JSON to the specified object storage path.
         """
-        self.minio_client.send_files(
+        self.object_storage_client.send_files(
             list_files=[
                 File(
                     source_path=f"{self.config.tmp_folder}/",
                     source_name=f"{self.config.file_name}.csv",
-                    dest_path=f"{self.config.minio_path}/new/",
+                    dest_path=f"{self.config.object_storage_path}/new/",
                     dest_name=f"{self.config.file_name}.csv",
                     content_type=None,
                 ),
                 File(
                     source_path=f"{self.config.tmp_folder}/",
                     source_name="metadata.json",
-                    dest_path=f"{self.config.minio_path}/new/",
+                    dest_path=f"{self.config.object_storage_path}/new/",
                     dest_name="metadata.json",
                     content_type=None,
                 ),
             ],
         )
 
-    def compare_files_minio(self):
-        """Compares files in MinIO.
+    def compare_files_object_storage(self):
+        """Compares files in object storage.
 
-        Checks if the current file is the same as the latest file in MinIO.
+        Checks if the current file is the same as the latest file in object storage.
         If not, it sends the current file to the latest path.
 
         Returns:
             bool: True if the files are different, False if they are the same.
         """
-        is_same = self.minio_client.compare_files(
-            file_path_1=f"{self.config.minio_path}/new/",
+        is_same = self.object_storage_client.compare_files(
+            file_path_1=f"{self.config.object_storage_path}/new/",
             file_name_2=f"{self.config.file_name}.csv",
-            file_path_2=f"{self.config.minio_path}/latest/",
+            file_path_2=f"{self.config.object_storage_path}/latest/",
             file_name_1=f"{self.config.file_name}.csv",
         )
         if not is_same:
-            self.minio_client.send_files(
+            self.object_storage_client.send_files(
                 list_files=[
                     File(
                         source_path=f"{self.config.tmp_folder}/",
                         source_name=f"{self.config.file_name}.csv",
-                        dest_path=f"{self.config.minio_path}/latest/",
+                        dest_path=f"{self.config.object_storage_path}/latest/",
                         dest_name=f"{self.config.file_name}.csv",
                         content_type=None,
                     ),
                     File(
                         source_path=f"{self.config.tmp_folder}/",
                         source_name="metadata.json",
-                        dest_path=f"{self.config.minio_path}/latest/",
+                        dest_path=f"{self.config.object_storage_path}/latest/",
                         dest_name="metadata.json",
                         content_type=None,
                     ),

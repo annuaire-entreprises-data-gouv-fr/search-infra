@@ -56,9 +56,9 @@ ici 👉](https://annuaire-entreprises.data.gouv.fr/donnees/sources).
 
 Le processus de traitement des données est divisé en plusieurs parties :
 
-1. **Prétraitement** : Ce workflow est responsable de la récupération des données à partir de diverses sources (DataGouv, API, sites web) et de leur stockage dans MinIO.
+1. **Prétraitement** : Ce workflow est responsable de la récupération des données à partir de diverses sources (DataGouv, API, sites web) et de leur stockage dans le service de stockage d'objet.
 
-2. **ETL** : Ce workflow prend en charge la création d'une base de données SQLite à partir des données stockées dans MinIO. Il inclut des étapes d'enrichissement des données.
+2. **ETL** : Ce workflow prend en charge la création d'une base de données SQLite à partir des données stockées dans le service de stockage d'objet. Il inclut des étapes d'enrichissement des données.
 
 3. **Indexation** : Ce workflow est responsable de la création de l'index Elasticsearch à partir des données traitées précédemment.
 
@@ -71,36 +71,36 @@ Le processus de traitement des données est divisé en plusieurs parties :
 flowchart TD
     subgraph Workflow Prétraitement
         subgraph DataGouv["Données sur DataGouv"]
-            D1@{ shape: lean-r, label: "Base Sirene (stock)\nsource : INSEE" } -->|DAG Airflow : Quotidien| DB_MinIO["Base de données MinIO"]
-            D2@{ shape: lean-r, label: "Ratios Financiers\nsource : MINEFI" } -->|DAG Airflow : Quotidien| DB_MinIO
-            D3@{ shape: lean-r, label: "Elus Collectivités\nTerritoriales\nsource : Ministère \nde l'Intérieur" } -->|DAG Airflow : Quotidien| DB_MinIO
-            D4@{ shape: lean-r, label: "Conventions Collectives\nsource : Ministère \n du Travail" } -->|DAG Airflow : Quotidien| DB_MinIO
-            D5@{ shape: lean-r, label: "Déclarations Egapro\nsource : MTPEI" } -->|DAG Airflow : Quotidien| DB_MinIO
-            D6@{ shape: lean-r, label: "Économie sociale et\nsolidaire\nsource : ESS France" } -->|DAG Airflow : Quotidien| DB_MinIO
-            D7@{ shape: lean-r, label: "Établissements \nSanitaire et Social\nsource : Ministère \ndes Solidarités\net de la Santé" } -->|DAG Airflow : Quotidien| DB_MinIO
-            D8@{ shape: lean-r, label: "Entreprises RGE\nsource : ADEME" } -->|DAG Airflow : Quotidien| DB_MinIO
-            D9@{ shape: lean-r, label: "Entrepreneurs Spectacles\nVivants\nsource : Ministère de \nla Culture" } -->|DAG Airflow : Quotidien| DB_MinIO
-            D10@{ shape: lean-r, label: "Annuaire de l'éducation\nsource : MENJ & MESR" } -->|DAG Airflow : Quotidien| DB_MinIO
+            D1@{ shape: lean-r, label: "Base Sirene (stock)\nsource : INSEE" } -->|DAG Airflow : Quotidien| DB_Object_Storage["Service de Stockage d'Object"]
+            D2@{ shape: lean-r, label: "Ratios Financiers\nsource : MINEFI" } -->|DAG Airflow : Quotidien| DB_Object_Storage
+            D3@{ shape: lean-r, label: "Elus Collectivités\nTerritoriales\nsource : Ministère \nde l'Intérieur" } -->|DAG Airflow : Quotidien| DB_Object_Storage
+            D4@{ shape: lean-r, label: "Conventions Collectives\nsource : Ministère \n du Travail" } -->|DAG Airflow : Quotidien| DB_Object_Storage
+            D5@{ shape: lean-r, label: "Déclarations Egapro\nsource : MTPEI" } -->|DAG Airflow : Quotidien| DB_Object_Storage
+            D6@{ shape: lean-r, label: "Économie sociale et\nsolidaire\nsource : ESS France" } -->|DAG Airflow : Quotidien| DB_Object_Storage
+            D7@{ shape: lean-r, label: "Établissements \nSanitaire et Social\nsource : Ministère \ndes Solidarités\net de la Santé" } -->|DAG Airflow : Quotidien| DB_Object_Storage
+            D8@{ shape: lean-r, label: "Entreprises RGE\nsource : ADEME" } -->|DAG Airflow : Quotidien| DB_Object_Storage
+            D9@{ shape: lean-r, label: "Entrepreneurs Spectacles\nVivants\nsource : Ministère de \nla Culture" } -->|DAG Airflow : Quotidien| DB_Object_Storage
+            D10@{ shape: lean-r, label: "Annuaire de l'éducation\nsource : MENJ & MESR" } -->|DAG Airflow : Quotidien| DB_Object_Storage
         end
 
         subgraph AutresSources["Autres sources (API, sites)"]
-            D11@{ shape: lean-r, label: "Professionnels du BIO\n(API)\nsource : Agence BIO" } -->|DAG Airflow : Quotidien| DB_MinIO
-            D12@{ shape: lean-r, label: "Organismes de Formation\nsource : DGEFP" } -->|DAG Airflow : Quotidien| DB_MinIO
-            D13@{ shape: lean-r, label: "Entreprises Inclusives\n(API)\nsource : Marché de \nl'inclusion" } -->|DAG Airflow : Quotidien| DB_MinIO
-            D14@{ shape: lean-r, label: "Base RNE (stock et API)\nsource : INPI" } -->|DAG Airflow : Quotidien| DB_MinIO
-            D15@{ shape: lean-r, label: "Base Sirene (API)\nsource : INSEE" } -->|DAG Airflow : Quotidien| DB_MinIO
+            D11@{ shape: lean-r, label: "Professionnels du BIO\n(API)\nsource : Agence BIO" } -->|DAG Airflow : Quotidien| DB_Object_Storage
+            D12@{ shape: lean-r, label: "Organismes de Formation\nsource : DGEFP" } -->|DAG Airflow : Quotidien| DB_Object_Storage
+            D13@{ shape: lean-r, label: "Entreprises Inclusives\n(API)\nsource : Marché de \nl'inclusion" } -->|DAG Airflow : Quotidien| DB_Object_Storage
+            D14@{ shape: lean-r, label: "Base RNE (stock et API)\nsource : INPI" } -->|DAG Airflow : Quotidien| DB_Object_Storage
+            D15@{ shape: lean-r, label: "Base Sirene (API)\nsource : INSEE" } -->|DAG Airflow : Quotidien| DB_Object_Storage
         end
     end
 
     subgraph Workflow_SQLite["Workflow ETL"]
-        DB_MinIO@{ shape: lin-cyl, label: "Stockage des\ndonnées sur MinIO" } -->|DAG Airflow: Quotidien| DAG_SQLITE["Création de
+        DB_Object_Storage@{ shape: lin-cyl, label: "Stockage des\ndonnées sur le service de stockage d'objet" } -->|DAG Airflow: Quotidien| DAG_SQLITE["Création de
         la BDD SQLite"]
         DAG_SQLITE --> SQLite_DB[(SQLite Database)]
-        SQLite_DB --> SQLITE_MinIO@{ shape: lin-cyl, label: "Stockage DBB\nsur MinIO" }
+        SQLite_DB --> SQLITE_Object_Storage@{ shape: lin-cyl, label: "Stockage DBB\nsur le service de stockage d'objet" }
     end
 
     subgraph Indexation_Elasticsearch["Workflow Indexation"]
-        SQLITE_MinIO -->|DAG Airflow : Quotidien
+        SQLITE_Object_Storage -->|DAG Airflow : Quotidien
         déclenché par
         le workflow ETL| DAG_Elastic["Chunking & Indexation"]
         DAG_Elastic --> Elastic_DB[(Index Elasticsearch)]

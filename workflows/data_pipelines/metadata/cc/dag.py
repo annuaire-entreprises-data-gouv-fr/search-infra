@@ -8,7 +8,7 @@ from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.workflows.data_pipelines.metadata.cc.task_functions import (
     create_metadata_convention_collective_json,
     is_metadata_not_updated,
-    upload_json_to_minio,
+    upload_json_to_object_storage,
 )
 
 default_args = {
@@ -47,14 +47,14 @@ def get_metadata_cc():
         create_metadata_convention_collective_json()
 
     @task()
-    def upload_json_to_minio_task():
-        upload_json_to_minio()
+    def upload_json_to_object_storage_task():
+        upload_json_to_object_storage()
 
     (
         clean_previous_outputs()
         >> is_metadata_updated_task
         >> create_metadata_convention_collective_json_task()
-        >> upload_json_to_minio_task()
+        >> upload_json_to_object_storage_task()
     )
 
 

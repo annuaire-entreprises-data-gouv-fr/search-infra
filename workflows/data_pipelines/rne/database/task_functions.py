@@ -11,9 +11,9 @@ from minio.error import S3Error
 from data_pipelines_annuaire.config import (
     RNE_DB_TMP_FOLDER,
     RNE_LATEST_DATE_FILE,
-    RNE_MINIO_DATA_PATH,
-    RNE_MINIO_FLUX_DATA_PATH,
-    RNE_MINIO_STOCK_DATA_PATH,
+    RNE_OBJECT_STORAGE_DATA_PATH,
+    RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
+    RNE_OBJECT_STORAGE_STOCK_DATA_PATH,
 )
 from data_pipelines_annuaire.helpers.mattermost import send_message
 from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
@@ -28,13 +28,13 @@ from data_pipelines_annuaire.workflows.data_pipelines.rne.database.process_rne i
 )
 
 
-def get_start_date_minio(**kwargs):
-    minio_client = MinIOClient()
+def get_start_date_object_storage(**kwargs):
+    object_storage_client = MinIOClient()
     try:
-        minio_client.get_files(
+        object_storage_client.get_files(
             list_files=[
                 {
-                    "source_path": RNE_MINIO_DATA_PATH,
+                    "source_path": RNE_OBJECT_STORAGE_DATA_PATH,
                     "source_name": RNE_LATEST_DATE_FILE,
                     "dest_path": RNE_DB_TMP_FOLDER,
                     "dest_name": RNE_LATEST_DATE_FILE,
@@ -52,8 +52,8 @@ def get_start_date_minio(**kwargs):
     except S3Error as e:
         if e.code == "NoSuchKey":
             logging.info(
-                f"The file {RNE_MINIO_STOCK_DATA_PATH + RNE_LATEST_DATE_FILE} "
-                f"does not exist in the bucket {minio_client.bucket}."
+                f"The file {RNE_OBJECT_STORAGE_STOCK_DATA_PATH + RNE_LATEST_DATE_FILE} "
+                f"does not exist in the bucket {object_storage_client.bucket}."
             )
             kwargs["ti"].xcom_push(key="start_date", value=None)
         else:
@@ -108,7 +108,7 @@ def create_db(**kwargs):
 def get_latest_db(**kwargs):
     """
     This function retrieves the RNE database file associated with the
-    provided start date from a Minio server and saves it to a
+    provided start date from an object storage server and saves it to a
     temporary folder for further processing.
     """
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
@@ -120,7 +120,7 @@ def get_latest_db(**kwargs):
         MinIOClient().get_files(
             list_files=[
                 {
-                    "source_path": RNE_MINIO_DATA_PATH,
+                    "source_path": RNE_OBJECT_STORAGE_DATA_PATH,
                     "source_name": f"rne_{previous_start_date}.db.gz",
                     "dest_path": RNE_DB_TMP_FOLDER,
                     "dest_name": f"rne_{start_date}.db.gz",
@@ -150,14 +150,14 @@ def process_stock_json_files(**kwargs):
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
     rne_db_path = kwargs["ti"].xcom_pull(key="rne_db_path", task_ids="create_db")
 
-    minio_client = MinIOClient()
+    object_storage_client = MinIOClient()
 
     # Only process stock files if a date doesn't already exist
     if start_date is not None:
         return None
 
-    json_stock_rne_files = minio_client.get_files_from_prefix(
-        prefix=RNE_MINIO_STOCK_DATA_PATH,
+    json_stock_rne_files = object_storage_client.get_files_from_prefix(
+        prefix=RNE_OBJECT_STORAGE_STOCK_DATA_PATH,
     )
 
     if not json_stock_rne_files:
@@ -165,7 +165,7 @@ def process_stock_json_files(**kwargs):
 
     for file_path in json_stock_rne_files:
         logging.info(f"*******Processing stock file: {file_path}...")
-        minio_client.get_files(
+        object_storage_client.get_files(
             list_files=[
                 {
                     "source_path": "",
@@ -187,10 +187,10 @@ def process_flux_json_files(**kwargs):
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
     rne_db_path = kwargs["ti"].xcom_pull(key="rne_db_path", task_ids="create_db")
 
-    minio_client = MinIOClient()
+    object_storage_client = MinIOClient()
 
-    json_daily_flux_files = minio_client.get_files_from_prefix(
-        prefix=RNE_MINIO_FLUX_DATA_PATH,
+    json_daily_flux_files = object_storage_client.get_files_from_prefix(
+        prefix=RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
     )
 
     if not json_daily_flux_files:
@@ -208,10 +208,10 @@ def process_flux_json_files(**kwargs):
             file_date = date_match.group(1)
             if file_date >= start_date:
                 logging.info(f"Processing file {file_path} with date {file_date}")
-                minio_client.get_files(
+                object_storage_client.get_files(
                     list_files=[
                         {
-                            "source_path": RNE_MINIO_FLUX_DATA_PATH,
+                            "source_path": RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
                             "source_name": f"rne_flux_{file_date}.json.gz",
                             "dest_path": RNE_DB_TMP_FOLDER,
                             "dest_name": f"rne_flux_{file_date}.json.gz",
@@ -313,13 +313,13 @@ def check_db_count(
         raise Exception(f"An error occurred: {e}")
 
 
-def send_to_minio(list_files):
+def send_to_object_storage(list_files):
     MinIOClient().send_files(
         list_files=list_files,
     )
 
 
-def upload_db_to_minio(**kwargs):
+def upload_db_to_object_storage(**kwargs):
     start_date = kwargs["ti"].xcom_pull(key="start_date", task_ids="get_start_date")
     last_date_processed = kwargs["ti"].xcom_pull(
         key="last_date_processed", task_ids="process_flux_json_files"
@@ -334,18 +334,18 @@ def upload_db_to_minio(**kwargs):
             shutil.copyfileobj(f_in, f_out)
 
     logging.info(f"Sending database: rne_{start_date}.db.gz")
-    send_to_minio(
+    send_to_object_storage(
         [
             {
                 "source_path": RNE_DB_TMP_FOLDER,
                 "source_name": f"rne_{start_date}.db.gz",
-                "dest_path": RNE_MINIO_DATA_PATH,
+                "dest_path": RNE_OBJECT_STORAGE_DATA_PATH,
                 "dest_name": f"rne_{last_date_processed}.db.gz",
             }
         ]
     )
 
-    # Delete local files after uploading to Minio
+    # Delete local files after uploading to the object storage
     os.remove(database_file_path)
     if os.path.exists(database_zip_file_path):
         os.remove(database_zip_file_path)
@@ -353,7 +353,7 @@ def upload_db_to_minio(**kwargs):
         logging.warning(f"Warning: Database file '{database_zip_file_path}' not found.")
 
 
-def upload_latest_date_rne_minio(ti):
+def upload_latest_date_rne_object_storage(ti):
     """Start date saved is the next day"""
     last_date_processed = ti.xcom_pull(
         key="last_date_processed", task_ids="process_flux_json_files"
@@ -365,17 +365,17 @@ def upload_latest_date_rne_minio(ti):
     with open(RNE_DB_TMP_FOLDER + "latest_rne_date.json", "w") as write_file:
         json.dump(data, write_file)
 
-    send_to_minio(
+    send_to_object_storage(
         [
             {
                 "source_path": RNE_DB_TMP_FOLDER,
                 "source_name": RNE_LATEST_DATE_FILE,
-                "dest_path": RNE_MINIO_DATA_PATH,
+                "dest_path": RNE_OBJECT_STORAGE_DATA_PATH,
                 "dest_name": RNE_LATEST_DATE_FILE,
             }
         ]
     )
-    # Delete the local file after uploading to Minio
+    # Delete the local file after uploading to the object storage
     file_path = os.path.join(RNE_DB_TMP_FOLDER, RNE_LATEST_DATE_FILE)
     if os.path.exists(file_path):
         os.remove(file_path)

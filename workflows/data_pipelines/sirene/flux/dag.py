@@ -57,8 +57,8 @@ def data_processing_sirene_flux():
         return sirene_flux_processor.save_date_last_modified()
 
     @task
-    def send_flux_to_minio():
-        return sirene_flux_processor.send_flux_to_minio()
+    def send_flux_to_object_storage():
+        return sirene_flux_processor.send_flux_to_object_storage()
 
     @task.bash
     def clean_up():
@@ -77,7 +77,7 @@ def data_processing_sirene_flux():
         >> get_flux_unites_legales()
         >> get_flux_etablissements()
         >> save_date_last_modified()
-        >> send_flux_to_minio()
+        >> send_flux_to_object_storage()
         >> clean_up()
         >> trigger_etl_dag
     )

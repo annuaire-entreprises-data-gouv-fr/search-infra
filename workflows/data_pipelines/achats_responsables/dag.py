@@ -49,12 +49,12 @@ def data_processing_achats_responsables():
         return achats_responsables_processor.save_date_last_modified()
 
     @task
-    def send_file_to_minio():
-        return achats_responsables_processor.send_file_to_minio()
+    def send_file_to_object_storage():
+        return achats_responsables_processor.send_file_to_object_storage()
 
     @task
-    def compare_files_minio():
-        return achats_responsables_processor.compare_files_minio()
+    def compare_files_object_storage():
+        return achats_responsables_processor.compare_files_object_storage()
 
     @task.bash
     def clean_up():
@@ -65,8 +65,8 @@ def data_processing_achats_responsables():
         >> download_data()
         >> preprocess_data()
         >> save_date_last_modified()
-        >> send_file_to_minio()
-        >> compare_files_minio()
+        >> send_file_to_object_storage()
+        >> compare_files_object_storage()
         >> clean_up()
     )
 

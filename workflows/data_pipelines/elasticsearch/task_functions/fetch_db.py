@@ -7,7 +7,7 @@ from datetime import datetime
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DATA_DIR,
-    SIRENE_MINIO_DATA_PATH,
+    SIRENE_OBJECT_STORAGE_DATA_PATH,
 )
 from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
 
@@ -15,13 +15,15 @@ current_date = datetime.now().date()
 
 
 def get_latest_database(**kwargs):
-    minio_client = MinIOClient()
-    database_files = minio_client.get_files_from_prefix(
-        prefix=SIRENE_MINIO_DATA_PATH,
+    object_storage_client = MinIOClient()
+    database_files = object_storage_client.get_files_from_prefix(
+        prefix=SIRENE_OBJECT_STORAGE_DATA_PATH,
     )
 
     if not database_files:
-        raise Exception(f"No database files were found in : {SIRENE_MINIO_DATA_PATH}")
+        raise Exception(
+            f"No database files were found in : {SIRENE_OBJECT_STORAGE_DATA_PATH}"
+        )
 
     # Extract dates from the db file names and sort them
     dates = sorted(re.findall(r"sirene_(\d{4}-\d{2}-\d{2})", " ".join(database_files)))
@@ -29,10 +31,10 @@ def get_latest_database(**kwargs):
     if dates:
         last_date = dates[-1]
         logging.info(f"***** Last database saved: {last_date}")
-        minio_client.get_files(
+        object_storage_client.get_files(
             list_files=[
                 {
-                    "source_path": SIRENE_MINIO_DATA_PATH,
+                    "source_path": SIRENE_OBJECT_STORAGE_DATA_PATH,
                     "source_name": f"sirene_{last_date}.db.gz",
                     "dest_path": AIRFLOW_ELK_DATA_DIR,
                     "dest_name": "sirene.db.gz",
@@ -48,5 +50,5 @@ def get_latest_database(**kwargs):
 
     else:
         raise Exception(
-            f"No dates in database files were found : {SIRENE_MINIO_DATA_PATH}"
+            f"No dates in database files were found : {SIRENE_OBJECT_STORAGE_DATA_PATH}"
         )
