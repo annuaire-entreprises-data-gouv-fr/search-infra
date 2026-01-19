@@ -10,10 +10,10 @@ from botocore.exceptions import ClientError
 import data_pipelines_annuaire.helpers.filesystem as filesystem
 from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
+    OBJECT_STORAGE_ACCESS_KEY,
     OBJECT_STORAGE_BUCKET,
-    OBJECT_STORAGE_PASSWORD,
+    OBJECT_STORAGE_SECRET_KEY,
     OBJECT_STORAGE_URL,
-    OBJECT_STORAGE_USER,
 )
 
 
@@ -29,16 +29,16 @@ class File(TypedDict):
 class ObjectStorageClient:
     def __init__(self):
         self.url = OBJECT_STORAGE_URL
-        self.user = OBJECT_STORAGE_USER
-        self.password = OBJECT_STORAGE_PASSWORD
+        self.access_key = OBJECT_STORAGE_ACCESS_KEY
+        self.secret_key = OBJECT_STORAGE_SECRET_KEY
         self.bucket = OBJECT_STORAGE_BUCKET
 
         # Create boto3 S3 client
         self.client = boto3.client(
             "s3",
             endpoint_url=self.url,
-            aws_access_key_id=self.user,
-            aws_secret_access_key=self.password,
+            aws_access_key_id=self.access_key,
+            aws_secret_access_key=self.secret_key,
         )
 
         # Check if bucket exists
