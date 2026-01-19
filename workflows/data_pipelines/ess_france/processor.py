@@ -15,7 +15,9 @@ class EssFranceProcessor(DataProcessor):
         super().__init__(ESS_CONFIG)
 
     def preprocess_data(self):
-        df_ess = pd.read_csv(self.config.files_to_download["ess"]["url"], dtype=str)
+        df_ess = pd.read_csv(
+            self.config.files_to_download["ess"]["destination"], dtype=str
+        )
         df_ess["SIREN"] = df_ess["SIREN"].str.zfill(9)
         df_ess = df_ess.rename(columns={"SIREN": "siren"}).assign(est_ess_france=1)[
             ["siren", "est_ess_france"]

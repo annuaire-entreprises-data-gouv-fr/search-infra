@@ -40,6 +40,10 @@ def data_processing_ess_france():
         return f"rm -rf {ESS_CONFIG.tmp_folder} && mkdir -p {ESS_CONFIG.tmp_folder}"
 
     @task
+    def download_data():
+        return ess_france_processor.download_data()
+
+    @task
     def preprocess_ess_france():
         return ess_france_processor.preprocess_data()
 
@@ -57,6 +61,7 @@ def data_processing_ess_france():
 
     (
         clean_previous_outputs()
+        >> download_data()
         >> preprocess_ess_france()
         >> save_date_last_modified()
         >> send_file_to_minio()

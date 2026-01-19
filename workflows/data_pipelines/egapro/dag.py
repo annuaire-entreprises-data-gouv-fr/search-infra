@@ -40,6 +40,10 @@ def data_processing_egapro():
         )
 
     @task
+    def download_data():
+        return egapro_processor.download_data()
+
+    @task
     def preprocess_egapro():
         return egapro_processor.preprocess_data()
 
@@ -57,6 +61,7 @@ def data_processing_egapro():
 
     (
         clean_previous_outputs()
+        >> download_data()
         >> preprocess_egapro()
         >> save_date_last_modified()
         >> send_file_to_minio()

@@ -99,6 +99,10 @@ def data_processing_collectivite_territoriale_elus():
     def clean_previous_outputs():
         return f"rm -rf {ELUS_CONFIG.tmp_folder} && mkdir -p {ELUS_CONFIG.tmp_folder}"
 
+    @task()
+    def download_data():
+        return elus_processor.download_data()
+
     @task
     def preprocess_data():
         return elus_processor.preprocess_data()
@@ -117,6 +121,7 @@ def data_processing_collectivite_territoriale_elus():
 
     (
         clean_previous_outputs()
+        >> download_data()
         >> preprocess_data()
         >> save_date_last_modified()
         >> send_file_to_minio()
