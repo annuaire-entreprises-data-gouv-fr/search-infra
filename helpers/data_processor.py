@@ -13,8 +13,8 @@ from data_pipelines_annuaire.helpers.datagouv import (
     fetch_last_modified_date,
     fetch_last_resource_from_dataset,
 )
-from data_pipelines_annuaire.helpers.minio_helpers import File, MinIOClient
 from data_pipelines_annuaire.helpers.notification import Notification, monitoring_logger
+from data_pipelines_annuaire.helpers.object_storage import File, ObjectStorageClient
 from data_pipelines_annuaire.helpers.utils import (
     download_file,
     fetch_hyperlink_from_page,
@@ -32,7 +32,7 @@ class DataProcessor(ABC):
 
     def __init__(self, config: DataSourceConfig) -> None:
         self.config = config
-        self.object_storage_client = MinIOClient()
+        self.object_storage_client = ObjectStorageClient()
 
     def download_data(self) -> None:
         """

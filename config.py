@@ -105,11 +105,10 @@ MATTERMOST_WEBHOOK = Variable.get("MATTERMOST_WEBHOOK", "")
 EMAIL_LIST = Variable.get("EMAIl_LIST", "")
 
 # Object Storage
-OBJECT_STORAGE_URL = Variable.get("MINIO_URL", "object.files.data.gouv.fr")
-OBJECT_STORAGE_BUCKET = Variable.get("MINIO_BUCKET", "")
-OBJECT_STORAGE_BUCKET_DATA_PIPELINE = Variable.get("MINIO_BUCKET_DATA_PIPELINE", None)
-OBJECT_STORAGE_USER = Variable.get("MINIO_USER", "")
-OBJECT_STORAGE_PASSWORD = Variable.get("MINIO_PASSWORD", "")
+OBJECT_STORAGE_URL = Variable.get("OBJECT_STORAGE_URL", "")
+OBJECT_STORAGE_BUCKET = Variable.get("OBJECT_STORAGE_BUCKET", "")
+OBJECT_STORAGE_ACCESS_KEY = Variable.get("OBJECT_STORAGE_ACCESS_KEY", "")
+OBJECT_STORAGE_SECRET_KEY = Variable.get("OBJECT_STORAGE_SECRET_KEY", "")
 
 # RNE
 RNE_FTP_URL = Variable.get("RNE_FTP_URL", "")
@@ -119,7 +118,6 @@ RNE_API_DIFF_URL = "https://registre-national-entreprises.inpi.fr/api/companies/
 
 # AIO
 AIO_URL = Variable.get("AIO_URL", None)
-COLOR_URL = Variable.get("COLOR_URL", None)
 PATH_AIO = Variable.get("PATH_AIO", None)
 COLOR_IS_DAILY = bool(Variable.get("COLOR_IS_DAILY", "False"))
 

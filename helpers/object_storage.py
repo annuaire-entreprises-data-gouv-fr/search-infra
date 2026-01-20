@@ -1,25 +1,23 @@
-from __future__ import annotations
-
 import logging
 import os
 from datetime import datetime
 from pathlib import Path
 from typing import TypedDict
 
-from minio import Minio, S3Error
-from minio.commonconfig import CopySource
+import boto3
+from botocore.exceptions import ClientError
 
 import data_pipelines_annuaire.helpers.filesystem as filesystem
 from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
+    OBJECT_STORAGE_ACCESS_KEY,
     OBJECT_STORAGE_BUCKET,
-    OBJECT_STORAGE_PASSWORD,
+    OBJECT_STORAGE_SECRET_KEY,
     OBJECT_STORAGE_URL,
-    OBJECT_STORAGE_USER,
 )
 
 
-# Use and enrich MinIOFile instead
+# Use and enrich ObjectStorageFile instead
 class File(TypedDict):
     source_path: str
     source_name: str
@@ -28,21 +26,37 @@ class File(TypedDict):
     content_type: str | None
 
 
-class MinIOClient:
+class ObjectStorageClient:
     def __init__(self):
         self.url = OBJECT_STORAGE_URL
-        self.user = OBJECT_STORAGE_USER
-        self.password = OBJECT_STORAGE_PASSWORD
+        self.access_key = OBJECT_STORAGE_ACCESS_KEY
+        self.secret_key = OBJECT_STORAGE_SECRET_KEY
         self.bucket = OBJECT_STORAGE_BUCKET
-        self.client = Minio(
-            self.url,
-            access_key=self.user,
-            secret_key=self.password,
-            secure=True,
+
+        # Create boto3 S3 client
+        self.client = boto3.client(
+            "s3",
+            endpoint_url=self.url,
+            aws_access_key_id=self.access_key,
+            aws_secret_access_key=self.secret_key,
         )
-        self.bucket_exists = self.client.bucket_exists(self.bucket)
+
+        # Check if bucket exists
+        self.bucket_exists = self._check_bucket_exists()
         if not self.bucket_exists:
             raise ValueError(f"Bucket '{self.bucket}' does not exist.")
+
+    def _check_bucket_exists(self) -> bool:
+        """Check if the bucket exists using boto3"""
+        try:
+            self.client.head_bucket(Bucket=self.bucket)
+            return True
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "404":
+                return False
+            else:
+                # Other errors (like access denied) should be raised
+                raise
 
     def get_root_dirpath(self) -> str:
         return f"ae/{AIRFLOW_ENV}"
@@ -51,12 +65,12 @@ class MinIOClient:
         self,
         list_files: list[File],
     ):
-        """Send list of file to Minio bucket
+        """Send list of file to S3 bucket
 
         Args:
             list_files (list[File]): List of Dictionnaries containing for each
             `source_path` and `source_name` : local file location ;
-            `dest_path` and `dest_name` : minio location (inside bucket specified) ;
+            `dest_path` and `dest_name` : S3 location (inside bucket specified) ;
 
         Raises:
             Exception: when specified local file does not exists
@@ -68,13 +82,16 @@ class MinIOClient:
             )
             logging.info(f"Sending {file['source_name']}")
             if is_file:
-                self.client.fput_object(
-                    self.bucket,
-                    f"ae/{AIRFLOW_ENV}/{file['dest_path']}{file['dest_name']}",
-                    os.path.join(file["source_path"], file["source_name"]),
-                    content_type=(
-                        file["content_type"] if "content_type" in file else None
-                    ),
+                object_key = f"ae/{AIRFLOW_ENV}/{file['dest_path']}{file['dest_name']}"
+                local_file_path = os.path.join(file["source_path"], file["source_name"])
+
+                # Set extra args for content type if provided
+                extra_args = {}
+                if "content_type" in file and file["content_type"]:
+                    extra_args["ContentType"] = file["content_type"]
+
+                self.client.upload_file(
+                    local_file_path, self.bucket, object_key, ExtraArgs=extra_args
                 )
             else:
                 raise Exception(
@@ -82,35 +99,46 @@ class MinIOClient:
                 )
 
     def get_files_from_prefix(self, prefix: str):
-        """Retrieve only the list of files in a Minio pattern
+        """Retrieve only the list of files in a S3 pattern
 
         Args:
             prefix: (str): prefix to search files
         """
         list_objects = []
-        objects = self.client.list_objects(
-            self.bucket, prefix=f"ae/{AIRFLOW_ENV}/{prefix}"
+
+        # Use list_objects_v2 which is the recommended method
+        paginator = self.client.get_paginator("list_objects_v2")
+        page_iterator = paginator.paginate(
+            Bucket=self.bucket, Prefix=f"ae/{AIRFLOW_ENV}/{prefix}"
         )
-        for obj in objects:
-            if not obj.object_name.endswith("/"):  # Exclude folders
-                logging.info(obj.object_name)
-                list_objects.append(obj.object_name.replace(f"ae/{AIRFLOW_ENV}/", ""))
+
+        for page in page_iterator:
+            if "Contents" in page:
+                for obj in page["Contents"]:
+                    object_name = obj["Key"]
+                    if not object_name.endswith("/"):  # Exclude folders
+                        logging.info(object_name)
+                        list_objects.append(
+                            object_name.replace(f"ae/{AIRFLOW_ENV}/", "")
+                        )
         return list_objects
 
     def get_files(self, list_files: list[File]):
-        """Retrieve list of files from Minio
+        """Retrieve list of files from S3
 
         Args:
             list_files (list[File]): List of Dictionnaries containing for each
-            `source_path` and `source_name` : Minio location inside specified bucket ;
+            `source_path` and `source_name` : S3 location inside specified bucket ;
             `dest_path` and `dest_name` : local file destination ;
         """
         for file in list_files:
-            self.client.fget_object(
-                self.bucket,
-                f"ae/{AIRFLOW_ENV}/{file['source_path']}{file['source_name']}",
-                f"{file['dest_path']}{file['dest_name']}",
-            )
+            object_key = f"ae/{AIRFLOW_ENV}/{file['source_path']}{file['source_name']}"
+            local_path = f"{file['dest_path']}{file['dest_name']}"
+
+            # Ensure destination directory exists
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+
+            self.client.download_file(self.bucket, object_key, local_path)
 
     def get_object_object_storage(
         self,
@@ -118,11 +146,12 @@ class MinIOClient:
         filename: str,
         local_path: str,
     ) -> None:
-        self.client.fget_object(
-            self.bucket,
-            f"{object_storage_path}{filename}",
-            local_path,
-        )
+        object_key = f"{object_storage_path}{filename}"
+
+        # Ensure destination directory exists
+        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+
+        self.client.download_file(self.bucket, object_key, local_path)
 
     def put_object_object_storage(
         self,
@@ -131,11 +160,13 @@ class MinIOClient:
         local_path: str,
         content_type: str = "application/octet-stream",
     ) -> None:
-        self.client.fput_object(
-            bucket_name=self.bucket,
-            object_name=object_storage_path,
-            file_path=local_path + filename,
-            content_type=content_type,
+        file_path = local_path + filename
+
+        # Set extra args for content type
+        extra_args = {"ContentType": content_type}
+
+        self.client.upload_file(
+            file_path, self.bucket, object_storage_path, ExtraArgs=extra_args
         )
 
     def get_latest_file(
@@ -144,27 +175,32 @@ class MinIOClient:
         local_path: str,
     ):
         """
-        Download the latest .db.gz file from Minio to the local file system.
+        Download the latest .db.gz file from S3 to the local file system.
 
         Args:
-            object_storage_path (str): The path within the Minio bucket where compressed .db
+            object_storage_path (str): The path within the S3 bucket where compressed .db
             files are located.
             local_path (str): The local directory where the downloaded file
             will be saved.
         Note:
-            This function assumes that the .db files in Minio have filenames
+            This function assumes that the .db files in S3 have filenames
             in the format:
             'filename_YYYY-MM-DD.db', where YYYY-MM-DD represents the date.
         """
 
-        objects = self.client.list_objects(
-            self.bucket, prefix=object_storage_path, recursive=True
+        # Use list_objects_v2 which is the recommended method
+        paginator = self.client.get_paginator("list_objects_v2")
+        page_iterator = paginator.paginate(
+            Bucket=self.bucket, Prefix=object_storage_path
         )
 
         # Filter and sort .gz files based on their names and the date in the filename
-        db_files = [
-            obj.object_name for obj in objects if obj.object_name.endswith(".gz")
-        ]
+        db_files = []
+        for page in page_iterator:
+            if "Contents" in page:
+                for obj in page["Contents"]:
+                    if obj["Key"].endswith(".gz"):
+                        db_files.append(obj["Key"])
 
         sorted_db_files = sorted(
             db_files,
@@ -183,7 +219,10 @@ class MinIOClient:
             ).strftime("%Y-%m-%dT%H:%M:%S")
             logging.info(f"Date of latest file: {latest_file_date}")
 
-            self.client.fget_object(
+            # Ensure destination directory exists
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+
+            self.client.download_file(
                 self.bucket,
                 latest_db_file,
                 local_path,
@@ -195,15 +234,16 @@ class MinIOClient:
     def delete_file(self, file_path: str):
         """!! USE WITH CAUTION !!"""
         try:
-            self.client.stat_object(self.bucket, file_path)
-            self.client.remove_object(self.bucket, f"{file_path}")
+            # Check if file exists first
+            self.client.head_object(Bucket=self.bucket, Key=file_path)
+            self.client.delete_object(Bucket=self.bucket, Key=file_path)
             logging.info(f"File '{file_path}' deleted successfully.")
-        except S3Error as e:
+        except ClientError as e:
             logging.error(e)
 
     def get_files_and_last_modified(self, prefix: str):
         """
-        Get a list of files and their last modified timestamps from MinIO.
+        Get a list of files and their last modified timestamps from S3.
 
         Args:
             prefix (str): Prefix of the files to retrieve.
@@ -211,13 +251,18 @@ class MinIOClient:
         Returns:
             list: List of tuples containing file name and last modified timestamp.
         """
-        objects = self.client.list_objects(self.bucket, prefix=prefix, recursive=True)
+        # Use list_objects_v2 which is the recommended method
+        paginator = self.client.get_paginator("list_objects_v2")
+        page_iterator = paginator.paginate(Bucket=self.bucket, Prefix=prefix)
+
         file_info_list = []
 
-        for obj in objects:
-            file_name = obj.object_name
-            last_modified = obj.last_modified
-            file_info_list.append((file_name, last_modified))
+        for page in page_iterator:
+            if "Contents" in page:
+                for obj in page["Contents"]:
+                    file_name = obj["Key"]
+                    last_modified = obj["LastModified"]
+                    file_info_list.append((file_name, last_modified))
         logging.info(f"*****List of files: {file_info_list}")
         return file_info_list
 
@@ -228,7 +273,7 @@ class MinIOClient:
         file_name_1: str,
         file_name_2: str,
     ):
-        """Compare two minio files
+        """Compare two S3 files
 
         Args:
             both path and name from files to compare
@@ -244,11 +289,11 @@ class MinIOClient:
             logging.info(file_1_key)
             logging.info(file_2_key)
 
-            file_1_stat = self.client.stat_object(self.bucket, file_1_key)
-            file_2_stat = self.client.stat_object(self.bucket, file_2_key)
+            file_1_stat = self.client.head_object(Bucket=self.bucket, Key=file_1_key)
+            file_2_stat = self.client.head_object(Bucket=self.bucket, Key=file_2_key)
 
-            file_1_etag = file_1_stat.etag
-            file_2_etag = file_2_stat.etag
+            file_1_etag = file_1_stat["ETag"]
+            file_2_etag = file_2_stat["ETag"]
 
             logging.info(f"Hash file 1 : {file_1_etag}")
             logging.info(f"Hash file 2 : {file_2_etag}")
@@ -256,13 +301,13 @@ class MinIOClient:
 
             return bool(file_1_etag == file_2_etag)
 
-        except S3Error as e:
+        except ClientError as e:
             logging.error(f"Error loading files: {e}")
             return None
 
     def rename_folder(self, old_folder_suffix: str, new_folder_suffix: str):
         """
-        Rename a folder in MinIO under the default path 'ae/{env}/'.
+        Rename a folder in S3 under the default path 'ae/{env}/'.
 
         Args:
             old_folder_suffix (str): The folder suffix to rename (after 'ae/{env}/').
@@ -277,109 +322,111 @@ class MinIOClient:
         if not new_folder.endswith("/"):
             new_folder += "/"
 
-        objects = self.client.list_objects(
-            self.bucket, prefix=old_folder, recursive=True
-        )
+        # Use list_objects_v2 which is the recommended method
+        paginator = self.client.get_paginator("list_objects_v2")
+        page_iterator = paginator.paginate(Bucket=self.bucket, Prefix=old_folder)
 
-        for obj in objects:
-            old_object_name = obj.object_name
-            new_object_name = old_object_name.replace(old_folder, new_folder, 1)
+        for page in page_iterator:
+            if "Contents" in page:
+                for obj in page["Contents"]:
+                    old_object_name = obj["Key"]
+                    new_object_name = old_object_name.replace(old_folder, new_folder, 1)
 
-            # Copy object to the new location using CopySource
-            self.client.copy_object(
-                self.bucket,
-                new_object_name,
-                CopySource(self.bucket, old_object_name),
-            )
-            logging.info(f"Copied {old_object_name} to {new_object_name}")
+                    # Copy object to the new location
+                    copy_source = {"Bucket": self.bucket, "Key": old_object_name}
+                    self.client.copy_object(
+                        Bucket=self.bucket, Key=new_object_name, CopySource=copy_source
+                    )
+                    logging.info(f"Copied {old_object_name} to {new_object_name}")
 
-            # Delete the old object
-            self.client.remove_object(self.bucket, old_object_name)
-            logging.info(f"Deleted {old_object_name}")
+                    # Delete the old object
+                    self.client.delete_object(Bucket=self.bucket, Key=old_object_name)
+                    logging.info(f"Deleted {old_object_name}")
 
         logging.info(f"Folder '{old_folder}' renamed to '{new_folder}'")
 
     def get_date_last_modified(self, file_path: str) -> str | None:
         """
-        Get the last modified date of a specific file in MinIO in ISO 8601 format.
+        Get the last modified date of a specific file in S3 in ISO 8601 format.
 
         Args:
-            file_path (str): The path of the file in MinIO.
+            file_path (str): The path of the file in S3.
 
         Returns:
             str: The last modified date of the file in ISO 8601 format,
             or None if an error occurs.
         """
         try:
-            stat = self.client.stat_object(self.bucket, f"ae/{AIRFLOW_ENV}/{file_path}")
+            stat = self.client.head_object(
+                Bucket=self.bucket, Key=f"ae/{AIRFLOW_ENV}/{file_path}"
+            )
             # Format the datetime object to ISO 8601 format
-            last_modified_str = stat.last_modified.strftime("%Y-%m-%dT%H:%M:%S")
+            last_modified_str = stat["LastModified"].strftime("%Y-%m-%dT%H:%M:%S")
             logging.info(f"Last modified date of '{file_path}': {last_modified_str}")
             return last_modified_str
-        except S3Error as e:
+        except ClientError as e:
             logging.error(f"Error retrieving file metadata for {file_path}: {e}")
             return None
 
     def copy_file(self, source_path: str, dest_path: str):
         """
-        Copy a file from one MinIO path to another.
+        Copy a file from one S3 path to another.
 
         Args:
-            source_path (str): The MinIO path of the source file.
-            dest_path (str): The MinIO path where the file should be copied.
+            source_path (str): The S3 path of the source file.
+            dest_path (str): The S3 path where the file should be copied.
         """
         try:
-            # Define the full MinIO path with environment prefix
+            # Define the full S3 path with environment prefix
             source_full_path = f"ae/{AIRFLOW_ENV}/{source_path}"
             dest_full_path = f"ae/{AIRFLOW_ENV}/{dest_path}"
 
-            # Copy object to the new location using CopySource
+            # Copy object to the new location
+            copy_source = {"Bucket": self.bucket, "Key": source_full_path}
             self.client.copy_object(
-                self.bucket,
-                dest_full_path,
-                CopySource(self.bucket, source_full_path),
+                Bucket=self.bucket, Key=dest_full_path, CopySource=copy_source
             )
             logging.info(f"Copied {source_full_path} to {dest_full_path}")
-        except S3Error as e:
+        except ClientError as e:
             logging.error(f"Error copying file from {source_path} to {dest_path}: {e}")
 
 
-class MinIOFile:
+class ObjectStorageFile:
     def __init__(
         self,
         path: str,
     ) -> None:
         """
-        Initialize a MinIOFile object.
+        Initialize a ObjectStorageFile object.
 
         Args:
             path (str): The full path to file.
 
         Example:
-            > remote_file = MinIOFile("/integration/content.csv")
+            > remote_file = ObjectStorageFile("/integration/content.csv")
             > local_file = file.download_to("/tmp/test.csv")
             > ...
             > remote_file.replace_with(local_file)
         """
         if not self.does_exist(path):
-            raise FileNotFoundError(f"File '{path}' does not exist in MinIO.")
+            raise FileNotFoundError(f"File '{path}' does not exist in object storage.")
 
         self._path = Path(path)
         self.path = path
         self.filepath = str(self._path.parent) + "/"
         self.filename = self._path.name
-        self.client = MinIOClient()
+        self.client = ObjectStorageClient()
 
     @classmethod
     def does_exist(cls, path: str) -> bool:
         try:
-            client = MinIOClient()
-            client.client.stat_object(
-                client.bucket,
-                os.path.join(client.get_root_dirpath(), path),
+            client = ObjectStorageClient()
+            client.client.head_object(
+                Bucket=client.bucket,
+                Key=os.path.join(client.get_root_dirpath(), path),
             )
             return True
-        except S3Error as _:
+        except ClientError as _:
             return False
 
     def download_to(

@@ -8,7 +8,7 @@ from data_pipelines_annuaire.helpers import (
     Notification,
     clean_sirent_column,
 )
-from data_pipelines_annuaire.helpers.minio_helpers import File
+from data_pipelines_annuaire.helpers.object_storage import File
 from data_pipelines_annuaire.helpers.utils import flatten_object
 from data_pipelines_annuaire.workflows.data_pipelines.agence_bio.api import (
     BioApiClient,

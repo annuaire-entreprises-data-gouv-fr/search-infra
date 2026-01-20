@@ -2,13 +2,13 @@ import ast
 import logging
 import shutil
 
-import minio
 import pandas as pd
 import requests
 from airflow.exceptions import AirflowSkipException
+from botocore.exceptions import ClientError
 
 from data_pipelines_annuaire.config import CURRENT_MONTH
-from data_pipelines_annuaire.helpers.minio_helpers import File, MinIOClient
+from data_pipelines_annuaire.helpers.object_storage import File, ObjectStorageClient
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.determine_sirene_date import (
     get_sirene_processing_month,
 )
@@ -68,7 +68,7 @@ def download_flux(data_dir):
     year_month = get_sirene_processing_month()
     try:
         logging.info(f"Downloading flux for : {year_month}")
-        MinIOClient().get_files(
+        ObjectStorageClient().get_files(
             list_files=[
                 File(
                     source_path=FLUX_SIRENE_CONFIG.object_storage_path,
@@ -86,9 +86,9 @@ def download_flux(data_dir):
             compression="gzip",
         )
         return df_iterator
-    except minio.error.S3Error as e:
+    except ClientError as e:
         logging.warning(f"No flux data has been found for: {year_month}")
-        if e.code == "NoSuchKey":
+        if e.response["Error"]["Code"] == "NoSuchKey":
             raise AirflowSkipException("Skipping this task")
 
 

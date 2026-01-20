@@ -4,7 +4,7 @@ from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DATA_DIR,
     AIRFLOW_ENV,
 )
-from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichment import (
     format_nom_complet,
@@ -89,7 +89,7 @@ def create_sitemap():
 
 
 def update_sitemap():
-    MinIOClient().send_files(
+    ObjectStorageClient().send_files(
         list_files=[
             {
                 "source_path": AIRFLOW_ELK_DATA_DIR,
