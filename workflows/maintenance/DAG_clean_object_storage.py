@@ -51,11 +51,11 @@ default_args = {
 }
 
 
-# This DAG delete outdated RNE and SIRENE databases from MinIO if they are older than
+# This DAG delete outdated RNE and SIRENE databases from object storage if they are older than
 # 3 days, while retaining a specified number of the most recent files.
 @dag(
     tags=["maintenance", "flush cache and execute queries"],
-    description="Delete old MinIO files",
+    description="Delete old object storage files",
     default_args=default_args,
     schedule="0 12 * * *",  # run every day at 12:00 PM (UTC)
     start_date=datetime(2023, 12, 28),

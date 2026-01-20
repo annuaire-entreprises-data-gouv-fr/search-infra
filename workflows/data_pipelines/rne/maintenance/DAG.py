@@ -5,7 +5,7 @@ from airflow.sdk import dag, task
 from data_pipelines_annuaire.config import (
     EMAIL_LIST,
 )
-from data_pipelines_annuaire.helpers.minio_helpers import MinIOClient
+from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 
 default_args = {
     "depends_on_past": False,
@@ -19,12 +19,12 @@ default_args = {
 
 @task
 def rename_old_rne_folders():
-    MinIOClient().rename_folder("rne/flux/data-2023", "rne/flux/data")
+    ObjectStorageClient().rename_folder("rne/flux/data-2023", "rne/flux/data")
 
 
 @dag(
     tags=["maintenance", "rename", "rne", "files"],
-    description="Delete old MinIO files",
+    description="Delete old object storage files",
     default_args=default_args,
     schedule="0 12 * * *",  # run every day at 12:00 PM (UTC)
     start_date=datetime(2023, 10, 5),
