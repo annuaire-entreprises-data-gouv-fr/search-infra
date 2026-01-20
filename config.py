@@ -54,9 +54,7 @@ PREVIOUS_MONTH: str = (datetime.now().replace(day=1) - timedelta(days=1)).strfti
 AIRFLOW_ENV = Variable.get("ENV", "dev")
 BASE_TMP_FOLDER = "/tmp"
 DATA_GOUV_BASE_URL = "https://www.data.gouv.fr/datasets/r/"
-OBJECT_STORAGE_BASE_URL = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/"
-)
+OBJECT_STORAGE_BASE_URL = f"https://ade.s3.sbg.io.cloud.ovh.net/ae/{AIRFLOW_ENV}/"
 
 # Airflow
 AIRFLOW_DAG_HOME = Variable.get("AIRFLOW_DAG_HOME", "/opt/airflow/dags/")

@@ -64,6 +64,7 @@ class ObjectStorageClient:
     def send_files(
         self,
         list_files: list[File],
+        is_public: bool = True,
     ):
         """Send list of file to S3 bucket
 
@@ -85,8 +86,10 @@ class ObjectStorageClient:
                 object_key = f"ae/{AIRFLOW_ENV}/{file['dest_path']}{file['dest_name']}"
                 local_file_path = os.path.join(file["source_path"], file["source_name"])
 
-                # Set extra args for content type if provided
                 extra_args = {}
+                if is_public:
+                    extra_args["ACL"] = "public-read"
+                # Set extra args for content type if provided
                 if "content_type" in file and file["content_type"]:
                     extra_args["ContentType"] = file["content_type"]
 
@@ -159,11 +162,16 @@ class ObjectStorageClient:
         object_storage_path: str,
         local_path: str,
         content_type: str = "application/octet-stream",
+        is_public: bool = True,
     ) -> None:
         file_path = local_path + filename
 
         # Set extra args for content type
-        extra_args = {"ContentType": content_type}
+        extra_args = {
+            "ContentType": content_type,
+        }
+        if is_public:
+            extra_args["ACL"] = "public-read"
 
         self.client.upload_file(
             file_path, self.bucket, object_storage_path, ExtraArgs=extra_args
