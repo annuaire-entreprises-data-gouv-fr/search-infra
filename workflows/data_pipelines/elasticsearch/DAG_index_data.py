@@ -21,7 +21,7 @@ from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.helpers.flush_cache import flush_redis_cache
 from data_pipelines_annuaire.tests.e2e_tests.run_tests import run_e2e_tests
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.fetch_db import (
-    get_latest_sqlite_database,
+    get_latest_database,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.index import (
     check_elastic_index,
@@ -71,7 +71,7 @@ def index_elasticsearch():
     elastic_alias_updated = (
         get_next_index_name()
         >> clean_folder()
-        >> get_latest_sqlite_database()
+        >> get_latest_database()
         >> delete_previous_elastic_indices()
         >> create_elastic_index()
         >> fill_elastic_siren_index()
