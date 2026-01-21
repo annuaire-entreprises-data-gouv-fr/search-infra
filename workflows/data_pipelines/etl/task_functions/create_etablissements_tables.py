@@ -1,19 +1,15 @@
 import logging
 import sqlite3
 
-from airflow.sdk import task
+from airflow.sdk import get_current_context, task
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ETL_DATA_DIR,
     RNE_DATABASE_LOCATION,
     SIRENE_DATABASE_LOCATION,
 )
-
-# fmt: on
 from data_pipelines_annuaire.helpers.labels.departements import all_deps
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
-
-# fmt: off
 from data_pipelines_annuaire.workflows.data_pipelines.etl.data_fetch_clean.etablissements import (
     preprocess_etablissement_data,
     preprocess_historique_etablissement_data,
@@ -102,7 +98,7 @@ def create_flux_etablissement_table():
 
 
 @task
-def create_siege_table(**kwargs):
+def create_siege_table():
     sqlite_client = create_table_model(
         table_name="siege",
         create_table_query=create_table_siege_query,
@@ -117,7 +113,8 @@ def create_siege_table(**kwargs):
             f"************ {count_siege} total records have been added to the "
             f"siege table!"
         )
-    kwargs["ti"].xcom_push(key="count_siege", value=count_siege[0])
+    ti = get_current_context()["ti"]
+    ti.xcom_push(key="count_siege", value=count_siege[0])
     sqlite_client.commit_and_close_conn()
 
 
@@ -163,7 +160,7 @@ def count_nombre_etablissement_ouvert():
 
 
 @task
-def add_rne_data_to_siege_table(**kwargs):
+def add_rne_data_to_siege_table():
     # Connect to the first database
     sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
 
@@ -195,7 +192,7 @@ def add_rne_data_to_siege_table(**kwargs):
 
 
 @task
-def create_historique_etablissement_table(**kwargs):
+def create_historique_etablissement_table(ti):
     table_name = "historique_etablissement"
     sqlite_client = create_table_model(
         table_name=table_name,
@@ -225,13 +222,11 @@ def create_historique_etablissement_table(**kwargs):
             f"{table_name} table!"
         )
     sqlite_client.commit_and_close_conn()
-    kwargs["ti"].xcom_push(
-        key="count_historique_etablissement", value=count_etablissement
-    )
+    ti.xcom_push(key="count_historique_etablissement", value=count_etablissement)
 
 
 @task
-def create_date_fermeture_etablissement_table(**kwargs):
+def create_date_fermeture_etablissement_table(ti):
     table_name = "date_fermeture_etablissement"
     sqlite_client = create_table_model(
         table_name=table_name,
@@ -247,13 +242,11 @@ def create_date_fermeture_etablissement_table(**kwargs):
             f"{table_name} table!"
         )
     sqlite_client.commit_and_close_conn()
-    kwargs["ti"].xcom_push(
-        key="count_date_fermeture_etablissement", value=count_etablissement
-    )
+    ti.xcom_push(key="count_date_fermeture_etablissement", value=count_etablissement)
 
 
 @task
-def insert_date_fermeture_etablissement(**kwargs):
+def insert_date_fermeture_etablissement():
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(insert_date_fermeture_etablissement_query)
     sqlite_client.execute(insert_date_fermeture_siege_query)

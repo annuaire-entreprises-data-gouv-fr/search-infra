@@ -14,8 +14,7 @@ from data_pipelines_annuaire.config import (
     RNE_FLUX_DATADIR,
     RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
 )
-from data_pipelines_annuaire.helpers.mattermost import send_message
-from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
+from data_pipelines_annuaire.helpers import Notification, ObjectStorageClient
 from data_pipelines_annuaire.helpers.utils import get_last_line
 from data_pipelines_annuaire.workflows.data_pipelines.rne.flux.rne_api import (
     ApiRNEClient,
@@ -237,25 +236,10 @@ def get_every_day_flux():
         first_exec = False
         current_date = next_day
 
-    ti.xcom_push(key="rne_flux_start_date", value=start_date)
-    ti.xcom_push(key="rne_flux_end_date", value=end_date)
-
-
-@task
-def send_notification_success_mattermost(**kwargs):
-    rne_flux_start_date = kwargs["ti"].xcom_pull(
-        key="rne_flux_start_date", task_ids="get_every_day_flux"
-    )
-    rne_flux_end_date = kwargs["ti"].xcom_pull(
-        key="rne_flux_end_date", task_ids="get_every_day_flux"
-    )
-    send_message(
-        f"🟢 Données :"
+    success_message = (
         f"\nDonnées flux RNE mises à jour."
-        f"\n - Date début flux : {rne_flux_start_date}."
-        f"\n - Date fin flux : {rne_flux_end_date}."
+        f"\n - Date début flux : {start_date}."
+        f"\n - Date fin flux : {end_date}."
     )
-
-
-def send_notification_failure_mattermost(context):
-    send_message(":red_circle: Données :\nFail DAG flux RNE!!!!")
+    ti.xcom_push(key=Notification.Status.SUCCESS, value=success_message)
+    logging.info(success_message)

@@ -3,10 +3,9 @@ from datetime import datetime, timedelta
 from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST, RNE_FLUX_TMP_FOLDER
+from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.workflows.data_pipelines.rne.flux.flux_tasks import (
     get_every_day_flux,
-    send_notification_failure_mattermost,
-    send_notification_success_mattermost,
 )
 
 default_args = {
@@ -28,19 +27,15 @@ default_args = {
     dagrun_timeout=timedelta(days=30),
     params={},
     catchup=False,
-    on_failure_callback=send_notification_failure_mattermost,
+    on_failure_callback=Notification.send_notification_mattermost,
+    on_success_callback=Notification.send_notification_mattermost,
 )
 def get_flux_rne():
     @task.bash
     def clean_outputs():
         return f"rm -rf {RNE_FLUX_TMP_FOLDER} && mkdir -p {RNE_FLUX_TMP_FOLDER}"
 
-    return (
-        clean_outputs()
-        >> get_every_day_flux()
-        >> clean_outputs()
-        >> send_notification_success_mattermost()
-    )
+    return clean_outputs() >> get_every_day_flux() >> clean_outputs()
 
 
 get_flux_rne()

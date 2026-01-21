@@ -1,7 +1,7 @@
 import logging
 import sqlite3
 
-from airflow.sdk import task
+from airflow.sdk import get_current_context, task
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ETL_DATA_DIR,
@@ -71,29 +71,31 @@ def create_table(query, table_name, index, sirene_file_type):
 
 
 @task
-def create_unite_legale_table(**kwargs):
+def create_unite_legale_table():
     counts = create_table(
         create_table_unite_legale_query,
         "unite_legale",
         "index_siren",
         "stock",
     )
-    kwargs["ti"].xcom_push(key="count_unite_legale", value=counts)
+    ti = get_current_context()["ti"]
+    ti.xcom_push(key="count_unite_legale", value=counts)
 
 
 @task
-def create_flux_unite_legale_table(**kwargs):
+def create_flux_unite_legale_table():
     counts = create_table(
         create_table_flux_unite_legale_query,
         "flux_unite_legale",
         "index_flux_siren",
         "flux",
     )
-    kwargs["ti"].xcom_push(key="count_flux_unite_legale", value=counts)
+    ti = get_current_context()["ti"]
+    ti.xcom_push(key="count_flux_unite_legale", value=counts)
 
 
 @task
-def add_ancien_siege_flux_data(**kwargs):
+def add_ancien_siege_flux_data():
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
 
     table_name = "ancien_siege"
@@ -125,7 +127,7 @@ def replace_unite_legale_table():
 
 
 @task
-def add_rne_siren_data_to_unite_legale_table(**kwargs):
+def add_rne_siren_data_to_unite_legale_table():
     try:
         # Connect to the main database (SIRENE)
         sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
@@ -156,7 +158,7 @@ def add_rne_siren_data_to_unite_legale_table(**kwargs):
 
 
 @task
-def create_historique_unite_legale_table(**kwargs):
+def create_historique_unite_legale_table():
     sqlite_client = create_table_model(
         table_name="ancien_siege",
         create_table_query=create_table_ancien_siege_query,
@@ -211,13 +213,12 @@ def create_historique_unite_legale_table(**kwargs):
             f"{table_name} table!"
         )
     sqlite_client.commit_and_close_conn()
-    kwargs["ti"].xcom_push(
-        key="count_historique_unite_legale", value=count_unite_legale
-    )
+    ti = get_current_context()["ti"]
+    ti.xcom_push(key="count_historique_unite_legale", value=count_unite_legale)
 
 
 @task
-def create_date_fermeture_unite_legale_table(**kwargs):
+def create_date_fermeture_unite_legale_table():
     table_name = "date_fermeture_unite_legale"
     sqlite_client = create_table_model(
         table_name=table_name,
@@ -233,13 +234,12 @@ def create_date_fermeture_unite_legale_table(**kwargs):
             f"{table_name} table!"
         )
     sqlite_client.commit_and_close_conn()
-    kwargs["ti"].xcom_push(
-        key="count_date_fermeture_unite_legale", value=count_unite_legale
-    )
+    ti = get_current_context()["ti"]
+    ti.xcom_push(key="count_date_fermeture_unite_legale", value=count_unite_legale)
 
 
 @task
-def insert_date_fermeture_unite_legale(**kwargs):
+def insert_date_fermeture_unite_legale():
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(insert_date_fermeture_unite_legale_query)
     sqlite_client.commit_and_close_conn()
