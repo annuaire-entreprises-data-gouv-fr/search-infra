@@ -66,9 +66,6 @@ def is_metadata_not_updated() -> bool:
 
 
 def create_metadata_convention_collective_json():
-    context = get_current_context()
-    ti = context["ti"]
-
     current_cc_dares_file = f"{FILE_CC_DATE}{get_month_year_french()}.xlsx"
     months = get_previous_months(lookback=3)
     logging.info(months)
@@ -94,6 +91,7 @@ def create_metadata_convention_collective_json():
         else:
             error_message = f"\u26a0\ufe0f {r.status_code}: Le fichier CC du DARES n'est pas disponible."
         logging.warning(error_message)
+        ti = get_current_context()["ti"]
         ti.xcom_push(key=Notification.notification_xcom_key, value=error_message)
         raise HTTPError(f"{error_message}: {current_url_cc_dares}")
 

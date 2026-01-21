@@ -22,7 +22,7 @@ def send_to_object_storage(list_files):
 
 
 @task
-def upload_db_to_object_storage(**kwargs):
+def upload_db_to_object_storage():
     # Zip database
     database_file_path = os.path.join(AIRFLOW_ETL_DATA_DIR, "sirene.db")
 
