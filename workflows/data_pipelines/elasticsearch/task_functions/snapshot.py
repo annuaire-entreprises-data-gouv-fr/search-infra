@@ -121,11 +121,23 @@ def snapshot_elastic_index():
     """
 
     ti = get_current_context()["ti"]
-    elastic_index = ti.xcom_pull(
+    previous_elastic_index = ti.xcom_pull(
         key="elastic_index",
         task_ids="get_next_index_name",
         dag_id=AIRFLOW_ELK_DAG_NAME,
         include_prior_dates=True,
+    )
+
+    # Ensure elastic_index is a string
+    if isinstance(previous_elastic_index, list):
+        elastic_index = max(previous_elastic_index)
+    else:
+        elastic_index = previous_elastic_index
+
+    logging.info(
+        "elastic_index has to be a string"
+        f"previous_elastic_index type: {type(previous_elastic_index)}, value: {previous_elastic_index}"
+        f"elastic_index type: {type(elastic_index)}, value: {elastic_index}"
     )
 
     current_date = datetime.today().strftime("%Y%m%d%H%M%S")
@@ -167,6 +179,7 @@ def snapshot_elastic_index():
         if len(snapshots["snapshots"]) > 0:
             if snapshots["snapshots"][0]["state"] == "SUCCESS":
                 ti.xcom_push(key="snapshot_name", value=snapshot_name)
+                return
 
             if snapshots["snapshots"][0]["state"] != "IN_PROGRESS":
                 raise Exception("The snapshot failed")
