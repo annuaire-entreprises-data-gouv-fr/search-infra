@@ -70,5 +70,12 @@
     "209": "Secrétaire général",
     "210": "Membre du conseil syndical",
     "211": "Président du conseil syndical",
-    "212": "Personne désignée par les statuts"
-  }
+    "212": "Personne désignée par les statuts",
+    "213": "Vice-Président du conseil de surveillance",
+    "214": "Personne ayant le pouvoir d'engager à titre habituel l'entité",
+    "215": "Personne ayant le pouvoir de représenter l'entité",
+    "216": "Trésorier adjoint",
+    "217": "Secrétaire adjoint",
+    "218": "Membre de l'organe collégial de contrôle",
+    "219": "Président de l'organe collégial de contrôle"
+}
