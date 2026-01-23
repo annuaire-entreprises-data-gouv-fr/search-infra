@@ -65,6 +65,8 @@ class ObjectStorageClient:
         self,
         list_files: list[File],
         is_public: bool = True,
+        multipart_threshold: int = 500 * 1024 * 1024,  # 500Mo
+        multipart_chunksize: int = 50 * 1024 * 1024,  # 50Mo
     ):
         """Send list of file to S3 bucket
 
@@ -72,6 +74,8 @@ class ObjectStorageClient:
             list_files (list[File]): List of Dictionnaries containing for each
             `source_path` and `source_name` : local file location ;
             `dest_path` and `dest_name` : S3 location (inside bucket specified) ;
+            multipart_threshold: File size threshold for using multipart upload (default: 500Mo)
+            multipart_chunksize: Size of each part for multipart upload (default: 50Mo)
 
         Raises:
             Exception: when specified local file does not exists
@@ -85,6 +89,7 @@ class ObjectStorageClient:
             if is_file:
                 object_key = f"ae/{AIRFLOW_ENV}/{file['dest_path']}{file['dest_name']}"
                 local_file_path = os.path.join(file["source_path"], file["source_name"])
+                file_size = os.path.getsize(local_file_path)
 
                 extra_args = {}
                 if is_public:
@@ -93,9 +98,25 @@ class ObjectStorageClient:
                 if "content_type" in file and file["content_type"]:
                     extra_args["ContentType"] = file["content_type"]
 
-                self.client.upload_file(
-                    local_file_path, self.bucket, object_key, ExtraArgs=extra_args
-                )
+                # Use multipart upload for large files
+                if file_size > multipart_threshold:
+                    logging.info(
+                        f"Using multipart upload for large file: {local_file_path} ({file_size / 1024 / 1024} Go)"
+                    )
+                    self._multipart_upload(
+                        local_file_path,
+                        self.bucket,
+                        object_key,
+                        extra_args,
+                        multipart_chunksize,
+                    )
+                else:
+                    logging.info(
+                        f"Using regular upload for file: {local_file_path} ({file_size / 1024 / 1024} Go)"
+                    )
+                    self.client.upload_file(
+                        local_file_path, self.bucket, object_key, ExtraArgs=extra_args
+                    )
             else:
                 raise Exception(
                     f"file {file['source_path']}{file['source_name']} does not exist"
@@ -163,8 +184,11 @@ class ObjectStorageClient:
         local_path: str,
         content_type: str = "application/octet-stream",
         is_public: bool = True,
+        multipart_threshold: int = 500 * 1024 * 1024,  # 500Mo
+        multipart_chunksize: int = 50 * 1024 * 1024,  # 50Mo
     ) -> None:
         file_path = local_path + filename
+        file_size = os.path.getsize(file_path)
 
         # Set extra args for content type
         extra_args = {
@@ -173,9 +197,92 @@ class ObjectStorageClient:
         if is_public:
             extra_args["ACL"] = "public-read"
 
-        self.client.upload_file(
-            file_path, self.bucket, object_storage_path, ExtraArgs=extra_args
-        )
+        # Use multipart upload for large files
+        if file_size > multipart_threshold:
+            logging.info(
+                f"Using multipart upload for large file: {file_path} ({file_size} bytes)"
+            )
+            self._multipart_upload(
+                file_path,
+                self.bucket,
+                object_storage_path,
+                extra_args,
+                multipart_chunksize,
+            )
+        else:
+            logging.info(
+                f"Using regular upload for file: {file_path} ({file_size} bytes)"
+            )
+            self.client.upload_file(
+                file_path, self.bucket, object_storage_path, ExtraArgs=extra_args
+            )
+
+    def _multipart_upload(
+        self,
+        file_path: str,
+        bucket: str,
+        object_key: str,
+        extra_args: dict,
+        part_size: int,
+    ) -> None:
+        """
+        Perform a multipart upload for large files.
+
+        Args:
+            file_path: Local path to the file to upload
+            bucket: Target bucket name
+            object_key: Target object key in S3
+            extra_args: Additional arguments like ContentType
+            part_size: Size of each part in bytes
+        """
+        try:
+            # Initiate multipart upload
+            multipart_upload = self.client.create_multipart_upload(
+                Bucket=bucket, Key=object_key, **extra_args
+            )
+            upload_id = multipart_upload["UploadId"]
+            parts = []
+
+            # Upload parts
+            with open(file_path, "rb") as file:
+                part_number = 1
+                while True:
+                    data = file.read(part_size)
+                    if not data:
+                        break
+
+                    part_response = self.client.upload_part(
+                        Bucket=bucket,
+                        Key=object_key,
+                        PartNumber=part_number,
+                        UploadId=upload_id,
+                        Body=data,
+                    )
+
+                    parts.append(
+                        {"PartNumber": part_number, "ETag": part_response["ETag"]}
+                    )
+
+                    part_number += 1
+                    logging.info(f"Uploaded part {part_number - 1}")
+
+            # Complete multipart upload
+            self.client.complete_multipart_upload(
+                Bucket=bucket,
+                Key=object_key,
+                UploadId=upload_id,
+                MultipartUpload={"Parts": parts},
+            )
+
+            logging.info(f"Multipart upload completed for {object_key}")
+
+        except Exception as e:
+            # Abort multipart upload if something goes wrong
+            self.client.abort_multipart_upload(
+                Bucket=bucket, Key=object_key, UploadId=upload_id
+            )
+            logging.error(f"Multipart upload failed: {e}")
+            raise
 
     def get_latest_file(
         self,
