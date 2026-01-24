@@ -7,7 +7,6 @@ from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 
 from data_pipelines_annuaire.config import (
-    AIRFLOW_ELK_DAG_NAME,
     ELASTIC_DOWNSTREAM_ALIAS_NEXT,
     ELASTIC_DOWNSTREAM_PASSWORD,
     ELASTIC_DOWNSTREAM_URLS,
@@ -20,9 +19,7 @@ def wait_for_downstream_import():
     ti = get_current_context()["ti"]
     elastic_index = ti.xcom_pull(
         key="elastic_index",
-        task_ids="get_next_index_name",
-        dag_id=AIRFLOW_ELK_DAG_NAME,
-        include_prior_dates=True,
+        task_ids="snapshot_elastic_index",
     )
 
     wait_for_downstream_index_import(elastic_index)
@@ -86,9 +83,7 @@ def update_downstream_alias():
     ti = get_current_context()["ti"]
     elastic_index = ti.xcom_pull(
         key="elastic_index",
-        task_ids="get_next_index_name",
-        dag_id=AIRFLOW_ELK_DAG_NAME,
-        include_prior_dates=True,
+        task_ids="snapshot_elastic_index",
     )
 
     for url in urls:

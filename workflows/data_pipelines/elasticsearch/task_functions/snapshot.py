@@ -134,10 +134,12 @@ def snapshot_elastic_index():
     else:
         elastic_index = previous_elastic_index
 
+    ti.xcom_push(key="elastic_index", value=elastic_index)
+
     logging.info(
         "elastic_index has to be a string"
-        f"previous_elastic_index type: {type(previous_elastic_index)}, value: {previous_elastic_index}"
-        f"elastic_index type: {type(elastic_index)}, value: {elastic_index}"
+        f"\nprevious_elastic_index type: {type(previous_elastic_index)}, value: {previous_elastic_index}"
+        f"\nelastic_index type: {type(elastic_index)}, value: {elastic_index}"
     )
 
     current_date = datetime.today().strftime("%Y%m%d%H%M%S")
