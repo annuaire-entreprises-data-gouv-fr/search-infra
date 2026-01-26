@@ -1,10 +1,10 @@
 import logging
 from datetime import datetime
 
+from airflow.sdk import get_current_context, task
 from elasticsearch import NotFoundError
 from elasticsearch_dsl import connections
 
-# fmt: on
 from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DATA_DIR,
     ELASTIC_BULK_SIZE,
@@ -15,6 +15,7 @@ from data_pipelines_annuaire.config import (
     ELASTIC_URL,
     ELASTIC_USER,
 )
+from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.create_index import (
     ElasticCreateIndex,
@@ -22,24 +23,23 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.create_index
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.indexing_unite_legale import (
     index_unites_legales_by_chunk,
 )
-
-# fmt: off
-from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.sqlite.\
-    fields_to_index import (
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.sqlite.fields_to_index import (
     select_fields_to_index_query,
 )
 
 
-def get_next_index_name(**kwargs):
+@task
+def get_next_index_name():
     current_date = datetime.today().strftime("%Y%m%d%H%M%S")
     elastic_index = f"siren-{current_date}"
-    kwargs["ti"].xcom_push(key="elastic_index", value=elastic_index)
+    ti = get_current_context()["ti"]
+    ti.xcom_push(key="elastic_index", value=elastic_index)
 
 
-def create_elastic_index(**kwargs):
-    elastic_index = kwargs["ti"].xcom_pull(
-        key="elastic_index", task_ids="get_next_index_name"
-    )
+@task
+def create_elastic_index():
+    ti = get_current_context()["ti"]
+    elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
     logging.info(f"******************** Index to create: {elastic_index}")
     create_index = ElasticCreateIndex(
         elastic_url=ELASTIC_URL,
@@ -51,10 +51,10 @@ def create_elastic_index(**kwargs):
     create_index.execute()
 
 
-def fill_elastic_siren_index(**kwargs):
-    elastic_index = kwargs["ti"].xcom_pull(
-        key="elastic_index", task_ids="get_next_index_name"
-    )
+@task
+def fill_elastic_siren_index():
+    ti = get_current_context()["ti"]
+    elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
     sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db")
     sqlite_client.execute(select_fields_to_index_query)
 
@@ -72,25 +72,34 @@ def fill_elastic_siren_index(**kwargs):
         elastic_bulk_size=ELASTIC_BULK_SIZE,
         elastic_index=elastic_index,
     )
-    kwargs["ti"].xcom_push(key="doc_count", value=doc_count)
+    ti.xcom_push(key="doc_count", value=doc_count)
     sqlite_client.commit_and_close_conn()
 
 
-def check_elastic_index(**kwargs):
-    doc_count = kwargs["ti"].xcom_pull(
-        key="doc_count", task_ids="fill_elastic_siren_index"
-    )
-    logging.info(f"******************** Documents indexed: {doc_count}")
+@task
+def check_elastic_index():
+    ti = get_current_context()["ti"]
+    doc_count = ti.xcom_pull(key="doc_count", task_ids="fill_elastic_siren_index")
 
     if int(doc_count) < ELASTIC_MIN_DOC_COUNT_EXPECTED:
-        raise ValueError(
+        failure_message = (
             f"*******The data has not been correctly indexed: "
             f"{doc_count} documents indexed."
             f"Expected at least {ELASTIC_MIN_DOC_COUNT_EXPECTED}."
         )
+        ti.xcom_push(key=Notification.Status.FAILURE, value=failure_message)
+        raise ValueError(failure_message)
+
+    success_message = (
+        f"DAG d'indexation a été exécuté avec succès."
+        f"\n - Nombre de documents indexés : {doc_count}"
+    )
+    ti.xcom_push(key=Notification.Status.SUCCESS, value=success_message)
+    logging.info(success_message)
 
 
-def delete_previous_elastic_indices(**kwargs):
+@task
+def delete_previous_elastic_indices():
     connections.create_connection(
         hosts=[ELASTIC_URL],
         http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
@@ -110,11 +119,12 @@ def delete_previous_elastic_indices(**kwargs):
     to_remove = indices[:-ELASTIC_MAX_LIVE_VERSIONS]
 
     for index in to_remove:
-        logging.info(f'Removing index {index["index"]}')
+        logging.info(f"Removing index {index['index']}")
         elastic_connection.indices.delete(index=index["index"])
 
 
-def update_elastic_alias(**kwargs):
+@task
+def update_elastic_alias():
     """
     The annuaire-entreprises-search-api queries the "siren-reader" index alias to process user requests.
     The "siren-reader" index alias acts as a symbolic link to the current live index and should be associated to one and only one siren index at any given time.
@@ -139,9 +149,8 @@ def update_elastic_alias(**kwargs):
     elastic_connection = connections.get_connection()
 
     alias = "siren-reader"
-    elastic_index = kwargs["ti"].xcom_pull(
-        key="elastic_index", task_ids="get_next_index_name"
-    )
+    ti = get_current_context()["ti"]
+    elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
 
     indices = []
 

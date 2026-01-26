@@ -2,6 +2,7 @@ import logging
 import time
 from datetime import datetime
 
+from airflow.sdk import get_current_context, task
 from elasticsearch_dsl import connections
 
 from data_pipelines_annuaire.config import (
@@ -25,7 +26,8 @@ filesystem = Filesystem(
 )
 
 
-def update_object_storage_current_index_version(**kwargs):
+@task
+def update_object_storage_current_index_version():
     """
     An history of any new successfully indexed siren index is kept on a object storage bucket and stored inside a "daily" folder.
 
@@ -59,15 +61,16 @@ def update_object_storage_current_index_version(**kwargs):
     if "current" in content:
         content["previous"] = content["current"]
 
+    ti = get_current_context()["ti"]
     content["current"] = {
         "file": f"daily/{current_date}.json",
-        "index": kwargs["ti"].xcom_pull(
+        "index": ti.xcom_pull(
             key="elastic_index",
             task_ids="get_next_index_name",
             dag_id=AIRFLOW_ELK_DAG_NAME,
             include_prior_dates=True,
         ),
-        "snapshot": kwargs["ti"].xcom_pull(
+        "snapshot": ti.xcom_pull(
             key="snapshot_name",
             task_ids="snapshot_elastic_index",
         ),
@@ -77,7 +80,8 @@ def update_object_storage_current_index_version(**kwargs):
     filesystem.write("current.json", content)
 
 
-def rollback_object_storage_current_index_version(**kwargs):
+@task
+def rollback_object_storage_current_index_version():
     content = filesystem.read("current.json")
 
     if content is None:
@@ -104,21 +108,38 @@ def rollback_object_storage_current_index_version(**kwargs):
     logging.info(f"Rolling back to {content['current']['file']}")
     filesystem.write("current.json", previous)
 
-    kwargs["ti"].xcom_push(key="elastic_index", value=previous["current"]["index"])
+    ti = get_current_context()["ti"]
+    ti.xcom_push(key="elastic_index", value=previous["current"]["index"])
 
 
-def snapshot_elastic_index(**kwargs):
+@task
+def snapshot_elastic_index():
     """
     Create and save Elastic index snapshot in the object storage.
 
     https://www.elastic.co/guide/en/elasticsearch/reference/7.17/snapshot-restore.html
     """
 
-    elastic_index = kwargs["ti"].xcom_pull(
+    ti = get_current_context()["ti"]
+    previous_elastic_index = ti.xcom_pull(
         key="elastic_index",
         task_ids="get_next_index_name",
         dag_id=AIRFLOW_ELK_DAG_NAME,
         include_prior_dates=True,
+    )
+
+    # Ensure elastic_index is a string
+    if isinstance(previous_elastic_index, list):
+        elastic_index = max(previous_elastic_index)
+    else:
+        elastic_index = previous_elastic_index
+
+    ti.xcom_push(key="elastic_index", value=elastic_index)
+
+    logging.info(
+        "elastic_index has to be a string"
+        f"\nprevious_elastic_index type: {type(previous_elastic_index)}, value: {previous_elastic_index}"
+        f"\nelastic_index type: {type(elastic_index)}, value: {elastic_index}"
     )
 
     current_date = datetime.today().strftime("%Y%m%d%H%M%S")
@@ -159,8 +180,7 @@ def snapshot_elastic_index(**kwargs):
 
         if len(snapshots["snapshots"]) > 0:
             if snapshots["snapshots"][0]["state"] == "SUCCESS":
-                kwargs["ti"].xcom_push(key="snapshot_name", value=snapshot_name)
-
+                ti.xcom_push(key="snapshot_name", value=snapshot_name)
                 return
 
             if snapshots["snapshots"][0]["state"] != "IN_PROGRESS":
@@ -169,7 +189,8 @@ def snapshot_elastic_index(**kwargs):
     raise Exception("The snapshot is taking too long")
 
 
-def delete_old_snapshots(**kwargs):
+@task
+def delete_old_snapshots():
     connections.create_connection(
         hosts=[ELASTIC_URL],
         http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),

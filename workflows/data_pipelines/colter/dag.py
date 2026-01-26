@@ -1,8 +1,7 @@
 from datetime import timedelta
 
-from airflow.datasets import Dataset
-from airflow.decorators import dag, task
-from airflow.utils.dates import days_ago
+import pendulum
+from airflow.sdk import Asset, dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST
 from data_pipelines_annuaire.helpers import Notification
@@ -23,14 +22,14 @@ default_args = {
     "retries": 1,
 }
 
-dataset_colter = Dataset(COLTER_CONFIG.name)
+dataset_colter = Asset(COLTER_CONFIG.name)
 
 
 @dag(
     tags=["collectivités", "communes", "régions", "départements"],
     default_args=default_args,
     schedule="0 16 * * *",
-    start_date=days_ago(8),
+    start_date=pendulum.today("UTC").add(days=-8),
     dagrun_timeout=timedelta(minutes=60),
     on_failure_callback=Notification.send_notification_mattermost,
     on_success_callback=Notification.send_notification_mattermost,
@@ -70,7 +69,7 @@ def data_processing_collectivite_territoriale():
     def compare_files_object_storage():
         return colter_processor.compare_files_object_storage()
 
-    (
+    return (
         clean_previous_outputs()
         >> download_data()
         >> preprocess_data()
@@ -85,7 +84,7 @@ def data_processing_collectivite_territoriale():
     tags=["collectivités", "élus", "conseillers", "epci"],
     default_args=default_args,
     schedule=[dataset_colter],
-    start_date=days_ago(8),
+    start_date=pendulum.today("UTC").add(days=-8),
     dagrun_timeout=timedelta(minutes=60),
     on_failure_callback=Notification.send_notification_mattermost,
     on_success_callback=Notification.send_notification_mattermost,
@@ -119,7 +118,7 @@ def data_processing_collectivite_territoriale_elus():
     def compare_files_object_storage():
         return elus_processor.compare_files_object_storage()
 
-    (
+    return (
         clean_previous_outputs()
         >> download_data()
         >> preprocess_data()

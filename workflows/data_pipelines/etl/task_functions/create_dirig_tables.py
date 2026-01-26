@@ -3,7 +3,7 @@ import logging
 import os
 import shutil
 
-from airflow.decorators import task
+from airflow.sdk import get_current_context, task
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
@@ -11,11 +11,7 @@ from data_pipelines_annuaire.config import (
     SIRENE_DATABASE_LOCATION,
 )
 from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
-
-# fmt: on
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
-
-# fmt: off
 from data_pipelines_annuaire.workflows.data_pipelines.etl.data_fetch_clean.dirigeants import (
     preprocess_dirigeant_pm,
     preprocess_personne_physique,
@@ -34,12 +30,13 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.queries.dirigea
 
 
 @task
-def get_rne_database(**kwargs):
+def get_rne_database():
     latest_file_date = ObjectStorageClient().get_latest_file(
         f"ae/{AIRFLOW_ENV}/rne/database/",
         f"{RNE_DATABASE_LOCATION}.gz",
     )
-    kwargs["ti"].xcom_push(key="rne_last_modified", value=latest_file_date)
+    ti = get_current_context()["ti"]
+    ti.xcom_push(key="rne_last_modified", value=latest_file_date)
 
     logging.info(f"******* Getting file : {RNE_DATABASE_LOCATION}.gz")
     # Unzip database file

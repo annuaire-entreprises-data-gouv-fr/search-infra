@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
-from airflow.models import Variable
+from airflow.sdk import Variable
 
 
 @dataclass
@@ -54,9 +54,7 @@ PREVIOUS_MONTH: str = (datetime.now().replace(day=1) - timedelta(days=1)).strfti
 AIRFLOW_ENV = Variable.get("ENV", "dev")
 BASE_TMP_FOLDER = "/tmp"
 DATA_GOUV_BASE_URL = "https://www.data.gouv.fr/datasets/r/"
-OBJECT_STORAGE_BASE_URL = (
-    f"https://object.files.data.gouv.fr/opendata/ae/{AIRFLOW_ENV}/"
-)
+OBJECT_STORAGE_BASE_URL = f"https://ade.s3.sbg.io.cloud.ovh.net/ae/{AIRFLOW_ENV}/"
 
 # Airflow
 AIRFLOW_DAG_HOME = Variable.get("AIRFLOW_DAG_HOME", "/opt/airflow/dags/")
@@ -97,6 +95,10 @@ METADATA_CC_OBJECT_STORAGE_PATH = "metadata/cc/"
 INSEE_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}sirene/ul/"
 CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
 OBJECT_STORAGE_DATA_SOURCE_UPDATE_DATES_FILE = "data_source_updates.json"
+
+# Airflow API
+AIRFLOW_API_BEARER_TOKEN = Variable.get("AIRFLOW_API_BEARER_TOKEN", "")
+AIRFLOW_API_BASE_URL = Variable.get("AIRFLOW_API_BASE_URL", "")
 
 # Notification
 TCHAP_ANNUAIRE_WEBHOOK = Variable.get("TCHAP_ANNUAIRE_WEBHOOK", "")

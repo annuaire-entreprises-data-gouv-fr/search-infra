@@ -1,8 +1,7 @@
 import logging
 from datetime import datetime, timedelta, timezone
 
-from airflow.models import DAG
-from airflow.operators.python_operator import PythonOperator
+from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
@@ -11,6 +10,7 @@ from data_pipelines_annuaire.config import (
 from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 
 
+@task
 def delete_old_files(
     prefix,
     keep_latest: int = 2,
@@ -32,7 +32,7 @@ def delete_old_files(
     for i, (file_name, last_modified) in enumerate(file_info_list):
         # Ensure both datetime objects are offset-aware
         last_modified = last_modified.replace(tzinfo=timezone.utc)
-        current_time = datetime.utcnow().replace(tzinfo=timezone.utc)
+        current_time = datetime.now(timezone.utc)
 
         age = current_time - last_modified
 
@@ -50,40 +50,33 @@ default_args = {
     "email_on_failure": True,
 }
 
-# This DAG delete outdated RNE and SIRENE databases from the object storage if they are older than
+
+# This DAG delete outdated RNE and SIRENE databases from object storage if they are older than
 # 3 days, while retaining a specified number of the most recent files.
-with DAG(
-    "delete_old_object_storage_file",
-    default_args=default_args,
+@dag(
+    tags=["maintenance", "flush cache and execute queries"],
     description="Delete old object storage files",
+    default_args=default_args,
     schedule="0 12 * * *",  # run every day at 12:00 PM (UTC)
-    dagrun_timeout=timedelta(minutes=30),
     start_date=datetime(2023, 12, 28),
-    catchup=False,  # False to ignore past runs
+    dagrun_timeout=timedelta(minutes=30),
+    catchup=False,
     max_active_runs=1,  # Allow only one execution at a time
-) as dag:
-    delete_old_rne_databases = PythonOperator(
-        task_id="delete_old_rne_databases",
-        python_callable=delete_old_files,
-        provide_context=True,
-        op_kwargs={
-            "prefix": f"ae/{AIRFLOW_ENV}/rne/database/",
-            "keep_latest": 5,
-            "retention_days": 3,
-        },
-        dag=dag,
+)
+def delete_old_object_storage_file():
+    rne = delete_old_files(
+        prefix=f"ae/{AIRFLOW_ENV}/rne/database/",
+        keep_latest=5,
+        retention_days=3,
     )
 
-    delete_old_sirene_databases = PythonOperator(
-        task_id="delete_old_sirene_databases",
-        python_callable=delete_old_files,
-        provide_context=True,
-        op_kwargs={
-            "prefix": f"ae/{AIRFLOW_ENV}/sirene/database/",
-            "keep_latest": 2,
-            "retention_days": 3,
-        },
-        dag=dag,
+    sirene = delete_old_files(
+        prefix=f"ae/{AIRFLOW_ENV}/sirene/database/",
+        keep_latest=2,
+        retention_days=3,
     )
 
-    delete_old_sirene_databases.set_upstream(delete_old_rne_databases)
+    return rne >> sirene
+
+
+delete_old_object_storage_file()

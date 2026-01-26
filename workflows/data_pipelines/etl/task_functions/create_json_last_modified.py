@@ -3,7 +3,7 @@ import logging
 import os
 
 import requests
-from airflow.decorators import task
+from airflow.sdk import get_current_context, task
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ETL_DATA_DIR,
@@ -64,7 +64,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.uai.config import (
 
 
 @task
-def create_data_source_last_modified_file(**kwargs):
+def create_data_source_last_modified_file():
     metadata_dict = {}
 
     metadata_url_to_datasource = {
@@ -116,7 +116,8 @@ def create_data_source_last_modified_file(**kwargs):
             metadata_dict[datasource] = None  # Assign None if any request error occurs
 
     # Fetch RNE metadata
-    rne_last_modified_date = kwargs["ti"].xcom_pull(
+    ti = get_current_context()["ti"]
+    rne_last_modified_date = ti.xcom_pull(
         key="rne_last_modified", task_ids="get_rne_database"
     )
 

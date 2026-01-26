@@ -4,7 +4,7 @@ from abc import ABC
 from datetime import datetime
 
 import requests
-from airflow.operators.python import get_current_context
+from airflow.sdk import get_current_context
 from dateutil.relativedelta import relativedelta
 
 from data_pipelines_annuaire.config import DataSourceConfig
@@ -220,7 +220,7 @@ class DataProcessor(ABC):
                         f"Resource type not handled in {self.__class__.__name__}.save_date_last_modified():\n{name}:\n{params}"
                     )
 
-        logging.info(date_list)
+        logging.info(f"Available metadata dates: {date_list}")
 
         if date_list:
             # Convert date strings to datetime objects and keep the most recent (Remove timezone offset)
@@ -238,7 +238,9 @@ class DataProcessor(ABC):
             date_last_modified = max(date_list_dt).strftime("%Y-%m-%dT%H:%M:%S.%f")
         else:
             date_last_modified = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
-            logging.warning("No resource_id nor URL provided in the configuration.")
+            logging.info(
+                "No resource_id nor URL provided in the configuration: last modified date defaults to now."
+            )
 
         save_to_metadata(metadata_path, "last_modified", date_last_modified)
         logging.info(

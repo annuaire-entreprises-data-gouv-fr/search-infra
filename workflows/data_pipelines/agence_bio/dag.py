@@ -1,7 +1,7 @@
 from datetime import timedelta
 
-from airflow.decorators import dag, task
-from airflow.utils.dates import days_ago
+import pendulum
+from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST
 from data_pipelines_annuaire.helpers import Notification
@@ -22,7 +22,7 @@ default_args = {
     tags=["agence bio", "certifications"],
     default_args=default_args,
     schedule="0 16 * * *",
-    start_date=days_ago(8),
+    start_date=pendulum.today("UTC").add(days=-8),
     dagrun_timeout=timedelta(minutes=60 * 5),
     params={},
     catchup=False,
@@ -52,7 +52,7 @@ def data_processing_agence_bio():
     def compare_files_object_storage():
         return agence_bio_processor.compare_files_object_storage()
 
-    (
+    return (
         clean_previous_outputs()
         >> preprocess_data()
         >> save_date_last_modified()

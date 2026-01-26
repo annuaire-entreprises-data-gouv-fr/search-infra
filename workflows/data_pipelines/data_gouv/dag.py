@@ -1,7 +1,7 @@
 from datetime import timedelta
 
-from airflow.decorators import dag, task
-from airflow.utils.dates import days_ago
+import pendulum
+from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_DAG_TMP,
@@ -27,7 +27,7 @@ default_args = {
     tags=["publication", "data.gouv"],
     default_args=default_args,
     schedule="0 17 * * *",  # Executes daily at 5 PM
-    start_date=days_ago(8),
+    start_date=pendulum.today("UTC").add(days=-8),
     dagrun_timeout=timedelta(minutes=60 * 3),
     params={},
     catchup=False,
@@ -78,7 +78,7 @@ def publish_files_in_data_gouv():
     def clean_outputs():
         return f"rm -rf {AIRFLOW_DAG_TMP}publish_data_gouv"
 
-    (
+    return (
         clean_previous_outputs()
         >> get_latest_sqlite_db()
         >> fill_unite_legale_file()

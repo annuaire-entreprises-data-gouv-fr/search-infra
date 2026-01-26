@@ -1,7 +1,7 @@
 from datetime import timedelta
 
-from airflow.decorators import dag, task
-from airflow.utils.dates import days_ago
+import pendulum
+from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import (
     EMAIL_LIST,
@@ -25,8 +25,8 @@ default_args = {
 @dag(
     tags=["rne", "stock", "download"],
     default_args=default_args,
-    schedule_interval=None,  # <- No automatic scheduling
-    start_date=days_ago(8),
+    schedule=None,  # <- No automatic scheduling
+    start_date=pendulum.today("UTC").add(days=-8),
     dagrun_timeout=timedelta(minutes=60 * 18),
     params={},
     catchup=False,
@@ -50,7 +50,7 @@ def get_rne_stock():
     def unzip_files_and_upload_object_storage():
         rne_stock_processor.send_stock_to_object_storage()
 
-    (
+    return (
         clean_previous_outputs()
         >> get_rne_latest_stock()
         >> unzip_files_and_upload_object_storage()

@@ -2,11 +2,11 @@ import logging
 import time
 
 import requests
+from airflow.sdk import get_current_context, task
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 
 from data_pipelines_annuaire.config import (
-    AIRFLOW_ELK_DAG_NAME,
     ELASTIC_DOWNSTREAM_ALIAS_NEXT,
     ELASTIC_DOWNSTREAM_PASSWORD,
     ELASTIC_DOWNSTREAM_URLS,
@@ -14,19 +14,21 @@ from data_pipelines_annuaire.config import (
 )
 
 
-def wait_for_downstream_import(**kwargs):
-    elastic_index = kwargs["ti"].xcom_pull(
+@task
+def wait_for_downstream_import():
+    ti = get_current_context()["ti"]
+    elastic_index = ti.xcom_pull(
         key="elastic_index",
-        task_ids="get_next_index_name",
-        dag_id=AIRFLOW_ELK_DAG_NAME,
-        include_prior_dates=True,
+        task_ids="snapshot_elastic_index",
     )
 
     wait_for_downstream_index_import(elastic_index)
 
 
-def wait_for_downstream_rollback_import(**kwargs):
-    elastic_index = kwargs["ti"].xcom_pull(
+@task
+def wait_for_downstream_rollback_import():
+    ti = get_current_context()["ti"]
+    elastic_index = ti.xcom_pull(
         key="elastic_index",
         task_ids="rollback_elastic_index",
     )
@@ -74,14 +76,14 @@ def wait_for_downstream_index_import(elastic_index):
         raise Exception("Downstream import is taking too long")
 
 
-def update_downstream_alias(**kwargs):
+@task
+def update_downstream_alias():
     urls = [url.strip() for url in ELASTIC_DOWNSTREAM_URLS.split(",")]
     aliases = ["siren-reader", "siren-blue", "siren-green"]
-    elastic_index = kwargs["ti"].xcom_pull(
+    ti = get_current_context()["ti"]
+    elastic_index = ti.xcom_pull(
         key="elastic_index",
-        task_ids="get_next_index_name",
-        dag_id=AIRFLOW_ELK_DAG_NAME,
-        include_prior_dates=True,
+        task_ids="snapshot_elastic_index",
     )
 
     for url in urls:
