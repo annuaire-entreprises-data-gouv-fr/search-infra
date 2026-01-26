@@ -1,6 +1,13 @@
 import logging
 from enum import Enum
 
+import requests
+
+from data_pipelines_annuaire.config import (
+    AIRFLOW_API_BASE_URL,
+    AIRFLOW_API_BEARER_TOKEN,
+    AIRFLOW_ENV,
+)
 from data_pipelines_annuaire.helpers import mattermost
 
 
@@ -48,22 +55,38 @@ class Notification:
         FAILURE = ":red_circle:"
 
     def __init__(self, context) -> None:
-        if context.get("dag_run").state == "success":
+        self.ti = context["ti"]
+        dag_run = context.get("dag_run")
+        self.dag_id = dag_run.dag_id
+        self.run_id = dag_run.run_id
+
+        if dag_run.state == "success":
             self.status = self.Status.SUCCESS
-        elif context.get("dag_run").state == "failed":
+        elif dag_run.state == "failed":
             self.status = self.Status.FAILURE
-        elif context.get("dag_run").state == "running":
+        elif dag_run.state == "running":
             self.status = self.Status.RUNNING
         else:
             self.status = self.Status.WARNING
 
         self.status_name = self.status.name
 
-        dag_run = context.get("dag_run")
-        self.dag_id = dag_run.dag_id
-        # Sort the task instances because they can be stored in a random order in the context
-        self.task_instances = sorted(
-            dag_run.get_task_instances(), key=lambda ti: ti.execution_date
+    def _get_task_instances(self):
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {AIRFLOW_API_BEARER_TOKEN}",
+        }
+
+        url = f"http://{AIRFLOW_API_BASE_URL}/api/v2/dags/{self.dag_id}/dagRuns/{self.run_id}/taskInstances"
+        tasks_resp = requests.get(
+            url,
+            headers=headers,
+        )
+        tasks_resp.raise_for_status()
+
+        return sorted(
+            tasks_resp.json()["task_instances"],
+            key=lambda ti: (ti.get("end_date") is None, ti.get("end_date", "")),
         )
 
     def generate_notification_message(self) -> str:
@@ -79,25 +102,28 @@ class Notification:
         Generate a message from all the "notification_message" keys and failed tasks.
         """
         notification_messages = []
-        for ti in self.task_instances:
-            notification_message = ti.xcom_pull(
-                task_ids=ti.task_id, key=self.notification_xcom_key
+        task_instances = self._get_task_instances()
+        for task in task_instances:
+            notification_message = self.ti.xcom_pull(
+                task_ids=task["task_id"], key=self.notification_xcom_key
             )
             if notification_message is not None:
                 notification_messages.append(f"- {notification_message}")
-            elif notification_message is None and ti.state == "failed":
+            elif notification_message is None and task["state"] == "failed":
                 # Add warning emoji only if the overall DAG run
                 # is successful to increase visibility
                 warning_emoji = (
                     ":warning: " if self.status == self.Status.SUCCESS else ""
                 )
                 notification_messages.append(
-                    f"- {warning_emoji}{ti.task_id}({ti.state})"
+                    f"- {warning_emoji}{task['task_id']}({task['state']})"
                 )
 
         return notification_messages
 
     def send_mattermost_notification(self) -> None:
+        if AIRFLOW_ENV != "prod":
+            return None
         message = self.generate_notification_message()
         logging.info(f"Notification sent to Mattermost:\n{message}")
         mattermost.send_message(message)
