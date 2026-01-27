@@ -148,8 +148,8 @@ def get_latest_db():
         f"*****Count ul : {count_ul}, "
         f"*****Count siege : {count_siege}, "
         f"*****Count pp : {count_pp}, "
-        f"*****Count pm : {count_pm}",
-        f"*****Count immat : {count_immat}",
+        f"*****Count pm : {count_pm}, "
+        f"*****Count immat : {count_immat}"
     )
 
 
