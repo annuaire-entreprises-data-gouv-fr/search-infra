@@ -37,10 +37,21 @@ class SireneStockProcessor(DataProcessor):
             metadata["resource"]["title"].lower().replace("é", "e").replace("û", "u")
         )
 
+        current_month = datetime.now().month
+        current_year = datetime.now().year
+
         year_month = ""
         for month in MONTH_MAPPING:
             if month in title:
-                year_month = f"{datetime.now().year}-{MONTH_MAPPING[month]}"
+                month_num = MONTH_MAPPING[month]
+                # If the month in the datagouv title is December while the
+                # current month is January, it means the stock file
+                # is still about the previous year
+                if month_num == "12" and current_month == 1:
+                    year = current_year - 1
+                else:
+                    year = current_year
+                year_month = f"{year}-{month_num}"
                 break
         if not year_month:
             raise Exception(f"Month not found in the title of {resource_id}")
