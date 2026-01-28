@@ -6,9 +6,6 @@ Bienvenue sur le dépôt d’infra de [l’Annuaire des Entreprises](https://ann
 
 Ce dépôt héberge le code qui récupère et traite les données publiques françaises d'entreprises à partir desquelles est généré l'index Elastisearch alimentant [l'API Recherche des Entreprises](https://www.data.gouv.fr/dataservices/api-recherche-dentreprises/).
 
-Ce code s'exécute dans une infrastructure Airflow basée sur [cette stack 👉](https://github.com/annuaire-entreprises-data-gouv-fr/data-engineering-stack/).
-
-
 ## Objectif du dépôt
 
 L'objectif principal de ce dépôt est de fournir à l'API de Recherche des Entreprises un index Elasticsearch fiable et à jour :
@@ -124,6 +121,46 @@ flowchart TD
 
 ```
 
-### Contact
+## Tester localement
+
+1. Remplir les variables dans .env
+```bash
+cat .env.template > .env
+nano .env
+```
+> [!IMPORTANT]
+> Les variables commencant par `AIRFLOW_VAR_` sont obligatoires au bon fonctionnement des DAGs.
+
+2. Lancer Airflow et ses dépendances
+
+```bash
+docker-compose up --build -d
+```
+
+3. Gérer les traitements depuis http://localhost:8080/ (si le port n'a pas été modifié).
+
+4. Tester l'indexation :
+```bash
+# Les identifiants peuvent être modifiés dans le .env
+export ELASTIC_USER=elastic
+export ELASTIC_PASSWORD=elastic
+# Lister les indices:
+curl -u http://localhost:9200/_cat/indices?v
+# Vérifier l'état du status:
+curl -u http://localhost:9200/_cluster/health?pretty
+# Supprimer un index:
+curl -u -X DELETE http://localhost:9200/your-index-name
+# Voir le mapping d'un index:
+curl -u http://localhost:9200/your-index-name/_mapping?pretty
+# Lister les aliases:
+curl -u http://localhost:9200/_cat/aliases?v
+# Chercher tous les documents d'un index:
+curl -u http://localhost:9200/your-index-name/_search?pretty
+```
+
+> [!NOTE]
+> Vous pouvez aussi lancer une instance de l'API de Recherche en local pour faciliter les tests depuis [ce dépôt de code](https://github.com/annuaire-entreprises-data-gouv-fr/search-api).
+
+## Contact
 
 Channel Tchap : `https://tchap.gouv.fr/#/room/#annuaire-entreprises:agent.dinum.tchap.gouv.fr`
