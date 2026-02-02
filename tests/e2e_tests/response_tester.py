@@ -1,3 +1,5 @@
+import logging
+
 import requests
 from requests.adapters import HTTPAdapter, Retry
 
@@ -35,7 +37,7 @@ class APIResponseTester:
         adapter = HTTPAdapter(max_retries=retry)
         session.mount("http://", adapter)
         session.mount("https://", adapter)
-        print(self.api_url + path)
+        logging.debug(self.api_url + path)
         response = session.get(url=self.api_url + path)
         return response
 
