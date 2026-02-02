@@ -37,7 +37,7 @@ class APIResponseTester:
         adapter = HTTPAdapter(max_retries=retry)
         session.mount("http://", adapter)
         session.mount("https://", adapter)
-        logging.debug(self.api_url + path)
+        logging.info(self.api_url + path)
         response = session.get(url=self.api_url + path)
         return response
 

@@ -12,7 +12,7 @@ min_total_results_filters = 1000
 
 @pytest.fixture
 def api_response_tester():
-    logging.debug(API_URL)
+    logging.info(API_URL)
     return APIResponseTester(API_URL)
 
 
