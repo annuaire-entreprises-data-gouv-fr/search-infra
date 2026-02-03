@@ -65,7 +65,6 @@ AIRFLOW_ELK_DAG_NAME = "index_elasticsearch"
 AIRFLOW_SNAPSHOT_DAG_NAME = "snapshot_index"
 AIRFLOW_SNAPSHOT_ROLLBACK_DAG_NAME = "snapshot_index_rollback"
 AIRFLOW_PUBLISH_DAG_NAME = "publish_data_gouv"
-AIRFLOW_URL = Variable.get("AIRFLOW_URL", "")
 AIRFLOW_ETL_DATA_DIR = (
     AIRFLOW_DAG_TMP + AIRFLOW_DAG_FOLDER + AIRFLOW_ETL_DAG_NAME + "/data/"
 )
@@ -117,11 +116,6 @@ RNE_FTP_URL = Variable.get("RNE_FTP_URL", "")
 RNE_AUTH = json.loads(Variable.get("RNE_AUTH", "[]"))
 RNE_API_TOKEN_URL = "https://registre-national-entreprises.inpi.fr/api/sso/login"
 RNE_API_DIFF_URL = "https://registre-national-entreprises.inpi.fr/api/companies/diff?"
-
-# AIO
-AIO_URL = Variable.get("AIO_URL", None)
-PATH_AIO = Variable.get("PATH_AIO", None)
-COLOR_IS_DAILY = bool(Variable.get("COLOR_IS_DAILY", "False"))
 
 # Redis
 REDIS_HOST = Variable.get("REDIS_HOST", "redis")
