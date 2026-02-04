@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    cooldown:
+      semver-major-days: 5
+      semver-minor-days: 3
+      semver-patch-days: 1
+    schedule:
+      interval: "weekly"
