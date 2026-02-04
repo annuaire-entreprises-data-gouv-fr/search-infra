@@ -7,6 +7,6 @@ requests==2.32.5
 pytest==8.4.2
 pydantic==2.12.5
 pyproj==3.7.2
-asyncpg==0.30.0
+asyncpg==0.31.0
 graphviz==0.21.0
 redis==7.1.0
