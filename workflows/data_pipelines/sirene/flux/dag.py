@@ -30,8 +30,8 @@ default_args = {
     params={},
     catchup=False,
     max_active_runs=1,
-    on_failure_callback=Notification.send_notification_mattermost,
-    on_success_callback=Notification.send_notification_mattermost,
+    on_failure_callback=Notification(),
+    on_success_callback=Notification(),
 )
 def data_processing_sirene_flux():
     sirene_flux_processor = SireneFluxProcessor()

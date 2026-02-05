@@ -3,7 +3,7 @@ from typing import Any
 
 import pandas as pd
 
-from data_pipelines_annuaire.helpers.api_client import ApiClient
+from data_pipelines_annuaire.helpers import ApiClient
 from data_pipelines_annuaire.helpers.utils import (
     flatten_dict,
 )

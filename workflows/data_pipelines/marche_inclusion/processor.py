@@ -3,11 +3,11 @@ import logging
 import pandas as pd
 
 from data_pipelines_annuaire.helpers import (
+    ApiClient,
     DataProcessor,
     Notification,
     clean_sirent_column,
 )
-from data_pipelines_annuaire.helpers.api_client import ApiClient
 from data_pipelines_annuaire.workflows.data_pipelines.marche_inclusion.config import (
     MARCHE_INCLUSION_CONFIG,
 )
