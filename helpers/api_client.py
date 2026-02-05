@@ -3,6 +3,7 @@ import logging
 import time
 from typing import Any, Callable, ParamSpec, TypeVar
 
+from airflow.sdk import Variable
 from requests import RequestException, Response, Session
 
 P = ParamSpec("P")
@@ -148,3 +149,67 @@ class ApiClient:
             time.sleep(max(0, sleep_time - response_time))
 
         return all_data
+
+
+class AirflowApiClient(ApiClient):
+    """Specialized API client for Airflow REST API with authentication and token management."""
+
+    def __init__(self):
+        """Initialize the Airflow API client with authentication."""
+        base_url = f"http://{Variable.get('AIRFLOW_API_BASE_URL')}"
+        super().__init__(f"{base_url}/api/v2")
+        self.url_token = f"{base_url}/auth/token"
+        self._fetch_and_set_token()
+
+    def get_task_instances(self, dag_id: str, run_id: str) -> list[dict[str, Any]]:
+        """Get task instances for a specific DAG run.
+
+        Args:
+            dag_id: The DAG ID
+            run_id: The DAG run ID
+
+        Returns:
+            List of task instances sorted by end date
+        """
+        endpoint = f"/dags/{dag_id}/dagRuns/{run_id}/taskInstances"
+
+        try:
+            response = self.get(endpoint)
+            response_json = response.json()
+
+            return sorted(
+                response_json["task_instances"],
+                key=lambda ti: (ti.get("end_date") is None, ti.get("end_date", "")),
+            )
+        except KeyError as e:
+            logging.error("Unexpected API response format: %s", e)
+            raise RuntimeError("Airflow API returned unexpected response format") from e
+
+    def _fetch_and_set_token(self) -> None:
+        """Fetch a new authentication token and set it in the session headers."""
+
+        credentials = {
+            "username": Variable.get("AIRFLOW_DATAENG_API_USER"),
+            "password": Variable.get("AIRFLOW_DATAENG_API_USER_PASSWORD"),
+        }
+
+        try:
+            # Use the parent class's get method for the auth request
+            # We need to temporarily remove auth headers since we're getting a token
+            original_headers = self.session.headers
+            self.session.headers.clear()
+
+            response = self.session.post(self.url_token, json=credentials, timeout=30)
+            response.raise_for_status()
+
+            self._token = response.json()["access_token"]
+
+            self.session.headers.update(
+                {"Authorization": f"Bearer {self._token}", **original_headers}
+            )
+
+            logging.info("Successfully fetched new Airflow API token")
+
+        except Exception as e:
+            logging.error("Failed to fetch Airflow API token: %s", e)
+            raise RuntimeError("Failed to authenticate with Airflow API") from e
