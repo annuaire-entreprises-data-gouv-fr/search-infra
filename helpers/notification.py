@@ -1,14 +1,9 @@
 import logging
 from enum import Enum
 
-import requests
+from airflow.sdk import BaseNotifier
 
-from data_pipelines_annuaire.config import (
-    AIRFLOW_API_BASE_URL,
-    AIRFLOW_API_BEARER_TOKEN,
-    AIRFLOW_ENV,
-)
-from data_pipelines_annuaire.helpers import mattermost
+from data_pipelines_annuaire.helpers import AirflowApiClient, mattermost
 
 
 def monitoring_logger(key: str, value: int) -> None:
@@ -24,12 +19,13 @@ def monitoring_logger(key: str, value: int) -> None:
     logging.info(f"::STATS:: KEY:{key} VALUE:{value}")
 
 
-class Notification:
+class Notification(BaseNotifier):
     """
     Class to manage and send end of DAG notifications to Mattermost.
+    Must read documentation: https://airflow.apache.org/docs/apache-airflow-providers/core-extensions/notifications.html
 
     Methods:
-        send_notification_mattermost() -> None:
+        notify() -> None:
             Sends a notification to Mattermost with the following format:
                 🔴 dagA: Données
                 - N rows were updated.
@@ -37,8 +33,8 @@ class Notification:
 
     Usage:
         Add the following parameters to a DAG definition:
-            >> on_failure_callback=Notification.send_notification_mattermost,
-            >> on_success_callback=Notification.send_notification_mattermost,
+            >> on_failure_callback=Notification(),
+            >> on_success_callback=Notification(),
 
         [Optional] In the relevant @task, use the following code to provide additional
         context for the notification:
@@ -54,80 +50,45 @@ class Notification:
         RUNNING = ":arrow_forward:"
         FAILURE = ":red_circle:"
 
-    def __init__(self, context) -> None:
-        self.ti = context["ti"]
-        dag_run = context.get("dag_run")
-        self.dag_id = dag_run.dag_id
-        self.run_id = dag_run.run_id
+    def notify(self, context):
+        if "ti" not in context or "dag_run" not in context:
+            raise ValueError(f"ti or dag_run not available in contex:\n{context}")
+
+        ti = context["ti"]
+        dag_run = context["dag_run"]
+        dag_id = dag_run.dag_id
+        run_id = dag_run.run_id
 
         if dag_run.state == "success":
-            self.status = self.Status.SUCCESS
+            status = self.Status.SUCCESS
         elif dag_run.state == "failed":
-            self.status = self.Status.FAILURE
+            status = self.Status.FAILURE
         elif dag_run.state == "running":
-            self.status = self.Status.RUNNING
+            status = self.Status.RUNNING
         else:
-            self.status = self.Status.WARNING
+            status = self.Status.WARNING
 
-        self.status_name = self.status.name
+        task_instances = AirflowApiClient().get_task_instances(dag_id, run_id)
 
-    def _get_task_instances(self):
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {AIRFLOW_API_BEARER_TOKEN}",
-        }
+        additional_messages = []
+        for task in task_instances:
+            notification_message = ti.xcom_pull(
+                task_ids=task["task_id"], key=self.notification_xcom_key
+            )
+            if notification_message is not None:
+                additional_messages.append(f"- {notification_message}")
+            elif notification_message is None and task["state"] == "failed":
+                # Add warning emoji only if the overall DAG run
+                # is successful to increase visibility
+                warning_emoji = ":warning: " if status == self.Status.SUCCESS else ""
+                additional_messages.append(
+                    f"- {warning_emoji}{task['task_id']}({task['state']})"
+                )
 
-        url = f"http://{AIRFLOW_API_BASE_URL}/api/v2/dags/{self.dag_id}/dagRuns/{self.run_id}/taskInstances"
-        tasks_resp = requests.get(
-            url,
-            headers=headers,
-        )
-        tasks_resp.raise_for_status()
-
-        return sorted(
-            tasks_resp.json()["task_instances"],
-            key=lambda ti: (ti.get("end_date") is None, ti.get("end_date", "")),
-        )
-
-    def generate_notification_message(self) -> str:
-        additional_messages = self.get_dag_additional_messages()
         if additional_messages:
             additional_messages_str = "\n" + "\n".join(additional_messages)
         else:
             additional_messages_str = ""
-        return f"{self.status.value} airflow : {self.dag_id} {additional_messages_str}"
+        message = f"{status.value} airflow : {dag_id} {additional_messages_str}"
 
-    def get_dag_additional_messages(self) -> list[str]:
-        """
-        Generate a message from all the "notification_message" keys and failed tasks.
-        """
-        notification_messages = []
-        task_instances = self._get_task_instances()
-        for task in task_instances:
-            notification_message = self.ti.xcom_pull(
-                task_ids=task["task_id"], key=self.notification_xcom_key
-            )
-            if notification_message is not None:
-                notification_messages.append(f"- {notification_message}")
-            elif notification_message is None and task["state"] == "failed":
-                # Add warning emoji only if the overall DAG run
-                # is successful to increase visibility
-                warning_emoji = (
-                    ":warning: " if self.status == self.Status.SUCCESS else ""
-                )
-                notification_messages.append(
-                    f"- {warning_emoji}{task['task_id']}({task['state']})"
-                )
-
-        return notification_messages
-
-    def send_mattermost_notification(self) -> None:
-        if AIRFLOW_ENV != "prod":
-            return None
-        message = self.generate_notification_message()
-        logging.info(f"Notification sent to Mattermost:\n{message}")
         mattermost.send_message(message)
-
-    @classmethod
-    def send_notification_mattermost(cls, context):
-        Notification(context).send_mattermost_notification()

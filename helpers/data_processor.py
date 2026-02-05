@@ -169,7 +169,7 @@ class DataProcessor(ABC):
 
         if column is not None:
             metric = column.nunique()
-            description = column.name if description is None else description
+            description = column.name if not description else description
             description = f"{metric} {description}"
             monitoring_logger(key=column.name, value=metric)
 
