@@ -33,8 +33,8 @@ default_args = {
     tags=["siren"],
     catchup=False,
     max_active_runs=1,
-    on_failure_callback=Notification.send_notification_mattermost,
-    on_success_callback=Notification.send_notification_mattermost,
+    on_failure_callback=Notification(),
+    on_success_callback=Notification(),
 )
 def snapshot_index_rollback():
     return (

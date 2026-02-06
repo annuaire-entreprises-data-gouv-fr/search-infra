@@ -1,3 +1,4 @@
+from data_pipelines_annuaire.helpers.api_client import AirflowApiClient, ApiClient
 from data_pipelines_annuaire.helpers.data_processor import DataProcessor
 from data_pipelines_annuaire.helpers.data_quality import clean_sirent_column
 from data_pipelines_annuaire.helpers.notification import Notification
@@ -10,4 +11,6 @@ __all__ = [
     "SqliteClient",
     "ObjectStorageClient",
     "clean_sirent_column",
+    "AirflowApiClient",
+    "ApiClient",
 ]

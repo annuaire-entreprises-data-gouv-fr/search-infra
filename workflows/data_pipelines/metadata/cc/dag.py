@@ -28,8 +28,8 @@ default_args = {
     catchup=False,
     max_active_runs=1,
     dagrun_timeout=timedelta(minutes=(60 * 100)),
-    on_failure_callback=Notification.send_notification_mattermost,
-    on_success_callback=Notification.send_notification_mattermost,
+    on_failure_callback=Notification(),
+    on_success_callback=Notification(),
     tags=["api", "metadata", "cc"],
 )
 def get_metadata_cc():

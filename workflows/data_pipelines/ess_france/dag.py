@@ -31,8 +31,8 @@ default_args = {
     dagrun_timeout=timedelta(minutes=60),
     params={},
     catchup=False,
-    on_failure_callback=Notification.send_notification_mattermost,
-    on_success_callback=Notification.send_notification_mattermost,
+    on_failure_callback=Notification(),
+    on_success_callback=Notification(),
 )
 def data_processing_ess_france():
     @task.bash

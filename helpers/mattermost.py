@@ -32,12 +32,7 @@ def send_message(
     try:
         response = requests.post(endpoint_url, json=data)
         response.raise_for_status()
+        logging.info(f"Notification sent to Mattermost:\n{text}")
     except requests.exceptions.RequestException as e:
         logging.error(f"Failed to send Mattermost message: {e}")
         raise Exception(f"Failed to send Mattermost message: {e}")
-
-
-def send_notification_failure_mattermost(context):
-    dag_id = context["dag"].dag_id  # Get the dag_id from the context
-    message = f":red_circle: Fail DAG: {dag_id}!!!!"
-    send_message(message)

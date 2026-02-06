@@ -1,6 +1,6 @@
 from typing import Any
 
-from data_pipelines_annuaire.helpers.api_client import ApiClient
+from data_pipelines_annuaire.helpers import ApiClient
 
 
 class BioApiClient(ApiClient):

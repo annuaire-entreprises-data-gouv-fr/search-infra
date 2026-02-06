@@ -31,8 +31,8 @@ dataset_colter = Asset(COLTER_CONFIG.name)
     schedule="0 16 * * *",
     start_date=pendulum.today("UTC").add(days=-8),
     dagrun_timeout=timedelta(minutes=60),
-    on_failure_callback=Notification.send_notification_mattermost,
-    on_success_callback=Notification.send_notification_mattermost,
+    on_failure_callback=Notification(),
+    on_success_callback=Notification(),
     params={},
     catchup=False,
 )
@@ -86,8 +86,8 @@ def data_processing_collectivite_territoriale():
     schedule=[dataset_colter],
     start_date=pendulum.today("UTC").add(days=-8),
     dagrun_timeout=timedelta(minutes=60),
-    on_failure_callback=Notification.send_notification_mattermost,
-    on_success_callback=Notification.send_notification_mattermost,
+    on_failure_callback=Notification(),
+    on_success_callback=Notification(),
     params={},
     catchup=False,
 )
