@@ -51,7 +51,7 @@ services:
     container_name: "airflow-db-${DOCKER_CONTEXT:-ade}-${DOCKER_ENV:-test}"
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.1
     environment:
       - discovery.type=single-node
       - cluster.name=annuaire-search-cluster
