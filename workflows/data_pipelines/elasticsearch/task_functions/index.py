@@ -87,14 +87,14 @@ def check_elastic_index():
             f"{doc_count} documents indexed."
             f"Expected at least {ELASTIC_MIN_DOC_COUNT_EXPECTED}."
         )
-        ti.xcom_push(key=Notification.Status.FAILURE, value=failure_message)
+        ti.xcom_push(key=Notification.notification_xcom_key, value=failure_message)
         raise ValueError(failure_message)
 
     success_message = (
         f"DAG d'indexation a été exécuté avec succès."
         f"\n - Nombre de documents indexés : {doc_count}"
     )
-    ti.xcom_push(key=Notification.Status.SUCCESS, value=success_message)
+    ti.xcom_push(key=Notification.notification_xcom_key, value=success_message)
     logging.info(success_message)
 
 
