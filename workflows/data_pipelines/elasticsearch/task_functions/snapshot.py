@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 
 from airflow.sdk import get_current_context, task
-from elasticsearch_dsl import connections
+from elasticsearch.dsl import connections
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DAG_NAME,
