@@ -1,4 +1,4 @@
-from elasticsearch_dsl import (
+from elasticsearch.dsl import (
     Boolean,
     Date,
     Document,
@@ -358,6 +358,6 @@ class StructureMapping(Document):
         settings = {
             "number_of_shards": ELASTIC_SHARDS,
             "number_of_replicas": ELASTIC_REPLICAS,
-            "mapping": {"ignore_malformed": True},
+            "index.mapping.ignore_malformed": True,
             "index.mapping.nested_objects.limit": 20000,
         }

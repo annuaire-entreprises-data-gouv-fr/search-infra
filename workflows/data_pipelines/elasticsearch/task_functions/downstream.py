@@ -90,7 +90,7 @@ def update_downstream_alias():
         logging.info(f"Connecting to downstream cluster {url}")
         es = Elasticsearch(
             hosts=[url],
-            http_auth=(ELASTIC_DOWNSTREAM_USER, ELASTIC_DOWNSTREAM_PASSWORD),
+            basic_auth=(ELASTIC_DOWNSTREAM_USER, ELASTIC_DOWNSTREAM_PASSWORD),
             retry_on_timeout=True,
         )
 
@@ -117,4 +117,4 @@ def update_downstream_alias():
 
         # Envoi de la requête
         if actions:
-            es.indices.update_aliases({"actions": actions})
+            es.indices.update_aliases(actions=actions)
