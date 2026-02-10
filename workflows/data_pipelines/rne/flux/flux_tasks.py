@@ -241,5 +241,5 @@ def get_every_day_flux():
         f"\n - Date début flux : {start_date}."
         f"\n - Date fin flux : {end_date}."
     )
-    ti.xcom_push(key=Notification.Status.SUCCESS, value=success_message)
+    ti.xcom_push(key=Notification.notification_xcom_key, value=success_message)
     logging.info(success_message)
