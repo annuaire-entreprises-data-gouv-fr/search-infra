@@ -134,6 +134,27 @@ class SireneFluxProcessor(DataProcessor):
             description=f"{n_siren_processed} siren",
         )
 
+    @staticmethod
+    def fetch_etablissement_periodes(data: pd.Series) -> pd.DataFrame:
+        """Fetch all periodes from etablissement data for date_fermeture calculation."""
+        periodes = []
+        for entry in data:
+            siret = entry["siret"]
+            siren = entry["siren"]
+            if siret and siren:
+                for periode in entry["periodesEtablissement"]:
+                    periode_data = {
+                        "siren": siren,
+                        "siret": siret,
+                        "dateFin": periode["dateFin"],
+                        "dateDebut": periode["dateDebut"],
+                        "etatAdministratifEtablissement": periode[
+                            "etatAdministratifEtablissement"
+                        ],
+                    }
+                    periodes.append(periode_data)
+        return pd.DataFrame(periodes)
+
     def get_current_flux_etablissement(self):
         fields = (
             "siren,"
@@ -172,9 +193,12 @@ class SireneFluxProcessor(DataProcessor):
             "coordonneeLambertAbscisseEtablissement,"
             "coordonneeLambertOrdonneeEtablissement"
         )
+
+        periodes_fields = "siren,siret,dateFin,dateDebut,etatAdministratifEtablissement"
         output_path = (
             f"{self.config.tmp_folder}flux_etablissement_{self.current_month}.csv"
         )
+        periodes_output_path = f"{self.config.tmp_folder}flux_etablissement_periodes_{self.current_month}.csv"
 
         if datetime.today().day == 1:
             logging.info(
@@ -182,9 +206,13 @@ class SireneFluxProcessor(DataProcessor):
             )
             self._create_empty_csv_with_headers(fields, output_path)
             zip_file(output_path)
+
+            self._create_empty_csv_with_headers(periodes_fields, periodes_output_path)
+            zip_file(periodes_output_path)
+
             DataProcessor.push_message(
                 Notification.notification_xcom_key,
-                description="0 siret (empty file created)",
+                description="0 siret (empty files created)",
             )
             return
 
@@ -206,23 +234,34 @@ class SireneFluxProcessor(DataProcessor):
 
             # Remove any SIRET we already got the last update from
             df = df[~df["siret"].isin(siret_processed)]
+            periodes_df = self.fetch_etablissement_periodes(df["periodesEtablissement"])
+
             siret_processed = pd.concat([siret_processed, df["siret"]])
 
             # Overwrite file with headers for the first dump, append only afterward
             if i_date == 0:
                 df.to_csv(output_path, mode="w", header=True, index=False)
+                periodes_df.to_csv(
+                    periodes_output_path, mode="w", header=True, index=False
+                )
+
             else:
                 df.to_csv(output_path, mode="a", header=False, index=False)
+                periodes_df.to_csv(
+                    periodes_output_path, mode="a", header=False, index=False
+                )
 
             logging.info(
                 f"{processing_date} -- processed: {df['siret'].nunique()} siret"
             )
             del df
+            del periodes_df
 
         n_siret_processed = len(siret_processed)
-        logging.info(f"CSV output ready with {n_siret_processed} siret")
+        logging.info(f"CSV outputs ready with {n_siret_processed} siret")
         zip_file(output_path)
-        logging.info("File zipped. Done!")
+        zip_file(periodes_output_path)
+        logging.info("Files zipped. Done!")
 
         DataProcessor.push_message(
             Notification.notification_xcom_key,
@@ -325,6 +364,13 @@ class SireneFluxProcessor(DataProcessor):
                     source_name=f"flux_etablissement_{self.current_month}.csv.gz",
                     dest_path=self.config.object_storage_path,
                     dest_name=f"flux_etablissement_{self.current_month}.csv.gz",
+                    content_type=None,
+                ),
+                File(
+                    source_path=self.config.tmp_folder,
+                    source_name=f"flux_etablissement_periodes_{self.current_month}.csv.gz",
+                    dest_path=self.config.object_storage_path,
+                    dest_name=f"flux_etablissement_periodes_{self.current_month}.csv.gz",
                     content_type=None,
                 ),
                 File(

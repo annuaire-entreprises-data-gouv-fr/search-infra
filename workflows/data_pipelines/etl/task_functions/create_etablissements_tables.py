@@ -12,6 +12,7 @@ from data_pipelines_annuaire.helpers.labels.departements import all_deps
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 from data_pipelines_annuaire.workflows.data_pipelines.etl.data_fetch_clean.etablissements import (
     preprocess_etablissement_data,
+    preprocess_flux_periodes_data,
     preprocess_historique_etablissement_data,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.helpers import (
@@ -202,17 +203,50 @@ def create_historique_etablissement_table(ti):
         index_column="siret",
     )
 
+    # First, process flux periodes (daily updates)
+    df_flux_periodes = preprocess_flux_periodes_data(AIRFLOW_ETL_DATA_DIR)
+
+    if not df_flux_periodes.empty:
+        # Get sirets from flux periodes to reconcile with stock
+        flux_sirets = set(df_flux_periodes["siret"].unique())
+
+        # Delete existing stock periodes for sirets present in flux
+        if flux_sirets:
+            placeholders = ",".join(["?"] * len(flux_sirets))
+            delete_query = f"DELETE FROM {table_name} WHERE siret IN ({placeholders})"
+            sqlite_client.execute(delete_query, list(flux_sirets))
+            logging.info(
+                f"Deleted stock periodes for {len(flux_sirets)} sirets present in flux"
+            )
+
+        # Insert flux periodes
+        df_flux_periodes.to_sql(
+            table_name, sqlite_client.db_conn, if_exists="append", index=False
+        )
+        logging.info(
+            f"Added {len(df_flux_periodes)} flux periodes to {table_name} table"
+        )
+
+    # Then, process stock periodes (monthly data) for sirets not in flux
     for df_hist_etablissement in preprocess_historique_etablissement_data(
         AIRFLOW_ETL_DATA_DIR,
     ):
-        df_hist_etablissement.to_sql(
-            table_name, sqlite_client.db_conn, if_exists="append", index=False
-        )
-        for row in sqlite_client.execute(get_table_count(table_name)):
-            logging.debug(
-                f"************ {row} total records have been added "
-                f"to the {table_name} table!"
+        # Only insert stock periodes for sirets not present in flux
+        if not df_flux_periodes.empty:
+            flux_sirets = set(df_flux_periodes["siret"].unique())
+            df_hist_etablissement = df_hist_etablissement[
+                ~df_hist_etablissement["siret"].isin(flux_sirets)
+            ]
+
+        if not df_hist_etablissement.empty:
+            df_hist_etablissement.to_sql(
+                table_name, sqlite_client.db_conn, if_exists="append", index=False
             )
+            for row in sqlite_client.execute(get_table_count(table_name)):
+                logging.debug(
+                    f"************ {row} total records have been added "
+                    f"to the {table_name} table!"
+                )
 
     del df_hist_etablissement
 
