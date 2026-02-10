@@ -43,7 +43,9 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     if identite_entr:
         unite_legale.denomination = identite_entr.denomination
         unite_legale.nom_commercial = identite_entr.nomCommercial
-        unite_legale.immatriculation.date_immatriculation = identite_entr.dateImmat
+        unite_legale.immatriculation.date_immatriculation = get_date_immatriculation(
+            rne_company, identite_entr
+        )
         unite_legale.tranche_effectif_salarie = identite_entr.effectifSalarie
         unite_legale.immatriculation.indicateur_associe_unique = (
             identite_entr.indicateurAssocieUnique
@@ -165,6 +167,20 @@ def get_date_creation(rne_company: RNECompany):
         rne_company.createdAt
         or rne_company.formality.content.natureCreation.dateCreation
     )
+
+
+def get_date_immatriculation(rne_company: RNECompany, identite_entr):
+    """
+    Compute the immatriculation date for unité légale.
+
+    Preference order:
+    1. `formality.content.natureCreation.dateCreation` when present
+    2. `identite_entr.dateImmat` otherwise
+
+    La règle c'est toujours prendre dateCreation et ne prendre dateImmat que si dateCreation est absente. (rule communicated by INPI 01/26)
+    """
+    date_creation = rne_company.formality.content.natureCreation.dateCreation
+    return date_creation or (identite_entr.dateImmat if identite_entr else None)
 
 
 def get_denomination_personne_physique(
