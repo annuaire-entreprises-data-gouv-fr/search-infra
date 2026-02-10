@@ -53,7 +53,8 @@ def get_start_date():
         start_date = datetime.strftime(previous_latest_date, "%Y-%m-%d")
         ti.xcom_push(key="start_date", value=start_date)
     except ClientError as e:
-        if e.response["Error"]["Code"] == "NoSuchKey":
+        error_code = e.response["Error"]["Code"]
+        if error_code in ["404", "NotFound"]:
             logging.info(
                 f"The file {RNE_OBJECT_STORAGE_STOCK_DATA_PATH + RNE_LATEST_DATE_FILE} "
                 f"does not exist in the bucket {object_storage_client.bucket}."
