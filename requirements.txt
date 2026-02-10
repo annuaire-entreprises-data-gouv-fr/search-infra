@@ -2,7 +2,7 @@ boto3==1.42.40
 pandas==2.3.3
 openpyxl==3.1.5
 elasticsearch==7.17.0
-elasticsearch_dsl==7.4.0
+elasticsearch_dsl==8.18.0
 requests==2.32.5
 pytest==9.0.2
 pydantic==2.12.5
