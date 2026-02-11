@@ -1,4 +1,4 @@
-boto3==1.42.40
+boto3==1.42.45
 pandas==2.3.3
 openpyxl==3.1.5
 elasticsearch==7.17.0
