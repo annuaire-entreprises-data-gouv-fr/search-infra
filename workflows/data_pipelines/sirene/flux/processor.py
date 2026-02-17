@@ -26,6 +26,14 @@ class SireneFluxProcessor(DataProcessor):
     BASE_ETABLISSEMENT_ENDPOINT = (
         "siret?q=dateDernierTraitementEtablissement%3A{}&champs={}&nombre=1000"
     )
+    PERIODES_FIELDS = [
+        "siren",
+        "siret",
+        "dateFin",
+        "dateDebut",
+        "etatAdministratifEtablissement",
+        "changementEtatAdministratifEtablissement",
+    ]
 
     def __init__(self):
         super().__init__(FLUX_SIRENE_CONFIG)
@@ -134,35 +142,27 @@ class SireneFluxProcessor(DataProcessor):
             description=f"{n_siren_processed} siren",
         )
 
-    @staticmethod
-    def fetch_etablissement_periodes(data: pd.Series) -> pd.DataFrame:
+    def fetch_etablissement_periodes(self, df: pd.DataFrame) -> pd.DataFrame:
         """Fetch all periodes from etablissement data for date_fermeture calculation."""
-        periodes = []
-        for entry in data:
-            siret = entry["siret"]
-            siren = entry["siren"]
-            if siret and siren:
-                for periode in entry["periodesEtablissement"]:
-                    periode_data = {
-                        "siren": siren,
-                        "siret": siret,
-                        "dateFin": periode["dateFin"],
-                        "dateDebut": periode["dateDebut"],
-                        "etatAdministratifEtablissement": periode[
-                            "etatAdministratifEtablissement"
-                        ],
-                        "caractereEmployeurEtablissement": periode[
-                            "caractereEmployeurEtablissement"
-                        ],
-                        "activitePrincipaleEtablissement": periode[
-                            "activitePrincipaleEtablissement"
-                        ],
-                        "denominationUsuelleEtablissement": periode[
-                            "denominationUsuelleEtablissement"
-                        ],
-                    }
-                    periodes.append(periode_data)
-        return pd.DataFrame(periodes)
+        # Explode periodesEtablissement so each periode becomes a row
+        exploded = (
+            df[["siren", "siret", "periodesEtablissement"]]
+            .explode("periodesEtablissement")
+            .reset_index(drop=True)
+        )
+
+        # Normalize the nested dicts and join with existing siren/siret
+        # Because pd.json_normalize() loses indices.
+        periodes_df = exploded[["siren", "siret"]].join(
+            pd.json_normalize(exploded["periodesEtablissement"])
+        )
+
+        # Make the column lowercase to match the stock format
+        periodes_df["changementEtatAdministratifEtablissement"] = periodes_df[
+            "changementEtatAdministratifEtablissement"
+        ].apply(lambda x: str(x).lower())
+
+        return periodes_df[self.PERIODES_FIELDS]
 
     def get_current_flux_etablissement(self):
         fields = (
@@ -187,6 +187,7 @@ class SireneFluxProcessor(DataProcessor):
             "distributionSpecialeEtablissement,"
             "dateDebut,"
             "etatAdministratifEtablissement,"
+            "changementEtatAdministratifEtablissement,"
             "enseigne1Etablissement,"
             "enseigne2Etablissement,"
             "enseigne3Etablissement,"
@@ -203,7 +204,6 @@ class SireneFluxProcessor(DataProcessor):
             "coordonneeLambertOrdonneeEtablissement"
         )
 
-        periodes_fields = "siren,siret,dateFin,dateDebut,etatAdministratifEtablissement,caractereEmployeurEtablissement,activitePrincipaleEtablissement,denominationUsuelleEtablissement"
         output_path = (
             f"{self.config.tmp_folder}flux_etablissement_{self.current_month}.csv"
         )
@@ -216,7 +216,9 @@ class SireneFluxProcessor(DataProcessor):
             self._create_empty_csv_with_headers(fields, output_path)
             zip_file(output_path)
 
-            self._create_empty_csv_with_headers(periodes_fields, periodes_output_path)
+            self._create_empty_csv_with_headers(
+                ",".join(self.PERIODES_FIELDS), periodes_output_path
+            )
             zip_file(periodes_output_path)
 
             DataProcessor.push_message(
@@ -243,7 +245,7 @@ class SireneFluxProcessor(DataProcessor):
 
             # Remove any SIRET we already got the last update from
             df = df[~df["siret"].isin(siret_processed)]
-            periodes_df = self.fetch_etablissement_periodes(df["periodesEtablissement"])
+            periodes_df = self.fetch_etablissement_periodes(df)
 
             siret_processed = pd.concat([siret_processed, df["siret"]])
 
