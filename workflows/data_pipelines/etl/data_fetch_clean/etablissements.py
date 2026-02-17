@@ -61,7 +61,6 @@ def download_stock(departement):
             "dateDebut",
             "etatAdministratifEtablissement",
             "enseigne1Etablissement",
-            "enseigne1Etablissement",
             "enseigne2Etablissement",
             "enseigne3Etablissement",
             "denominationUsuelleEtablissement",
@@ -231,7 +230,7 @@ def preprocess_historique_etablissement_data(data_dir):
     df_iterator = download_historique(data_dir)
 
     # Insert rows in database by chunk
-    for i, df_etablissement in enumerate(df_iterator):
+    for _, df_etablissement in enumerate(df_iterator):
         df_etablissement = df_etablissement[
             [
                 "siren",
@@ -247,8 +246,7 @@ def preprocess_historique_etablissement_data(data_dir):
             columns={
                 "dateFin": "date_fin_periode",
                 "dateDebut": "date_debut_periode",
-                "changementEtatAdministratifEtablissement": "changement_etat"
-                "_administratif_etablissement",
+                "changementEtatAdministratifEtablissement": "changement_etat_administratif_etablissement",
                 "etatAdministratifEtablissement": "etat_administratif_etablissement",
             }
         )
