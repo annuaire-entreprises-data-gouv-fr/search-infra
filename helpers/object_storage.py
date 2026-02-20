@@ -376,13 +376,15 @@ class ObjectStorageClient:
             logging.error(f"Error retrieving file metadata for {file_path}: {e}")
             return None
 
-    def copy_file(self, source_path: str, dest_path: str):
+    def copy_file(self, source_path: str, dest_path: str, is_public: bool = True):
         """
         Copy a file from one S3 path to another.
 
         Args:
             source_path (str): The S3 path of the source file.
             dest_path (str): The S3 path where the file should be copied.
+            is_public (bool): Whether the copied file should be publicly readable.
+                Defaults to True.
         """
         try:
             # Define the full S3 path with environment prefix
@@ -391,8 +393,14 @@ class ObjectStorageClient:
 
             # Copy object to the new location
             copy_source = {"Bucket": self.bucket, "Key": source_full_path}
+            extra_args = {}
+            if is_public:
+                extra_args["ACL"] = "public-read"
             self.client.copy_object(
-                Bucket=self.bucket, Key=dest_full_path, CopySource=copy_source
+                Bucket=self.bucket,
+                Key=dest_full_path,
+                CopySource=copy_source,
+                **extra_args,
             )
             logging.info(f"Copied {source_full_path} to {dest_full_path}")
         except ClientError as e:
