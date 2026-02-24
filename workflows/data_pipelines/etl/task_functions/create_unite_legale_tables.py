@@ -9,15 +9,11 @@ from data_pipelines_annuaire.config import (
     SIRENE_DATABASE_LOCATION,
 )
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
-
-# fmt: off
 from data_pipelines_annuaire.workflows.data_pipelines.etl.data_fetch_clean.unite_legale import (
+    preprocess_flux_periodes_unite_legale_data,
     preprocess_historique_unite_legale_data,
     preprocess_unite_legale_data,
-    process_ancien_siege_flux,
 )
-
-# fmt: on
 from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.helpers import (
     create_index,
     create_table_model,
@@ -26,12 +22,10 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.helpers import 
     get_table_count,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.queries.unite_legale import (
-    create_table_ancien_siege_query,
     create_table_date_fermeture_unite_legale_query,
     create_table_flux_unite_legale_query,
     create_table_historique_unite_legale_query,
     create_table_unite_legale_query,
-    delete_current_siege_from_ancien_siege_query,
     insert_date_fermeture_unite_legale_query,
     insert_remaining_rne_data_into_main_table_query,
     replace_table_unite_legale_query,
@@ -95,31 +89,6 @@ def create_flux_unite_legale_table():
 
 
 @task
-def add_ancien_siege_flux_data():
-    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
-
-    table_name = "ancien_siege"
-
-    for df_unite_legale in process_ancien_siege_flux(AIRFLOW_ETL_DATA_DIR):
-        df_unite_legale.to_sql(
-            table_name, sqlite_client.db_conn, if_exists="append", index=False
-        )
-        for row in sqlite_client.execute(get_table_count(table_name)):
-            logging.info(
-                f"************ {row} total records have been added "
-                f"to the {table_name} table!"
-            )
-    del df_unite_legale
-    sqlite_client.execute(delete_current_siege_from_ancien_siege_query)
-    for row in sqlite_client.execute(get_table_count(table_name)):
-        logging.info(
-            f"************ {row} final records have been added "
-            f"to the {table_name} table!"
-        )
-    sqlite_client.commit_and_close_conn()
-
-
-@task
 def replace_unite_legale_table():
     return execute_query(
         query=replace_table_unite_legale_query,
@@ -159,15 +128,6 @@ def add_rne_siren_data_to_unite_legale_table():
 
 @task
 def create_historique_unite_legale_table():
-    sqlite_client = create_table_model(
-        table_name="ancien_siege",
-        create_table_query=create_table_ancien_siege_query,
-        create_index_func=create_index,
-        index_name="index_ancien_siege",
-        index_column="siret",
-    )
-    sqlite_client.commit_and_close_conn()
-
     table_name = "historique_unite_legale"
     sqlite_client = create_table_model(
         table_name=table_name,
@@ -177,21 +137,12 @@ def create_historique_unite_legale_table():
         index_column="siren",
     )
 
-    for (
-        df_hist_unite_legale,
-        df_ancien_siege,
-    ) in preprocess_historique_unite_legale_data(
+    # Process stock periodes
+    for df_hist_unite_legale in preprocess_historique_unite_legale_data(
         AIRFLOW_ETL_DATA_DIR,
     ):
         df_hist_unite_legale.to_sql(
             table_name, sqlite_client.db_conn, if_exists="append", index=False
-        )
-
-        df_ancien_siege.to_sql(
-            "ancien_siege",
-            sqlite_client.db_conn,
-            if_exists="append",
-            index=False,
         )
 
         for row in sqlite_client.execute(get_table_count(table_name)):
@@ -199,13 +150,37 @@ def create_historique_unite_legale_table():
                 f"************ {row} total records have been added "
                 f"to the {table_name} table!"
             )
-        for row in sqlite_client.execute(get_table_count("ancien_siege")):
-            logging.debug(
-                f"************ {row} total records have been added "
-                f"to the ancien_siege table!"
-            )
 
     del df_hist_unite_legale
+
+    df_flux_periodes = preprocess_flux_periodes_unite_legale_data(AIRFLOW_ETL_DATA_DIR)
+
+    if not df_flux_periodes.empty:
+        flux_sirens = set(df_flux_periodes["siren"].unique())
+
+        # Delete existing stock periodes for Sirens present in flux
+        if flux_sirens:
+            flux_sirens_list = list(flux_sirens)
+            batch_size = 10_000
+            # Batch deletes to avoid SQLite "too many SQL variables" error
+            for i in range(0, len(flux_sirens_list), batch_size):
+                batch = flux_sirens_list[i : i + batch_size]
+                placeholders = ",".join(["?"] * len(batch))
+                delete_query = (
+                    f"DELETE FROM {table_name} WHERE siren IN ({placeholders})"
+                )
+                sqlite_client.execute(delete_query, batch)
+            logging.info(
+                f"Deleted stock periodes for {len(flux_sirens)} sirens present in flux"
+            )
+
+        # Insert all the periodes of the unite legale retrieved from the flux
+        df_flux_periodes.to_sql(
+            table_name, sqlite_client.db_conn, if_exists="append", index=False
+        )
+        logging.info(
+            f"Added {len(df_flux_periodes)} flux periodes to {table_name} table"
+        )
 
     for count_unite_legale in sqlite_client.execute(get_table_count(table_name)):
         logging.info(

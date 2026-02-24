@@ -52,7 +52,7 @@ create_table_flux_unite_legale_query = """
             denomination_usuelle_3 TEXT,
             nature_juridique_unite_legale TEXT,
             activite_principale_unite_legale TEXT,
-             activite_principale_naf25_unite_legale TEXT,
+            activite_principale_naf25_unite_legale TEXT,
             economie_sociale_solidaire_unite_legale TEXT,
             statut_diffusion_unite_legale TEXT,
             est_societe_mission TEXT,
@@ -86,7 +86,7 @@ replace_table_unite_legale_query = """
             denomination_usuelle_3,
             nature_juridique_unite_legale,
             activite_principale_unite_legale,
-             activite_principale_naf25_unite_legale,
+            activite_principale_naf25_unite_legale,
             economie_sociale_solidaire_unite_legale,
             statut_diffusion_unite_legale,
             est_societe_mission,
@@ -162,7 +162,7 @@ insert_remaining_rne_data_into_main_table_query = """
                 NULL AS denomination_usuelle_3,
                 nature_juridique AS nature_juridique_unite_legale,
                 activite_principale AS activite_principale_unite_legale,
-                NULL AS  activite_principale_naf25_unite_legale,
+                NULL AS activite_principale_naf25_unite_legale,
                 NULL AS economie_sociale_solidaire_unite_legale,
                 NULL AS statut_diffusion_unite_legale,
                 NULL AS est_societe_mission,
@@ -188,23 +188,11 @@ create_table_historique_unite_legale_query = """
             etat_administratif_unite_legale TEXT,
             changement_etat_administratif_unite_legale TEXT,
             nic_siege TEXT,
+            siege_siret TEXT,
             changement_nic_siege_unite_legale TEXT
         )
     """
 
-create_table_ancien_siege_query = """
-        CREATE TABLE IF NOT EXISTS ancien_siege
-        (
-            siren TEXT,
-            nic_siege TEXT,
-            siret TEXT
-        )
-    """
-
-delete_current_siege_from_ancien_siege_query = """
-        DELETE FROM ancien_siege
-        WHERE siret IN (SELECT siret FROM siege);
-"""
 
 create_table_date_fermeture_unite_legale_query = """
         CREATE TABLE IF NOT EXISTS date_fermeture_unite_legale AS
