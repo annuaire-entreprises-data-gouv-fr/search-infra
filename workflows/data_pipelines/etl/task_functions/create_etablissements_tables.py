@@ -12,6 +12,7 @@ from data_pipelines_annuaire.helpers.labels.departements import all_deps
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 from data_pipelines_annuaire.workflows.data_pipelines.etl.data_fetch_clean.etablissements import (
     preprocess_etablissement_data,
+    preprocess_flux_periodes_data,
     preprocess_historique_etablissement_data,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.helpers import (
@@ -202,6 +203,7 @@ def create_historique_etablissement_table(ti):
         index_column="siret",
     )
 
+    # Process stock periodes
     for df_hist_etablissement in preprocess_historique_etablissement_data(
         AIRFLOW_ETL_DATA_DIR,
     ):
@@ -213,6 +215,36 @@ def create_historique_etablissement_table(ti):
                 f"************ {row} total records have been added "
                 f"to the {table_name} table!"
             )
+
+    df_flux_periodes = preprocess_flux_periodes_data(AIRFLOW_ETL_DATA_DIR)
+
+    if not df_flux_periodes.empty:
+        flux_sirets = set(df_flux_periodes["siret"].unique())
+
+        # Delete existing stock periodes for sirets present in flux
+        if flux_sirets:
+            flux_sirets_list = list(flux_sirets)
+            batch_size = 10_000
+            # Batch deletes to avoid SQLite "too many SQL variables" error
+            for i in range(0, len(flux_sirets_list), batch_size):
+                batch = flux_sirets_list[i : i + batch_size]
+                placeholders = ",".join(["?"] * len(batch))
+                delete_query = (
+                    f"DELETE FROM {table_name} WHERE siret IN ({placeholders})"
+                )
+
+                sqlite_client.execute(delete_query, batch)
+            logging.info(
+                f"Deleted stock periodes for {len(flux_sirets)} sirets present in flux"
+            )
+
+        # Insert all the periodes of the etablissement retrieved from the flux
+        df_flux_periodes.to_sql(
+            table_name, sqlite_client.db_conn, if_exists="append", index=False
+        )
+        logging.info(
+            f"Added {len(df_flux_periodes)} flux periodes to {table_name} table"
+        )
 
     del df_hist_etablissement
 

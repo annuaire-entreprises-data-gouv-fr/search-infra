@@ -144,13 +144,6 @@ create_table_count_etablissement_ouvert_query = """
         siren VARCHAR(10), count INTEGER)
         """
 
-count_etablissement_ouvert_query = """
-        INSERT INTO count_etablissement_ouvert (siren, count)
-        SELECT siren, count(*) as count
-        FROM etablissement
-        WHERE etat_administratif_etablissement = 'A' GROUP BY siren;
-        """
-
 count_nombre_etablissement_ouvert_query = """
         INSERT INTO count_etablissement_ouvert (siren, count)
         SELECT siren, count(*) as count
@@ -287,7 +280,6 @@ replace_table_siege_query = """
             libelle_commune_etranger,
             code_pays_etranger,
             libelle_pays_etranger,
-            caractere_employeur,
             statut_diffusion_etablissement,
             date_mise_a_jour_insee,
             date_mise_a_jour_rne,
@@ -325,15 +317,13 @@ replace_table_siege_query = """
             a.libelle_commune_etranger,
             a.code_pays_etranger,
             a.libelle_pays_etranger,
-            a.caractere_employeur,
             a.statut_diffusion_etablissement,
             a.date_mise_a_jour_insee,
             a.date_mise_a_jour_rne,
             a.date_fermeture_etablissement,
             a.x,
             a.y
-        FROM flux_etablissement a LEFT JOIN siege b
-        ON a.siret = b.siret
+        FROM flux_etablissement a
         WHERE a.est_siege = 'true'
     """
 
@@ -413,8 +403,7 @@ replace_table_etablissement_query = """
             a.date_fermeture_etablissement,
             a.x,
             a.y
-        FROM flux_etablissement a LEFT JOIN etablissement b
-        ON a.siret = b.siret
+        FROM flux_etablissement a
     """
 
 update_siege_table_fields_with_rne_data_query = """

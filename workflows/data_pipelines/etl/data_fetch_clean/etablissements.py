@@ -61,7 +61,6 @@ def download_stock(departement):
             "dateDebut",
             "etatAdministratifEtablissement",
             "enseigne1Etablissement",
-            "enseigne1Etablissement",
             "enseigne2Etablissement",
             "enseigne3Etablissement",
             "denominationUsuelleEtablissement",
@@ -231,7 +230,7 @@ def preprocess_historique_etablissement_data(data_dir):
     df_iterator = download_historique(data_dir)
 
     # Insert rows in database by chunk
-    for i, df_etablissement in enumerate(df_iterator):
+    for _, df_etablissement in enumerate(df_iterator):
         df_etablissement = df_etablissement[
             [
                 "siren",
@@ -247,9 +246,64 @@ def preprocess_historique_etablissement_data(data_dir):
             columns={
                 "dateFin": "date_fin_periode",
                 "dateDebut": "date_debut_periode",
-                "changementEtatAdministratifEtablissement": "changement_etat"
-                "_administratif_etablissement",
+                "changementEtatAdministratifEtablissement": "changement_etat_administratif_etablissement",
                 "etatAdministratifEtablissement": "etat_administratif_etablissement",
             }
         )
         yield df_etablissement
+
+
+def download_flux_periodes(data_dir):
+    """Download flux periodes data from object storage."""
+    year_month = get_sirene_processing_month()
+    try:
+        ObjectStorageClient().get_files(
+            list_files=[
+                File(
+                    source_path=FLUX_SIRENE_CONFIG.object_storage_path,
+                    source_name=f"flux_etablissement_periodes_{year_month}.csv.gz",
+                    dest_path=f"{data_dir}",
+                    dest_name=f"flux_etablissement_periodes_{year_month}.csv.gz",
+                    content_type=None,
+                )
+            ],
+        )
+        df_flux_periodes = pd.read_csv(
+            f"{data_dir}flux_etablissement_periodes_{year_month}.csv.gz",
+            compression="gzip",
+            dtype=str,
+        )
+        return df_flux_periodes
+    except ClientError as e:
+        logging.warning(f"No flux periodes data has been found for: {year_month}")
+        if e.response["Error"]["Code"] == "NoSuchKey":
+            raise AirflowSkipException("Skipping flux periodes - no data available")
+        raise
+
+
+def preprocess_flux_periodes_data(data_dir):
+    """Preprocess flux periodes data for date_fermeture calculation."""
+    try:
+        df_flux_periodes = download_flux_periodes(data_dir)
+        # Rename columns to match historique format
+        df_flux_periodes = df_flux_periodes.rename(
+            columns={
+                "dateFin": "date_fin_periode",
+                "dateDebut": "date_debut_periode",
+                "changementEtatAdministratifEtablissement": "changement_etat_administratif_etablissement",
+                "etatAdministratifEtablissement": "etat_administratif_etablissement",
+            }
+        )
+        return df_flux_periodes
+    except AirflowSkipException:
+        # Return empty DataFrame if no flux periodes available
+        return pd.DataFrame(
+            columns=[
+                "siren",
+                "siret",
+                "date_fin_periode",
+                "date_debut_periode",
+                "changement_etat_administratif_etablissement",
+                "etat_administratif_etablissement",
+            ]
+        )

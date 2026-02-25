@@ -26,6 +26,14 @@ class SireneFluxProcessor(DataProcessor):
     BASE_ETABLISSEMENT_ENDPOINT = (
         "siret?q=dateDernierTraitementEtablissement%3A{}&champs={}&nombre=1000"
     )
+    PERIODES_FIELDS = [
+        "siren",
+        "siret",
+        "dateFin",
+        "dateDebut",
+        "etatAdministratifEtablissement",
+        "changementEtatAdministratifEtablissement",
+    ]
 
     def __init__(self):
         super().__init__(FLUX_SIRENE_CONFIG)
@@ -134,6 +142,28 @@ class SireneFluxProcessor(DataProcessor):
             description=f"{n_siren_processed} siren",
         )
 
+    def fetch_etablissement_periodes(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Fetch all periodes from etablissement data for date_fermeture calculation."""
+        # Explode periodesEtablissement so each periode becomes a row
+        exploded = (
+            df[["siren", "siret", "periodesEtablissement"]]
+            .explode("periodesEtablissement")
+            .reset_index(drop=True)
+        )
+
+        # Normalize the nested dicts and join with existing siren/siret
+        # Because pd.json_normalize() loses indices.
+        periodes_df = exploded[["siren", "siret"]].join(
+            pd.json_normalize(exploded["periodesEtablissement"])
+        )
+
+        # Make the column lowercase to match the stock format
+        periodes_df["changementEtatAdministratifEtablissement"] = periodes_df[
+            "changementEtatAdministratifEtablissement"
+        ].apply(lambda x: str(x).lower())
+
+        return periodes_df[self.PERIODES_FIELDS]
+
     def get_current_flux_etablissement(self):
         fields = (
             "siren,"
@@ -157,6 +187,7 @@ class SireneFluxProcessor(DataProcessor):
             "distributionSpecialeEtablissement,"
             "dateDebut,"
             "etatAdministratifEtablissement,"
+            "changementEtatAdministratifEtablissement,"
             "enseigne1Etablissement,"
             "enseigne2Etablissement,"
             "enseigne3Etablissement,"
@@ -172,9 +203,11 @@ class SireneFluxProcessor(DataProcessor):
             "coordonneeLambertAbscisseEtablissement,"
             "coordonneeLambertOrdonneeEtablissement"
         )
+
         output_path = (
             f"{self.config.tmp_folder}flux_etablissement_{self.current_month}.csv"
         )
+        periodes_output_path = f"{self.config.tmp_folder}flux_etablissement_periodes_{self.current_month}.csv"
 
         if datetime.today().day == 1:
             logging.info(
@@ -182,9 +215,15 @@ class SireneFluxProcessor(DataProcessor):
             )
             self._create_empty_csv_with_headers(fields, output_path)
             zip_file(output_path)
+
+            self._create_empty_csv_with_headers(
+                ",".join(self.PERIODES_FIELDS), periodes_output_path
+            )
+            zip_file(periodes_output_path)
+
             DataProcessor.push_message(
                 Notification.notification_xcom_key,
-                description="0 siret (empty file created)",
+                description="0 siret (empty files created)",
             )
             return
 
@@ -206,23 +245,34 @@ class SireneFluxProcessor(DataProcessor):
 
             # Remove any SIRET we already got the last update from
             df = df[~df["siret"].isin(siret_processed)]
+            periodes_df = self.fetch_etablissement_periodes(df)
+
             siret_processed = pd.concat([siret_processed, df["siret"]])
 
             # Overwrite file with headers for the first dump, append only afterward
             if i_date == 0:
                 df.to_csv(output_path, mode="w", header=True, index=False)
+                periodes_df.to_csv(
+                    periodes_output_path, mode="w", header=True, index=False
+                )
+
             else:
                 df.to_csv(output_path, mode="a", header=False, index=False)
+                periodes_df.to_csv(
+                    periodes_output_path, mode="a", header=False, index=False
+                )
 
             logging.info(
                 f"{processing_date} -- processed: {df['siret'].nunique()} siret"
             )
             del df
+            del periodes_df
 
         n_siret_processed = len(siret_processed)
-        logging.info(f"CSV output ready with {n_siret_processed} siret")
+        logging.info(f"CSV outputs ready with {n_siret_processed} siret")
         zip_file(output_path)
-        logging.info("File zipped. Done!")
+        zip_file(periodes_output_path)
+        logging.info("Files zipped. Done!")
 
         DataProcessor.push_message(
             Notification.notification_xcom_key,
@@ -325,6 +375,13 @@ class SireneFluxProcessor(DataProcessor):
                     source_name=f"flux_etablissement_{self.current_month}.csv.gz",
                     dest_path=self.config.object_storage_path,
                     dest_name=f"flux_etablissement_{self.current_month}.csv.gz",
+                    content_type=None,
+                ),
+                File(
+                    source_path=self.config.tmp_folder,
+                    source_name=f"flux_etablissement_periodes_{self.current_month}.csv.gz",
+                    dest_path=self.config.object_storage_path,
+                    dest_name=f"flux_etablissement_periodes_{self.current_month}.csv.gz",
                     content_type=None,
                 ),
                 File(
