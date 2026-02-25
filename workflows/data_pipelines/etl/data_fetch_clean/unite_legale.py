@@ -1,4 +1,3 @@
-import ast
 import logging
 import shutil
 
@@ -90,15 +89,6 @@ def download_flux(data_dir):
         logging.warning(f"No flux data has been found for: {year_month}")
         if e.response["Error"]["Code"] == "NoSuchKey":
             raise AirflowSkipException("Skipping this task")
-
-
-def extract_nic_list(periods_data):
-    nic_list = []
-    for row in ast.literal_eval(periods_data):
-        nic_value = row["nicSiegeUniteLegale"]
-        if nic_value is not None:
-            nic_list.append(nic_value)
-    return list(set(nic_list))
 
 
 def preprocess_unite_legale_data(data_dir, sirene_file_type):
@@ -200,37 +190,89 @@ def preprocess_historique_unite_legale_data(data_dir):
             }
         )
 
-        # Create a new DataFrame for SIREN-NIC relationships
-        siren_nic_df = df_unite_legale[["siren", "nic_siege"]].drop_duplicates()
-        siren_nic_df = siren_nic_df.astype({"siren": str, "nic_siege": str})
-
-        # Create the new column combining SIREN and NIC
-        siren_nic_df["siret"] = siren_nic_df["siren"] + siren_nic_df["nic_siege"]
-
-        yield df_unite_legale, siren_nic_df
-
-
-def process_ancien_siege_flux(data_dir):
-    """
-    The function uses the 'extract_nic_list' function to extract the NIC from the
-    'periodesUniteLegale' column. It then explodes the resulting
-    DataFrame to create a row for each NIC, removes duplicates, and casts the 'siren'
-    and 'nic_siege' columns to strings before computing the 'siret' column.
-
-    The function is a generator, yielding the resulting DataFrame in chunks.
-    """
-    df_iterator = download_flux(data_dir)
-
-    for _, df_unite_legale in enumerate(df_iterator):
-        df_expanded = (
-            df_unite_legale[["siren", "periodesUniteLegale"]]
-            .assign(
-                nic_siege=df_unite_legale["periodesUniteLegale"].apply(extract_nic_list)
-            )
-            .drop("periodesUniteLegale", axis=1)
-            .explode("nic_siege")
-            .drop_duplicates(subset=["siren", "nic_siege"])
-            .astype({"siren": str, "nic_siege": str})
-            .assign(siret=lambda df: df["siren"] + df["nic_siege"])
+        # Compute siege_siret directly in historique table
+        df_unite_legale["siege_siret"] = (
+            df_unite_legale["siren"] + df_unite_legale["nic_siege"]
         )
-        yield df_expanded
+
+        yield df_unite_legale
+
+
+def download_flux_periodes_unite_legale(data_dir):
+    """Download flux periodes unite legale data from object storage."""
+    year_month = get_sirene_processing_month()
+    try:
+        ObjectStorageClient().get_files(
+            list_files=[
+                File(
+                    source_path=FLUX_SIRENE_CONFIG.object_storage_path,
+                    source_name=f"flux_unite_legale_periodes_{year_month}.csv.gz",
+                    dest_path=f"{data_dir}",
+                    dest_name=f"flux_unite_legale_periodes_{year_month}.csv.gz",
+                    content_type=None,
+                )
+            ],
+        )
+        df_flux_periodes = pd.read_csv(
+            f"{data_dir}flux_unite_legale_periodes_{year_month}.csv.gz",
+            compression="gzip",
+            dtype=str,
+        )
+        return df_flux_periodes
+    except ClientError as e:
+        logging.warning(
+            f"No flux periodes unite legale data has been found for: {year_month}"
+        )
+        if e.response["Error"]["Code"] == "NoSuchKey":
+            raise AirflowSkipException(
+                "Skipping flux periodes unite legale - no data available"
+            )
+        raise
+
+
+def preprocess_flux_periodes_unite_legale_data(data_dir):
+    """Preprocess flux periodes unite legale data."""
+    try:
+        df_flux_periodes = download_flux_periodes_unite_legale(data_dir)
+        df_flux_periodes = df_flux_periodes[
+            [
+                "siren",
+                "dateFin",
+                "dateDebut",
+                "etatAdministratifUniteLegale",
+                "changementEtatAdministratifUniteLegale",
+                "nicSiegeUniteLegale",
+                "changementNicSiegeUniteLegale",
+            ]
+        ]
+        # Rename columns to match historique format
+        df_flux_periodes = df_flux_periodes.rename(
+            columns={
+                "dateFin": "date_fin_periode",
+                "dateDebut": "date_debut_periode",
+                "changementEtatAdministratifUniteLegale": "changement_etat"
+                "_administratif_unite_legale",
+                "etatAdministratifUniteLegale": "etat_administratif_unite_legale",
+                "nicSiegeUniteLegale": "nic_siege",
+                "changementNicSiegeUniteLegale": "changement_nic_siege_unite_legale",
+            }
+        )
+        # Calculate siege_siret
+        df_flux_periodes["siege_siret"] = (
+            df_flux_periodes["siren"] + df_flux_periodes["nic_siege"]
+        )
+        return df_flux_periodes
+    except AirflowSkipException:
+        # Return empty DataFrame if no flux periodes available
+        return pd.DataFrame(
+            columns=[
+                "siren",
+                "date_fin_periode",
+                "date_debut_periode",
+                "etat_administratif_unite_legale",
+                "changement_etat_administratif_unite_legale",
+                "nic_siege",
+                "siege_siret",
+                "changement_nic_siege_unite_legale",
+            ]
+        )

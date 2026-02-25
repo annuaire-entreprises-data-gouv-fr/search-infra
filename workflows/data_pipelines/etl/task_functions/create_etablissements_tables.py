@@ -1,11 +1,9 @@
 import logging
-import sqlite3
 
-from airflow.sdk import get_current_context, task
+from airflow.sdk import task
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ETL_DATA_DIR,
-    RNE_DATABASE_LOCATION,
     SIRENE_DATABASE_LOCATION,
 )
 from data_pipelines_annuaire.helpers.labels.departements import all_deps
@@ -31,14 +29,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.queries.etablis
     create_table_etablissement_query,
     create_table_flux_etablissement_query,
     create_table_historique_etablissement_query,
-    create_table_siege_query,
     insert_date_fermeture_etablissement_query,
-    insert_date_fermeture_siege_query,
-    insert_remaining_rne_siege_data_into_main_table_query,
-    populate_table_siege_query,
     replace_table_etablissement_query,
-    replace_table_siege_query,
-    update_siege_table_fields_with_rne_data_query,
 )
 
 
@@ -99,37 +91,9 @@ def create_flux_etablissement_table():
 
 
 @task
-def create_siege_table():
-    sqlite_client = create_table_model(
-        table_name="siege",
-        create_table_query=create_table_siege_query,
-        create_index_func=create_index,
-        index_name="index_siege_siren",
-        index_column="siren",
-    )
-    sqlite_client.execute(create_index("index_siege_siege", "siege", "siret"))
-    sqlite_client.execute(populate_table_siege_query)
-    for count_siege in sqlite_client.execute(get_table_count("siege")):
-        logging.info(
-            f"************ {count_siege} total records have been added to the "
-            f"siege table!"
-        )
-    ti = get_current_context()["ti"]
-    ti.xcom_push(key="count_siege", value=count_siege[0])
-    sqlite_client.commit_and_close_conn()
-
-
-@task
 def replace_etablissement_table():
-    return execute_query(
+    execute_query(
         query=replace_table_etablissement_query,
-    )
-
-
-@task
-def replace_siege_table():
-    return execute_query(
-        query=replace_table_siege_query,
     )
 
 
@@ -158,38 +122,6 @@ def count_nombre_etablissement_ouvert():
     )
     sqlite_client.execute(count_nombre_etablissement_ouvert_query)
     sqlite_client.commit_and_close_conn()
-
-
-@task
-def add_rne_data_to_siege_table():
-    # Connect to the first database
-    sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
-
-    # Attach the RNE database
-    sqlite_client_siren.connect_to_another_db(RNE_DATABASE_LOCATION, "db_rne")
-
-    try:
-        # Update existing rows in main siege table based on siren from rne.siege
-        sqlite_client_siren.execute(update_siege_table_fields_with_rne_data_query)
-
-        # Handling duplicates with INSERT OR IGNORE
-        sqlite_client_siren.execute(
-            insert_remaining_rne_siege_data_into_main_table_query
-        )
-        sqlite_client_siren.db_conn.commit()
-        sqlite_client_siren.detach_database("db_rne")
-        sqlite_client_siren.commit_and_close_conn()
-
-    except sqlite3.IntegrityError as e:
-        # Log the error and problematic siren values
-        logging.error(f"IntegrityError: {e}")
-        problematic_sirens = e.args[0].split(": ")[1].split(", ")
-        logging.error(f"Problematic Sirens: {problematic_sirens}")
-
-    except Exception as error:
-        # Handle other exceptions if needed
-        logging.error(f"An unexpected error occurred: {error}")
-        raise error
 
 
 @task
@@ -281,5 +213,4 @@ def create_date_fermeture_etablissement_table(ti):
 def insert_date_fermeture_etablissement():
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(insert_date_fermeture_etablissement_query)
-    sqlite_client.execute(insert_date_fermeture_siege_query)
     sqlite_client.commit_and_close_conn()

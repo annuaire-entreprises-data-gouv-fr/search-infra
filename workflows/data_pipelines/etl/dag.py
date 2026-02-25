@@ -40,33 +40,33 @@ from data_pipelines_annuaire.workflows.data_pipelines.egapro.config import EGAPR
 from data_pipelines_annuaire.workflows.data_pipelines.ess_france.config import (
     ESS_CONFIG,
 )
-
-# fmt: off
-from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.\
-    create_etablissements_tables import (
-    add_rne_data_to_siege_table,
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_dirig_tables import (
+    create_dirig_pm_table,
+    create_dirig_pp_table,
+    get_rne_database,
+)
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_etablissements_tables import (
     count_nombre_etablissement,
     count_nombre_etablissement_ouvert,
     create_date_fermeture_etablissement_table,
     create_etablissement_table,
     create_flux_etablissement_table,
     create_historique_etablissement_table,
-    create_siege_table,
     insert_date_fermeture_etablissement,
     replace_etablissement_table,
-    replace_siege_table,
 )
-from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.\
-    create_immatriculation_table import (
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_immatriculation_table import (
     copy_immatriculation_table,
 )
-from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.\
-    create_json_last_modified import (
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_json_last_modified import (
     create_data_source_last_modified_file,
 )
-from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.\
-    create_unite_legale_tables import (
-    add_ancien_siege_flux_data,
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_siege_tables import (
+    add_rne_data_to_siege_table,
+    create_ancien_siege_table,
+    create_siege_table,
+)
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_unite_legale_tables import (
     add_rne_siren_data_to_unite_legale_table,
     create_date_fermeture_unite_legale_table,
     create_flux_unite_legale_table,
@@ -75,13 +75,6 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.\
     insert_date_fermeture_unite_legale,
     replace_unite_legale_table,
 )
-from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_dirig_tables import (
-    create_dirig_pm_table,
-    create_dirig_pp_table,
-    get_rne_database,
-)
-
-# fmt: on
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.determine_sirene_date import (
     determine_sirene_date,
 )
@@ -238,27 +231,30 @@ def database_constructor():
     return (
         clean_previous_tmp_folder()
         >> determine_sirene_date()
+        # Unité Légale
         >> create_unite_legale_table()
         >> validate_unite_legale_stock_table()
-        >> create_historique_unite_legale_table()
-        >> create_date_fermeture_unite_legale_table()
-        >> create_etablissement_table()
-        >> validate_etablissement_stock_table()
         >> create_flux_unite_legale_table()
-        >> create_flux_etablissement_table()
         >> replace_unite_legale_table()
         >> validate_unite_legale_stock_flux_table()
+        >> create_historique_unite_legale_table()
+        >> create_date_fermeture_unite_legale_table()
         >> insert_date_fermeture_unite_legale()
+        # Établissement
+        >> create_etablissement_table()
+        >> validate_etablissement_stock_table()
+        >> create_flux_etablissement_table()
         >> replace_etablissement_table()
         >> validate_etablissement_stock_flux_table()
-        >> count_nombre_etablissement()
-        >> count_nombre_etablissement_ouvert()
-        >> create_siege_table()
-        >> replace_siege_table()
-        >> add_ancien_siege_flux_data()
         >> create_historique_etablissement_table()
         >> create_date_fermeture_etablissement_table()
         >> insert_date_fermeture_etablissement()
+        >> count_nombre_etablissement()
+        >> count_nombre_etablissement_ouvert()
+        # Siege
+        >> create_siege_table()
+        >> create_ancien_siege_table()
+        # RNE
         >> get_rne_database()
         >> add_rne_siren_data_to_unite_legale_table()
         >> validate_unite_legale_with_rne_table()
@@ -266,7 +262,9 @@ def database_constructor():
         >> create_dirig_pp_table()
         >> create_dirig_pm_table()
         >> copy_immatriculation_table()
+        # Labels and others
         >> additional_data_enrichement()
+        # The End
         >> upload_db_to_object_storage()
         >> create_data_source_last_modified_file()
         >> clean_current_tmp_folder()

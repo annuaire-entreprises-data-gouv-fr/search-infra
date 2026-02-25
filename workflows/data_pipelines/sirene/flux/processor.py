@@ -26,13 +26,22 @@ class SireneFluxProcessor(DataProcessor):
     BASE_ETABLISSEMENT_ENDPOINT = (
         "siret?q=dateDernierTraitementEtablissement%3A{}&champs={}&nombre=1000"
     )
-    PERIODES_FIELDS = [
+    PERIODES_ETABLISSEMENT_FIELDS = [
         "siren",
         "siret",
         "dateFin",
         "dateDebut",
         "etatAdministratifEtablissement",
         "changementEtatAdministratifEtablissement",
+    ]
+    PERIODES_UNITE_LEGALE_FIELDS = [
+        "siren",
+        "dateFin",
+        "dateDebut",
+        "etatAdministratifUniteLegale",
+        "changementEtatAdministratifUniteLegale",
+        "nicSiegeUniteLegale",
+        "changementNicSiegeUniteLegale",
     ]
 
     def __init__(self):
@@ -71,6 +80,7 @@ class SireneFluxProcessor(DataProcessor):
             "trancheEffectifsUniteLegale,"
             "dateDernierTraitementUniteLegale,"
             "categorieEntreprise,"
+            "changementEtatAdministratifUniteLegale,"
             "etatAdministratifUniteLegale,"
             "nomUniteLegale,"
             "nomUsageUniteLegale,"
@@ -87,11 +97,13 @@ class SireneFluxProcessor(DataProcessor):
             "anneeCategorieEntreprise,"
             "anneeEffectifsUniteLegale,"
             "caractereEmployeurUniteLegale,"
-            "nicSiegeUniteLegale"
+            "nicSiegeUniteLegale,"
+            "changementNicSiegeUniteLegale"
         )
         output_path = (
             f"{self.config.tmp_folder}flux_unite_legale_{self.current_month}.csv"
         )
+        periodes_output_path = f"{self.config.tmp_folder}flux_unite_legale_periodes_{self.current_month}.csv"
 
         if datetime.today().day == 1:
             logging.info(
@@ -101,9 +113,15 @@ class SireneFluxProcessor(DataProcessor):
                 fields + ",periodesUniteLegale", output_path
             )
             zip_file(output_path)
+
+            self._create_empty_csv_with_headers(
+                ",".join(self.PERIODES_UNITE_LEGALE_FIELDS), periodes_output_path
+            )
+            zip_file(periodes_output_path)
+
             DataProcessor.push_message(
                 Notification.notification_xcom_key,
-                description="0 siren (empty file created)",
+                description="0 siren (empty files created)",
             )
             return
 
@@ -119,23 +137,33 @@ class SireneFluxProcessor(DataProcessor):
 
             # Remove any SIREN we already got the last update from
             df = df[~df["siren"].isin(siren_processed)]
+            periodes_df = self.fetch_unite_legale_periodes(df)
+
             siren_processed = pd.concat([siren_processed, df["siren"]])
 
             # Overwrite file with headers for the first dump, append only afterward
             if i_date == 0:
                 df.to_csv(output_path, mode="w", header=True, index=False)
+                periodes_df.to_csv(
+                    periodes_output_path, mode="w", header=True, index=False
+                )
             else:
                 df.to_csv(output_path, mode="a", header=False, index=False)
+                periodes_df.to_csv(
+                    periodes_output_path, mode="a", header=False, index=False
+                )
 
             logging.info(
                 f"{processing_date} -- processed: {df['siren'].nunique()} siren"
             )
             del df
+            del periodes_df
 
         n_siren_processed = len(siren_processed)
-        logging.info(f"CSV output ready with {n_siren_processed} siren")
+        logging.info(f"CSV outputs ready with {n_siren_processed} siren")
         zip_file(output_path)
-        logging.info("File zipped. Done!")
+        zip_file(periodes_output_path)
+        logging.info("Files zipped. Done!")
 
         DataProcessor.push_message(
             Notification.notification_xcom_key,
@@ -162,7 +190,30 @@ class SireneFluxProcessor(DataProcessor):
             "changementEtatAdministratifEtablissement"
         ].apply(lambda x: str(x).lower())
 
-        return periodes_df[self.PERIODES_FIELDS]
+        return periodes_df[self.PERIODES_ETABLISSEMENT_FIELDS]
+
+    def fetch_unite_legale_periodes(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Fetch all periodes from unite_legale."""
+        # Explode periodesUniteLegale so each periode becomes a row
+        exploded = (
+            df[["siren", "periodesUniteLegale"]]
+            .explode("periodesUniteLegale")
+            .reset_index(drop=True)
+        )
+        # Normalize the nested dicts and join with existing siren
+        # Because pd.json_normalize() loses indices.
+        periodes_df = exploded[["siren"]].join(
+            pd.json_normalize(exploded["periodesUniteLegale"])
+        )
+        # Make the columns lowercase to match the stock format
+        periodes_df["changementNicSiegeUniteLegale"] = periodes_df[
+            "changementNicSiegeUniteLegale"
+        ].apply(lambda x: str(x).lower())
+        periodes_df["changementEtatAdministratifUniteLegale"] = periodes_df[
+            "changementEtatAdministratifUniteLegale"
+        ].apply(lambda x: str(x).lower())
+
+        return periodes_df[self.PERIODES_UNITE_LEGALE_FIELDS]
 
     def get_current_flux_etablissement(self):
         fields = (
@@ -217,7 +268,7 @@ class SireneFluxProcessor(DataProcessor):
             zip_file(output_path)
 
             self._create_empty_csv_with_headers(
-                ",".join(self.PERIODES_FIELDS), periodes_output_path
+                ",".join(self.PERIODES_ETABLISSEMENT_FIELDS), periodes_output_path
             )
             zip_file(periodes_output_path)
 
@@ -368,6 +419,13 @@ class SireneFluxProcessor(DataProcessor):
                     source_name=f"flux_unite_legale_{self.current_month}.csv.gz",
                     dest_path=self.config.object_storage_path,
                     dest_name=f"flux_unite_legale_{self.current_month}.csv.gz",
+                    content_type=None,
+                ),
+                File(
+                    source_path=self.config.tmp_folder,
+                    source_name=f"flux_unite_legale_periodes_{self.current_month}.csv.gz",
+                    dest_path=self.config.object_storage_path,
+                    dest_name=f"flux_unite_legale_periodes_{self.current_month}.csv.gz",
                     content_type=None,
                 ),
                 File(
