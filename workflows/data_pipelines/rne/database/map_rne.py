@@ -1,6 +1,9 @@
 import logging
+from datetime import date, timedelta
 
 from data_pipelines_annuaire.helpers.utils import (
+    add_years,
+    parse_to_date,
     remove_spaces,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.rne.database.rne_model import (
@@ -63,8 +66,8 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         unite_legale.immatriculation.capital_variable = identite_descr.capitalVariable
         unite_legale.immatriculation.devise_capital = identite_descr.deviseCapital
         unite_legale.immatriculation.duree_personne_morale = identite_descr.duree
-        unite_legale.immatriculation.date_fin_existence = (
-            identite_descr.dateFinExistence
+        unite_legale.immatriculation.date_fin_existence = get_date_fin_existence(
+            rne_company, identite_descr
         )
 
     unite_legale.immatriculation.nature_entreprise = get_nature_entreprise_list(
@@ -181,6 +184,39 @@ def get_date_immatriculation(rne_company: RNECompany, identite_entr):
     """
     date_creation = rne_company.formality.content.natureCreation.dateCreation
     return date_creation or (identite_entr.dateImmat if identite_entr else None)
+
+
+def get_date_fin_existence(rne_company: RNECompany, identite_descr) -> date | None:
+    """
+    Compute `immatriculation.date_fin_existence`.
+
+    Rules: (INPI rule communicated 01/26)
+    - If `identite_descr.dateFinExistence` is present, use it
+    - Otherwise compute: `dateCreation + duree - 1 day`
+      where `dateCreation` comes from `formality.content.natureCreation.dateCreation`
+    """
+    date_fin = identite_descr.dateFinExistence
+    if date_fin:
+        return date_fin
+
+    duree = identite_descr.duree
+    if not duree:
+        return None
+
+    date_creation = parse_to_date(
+        rne_company.formality.content.natureCreation.dateCreation
+    )
+    if not date_creation:
+        return None
+
+    try:
+        return add_years(date_creation, int(duree)) - timedelta(days=1)
+    except ValueError as e:
+        logging.error(
+            f"++++++++++Error computing date_fin_existence for siren {rne_company.siren} "
+            f"(date_creation={date_creation}, duree={duree}): {e}"
+        )
+        return None
 
 
 def get_denomination_personne_physique(

@@ -107,6 +107,40 @@ def normalize_date(date_string):
     logging.debug(f"Date is not in expected format: {date_string}")
 
 
+def parse_to_date(value: str | date | datetime | None) -> date | None:
+    """
+    Parse a value into a `date`.
+
+    Accepts:
+    - `date` / `datetime`
+    - ISO strings like `YYYY-MM-DD` (and also `YYYY-MM-DDTHH:MM:SS...`, we take the date part)
+    """
+    if value is None:
+        return None
+    if isinstance(value, date) and not isinstance(value, datetime):
+        return value
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, str):
+        try:
+            return date.fromisoformat(value[:10])
+        except ValueError:
+            return None
+    return None
+
+
+def add_years(d: date, years: int) -> date:
+    """
+    Add `years` to `d` preserving month/day when possible.
+
+    If `d` is Feb 29 and the target year isn't leap, clamp to Feb 28.
+    """
+    try:
+        return d.replace(year=d.year + years)
+    except ValueError:
+        return d.replace(year=d.year + years, day=28)
+
+
 def drop_exact_duplicates(list_dict):
     # frozenset is used to assign a value to key in dictionary as a set. The repeated
     # entries of dictionary are hence ignored
