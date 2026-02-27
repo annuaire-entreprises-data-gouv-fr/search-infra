@@ -43,6 +43,73 @@ class SireneFluxProcessor(DataProcessor):
         "nicSiegeUniteLegale",
         "changementNicSiegeUniteLegale",
     ]
+    UNITE_LEGALE_FIELDS = (
+        "siren,"
+        "dateCreationUniteLegale,"
+        "sigleUniteLegale,"
+        "prenomUsuelUniteLegale,"
+        "identifiantAssociationUniteLegale,"
+        "trancheEffectifsUniteLegale,"
+        "dateDernierTraitementUniteLegale,"
+        "categorieEntreprise,"
+        "changementEtatAdministratifUniteLegale,"
+        "etatAdministratifUniteLegale,"
+        "nomUniteLegale,"
+        "nomUsageUniteLegale,"
+        "denominationUniteLegale,"
+        "denominationUsuelle1UniteLegale,"
+        "denominationUsuelle2UniteLegale,"
+        "denominationUsuelle3UniteLegale,"
+        "categorieJuridiqueUniteLegale,"
+        "activitePrincipaleUniteLegale,"
+        "activitePrincipaleNAF25UniteLegale,"
+        "economieSocialeSolidaireUniteLegale,"
+        "statutDiffusionUniteLegale,"
+        "societeMissionUniteLegale,"
+        "anneeCategorieEntreprise,"
+        "anneeEffectifsUniteLegale,"
+        "caractereEmployeurUniteLegale,"
+        "nicSiegeUniteLegale,"
+        "changementNicSiegeUniteLegale"
+    )
+    ETABLISSEMENT_FIELDS = (
+        "siren,"
+        "siret,"
+        "categorieJuridiqueUniteLegale,"
+        "dateCreationEtablissement,"
+        "trancheEffectifsEtablissement,"
+        "activitePrincipaleRegistreMetiersEtablissement,"
+        "etablissementSiege,"
+        "anneeEffectifsEtablissement,"
+        "libelleVoieEtablissement,"
+        "codePostalEtablissement,"
+        "numeroVoieEtablissement,"
+        "dateDernierTraitementEtablissement,"
+        "libelleCommuneEtablissement,"
+        "libelleCedexEtablissement,"
+        "typeVoieEtablissement,"
+        "codeCommuneEtablissement,"
+        "codeCedexEtablissement,"
+        "complementAdresseEtablissement,"
+        "distributionSpecialeEtablissement,"
+        "dateDebut,"
+        "etatAdministratifEtablissement,"
+        "changementEtatAdministratifEtablissement,"
+        "enseigne1Etablissement,"
+        "enseigne2Etablissement,"
+        "enseigne3Etablissement,"
+        "denominationUsuelleEtablissement,"
+        "activitePrincipaleEtablissement,"
+        "activitePrincipaleNAF25Etablissement,"
+        "indiceRepetitionEtablissement,"
+        "libelleCommuneEtrangerEtablissement,"
+        "codePaysEtrangerEtablissement,"
+        "libellePaysEtrangerEtablissement,"
+        "statutDiffusionEtablissement,"
+        "caractereEmployeurEtablissement,"
+        "coordonneeLambertAbscisseEtablissement,"
+        "coordonneeLambertOrdonneeEtablissement"
+    )
 
     def __init__(self):
         super().__init__(FLUX_SIRENE_CONFIG)
@@ -71,35 +138,6 @@ class SireneFluxProcessor(DataProcessor):
         logging.info(f"Created empty CSV with headers at {output_path}")
 
     def get_current_flux_unite_legale(self):
-        fields = (
-            "siren,"
-            "dateCreationUniteLegale,"
-            "sigleUniteLegale,"
-            "prenomUsuelUniteLegale,"
-            "identifiantAssociationUniteLegale,"
-            "trancheEffectifsUniteLegale,"
-            "dateDernierTraitementUniteLegale,"
-            "categorieEntreprise,"
-            "changementEtatAdministratifUniteLegale,"
-            "etatAdministratifUniteLegale,"
-            "nomUniteLegale,"
-            "nomUsageUniteLegale,"
-            "denominationUniteLegale,"
-            "denominationUsuelle1UniteLegale,"
-            "denominationUsuelle2UniteLegale,"
-            "denominationUsuelle3UniteLegale,"
-            "categorieJuridiqueUniteLegale,"
-            "activitePrincipaleUniteLegale,"
-            "activitePrincipaleNAF25UniteLegale,"
-            "economieSocialeSolidaireUniteLegale,"
-            "statutDiffusionUniteLegale,"
-            "societeMissionUniteLegale,"
-            "anneeCategorieEntreprise,"
-            "anneeEffectifsUniteLegale,"
-            "caractereEmployeurUniteLegale,"
-            "nicSiegeUniteLegale,"
-            "changementNicSiegeUniteLegale"
-        )
         output_path = (
             f"{self.config.tmp_folder}flux_unite_legale_{self.current_month}.csv"
         )
@@ -110,7 +148,7 @@ class SireneFluxProcessor(DataProcessor):
                 "First of the month, the flux API won't return any output. A headers only CSV is created instead."
             )
             self._create_empty_csv_with_headers(
-                fields + ",periodesUniteLegale", output_path
+                self.UNITE_LEGALE_FIELDS + ",periodesUniteLegale", output_path
             )
             zip_file(output_path)
 
@@ -131,7 +169,9 @@ class SireneFluxProcessor(DataProcessor):
         for i_date, processing_date in enumerate(self.current_dates):
             logging.info(f"{processing_date} -- processing..")
             endpoint = self._construct_endpoint(
-                self.BASE_UNITE_LEGALE_ENDPOINT, processing_date, fields
+                self.BASE_UNITE_LEGALE_ENDPOINT,
+                processing_date,
+                self.UNITE_LEGALE_FIELDS,
             )
             df = self.client.fetch_data(endpoint, "unitesLegales")
 
@@ -216,45 +256,6 @@ class SireneFluxProcessor(DataProcessor):
         return periodes_df[self.PERIODES_UNITE_LEGALE_FIELDS]
 
     def get_current_flux_etablissement(self):
-        fields = (
-            "siren,"
-            "siret,"
-            "categorieJuridiqueUniteLegale,"
-            "dateCreationEtablissement,"
-            "trancheEffectifsEtablissement,"
-            "activitePrincipaleRegistreMetiersEtablissement,"
-            "etablissementSiege,"
-            "anneeEffectifsEtablissement,"
-            "libelleVoieEtablissement,"
-            "codePostalEtablissement,"
-            "numeroVoieEtablissement,"
-            "dateDernierTraitementEtablissement,"
-            "libelleCommuneEtablissement,"
-            "libelleCedexEtablissement,"
-            "typeVoieEtablissement,"
-            "codeCommuneEtablissement,"
-            "codeCedexEtablissement,"
-            "complementAdresseEtablissement,"
-            "distributionSpecialeEtablissement,"
-            "dateDebut,"
-            "etatAdministratifEtablissement,"
-            "changementEtatAdministratifEtablissement,"
-            "enseigne1Etablissement,"
-            "enseigne2Etablissement,"
-            "enseigne3Etablissement,"
-            "denominationUsuelleEtablissement,"
-            "activitePrincipaleEtablissement,"
-            "activitePrincipaleNAF25Etablissement,"
-            "indiceRepetitionEtablissement,"
-            "libelleCommuneEtrangerEtablissement,"
-            "codePaysEtrangerEtablissement,"
-            "libellePaysEtrangerEtablissement,"
-            "statutDiffusionEtablissement,"
-            "caractereEmployeurEtablissement,"
-            "coordonneeLambertAbscisseEtablissement,"
-            "coordonneeLambertOrdonneeEtablissement"
-        )
-
         output_path = (
             f"{self.config.tmp_folder}flux_etablissement_{self.current_month}.csv"
         )
@@ -264,7 +265,7 @@ class SireneFluxProcessor(DataProcessor):
             logging.info(
                 "First day of the month, the flux API won't return any output. A headers only CSV is created instead."
             )
-            self._create_empty_csv_with_headers(fields, output_path)
+            self._create_empty_csv_with_headers(self.ETABLISSEMENT_FIELDS, output_path)
             zip_file(output_path)
 
             self._create_empty_csv_with_headers(
@@ -284,7 +285,9 @@ class SireneFluxProcessor(DataProcessor):
         for i_date, processing_date in enumerate(self.current_dates):
             logging.info(f"{processing_date} -- processing..")
             endpoint = self._construct_endpoint(
-                self.BASE_ETABLISSEMENT_ENDPOINT, processing_date, fields
+                self.BASE_ETABLISSEMENT_ENDPOINT,
+                processing_date,
+                self.ETABLISSEMENT_FIELDS,
             )
             df = self.client.fetch_data(endpoint, "etablissements")
             df.columns = [
