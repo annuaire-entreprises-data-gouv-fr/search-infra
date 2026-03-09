@@ -206,9 +206,20 @@ def inject_records_into_db(file_path, db_path, file_type):
                 unites_legales = process_records_to_extract_rne_data(data, file_type)
             elif file_type == "flux":
                 error_count = 0
-                for line in file:
+                for line_number, line in enumerate(file, start=1):
                     try:
                         data = json.loads(line)
+                        # Temporary workaround: skip problematic SIREN in a specific flux file
+                        if (
+                            file_path == "/tmp/rne/database/rne_flux_2026-03-03.json"
+                            and data.get("company", {}).get("siren") == "508799673"
+                        ):
+                            logging.warning(
+                                "*********Skipping RNE mapping for SIREN 508799673 in file "
+                                f"{file_path} at line {line_number}"
+                            )
+                            continue
+
                         unites_legales_temp = process_records_to_extract_rne_data(
                             data, file_type
                         )
@@ -699,6 +710,7 @@ def extract_rne_data(entity, file_type="flux"):
 
     rne_company = RNECompany.model_validate(company)
     unite_legale = UniteLegale()
+
     unite_legale_formatted = map_rne_company_to_ul(rne_company, unite_legale)
 
     return unite_legale_formatted
