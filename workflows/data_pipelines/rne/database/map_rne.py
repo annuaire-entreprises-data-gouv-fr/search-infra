@@ -35,12 +35,7 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
 
     cessation = get_detail_cessation(rne_company)
     if cessation:
-        unite_legale.immatriculation.date_radiation = (
-            cessation.dateRadiation
-            or cessation.dateEffet
-            or cessation.dateCessationTotaleActivite
-            or None
-        )
+        unite_legale.immatriculation.date_radiation = cessation.dateRadiation or None
 
     identite_entr = get_identite_entreprise(rne_company)
     if identite_entr:
