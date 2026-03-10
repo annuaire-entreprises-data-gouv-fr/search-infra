@@ -651,3 +651,32 @@ def is_url_valid(url: str) -> bool:
 
 def html_to_text(html_string):
     return re.sub(r"<[^>]+>", " ", html_string).strip()
+
+
+def fetch_data_processed_from_huwise(huwise_url: str) -> str:
+    """
+    Fetch the 'data_processed' field from an Huwise dataset API.
+
+    Derives the dataset metadata URL from an export URL by removing
+    '/exports/...' and query parameters.
+
+    Args:
+        huwise_url: An Huwise export URL
+            (e.g., https://example.com/api/.../datasets/my-dataset/exports/csv?...)
+
+    Returns:
+        The 'data_processed' ISO datetime string, or None if not found.
+    """
+    parsed = urlparse(huwise_url)
+    path = parsed.path
+
+    exports_index = path.find("/exports")
+    if exports_index != -1:
+        path = path[:exports_index] + "/"
+
+    metadata_url = f"{parsed.scheme}://{parsed.netloc}{path}"
+
+    response = requests.get(metadata_url, timeout=10)
+    response.raise_for_status()
+    data = response.json()
+    return data["metas"]["default"]["data_processed"]

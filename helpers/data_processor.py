@@ -17,6 +17,7 @@ from data_pipelines_annuaire.helpers.notification import Notification, monitorin
 from data_pipelines_annuaire.helpers.object_storage import File, ObjectStorageClient
 from data_pipelines_annuaire.helpers.utils import (
     download_file,
+    fetch_data_processed_from_huwise,
     fetch_hyperlink_from_page,
     get_date_last_modified,
     save_to_metadata,
@@ -45,6 +46,7 @@ class DataProcessor(ABC):
             - destination (str): The local path to save the file.
             - dataset_id (optional, str): Indicates the resource has to be fetched from the dataset.
             - pattern (optional, str): The pattern to search for in the URL page to find the actual file link.
+            - huwise (optional, bool): If True indicates the updated date metadata can be fetched from their API.
         """
         ti = get_current_context()["ti"]
 
@@ -211,6 +213,10 @@ class DataProcessor(ABC):
                 elif "dataset_id" in params:
                     resource_id, _ = fetch_last_resource_from_dataset(params["url"])
                     date_list.append(fetch_last_modified_date(resource_id))
+                elif params.get("huwise", False):
+                    date_list.append(
+                        fetch_data_processed_from_huwise(params["huwise_url"])
+                    )
                 elif "url" in params:
                     url_date = get_date_last_modified(url=params["url"])
                     if url_date:
