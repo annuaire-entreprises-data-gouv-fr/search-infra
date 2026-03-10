@@ -8,6 +8,7 @@ from data_pipelines_annuaire.config import (
     PREVIOUS_MONTH,
     URL_STOCK_ETABLISSEMENTS,
 )
+from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.helpers.utils import is_url_valid
 from data_pipelines_annuaire.workflows.data_pipelines.sirene.stock.config import (
     STOCK_SIRENE_CONFIG,
@@ -67,6 +68,8 @@ def determine_sirene_date() -> bool:
     Otherwise it will raise a warning and use the previous month.
     """
 
+    ti = get_current_context()["ti"]
+
     sirene_processing_month: str = ""
     if check_sirene_datasets_availability("current"):
         logging.info("Using current month Sirene data.")
@@ -74,13 +77,16 @@ def determine_sirene_date() -> bool:
     elif check_sirene_datasets_availability("previous"):
         logging.warning("Using previous month Sirene data.")
         sirene_processing_month = PREVIOUS_MONTH
+        ti.xcom_push(
+            key=Notification.notification_xcom_key,
+            value=f":warning: Using Sirene data from previous month: {PREVIOUS_MONTH}. :warning:",
+        )
     else:
         raise ValueError(
             "Some of current and previous month's Sirene data are unavailable."
             "Please check the data sources."
         )
 
-    ti = get_current_context()["ti"]
     ti.xcom_push(
         key="sirene_processing_month",
         value=sirene_processing_month,
