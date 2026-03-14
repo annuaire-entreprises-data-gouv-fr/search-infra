@@ -20,6 +20,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.achats_responsables.config
 from data_pipelines_annuaire.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.aides.config import (
+    AIDES_CONFIG,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.alim_confiance.config import (
     ALIM_CONFIANCE_CONFIG,
 )
@@ -200,6 +203,7 @@ def database_constructor():
             PATRIMOINE_VIVANT_CONFIG,
             ALIM_CONFIANCE_CONFIG,
             BILAN_GES_CONFIG,
+            AIDES_CONFIG,
         ]
         tasks = []
         for config in config_list:

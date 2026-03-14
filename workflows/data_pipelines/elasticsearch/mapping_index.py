@@ -301,6 +301,7 @@ class UniteLegaleMapping(InnerDoc):
     est_entrepreneur_individuel = Boolean()
     est_entrepreneur_spectacle = Boolean()
     egapro_renseignee = Boolean()
+    aide_minimis_renseignee = Boolean()
     est_achats_responsables = Boolean()
     est_alim_confiance = Boolean()
     est_association = Boolean()
