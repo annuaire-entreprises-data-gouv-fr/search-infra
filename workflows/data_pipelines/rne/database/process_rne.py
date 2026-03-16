@@ -209,13 +209,19 @@ def inject_records_into_db(file_path, db_path, file_type):
                 for line_number, line in enumerate(file, start=1):
                     try:
                         data = json.loads(line)
-                        # Temporary workaround: skip problematic SIREN in a specific flux file
+                        ############################################################
+                        # Temporary workaround: skip problematic SIREN in specific flux files
+                        ############################################################
                         if (
                             file_path == "/tmp/rne/database/rne_flux_2026-03-03.json"
                             and data.get("company", {}).get("siren") == "508799673"
+                        ) or (
+                            file_path == "/tmp/rne/database/rne_flux_2026-03-12.json"
+                            and data.get("company", {}).get("siren") == "123456789"
                         ):
                             logging.warning(
-                                "*********Skipping RNE mapping for SIREN 508799673 in file "
+                                "*********Skipping RNE mapping for SIREN "
+                                f"{data.get('company', {}).get('siren')} in file "
                                 f"{file_path} at line {line_number}"
                             )
                             continue
