@@ -340,6 +340,8 @@ select_fields_to_index_query = """SELECT
              est_alim_confiance,
             (SELECT est_patrimoine_vivant FROM patrimoine_vivant WHERE siren = ul.siren) as
              est_patrimoine_vivant,
+            (SELECT aides_de_minimis_renseignee FROM aides WHERE siren = ul.siren) as
+             aides_de_minimis_renseignee,
             (SELECT DISTINCT colter_code_insee FROM colter WHERE siren = ul.siren) as
             colter_code_insee,
             (SELECT DISTINCT colter_code FROM colter WHERE siren = ul.siren) as colter_code,

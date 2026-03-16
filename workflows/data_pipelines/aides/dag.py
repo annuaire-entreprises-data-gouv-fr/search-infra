@@ -1,0 +1,77 @@
+from datetime import timedelta
+
+import pendulum
+from airflow.sdk import dag, task
+
+from data_pipelines_annuaire.config import EMAIL_LIST
+from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.workflows.data_pipelines.aides.processor import (
+    AidesProcessor,
+)
+
+default_args = {
+    "depends_on_past": False,
+    "email_on_failure": True,
+    "email_on_retry": False,
+    "email": EMAIL_LIST,
+    "retries": 1,
+}
+
+
+@dag(
+    tags=["aides", "label"],
+    default_args=default_args,
+    schedule="0 16 * * *",
+    start_date=pendulum.today("UTC").add(days=-8),
+    dagrun_timeout=timedelta(minutes=60 * 5),
+    params={},
+    catchup=False,
+    on_failure_callback=Notification(),
+    on_success_callback=Notification(),
+)
+def data_processing_aides():
+    aides_processor = AidesProcessor()
+
+    @task.bash
+    def clean_previous_outputs():
+        return (
+            f"rm -rf {aides_processor.config.tmp_folder} "
+            f"&& mkdir -p {aides_processor.config.tmp_folder}"
+        )
+
+    @task
+    def download_data():
+        return aides_processor.download_data()
+
+    @task
+    def preprocess_data():
+        return aides_processor.preprocess_data()
+
+    @task
+    def save_date_last_modified():
+        return aides_processor.save_date_last_modified()
+
+    @task
+    def send_file_to_object_storage():
+        return aides_processor.send_file_to_object_storage()
+
+    @task
+    def compare_files_object_storage():
+        return aides_processor.compare_files_object_storage()
+
+    @task.bash
+    def clean_up():
+        return f"rm -rf {aides_processor.config.tmp_folder}"
+
+    return (
+        clean_previous_outputs()
+        >> download_data()
+        >> preprocess_data()
+        >> save_date_last_modified()
+        >> send_file_to_object_storage()
+        >> compare_files_object_storage()
+        >> clean_up()
+    )
+
+
+data_processing_aides()
