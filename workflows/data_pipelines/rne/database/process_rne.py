@@ -213,11 +213,21 @@ def inject_records_into_db(file_path, db_path, file_type):
                         # Temporary workaround: skip problematic SIREN in specific flux files
                         ############################################################
                         if (
-                            file_path == "/tmp/rne/database/rne_flux_2026-03-03.json"
-                            and data.get("company", {}).get("siren") == "508799673"
-                        ) or (
-                            file_path == "/tmp/rne/database/rne_flux_2026-03-12.json"
-                            and data.get("company", {}).get("siren") == "123456789"
+                            (
+                                file_path
+                                == "/tmp/rne/database/rne_flux_2026-03-03.json"
+                                and data.get("company", {}).get("siren") == "508799673"
+                            )
+                            or (
+                                file_path
+                                == "/tmp/rne/database/rne_flux_2026-03-12.json"
+                                and data.get("company", {}).get("siren") == "123456789"
+                            )
+                            or (
+                                file_path
+                                == "/tmp/rne/database/rne_flux_2026-03-18.json"
+                                and data.get("company", {}).get("siren") == "981418494"
+                            )
                         ):
                             logging.warning(
                                 "*********Skipping RNE mapping for SIREN "
