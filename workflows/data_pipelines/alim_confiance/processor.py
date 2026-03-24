@@ -33,6 +33,7 @@ class AlimConfianceProcessor(DataProcessor):
         df_alim = clean_sirent_column(
             df=df_alim,
             column_type="siren",
+            max_removal_percentage=1,
         )
 
         df_alim.to_csv(self.config.file_output, index=False)
