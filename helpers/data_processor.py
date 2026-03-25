@@ -105,7 +105,7 @@ class DataProcessor(ABC):
 
                         try:
                             file_url = fetch_hyperlink_from_page(url, search_text)
-                            # Add information message to the Mattermost notification
+                            # Add information message to the Tchap notification
                             # that only the previous file was found.
                             ti.xcom_push(
                                 key=Notification.notification_xcom_key,

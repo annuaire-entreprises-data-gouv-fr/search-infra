@@ -149,18 +149,6 @@ def drop_exact_duplicates(list_dict):
     )
 
 
-def publish_mattermost(
-    text,
-) -> None:
-    data = {"text": f"{text} ({AIRFLOW_ENV})"}
-    if AIRFLOW_ENV == "prod" or AIRFLOW_ENV == "staging":
-        r = requests.post(
-            "https://mattermost.incubateur.net/hooks/z4k8a159yjnx584idit1ubf74r",
-            json=data,
-        )
-        logging.info(f"Status code: {r.status_code}")
-
-
 def compare_versions_file(
     original_file: str,
     new_file: str,
@@ -659,3 +647,7 @@ def is_url_valid(url: str) -> bool:
     except requests.RequestException as e:
         logging.warning(f"Error checking URL status: {e}")
         return False
+
+
+def html_to_text(html_string):
+    return re.sub(r"<[^>]+>", " ", html_string).strip()

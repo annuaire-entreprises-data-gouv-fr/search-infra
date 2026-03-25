@@ -1,42 +1,48 @@
 import logging
+from typing import Literal
 
 import requests
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
-    TCHAP_ANNUAIRE_ROOM_ID,
-    TCHAP_ANNUAIRE_WEBHOOK,
+    TCHAP_BOT_DEPLOIEMENT_ROOM_ID,
+    TCHAP_ENDPOINT,
+    TCHAP_OPI_DATA_TOKEN,
 )
+from data_pipelines_annuaire.helpers.utils import html_to_text
 
 
-def send_message_tchap(
+def send_message(
     text: str,
-    endpoint_url: str = TCHAP_ANNUAIRE_WEBHOOK,
-    image_url: str | None = None,
+    tchap_message_type: Literal["text", "notice"] = "text",
+    room_id: str = TCHAP_BOT_DEPLOIEMENT_ROOM_ID,
 ) -> None:
-    """Send a message to a Tchap channel.
+    """
+    Send a message to a Tchap channel.
 
     Args:
-        endpoint_url (str): URL of the Tchap endpoint (for bot)
-        text (str): Text to send to a channel
-        image_url (Optional[str], optional): Url of an image to link
-        with your text. Defaults to None.
+        text (str): Text to send to a channel. Has to be formatted with html.
+        tchap_message_type (Literal["text", "notice"], optional):
+            A notice type will not trigger a notification on Tchap but if the user is mentionned
+            A text type message will trigger the usual Tchap notification
+        room_id (str, optional): the full Tchap room ID
     """
     if AIRFLOW_ENV != "prod":
         return None
-    data = {"roomId": TCHAP_ANNUAIRE_ROOM_ID, "message": text}
-    if image_url:
-        data["attachments"] = [{"image_url": image_url}]
+    room_url = f"{TCHAP_ENDPOINT}/{room_id}/send/m.room.message"
+    data = {
+        "msgtype": f"m.{tchap_message_type}",
+        "body": html_to_text(text),
+        "formatted_body": text,
+    }
 
     try:
-        response = requests.post(endpoint_url, json=data)
+        response = requests.post(
+            room_url,
+            headers={"Authorization": f"Bearer {TCHAP_OPI_DATA_TOKEN}"},
+            json=data,
+        )
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         logging.error(f"Failed to send message: {e}")
         raise Exception(f"Failed to send message: {e}")
-
-
-def send_notification_failure_tchap(context):
-    dag_id = context["dag"].dag_id  # Get the dag_id from the context
-    message = f"\U0001f534 Fail DAG: {dag_id}!!!!"
-    send_message_tchap(message)

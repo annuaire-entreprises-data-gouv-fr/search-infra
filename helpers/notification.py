@@ -3,7 +3,7 @@ from enum import Enum
 
 from airflow.sdk import BaseNotifier
 
-from data_pipelines_annuaire.helpers import AirflowApiClient, mattermost
+from data_pipelines_annuaire.helpers import AirflowApiClient, tchap
 
 
 def monitoring_logger(key: str, value: int) -> None:
@@ -21,12 +21,12 @@ def monitoring_logger(key: str, value: int) -> None:
 
 class Notification(BaseNotifier):
     """
-    Class to manage and send end of DAG notifications to Mattermost.
+    Class to manage and send end of DAG notifications to Tchap.
     Must read documentation: https://airflow.apache.org/docs/apache-airflow-providers/core-extensions/notifications.html
 
     Methods:
         notify() -> None:
-            Sends a notification to Mattermost with the following format:
+            Sends a notification to Tchap with the following format:
                 🔴 dagA: Données
                 - N rows were updated.
                 - task2(failed)
@@ -45,10 +45,10 @@ class Notification(BaseNotifier):
     notification_xcom_key = "notification_message"
 
     class Status(str, Enum):
-        SUCCESS = ":large_green_circle:"
-        WARNING = ":large_orange_circle:"
-        RUNNING = ":arrow_forward:"
-        FAILURE = ":red_circle:"
+        SUCCESS = "🟢"
+        WARNING = "🟠"
+        RUNNING = "▶️"
+        FAILURE = "🔴"
 
     def notify(self, context):
         if "ti" not in context or "dag_run" not in context:
@@ -59,12 +59,15 @@ class Notification(BaseNotifier):
         dag_id = dag_run.dag_id
         run_id = dag_run.run_id
 
+        tchap_message_type = "text"
         if dag_run.state == "success":
             status = self.Status.SUCCESS
-        elif dag_run.state == "failed":
-            status = self.Status.FAILURE
+            tchap_message_type = "notice"
         elif dag_run.state == "running":
             status = self.Status.RUNNING
+            tchap_message_type = "notice"
+        elif dag_run.state == "failed":
+            status = self.Status.FAILURE
         else:
             status = self.Status.WARNING
 
@@ -80,7 +83,7 @@ class Notification(BaseNotifier):
             elif notification_message is None and task["state"] == "failed":
                 # Add warning emoji only if the overall DAG run
                 # is successful to increase visibility
-                warning_emoji = ":warning: " if status == self.Status.SUCCESS else ""
+                warning_emoji = "⚠️ " if status == self.Status.SUCCESS else ""
                 additional_messages.append(
                     f"- {warning_emoji}{task['task_id']}({task['state']})"
                 )
@@ -91,4 +94,4 @@ class Notification(BaseNotifier):
             additional_messages_str = ""
         message = f"{status.value} airflow : {dag_id} {additional_messages_str}"
 
-        mattermost.send_message(message)
+        tchap.send_message(message, tchap_message_type)

@@ -7,13 +7,13 @@ from data_pipelines_annuaire.workflows.data_pipelines.rne.database.task_function
     check_db_count,
     create_db,
     get_latest_db,
+    get_start_date,
     process_flux_json_files,
     process_stock_json_files,
     remove_duplicates,
+    send_notification_tchap,
     upload_db_to_object_storage,
     upload_latest_date_rne_object_storage,
-    get_start_date,
-    send_notification_mattermost,
 )
 
 default_args = {
@@ -53,7 +53,7 @@ def fill_rne_database():
         >> upload_db_to_object_storage()
         >> upload_latest_date_rne_object_storage()
         >> clean_outputs()
-        >> send_notification_mattermost()
+        >> send_notification_tchap()
     )
 
 
