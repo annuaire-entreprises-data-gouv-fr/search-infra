@@ -42,7 +42,7 @@ def data_processing_sirene_stock():
         return sirene_stock_processor.download_data()
 
     @task()
-    def send_stock_file_to_object_storage():
+    def send_file_to_object_storage():
         return sirene_stock_processor.send_stock_to_object_storage()
 
     @task.bash
@@ -52,10 +52,9 @@ def data_processing_sirene_stock():
     return (
         clean_previous_outputs()
         >> download_stock()
-        >> send_stock_file_to_object_storage()
+        >> send_file_to_object_storage()
         >> clean_up()
     )
 
 
-# Instantiate the DAG
 data_processing_sirene_stock()
