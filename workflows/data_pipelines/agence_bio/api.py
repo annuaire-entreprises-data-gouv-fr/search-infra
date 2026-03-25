@@ -16,7 +16,11 @@ class BioApiClient(ApiClient):
         current_params: dict[str, Any] | None = None,
     ) -> tuple[list[dict[str, Any]] | None, dict[str, Any] | None]:
         if current_params is None:
-            initial_params = {"nb": f"{self.BATCH_SIZE}", "debut": "0"}
+            initial_params = {
+                "nb": f"{self.BATCH_SIZE}",
+                "debut": "0",
+                "filtrerEngages": 1,
+            }
             return None, initial_params
 
         data = response.get("items", [])
