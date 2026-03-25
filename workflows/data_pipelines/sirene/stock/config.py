@@ -9,14 +9,14 @@ STOCK_SIRENE_CONFIG = DataSourceConfig(
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/sirene/stock/",
     files_to_download={
         "stock_unite_legale": {
-            "resource_id": "825f4199-cadd-486c-ac46-a65a8ea1a047",
-            "url": "https://www.data.gouv.fr/datasets/r/825f4199-cadd-486c-ac46-a65a8ea1a047",
-            "destination": f"{DataSourceConfig.base_tmp_folder}/sirene/stock/StockUniteLegale_{CURRENT_MONTH}.zip",
+            "resource_id": "350182c9-148a-46e0-8389-76c2ec1374a3",
+            "url": "https://www.data.gouv.fr/datasets/r/350182c9-148a-46e0-8389-76c2ec1374a3",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/sirene/stock/StockUniteLegale_{CURRENT_MONTH}.parquet",
         },
         "historique_unite_legale": {
-            "resource_id": "0835cd60-2c2a-497b-bc64-404de704ce89",
-            "url": "https://www.data.gouv.fr/datasets/r/0835cd60-2c2a-497b-bc64-404de704ce89",
-            "destination": f"{DataSourceConfig.base_tmp_folder}/sirene/stock/StockUniteLegaleHistorique_{CURRENT_MONTH}.zip",
+            "resource_id": "1b9290ed-d0bc-461f-ba31-0250a99cc140",
+            "url": "https://www.data.gouv.fr/datasets/r/1b9290ed-d0bc-461f-ba31-0250a99cc140",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/sirene/stock/StockUniteLegaleHistorique_{CURRENT_MONTH}.parquet",
         },
         "stock_etablissement": {
             "resource_id": "0651fb76-bcf3-4f6a-a38d-bc04fa708576",
@@ -24,9 +24,9 @@ STOCK_SIRENE_CONFIG = DataSourceConfig(
             "destination": f"{DataSourceConfig.base_tmp_folder}/sirene/stock/StockEtablissement_{CURRENT_MONTH}.zip",
         },
         "historique_etablissement": {
-            "resource_id": "88fbb6b4-0320-443e-b739-b4376a012c32",
-            "url": "https://www.data.gouv.fr/datasets/r/88fbb6b4-0320-443e-b739-b4376a012c32",
-            "destination": f"{DataSourceConfig.base_tmp_folder}/sirene/stock/StockEtablissementHistorique_{CURRENT_MONTH}.zip",
+            "resource_id": "2b3a0c79-f97b-46b8-ac02-8be6c1f01a8c",
+            "url": "https://www.data.gouv.fr/datasets/r/2b3a0c79-f97b-46b8-ac02-8be6c1f01a8c",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/sirene/stock/StockEtablissementHistorique_{CURRENT_MONTH}.parquet",
         },
         "geo_stats": {
             "resource_id": "ba6a4e4c-aac6-4764-bbd2-f80ae345afc5",
