@@ -79,7 +79,7 @@ def determine_sirene_date() -> bool:
         sirene_processing_month = PREVIOUS_MONTH
         ti.xcom_push(
             key=Notification.notification_xcom_key,
-            value=f":warning: Using Sirene data from previous month: {PREVIOUS_MONTH}. :warning:",
+            value=f"⚠️ Using Sirene data from previous month: {PREVIOUS_MONTH}. ⚠️",
         )
     else:
         raise ValueError(

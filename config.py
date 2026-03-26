@@ -96,9 +96,9 @@ CC_TMP_FOLDER = f"{AIRFLOW_DAG_TMP}convention_collective/"
 OBJECT_STORAGE_DATA_SOURCE_UPDATE_DATES_FILE = "data_source_updates.json"
 
 # Notification
-TCHAP_ANNUAIRE_WEBHOOK = Variable.get("TCHAP_ANNUAIRE_WEBHOOK", "")
-TCHAP_ANNUAIRE_ROOM_ID = Variable.get("TCHAP_ANNUAIRE_ROOM_ID", "")
-MATTERMOST_WEBHOOK = Variable.get("MATTERMOST_WEBHOOK", "")
+TCHAP_ENDPOINT = Variable.get("TCHAP_ENDPOINT", "")
+TCHAP_OPI_DATA_TOKEN = Variable.get("TCHAP_OPI_DATA_TOKEN", "")
+TCHAP_BOT_DEPLOIEMENT_ROOM_ID = Variable.get("TCHAP_BOT_DEPLOIEMENT_ROOM_ID", "")
 EMAIL_LIST = Variable.get("EMAIl_LIST", "")
 
 # Object Storage

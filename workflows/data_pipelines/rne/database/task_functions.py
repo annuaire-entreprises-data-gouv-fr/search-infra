@@ -16,8 +16,8 @@ from data_pipelines_annuaire.config import (
     RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
     RNE_OBJECT_STORAGE_STOCK_DATA_PATH,
 )
-from data_pipelines_annuaire.helpers.mattermost import send_message
 from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
+from data_pipelines_annuaire.helpers.tchap import send_message
 from data_pipelines_annuaire.workflows.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
 )
@@ -405,10 +405,12 @@ def upload_latest_date_rne_object_storage():
 
 
 @task
-def send_notification_mattermost():
+def send_notification_tchap():
     ti = get_current_context()["ti"]
     start_date = ti.xcom_pull(key="start_date", task_ids="get_start_date")
     last_date_processed = ti.xcom_pull(
         key="last_date_processed", task_ids="process_flux_json_files"
     )
-    send_message(f"🟢 Données RNE traitées de {start_date} à {last_date_processed}.")
+    send_message(
+        f"🟢 Données RNE traitées de {start_date} à {last_date_processed}.", "notice"
+    )
