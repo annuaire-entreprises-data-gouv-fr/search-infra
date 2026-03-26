@@ -79,19 +79,23 @@ class Notification(BaseNotifier):
                 task_ids=task["task_id"], key=self.notification_xcom_key
             )
             if notification_message is not None:
-                additional_messages.append(f"- {notification_message}")
+                additional_messages.append(notification_message)
             elif notification_message is None and task["state"] == "failed":
                 # Add warning emoji only if the overall DAG run
                 # is successful to increase visibility
                 warning_emoji = "⚠️ " if status == self.Status.SUCCESS else ""
                 additional_messages.append(
-                    f"- {warning_emoji}{task['task_id']}({task['state']})"
+                    f"{warning_emoji}{task['task_id']}({task['state']})"
                 )
 
         if additional_messages:
-            additional_messages_str = "\n" + "\n".join(additional_messages)
+            additional_messages_str = (
+                "<ul>"
+                + "".join(f"<li>{message}</li>" for message in additional_messages)
+                + "</ul>"
+            )
         else:
             additional_messages_str = ""
-        message = f"{status.value} airflow : {dag_id} {additional_messages_str}"
+        message = f"<p>{status.value} airflow : {dag_id}</p>{additional_messages_str}"
 
         tchap.send_message(message, tchap_message_type)

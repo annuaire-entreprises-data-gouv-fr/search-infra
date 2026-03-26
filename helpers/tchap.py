@@ -23,14 +23,15 @@ def send_message(
     Args:
         text (str): Text to send to a channel. Has to be formatted with html.
         tchap_message_type (Literal["text", "notice"], optional):
-            A notice type will not trigger a notification on Tchap but if the user is mentionned
-            A text type message will trigger the usual Tchap notification
+            - "notice" type will not trigger a notification on Tchap but if the user is mentionned
+            - "text" type message will trigger the usual Tchap notification
         room_id (str, optional): the full Tchap room ID
     """
     if AIRFLOW_ENV != "prod":
         return None
     room_url = f"{TCHAP_ENDPOINT}/{room_id}/send/m.room.message"
     data = {
+        "format": "org.matrix.custom.html",
         "msgtype": f"m.{tchap_message_type}",
         "body": html_to_text(text),
         "formatted_body": text,
@@ -39,7 +40,10 @@ def send_message(
     try:
         response = requests.post(
             room_url,
-            headers={"Authorization": f"Bearer {TCHAP_OPI_DATA_TOKEN}"},
+            headers={
+                "content-type": "application/json",
+                "Authorization": f"Bearer {TCHAP_OPI_DATA_TOKEN}",
+            },
             json=data,
         )
         response.raise_for_status()
