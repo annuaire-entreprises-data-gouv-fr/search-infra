@@ -90,10 +90,7 @@ def check_elastic_index():
         ti.xcom_push(key=Notification.notification_xcom_key, value=failure_message)
         raise ValueError(failure_message)
 
-    success_message = (
-        f"DAG d'indexation a été exécuté avec succès."
-        f"\n - Nombre de documents indexés : {doc_count}"
-    )
+    success_message = f"Nombre de documents indexés : {doc_count}"
     ti.xcom_push(key=Notification.notification_xcom_key, value=success_message)
     logging.info(success_message)
 
