@@ -1,5 +1,8 @@
 import json
 import logging
+from typing import Literal
+
+from pydantic import ValidationError
 
 from data_pipelines_annuaire.workflows.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
@@ -194,91 +197,67 @@ def create_index_db(cursor):
         cursor.execute(statement)
 
 
-def inject_records_into_db(file_path, db_path, file_type):
+def inject_records_into_db(
+    file_path: str, db_path: str, file_type: Literal["flux", "stock"]
+) -> int:
+    SIRENE_WITH_KNOWN_ISSUES = ["508799673", "123456789", "981418494"]
     unites_legales = []
+    json_decode_error_count = 0
 
     with open(file_path, "r") as file:
         logging.info(f"Injecting records from file: {file_path}")
+        file_content = []
         try:
             if file_type == "stock":
-                json_data = file.read()
-                data = json.loads(json_data)
-                unites_legales = process_records_to_extract_rne_data(data, file_type)
-            elif file_type == "flux":
-                error_count = 0
-                for line_number, line in enumerate(file, start=1):
+                # Stock file looks like: [{},{},{}]
+                file_content = json.loads(file.read())
+            if file_type == "flux":
+                # Flux file looks like: {}\n{}\n{}
+                for line in file:
                     try:
-                        data = json.loads(line)
-                        ############################################################
-                        # Temporary workaround: skip problematic SIREN in specific flux files
-                        ############################################################
-                        if (
-                            (
-                                file_path
-                                == "/tmp/rne/database/rne_flux_2026-03-03.json"
-                                and data.get("company", {}).get("siren") == "508799673"
-                            )
-                            or (
-                                file_path
-                                == "/tmp/rne/database/rne_flux_2026-03-12.json"
-                                and data.get("company", {}).get("siren") == "123456789"
-                            )
-                            or (
-                                file_path
-                                == "/tmp/rne/database/rne_flux_2026-03-18.json"
-                                and data.get("company", {}).get("siren") == "981418494"
-                            )
-                        ):
-                            logging.warning(
-                                "*********Skipping RNE mapping for SIREN "
-                                f"{data.get('company', {}).get('siren')} in file "
-                                f"{file_path} at line {line_number}"
-                            )
-                            continue
-
-                        unites_legales_temp = process_records_to_extract_rne_data(
-                            data, file_type
-                        )
-                        unites_legales += unites_legales_temp
+                        file_content_record = json.loads(line)
+                        file_content.append(file_content_record)
                     except json.JSONDecodeError as e:
-                        if error_count < 3:
+                        if json_decode_error_count < 3:
                             logging.error(
-                                f"JSONDecodeError: {e} in file "
-                                f"{file_path} at line {line}"
+                                f"JSONDecodeError: {e} in file {file_path} at line {line}"
                             )
-                            error_count += 1
                         else:
                             logging.error(
                                 "More JSONDecodeErrors occurred but logging is limited."
                             )
                         # Skip the problematic line and continue with the next line
+                        json_decode_error_count += 1
                         continue
-                    # If the pending queue exceeds 100,000, we insert it directly;
-                    # otherwise, it is inserted at the end of the loop.
-                    if len(unites_legales) > 100000:
-                        insert_unites_legales_into_db(
-                            unites_legales, file_path, db_path
+
+            for record in file_content:
+                company = record.get("company", {}) if file_type == "flux" else record
+                try:
+                    unite_legale_processed = extract_rne_data(company, file_type)
+                except (ValidationError, AttributeError) as _:
+                    # Check if it's a known problematic SIREN
+                    siren = record.get("formality", {}).get("siren")
+                    if siren in SIRENE_WITH_KNOWN_ISSUES:
+                        logging.warning(
+                            "*********⚠️ Skipping RNE mapping for SIREN "
+                            f"{siren}. It is a SIREN with a known issue."
                         )
-                        unites_legales = []
+                        continue
+                    else:
+                        # Raise the exception anyway for new SIREN issues
+                        raise
+                unites_legales.append(unite_legale_processed)
+                # If the pending queue exceeds 100,000, we insert it directly;
+                # otherwise, it is inserted at the end of the loop.
+                if len(unites_legales) > 100000:
+                    insert_unites_legales_into_db(unites_legales, file_path, db_path)
+                    unites_legales = []
 
         except Exception as e:
             raise Exception(f"Exception: {e} in file {file_path}")
         insert_unites_legales_into_db(unites_legales, file_path, db_path)
 
-
-def process_records_to_extract_rne_data(data, file_type):
-    unites_legales = []
-
-    def process_record(record):
-        return extract_rne_data(record, file_type)
-
-    if file_type == "stock":
-        unites_legales = [process_record(record) for record in data]
-    elif file_type == "flux":
-        unites_legale = process_record(data)
-        unites_legales.append(unites_legale)
-
-    return unites_legales
+    return json_decode_error_count
 
 
 def find_and_delete_same_siren(cursor, siren, file_path):
@@ -719,10 +698,8 @@ def get_tables_count(db_path):
     return count_ul, count_siege, count_pp, count_pm, count_immat
 
 
-def extract_rne_data(entity, file_type="flux"):
+def extract_rne_data(company, file_type="flux"):
     """Extract "unites legales" data from RNE json object."""
-
-    company = entity.get("company", {}) if file_type == "flux" else entity
 
     rne_company = RNECompany.model_validate(company)
     unite_legale = UniteLegale()

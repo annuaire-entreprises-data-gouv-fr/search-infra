@@ -16,7 +16,7 @@ from data_pipelines_annuaire.config import (
     RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
     RNE_OBJECT_STORAGE_STOCK_DATA_PATH,
 )
-from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
+from data_pipelines_annuaire.helpers import Notification, ObjectStorageClient
 from data_pipelines_annuaire.helpers.tchap import send_message
 from data_pipelines_annuaire.workflows.data_pipelines.rne.database.db_connexion import (
     connect_to_db,
@@ -214,6 +214,7 @@ def process_flux_json_files():
     # Do not process last flux file because it might not be completed
     json_daily_flux_files = json_daily_flux_files[:-1]
 
+    json_decode_error_count = 0
     for file_path in sorted(json_daily_flux_files, reverse=False):
         date_match = re.search(r"rne_flux_(\d{4}-\d{2}-\d{2})", file_path)
         if date_match:
@@ -240,7 +241,9 @@ def process_flux_json_files():
                 # Remove zip file
                 os.remove(f"{json_path}.gz")
 
-                inject_records_into_db(json_path, rne_db_path, "flux")
+                json_decode_error_count = inject_records_into_db(
+                    json_path, rne_db_path, "flux"
+                )
                 logging.info(
                     f"File {json_path} processed and"
                     " records injected into the database."
@@ -257,6 +260,10 @@ def process_flux_json_files():
     else:
         last_date_processed = None
     ti.xcom_push(key="last_date_processed", value=last_date_processed)
+    ti.xcom_push(
+        key=Notification.notification_xcom_key,
+        value=f"Nombre d'erreurs de décodage Json : {json_decode_error_count}",
+    )
 
 
 @task
