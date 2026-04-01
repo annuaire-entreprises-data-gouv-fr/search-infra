@@ -138,6 +138,8 @@ def download_flux(data_dir):
                 "statutDiffusionEtablissement",
                 "coordonneeLambertAbscisseEtablissement",
                 "coordonneeLambertOrdonneeEtablissement",
+                "latitude",
+                "longitude",
             ],
         )
         return df_flux
@@ -307,3 +309,57 @@ def preprocess_flux_periodes_data(data_dir):
                 "etat_administratif_etablissement",
             ]
         )
+
+
+def download_geo_stats_iterator(data_dir: str, chunksize: int = 500_000):
+    filename = STOCK_SIRENE_CONFIG.files_to_download["geo_stats"]["destination"].split(
+        "/"
+    )[-1]
+    url = STOCK_SIRENE_CONFIG.url_object_storage + filename
+
+    logging.info(f"Downloading and unpacking {url}..")
+    try:
+        r = requests.get(
+            url,
+            allow_redirects=True,
+        )
+        # Check if the response indicates a NoSuchKey error
+        if r.status_code == 404:
+            # Try with previous month's file
+            filename_prev = filename.replace(CURRENT_MONTH, PREVIOUS_MONTH)
+            url_prev = STOCK_SIRENE_CONFIG.url_object_storage + filename_prev
+            logging.warning(
+                f"File not found at {url}, trying previous month: {url_prev}"
+            )
+            r = requests.get(
+                url_prev,
+                allow_redirects=True,
+            )
+            filename = filename_prev
+
+        open(data_dir + filename, "wb").write(r.content)
+        shutil.unpack_archive(data_dir + filename, data_dir)
+
+        return pd.read_csv(
+            f"{data_dir}GeolocalisationEtablissement_Sirene_pour_etudes_statistiques_utf8.csv",
+            sep=";",
+            dtype=str,
+            usecols=["siret", "x_longitude", "y_latitude"],
+            chunksize=chunksize,
+        )
+    except Exception as e:
+        logging.error(f"Failed to download geo stats: {e}")
+        raise
+
+
+def preprocess_geo_stats_data(data_dir: str):
+    for df_chunk in download_geo_stats_iterator(data_dir):
+        df_chunk = df_chunk.rename(
+            columns={
+                "x_longitude": "longitude",
+                "y_latitude": "latitude",
+            }
+        )
+        df_chunk["latitude"] = df_chunk["latitude"].replace("[ND]", None)
+        df_chunk["longitude"] = df_chunk["longitude"].replace("[ND]", None)
+        yield df_chunk
