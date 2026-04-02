@@ -237,9 +237,8 @@ def get_every_day_flux():
         current_date = next_day
 
     success_message = (
-        f"\nDonnées flux RNE mises à jour."
-        f"\n - Date début flux : {start_date}."
-        f"\n - Date fin flux : {end_date}."
+        "Données flux RNE mises à jour."
+        f"<ul><li>Date début flux : {start_date}.</li>"
+        f"<li>Date fin flux : {end_date}.</li></ul>"
     )
     ti.xcom_push(key=Notification.notification_xcom_key, value=success_message)
-    logging.info(success_message)
