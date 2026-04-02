@@ -236,7 +236,7 @@ def inject_records_into_db(
                     unite_legale_processed = extract_rne_data(company, file_type)
                 except (ValidationError, AttributeError) as _:
                     # Check if it's a known problematic SIREN
-                    siren = record.get("formality", {}).get("siren")
+                    siren = company.get("formality", {}).get("siren")
                     if siren in SIRENE_WITH_KNOWN_ISSUES:
                         logging.warning(
                             "*********⚠️ Skipping RNE mapping for SIREN "
