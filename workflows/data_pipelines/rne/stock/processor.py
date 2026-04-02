@@ -18,7 +18,7 @@ class RneStockProcessor(DataProcessor):
     def download_stock(self, ftp_url: str) -> None:
         """Downloads the stock file from FTP server"""
 
-        logging.info(f"+++++++++++++{RNE_STOCK_CONFIG.files_to_download}")
+        logging.info(f"+++++++++++++{ftp_url.split('@')[1]}")
 
         script_path = os.path.join(
             AIRFLOW_DAG_HOME,
