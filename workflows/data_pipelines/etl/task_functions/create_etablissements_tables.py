@@ -1,18 +1,19 @@
 import logging
 
-from airflow.sdk import task
+from airflow.sdk import get_current_context, task
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ETL_DATA_DIR,
     SIRENE_DATABASE_LOCATION,
 )
-from data_pipelines_annuaire.helpers.labels.departements import all_deps
+from data_pipelines_annuaire.helpers.data_processor import Notification
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 from data_pipelines_annuaire.workflows.data_pipelines.etl.data_fetch_clean.etablissements import (
-    preprocess_etablissement_data,
+    preprocess_flux_etablissement_data,
     preprocess_flux_periodes_data,
     preprocess_geo_stats_data,
     preprocess_historique_etablissement_data,
+    preprocess_stock_etablissement_data,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.helpers import (
     create_index,
@@ -33,6 +34,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.queries.etablis
     create_table_historique_etablissement_query,
     insert_date_fermeture_etablissement_query,
     replace_table_etablissement_query,
+    update_etablissement_coordinates_from_geo_stats_query,
 )
 
 
@@ -45,10 +47,17 @@ def create_etablissement_table():
         index_name="index_etablissement",
         index_column="siren",
     )
-    # Upload geo data by departement
-    for dep in all_deps:
-        df_dep = preprocess_etablissement_data("stock", dep, None)
-        df_dep.to_sql(
+
+    for df_chunk in preprocess_stock_etablissement_data():
+        df_chunk["coord_source"] = df_chunk.apply(
+            lambda row: (
+                "stock"
+                if row["latitude"] is not None and row["longitude"] is not None
+                else "stock_vide"
+            ),
+            axis=1,
+        )
+        df_chunk.to_sql(
             "etablissement", sqlite_client.db_conn, if_exists="append", index=False
         )
         for row in sqlite_client.execute(get_table_count("etablissement")):
@@ -56,7 +65,7 @@ def create_etablissement_table():
                 f"************ {row} records have been added to the "
                 f"`établissements` table!"
             )
-    del df_dep
+        del df_chunk
 
     for count_etablissement in sqlite_client.execute(get_table_count("etablissement")):
         logging.info(
@@ -75,15 +84,21 @@ def create_flux_etablissement_table():
         index_name="index_flux_etablissement",
         index_column="siren",
     )
-    # Upload flux data
-    df_etablissement = preprocess_etablissement_data("flux", None, AIRFLOW_ETL_DATA_DIR)
-    df_etablissement.to_sql(
-        "flux_etablissement",
-        sqlite_client.db_conn,
-        if_exists="append",
-        index=False,
-    )
-    del df_etablissement
+    for df_chunk in preprocess_flux_etablissement_data(AIRFLOW_ETL_DATA_DIR):
+        df_chunk["coord_source"] = df_chunk.apply(
+            lambda row: (
+                "flux"
+                if row["latitude"] is not None and row["longitude"] is not None
+                else "flux_vide"
+            ),
+            axis=1,
+        )
+        df_chunk.to_sql(
+            "flux_etablissement",
+            sqlite_client.db_conn,
+            if_exists="append",
+            index=False,
+        )
     for row in sqlite_client.execute(get_table_count("flux_etablissement")):
         logging.info(
             f"************ {row} total records have been added to the "
@@ -244,3 +259,37 @@ def insert_date_fermeture_etablissement():
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(insert_date_fermeture_etablissement_query)
     sqlite_client.commit_and_close_conn()
+
+
+@task
+def apply_geo_stats_coordinates():
+    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
+    sqlite_client.execute(update_etablissement_coordinates_from_geo_stats_query)
+    logging.info("Applied geo_stats coordinates to etablissement table")
+
+    stats_query = """
+    SELECT
+        ROUND(SUM(CASE WHEN latitude IS NOT NULL AND longitude IS NOT NULL THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) as geocoded,
+        ROUND(SUM(CASE WHEN coord_source = 'geo_stats' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) as geo_stats,
+        ROUND(SUM(CASE WHEN coord_source = 'flux' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) as flux,
+        ROUND(SUM(CASE WHEN coord_source = 'stock' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) as stock,
+        ROUND(SUM(CASE WHEN coord_source IN ('stock_vide', 'flux_vide') THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) as no_coords
+    FROM etablissement
+    WHERE code_pays_etranger IS NULL
+      AND statut_diffusion_etablissement = 'O'
+    """
+    for row in sqlite_client.execute(stats_query):
+        geocoded, geo_stats, flux, stock, no_coords = row
+    sqlite_client.commit_and_close_conn()
+
+    message = (
+        f"📍 Statistiques de géocodage (hors entreprises étrangères et non-diffusibles) :"
+        f"<ul><li> Total de géocodés: {geocoded:.2f}%</li>"
+        f"<li>geo_stats: {geo_stats:.2f}%</li>"
+        f"<li>flux: {flux:.2f}%</li>"
+        f"<li>stock: {stock:.2f}%</li>"
+        f"<li>sans coordonnées: {no_coords:.2f}%</li>"
+    )
+    logging.info(message)
+    ti = get_current_context()["ti"]
+    ti.xcom_push(key=Notification.notification_xcom_key, value=message)

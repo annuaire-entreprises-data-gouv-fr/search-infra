@@ -152,11 +152,6 @@ API_URL = Variable.get("API_URL", "")
 API_IS_REMOTE = Variable.get("API_IS_REMOTE", "False").lower() not in ["false", "0"]
 
 # Datasets
-URL_STOCK_ETABLISSEMENTS = {
-    "last": "https://files.data.gouv.fr/geo-sirene/last/dep/geo_siret",
-    "current": f"https://files.data.gouv.fr/geo-sirene/{CURRENT_MONTH}/dep/geo_siret",
-    "previous": f"https://files.data.gouv.fr/geo-sirene/{PREVIOUS_MONTH}/dep/geo_siret",
-}
 URL_CC_DARES = "https://travail-emploi.gouv.fr/sites/travail-emploi/files"
 # Caution: DARES file is case sensitive or returns 404
 FILE_CC_DATE = "Dares_donnes_Identifiant_convention_collective_"
