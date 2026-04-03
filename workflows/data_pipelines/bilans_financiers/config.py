@@ -1,5 +1,4 @@
 from data_pipelines_annuaire.config import (
-    DATA_GOUV_BASE_URL,
     OBJECT_STORAGE_BASE_URL,
     DataSourceConfig,
 )
@@ -11,9 +10,9 @@ BILANS_FINANCIERS_CONFIG = DataSourceConfig(
     file_name="synthese_bilans",
     files_to_download={
         "bilans_financiers": {
-            "url": f"{DATA_GOUV_BASE_URL}9d213815-1649-4527-9eb4-427146ef2e5b",
+            "url": "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/ratios_inpi_bce/exports/parquet?use_labels=true",
             "resource_id": "9d213815-1649-4527-9eb4-427146ef2e5b",
-            "destination": f"{DataSourceConfig.base_tmp_folder}/bilans_financiers/bilans-financiers-download.csv",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/bilans_financiers/bilans-financiers-download.parquet",
         }
     },
     url_object_storage=f"{OBJECT_STORAGE_BASE_URL}bilans_financiers/latest/synthese_bilans.csv",
