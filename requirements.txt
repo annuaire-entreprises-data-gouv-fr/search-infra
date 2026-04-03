@@ -7,4 +7,5 @@ requests==2.33.1
 pytest==9.0.2
 pydantic==2.12.5
 pyproj==3.7.2
+pyarrow==20.0.0
 redis==7.4.0
