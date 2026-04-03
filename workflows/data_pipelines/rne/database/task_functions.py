@@ -273,11 +273,13 @@ def remove_duplicates():
     connection, cursor = connect_to_db(rne_db_path)
 
     tables = [
-        "unites_legale",
+        "unite_legale",
         "siege",
         "dirigeant_pp",
         "dirigeant_pm",
         "immatriculation",
+        "etablissement",
+        "activite",
     ]
     try:
         for table in tables:
