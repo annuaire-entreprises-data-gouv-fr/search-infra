@@ -82,7 +82,13 @@ class SireneStockProcessor(DataProcessor):
         first_chunk = True
 
         for chunk in pd.read_csv(input_csv, dtype=str, chunksize=chunk_size):
-            chunk = convert_dataframe_lambert_to_gps(chunk)
+            chunk = convert_dataframe_lambert_to_gps(
+                chunk,
+                x_col="coordonneeLambertAbscisseEtablissement",
+                y_col="coordonneeLambertOrdonneeEtablissement",
+                code_postal_col="codePostalEtablissement",
+                code_commune_col="codeCommuneEtablissement",
+            )
 
             if first_chunk:
                 chunk.to_csv(output_csv, mode="w", header=True, index=False)

@@ -123,10 +123,10 @@ def get_epsg_from_code(code_postal: str | None, code_commune: str | None) -> int
 
 def convert_dataframe_lambert_to_gps(
     df: pd.DataFrame,
-    x_col: str = "coordonneeLambertAbscisseEtablissement",
-    y_col: str = "coordonneeLambertOrdonneeEtablissement",
-    code_postal_col: str = "codePostalEtablissement",
-    code_commune_col: str = "codeCommuneEtablissement",
+    x_col: str,
+    y_col: str,
+    code_postal_col: str,
+    code_commune_col: str,
 ) -> pd.DataFrame:
     df = df.copy()
 

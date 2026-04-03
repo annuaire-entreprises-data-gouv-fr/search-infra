@@ -307,7 +307,13 @@ class SireneFluxProcessor(DataProcessor):
             df = df[~df["siret"].isin(siret_processed)]
             periodes_df = self.fetch_etablissement_periodes(df)
 
-            df = convert_dataframe_lambert_to_gps(df)
+            df = convert_dataframe_lambert_to_gps(
+                df,
+                x_col="coordonneeLambertAbscisseEtablissement",
+                y_col="coordonneeLambertOrdonneeEtablissement",
+                code_postal_col="codePostalEtablissement",
+                code_commune_col="codeCommuneEtablissement",
+            )
 
             siret_processed = pd.concat([siret_processed, df["siret"]])
 
