@@ -34,9 +34,7 @@ create_table_etablissement_query = """CREATE TABLE IF NOT EXISTS etablissement
             y TEXT,
             latitude TEXT,
             longitude TEXT,
-            geo_adresse TEXT,
-            geo_id TEXT,
-            geo_score TEXT,
+            coord_source TEXT,
             statut_diffusion_etablissement TEXT,
             date_mise_a_jour_insee DATE,
             date_mise_a_jour_rne DATE,
@@ -152,7 +150,10 @@ replace_table_etablissement_query = """
             date_mise_a_jour_rne,
             date_fermeture_etablissement,
             x,
-            y
+            y,
+            latitude,
+            longitude,
+            coord_source
         ) SELECT
             a.siren,
             a.siret,
@@ -189,7 +190,10 @@ replace_table_etablissement_query = """
             a.date_mise_a_jour_rne,
             a.date_fermeture_etablissement,
             a.x,
-            a.y
+            a.y,
+            a.latitude,
+            a.longitude,
+            a.coord_source
         FROM flux_etablissement a
     """
 
@@ -233,4 +237,28 @@ insert_date_fermeture_etablissement_query = """
         WHERE etablissement.siret = date_fermeture_etablissement.siret
     )
     WHERE etablissement.etat_administratif_etablissement = 'F'
+"""
+
+
+update_etablissement_coordinates_from_geo_stats_query = """
+UPDATE etablissement
+SET
+    latitude = (
+        SELECT geo_stats.latitude
+        FROM geo_stats
+        WHERE geo_stats.siret = etablissement.siret
+    ),
+    longitude = (
+        SELECT geo_stats.longitude
+        FROM geo_stats
+        WHERE geo_stats.siret = etablissement.siret
+    ),
+    coord_source = 'geo_stats'
+WHERE EXISTS (
+    SELECT 1
+    FROM geo_stats
+    WHERE geo_stats.siret = etablissement.siret
+      AND geo_stats.latitude IS NOT NULL
+      AND geo_stats.longitude IS NOT NULL
+    )
 """

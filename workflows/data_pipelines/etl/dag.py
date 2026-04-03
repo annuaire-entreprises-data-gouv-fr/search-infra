@@ -49,6 +49,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_
     get_rne_database,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_etablissements_tables import (
+    apply_geo_stats_coordinates,
     count_nombre_etablissement,
     count_nombre_etablissement_ouvert,
     create_date_fermeture_etablissement_table,
@@ -247,7 +248,6 @@ def database_constructor():
         >> insert_date_fermeture_unite_legale()
         # Établissement
         >> create_etablissement_table()
-        >> create_geo_stats_table()
         >> validate_etablissement_stock_table()
         >> create_flux_etablissement_table()
         >> replace_etablissement_table()
@@ -257,6 +257,10 @@ def database_constructor():
         >> insert_date_fermeture_etablissement()
         >> count_nombre_etablissement()
         >> count_nombre_etablissement_ouvert()
+        # Établissement géocodage
+        # Has to be after the stock and flux to overwrite coordinates when available
+        >> create_geo_stats_table()
+        >> apply_geo_stats_coordinates()
         # Siege
         >> create_siege_table()
         >> create_ancien_siege_table()
