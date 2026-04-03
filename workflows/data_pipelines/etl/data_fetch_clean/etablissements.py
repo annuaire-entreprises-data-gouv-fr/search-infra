@@ -1,5 +1,4 @@
 import logging
-import shutil
 
 import pandas as pd
 import requests
@@ -12,6 +11,7 @@ from data_pipelines_annuaire.config import (
     URL_STOCK_ETABLISSEMENTS,
 )
 from data_pipelines_annuaire.helpers.object_storage import File, ObjectStorageClient
+from data_pipelines_annuaire.helpers.utils import read_parquet_batches
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.determine_sirene_date import (
     get_sirene_processing_month,
 )
@@ -162,18 +162,14 @@ def download_historique(data_dir):
     filename = filename.replace(CURRENT_MONTH, year_month)
     url = STOCK_SIRENE_CONFIG.url_object_storage + filename
 
+    logging.info(f"Downloading {url}..")
     r = requests.get(
         url,
         allow_redirects=True,
     )
-    open(data_dir + "StockEtablissementHistorique_utf8.zip", "wb").write(r.content)
-    shutil.unpack_archive(data_dir + "StockEtablissementHistorique_utf8.zip", data_dir)
-    df_iterator = pd.read_csv(
-        f"{data_dir}StockEtablissementHistorique_utf8.csv",
-        chunksize=100000,
-        dtype=str,
-    )
-    return df_iterator
+    parquet_path = data_dir + "StockEtablissementHistorique_utf8.parquet"
+    open(parquet_path, "wb").write(r.content)
+    return read_parquet_batches(parquet_path, batch_size=100000)
 
 
 def preprocess_etablissement_data(siret_file_type, departement=None, data_dir=None):
