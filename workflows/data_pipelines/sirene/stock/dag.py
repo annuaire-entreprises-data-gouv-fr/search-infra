@@ -23,7 +23,7 @@ default_args = {
     default_args=default_args,
     schedule="0 0 * * *",  # Run everyday
     start_date=pendulum.today("UTC").add(days=-1),
-    dagrun_timeout=timedelta(minutes=60),
+    dagrun_timeout=timedelta(minutes=60 * 2),
     params={},
     catchup=False,
     max_active_runs=1,
@@ -42,6 +42,10 @@ def data_processing_sirene_stock():
         return sirene_stock_processor.download_data()
 
     @task()
+    def convert_etablissement_coordinates():
+        return sirene_stock_processor.convert_stock_etablissement_coordinates()
+
+    @task()
     def send_file_to_object_storage():
         return sirene_stock_processor.send_stock_to_object_storage()
 
@@ -52,6 +56,7 @@ def data_processing_sirene_stock():
     return (
         clean_previous_outputs()
         >> download_stock()
+        >> convert_etablissement_coordinates()
         >> send_file_to_object_storage()
         >> clean_up()
     )

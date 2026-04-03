@@ -6,6 +6,9 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 
 from data_pipelines_annuaire.helpers.data_processor import DataProcessor, Notification
+from data_pipelines_annuaire.helpers.geolocalisation import (
+    convert_dataframe_lambert_to_gps,
+)
 from data_pipelines_annuaire.helpers.object_storage import File
 from data_pipelines_annuaire.helpers.utils import (
     get_dates_since_start_of_month,
@@ -110,6 +113,7 @@ class SireneFluxProcessor(DataProcessor):
         "coordonneeLambertAbscisseEtablissement,"
         "coordonneeLambertOrdonneeEtablissement"
     )
+    NEW_ETABLISSEMENT_FIELDS = ",latitude,longitude"
 
     def __init__(self):
         super().__init__(FLUX_SIRENE_CONFIG)
@@ -265,7 +269,9 @@ class SireneFluxProcessor(DataProcessor):
             logging.info(
                 "First day of the month, the flux API won't return any output. A headers only CSV is created instead."
             )
-            self._create_empty_csv_with_headers(self.ETABLISSEMENT_FIELDS, output_path)
+            self._create_empty_csv_with_headers(
+                self.ETABLISSEMENT_FIELDS + self.NEW_ETABLISSEMENT_FIELDS, output_path
+            )
             zip_file(output_path)
 
             self._create_empty_csv_with_headers(
@@ -300,6 +306,14 @@ class SireneFluxProcessor(DataProcessor):
             # Remove any SIRET we already got the last update from
             df = df[~df["siret"].isin(siret_processed)]
             periodes_df = self.fetch_etablissement_periodes(df)
+
+            df = convert_dataframe_lambert_to_gps(
+                df,
+                x_col="coordonneeLambertAbscisseEtablissement",
+                y_col="coordonneeLambertOrdonneeEtablissement",
+                code_postal_col="codePostalEtablissement",
+                code_commune_col="codeCommuneEtablissement",
+            )
 
             siret_processed = pd.concat([siret_processed, df["siret"]])
 

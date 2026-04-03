@@ -84,7 +84,8 @@ create_table_flux_etablissement_query = """CREATE TABLE IF NOT EXISTS flux_etabl
             x TEXT,
             y TEXT,
             latitude TEXT,
-            longitude TEXT
+            longitude TEXT,
+            coord_source TEXT
             )
             """
 
@@ -191,6 +192,16 @@ replace_table_etablissement_query = """
             a.y
         FROM flux_etablissement a
     """
+
+
+create_table_geo_stats_query = """
+        CREATE TABLE IF NOT EXISTS geo_stats
+        (
+            siret TEXT,
+            latitude TEXT,
+            longitude TEXT
+        )
+"""
 
 create_table_historique_etablissement_query = """
         CREATE TABLE IF NOT EXISTS historique_etablissement

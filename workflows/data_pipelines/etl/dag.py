@@ -54,6 +54,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_
     create_date_fermeture_etablissement_table,
     create_etablissement_table,
     create_flux_etablissement_table,
+    create_geo_stats_table,
     create_historique_etablissement_table,
     insert_date_fermeture_etablissement,
     replace_etablissement_table,
@@ -246,6 +247,7 @@ def database_constructor():
         >> insert_date_fermeture_unite_legale()
         # Établissement
         >> create_etablissement_table()
+        >> create_geo_stats_table()
         >> validate_etablissement_stock_table()
         >> create_flux_etablissement_table()
         >> replace_etablissement_table()

@@ -11,6 +11,7 @@ from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 from data_pipelines_annuaire.workflows.data_pipelines.etl.data_fetch_clean.etablissements import (
     preprocess_etablissement_data,
     preprocess_flux_periodes_data,
+    preprocess_geo_stats_data,
     preprocess_historique_etablissement_data,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.helpers import (
@@ -28,6 +29,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.queries.etablis
     create_table_date_fermeture_etablissement_query,
     create_table_etablissement_query,
     create_table_flux_etablissement_query,
+    create_table_geo_stats_query,
     create_table_historique_etablissement_query,
     insert_date_fermeture_etablissement_query,
     replace_table_etablissement_query,
@@ -207,6 +209,34 @@ def create_date_fermeture_etablissement_table(ti):
         )
     sqlite_client.commit_and_close_conn()
     ti.xcom_push(key="count_date_fermeture_etablissement", value=count_etablissement)
+
+
+@task
+def create_geo_stats_table():
+    sqlite_client = create_table_model(
+        table_name="geo_stats",
+        create_table_query=create_table_geo_stats_query,
+        create_index_func=create_unique_index,
+        index_name="index_geo_stats_siret",
+        index_column="siret",
+    )
+
+    for df_chunk in preprocess_geo_stats_data(AIRFLOW_ETL_DATA_DIR):
+        df_chunk.to_sql(
+            "geo_stats", sqlite_client.db_conn, if_exists="append", index=False
+        )
+        for row in sqlite_client.execute(get_table_count("geo_stats")):
+            logging.debug(
+                f"************ {row} records have been added to the `geo_stats` table!"
+            )
+        del df_chunk
+
+    for count_geo_stats in sqlite_client.execute(get_table_count("geo_stats")):
+        logging.info(
+            f"************ {count_geo_stats} total records have been added to the "
+            f"geo_stats table!"
+        )
+    sqlite_client.commit_and_close_conn()
 
 
 @task
