@@ -6,7 +6,6 @@ from airflow.sdk import get_current_context, task
 from data_pipelines_annuaire.config import (
     CURRENT_MONTH,
     PREVIOUS_MONTH,
-    URL_STOCK_ETABLISSEMENTS,
 )
 from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.helpers.utils import is_url_valid
@@ -24,8 +23,15 @@ def get_datasets_urls(month_period: Literal["current", "previous"]) -> list[str]
         raise NotImplementedError("Only 'current' and 'previous' are supported.")
 
     urls: list[str] = [
-        # Flux files are not required to be available
-        # For example, the first of the month no flux is expected
+        # Files not required:
+        # - Flux because the first of the month file is expected to be missing.
+        #   And the flux DAG is the one triggering the ETL DAG anyway.
+        # - Sirene géocodé à des fins statistiques because the file is published
+        #   around the 21st so we use a fallback strategy instead.
+        STOCK_SIRENE_CONFIG.url_object_storage
+        + "StockEtablissement_"
+        + month
+        + "_with_gps.zip",
         STOCK_SIRENE_CONFIG.url_object_storage
         + "StockEtablissementHistorique_"
         + month
@@ -35,7 +41,6 @@ def get_datasets_urls(month_period: Literal["current", "previous"]) -> list[str]
         + "StockUniteLegaleHistorique_"
         + month
         + ".zip",
-        URL_STOCK_ETABLISSEMENTS[month_period].replace("geo_siret", ""),
     ]
 
     logging.info(f"URLs to check for {month_period} month: {urls}")
