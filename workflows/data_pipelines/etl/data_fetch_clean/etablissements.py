@@ -1,5 +1,6 @@
 import logging
 import shutil
+from typing import Literal
 
 import pandas as pd
 import requests
@@ -199,21 +200,25 @@ ETABLISSEMENT_RENAME_COLUMNS = {
 }
 
 
-def preprocess_stock_etablissement_data():
-    for df_chunk in download_stock_iterator():
+def preprocess_etablissement_data(file_type: Literal["stock", "flux"]):
+    if file_type == "stock":
+        download_iterator = download_stock_iterator
+    elif file_type == "flux":
+        download_iterator = download_flux_iterator
+
+    for df_chunk in download_iterator():
         df_chunk["etablissementSiege"] = df_chunk["etablissementSiege"].apply(
             lambda x: x.lower()
         )
         df_chunk = df_chunk.rename(columns=ETABLISSEMENT_RENAME_COLUMNS)
-        yield df_chunk
-
-
-def preprocess_flux_etablissement_data(data_dir):
-    for df_chunk in download_flux_iterator():
-        df_chunk["etablissementSiege"] = df_chunk["etablissementSiege"].apply(
-            lambda x: x.lower()
+        df_chunk["coord_source"] = df_chunk.apply(
+            lambda row: (
+                file_type
+                if row["latitude"] is not None and row["longitude"] is not None
+                else f"{file_type}_vide"
+            ),
+            axis=1,
         )
-        df_chunk = df_chunk.rename(columns=ETABLISSEMENT_RENAME_COLUMNS)
         yield df_chunk
 
 

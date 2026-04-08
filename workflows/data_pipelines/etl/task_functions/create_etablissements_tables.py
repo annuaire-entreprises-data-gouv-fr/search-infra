@@ -9,11 +9,10 @@ from data_pipelines_annuaire.config import (
 from data_pipelines_annuaire.helpers.data_processor import Notification
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 from data_pipelines_annuaire.workflows.data_pipelines.etl.data_fetch_clean.etablissements import (
-    preprocess_flux_etablissement_data,
+    preprocess_etablissement_data,
     preprocess_flux_periodes_data,
     preprocess_geo_stats_data,
     preprocess_historique_etablissement_data,
-    preprocess_stock_etablissement_data,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.helpers import (
     create_index,
@@ -48,15 +47,7 @@ def create_etablissement_table():
         index_column="siren",
     )
 
-    for df_chunk in preprocess_stock_etablissement_data():
-        df_chunk["coord_source"] = df_chunk.apply(
-            lambda row: (
-                "stock"
-                if row["latitude"] is not None and row["longitude"] is not None
-                else "stock_vide"
-            ),
-            axis=1,
-        )
+    for df_chunk in preprocess_etablissement_data(file_type="stock"):
         df_chunk.to_sql(
             "etablissement", sqlite_client.db_conn, if_exists="append", index=False
         )
@@ -84,15 +75,7 @@ def create_flux_etablissement_table():
         index_name="index_flux_etablissement",
         index_column="siren",
     )
-    for df_chunk in preprocess_flux_etablissement_data(AIRFLOW_ETL_DATA_DIR):
-        df_chunk["coord_source"] = df_chunk.apply(
-            lambda row: (
-                "flux"
-                if row["latitude"] is not None and row["longitude"] is not None
-                else "flux_vide"
-            ),
-            axis=1,
-        )
+    for df_chunk in preprocess_etablissement_data(file_type="flux"):
         df_chunk.to_sql(
             "flux_etablissement",
             sqlite_client.db_conn,
@@ -263,6 +246,24 @@ def insert_date_fermeture_etablissement():
 
 @task
 def apply_geo_stats_coordinates():
+    """
+    Update the latitude and longitude fields in the `etablissement` table using data from the file:
+    "Géolocalisation des établissements du répertoire SIRENE - pour les études statistiques" (Geo Stats).
+
+    Rule :
+
+    * coord_source = `geo_stats` if latitude and longitude are available in the Geo Stats file, always use these values to
+    overwrite the existing coordinates in the `etablissement` table.
+
+    * If Geo Stats does not contain latitude and longitude for an établissement, keep using the existing
+    values in the `etablissement` table. The existing values are derived from the Lambert coordinates,
+    converted to latitude and longitude, from:
+        * coord_source = `stock` or `stock_vide` (by default) if the latitude and longitude come from the stock file,
+        * coord_source = `flux` or `flux_vide` if the établissement has been updated by the flux during the current month.
+
+    Note that `flux_vide` or `stock_vide` are possible only when both the stock or flux and the geo stats files have no
+    longitude and latitude available.
+    """
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(update_etablissement_coordinates_from_geo_stats_query)
     logging.info("Applied geo_stats coordinates to etablissement table")
