@@ -20,6 +20,9 @@ from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.create_index import (
     ElasticCreateIndex,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.es_indexing_diagnostics import (
+    log_elasticsearch_versions_for_indexing,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.indexing_unite_legale import (
     index_unites_legales_by_chunk,
 )
@@ -64,6 +67,9 @@ def fill_elastic_siren_index():
         retry_on_timeout=True,
     )
     elastic_connection = connections.get_connection()
+    log_elasticsearch_versions_for_indexing(
+        elastic_connection, log_prefix="fill_elastic_siren_index"
+    )
 
     doc_count = index_unites_legales_by_chunk(
         cursor=sqlite_client.db_cursor,
@@ -104,6 +110,9 @@ def delete_previous_elastic_indices():
     )
 
     elastic_connection = connections.get_connection()
+    log_elasticsearch_versions_for_indexing(
+        elastic_connection, log_prefix="delete_previous_elastic_indices"
+    )
 
     indices = elastic_connection.cat.indices(index="siren-*", format="json")
     indices = [
@@ -144,6 +153,9 @@ def update_elastic_alias():
     )
 
     elastic_connection = connections.get_connection()
+    log_elasticsearch_versions_for_indexing(
+        elastic_connection, log_prefix="update_elastic_alias"
+    )
 
     alias = "siren-reader"
     ti = get_current_context()["ti"]
