@@ -100,7 +100,8 @@ def rollback_object_storage_current_index_version():
         ignore_unavailable=True,
     )
 
-    if len(snapshots) == 0:
+    snapshot_entries = snapshots.get("snapshots", []) if snapshots else []
+    if not snapshot_entries:
         raise Exception(
             f"The snapshot {previous['current']['snapshot']} no longer exists on Elasticsearch"
         )
@@ -117,7 +118,7 @@ def snapshot_elastic_index():
     """
     Create and save Elastic index snapshot in the object storage.
 
-    https://www.elastic.co/guide/en/elasticsearch/reference/7.17/snapshot-restore.html
+    https://www.elastic.co/docs/deploy-manage/tools/snapshot-and-restore
     """
 
     ti = get_current_context()["ti"]
@@ -151,7 +152,7 @@ def snapshot_elastic_index():
 
     connections.create_connection(
         hosts=[ELASTIC_URL],
-        http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
         retry_on_timeout=True,
     )
 
@@ -193,7 +194,7 @@ def snapshot_elastic_index():
 def delete_old_snapshots():
     connections.create_connection(
         hosts=[ELASTIC_URL],
-        http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
         retry_on_timeout=True,
         timeout=60,
     )
