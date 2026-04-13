@@ -214,9 +214,7 @@ class DataProcessor(ABC):
                     resource_id, _ = fetch_last_resource_from_dataset(params["url"])
                     date_list.append(fetch_last_modified_date(resource_id))
                 elif params.get("huwise", False):
-                    date_list.append(
-                        fetch_data_processed_from_huwise(params["huwise_url"])
-                    )
+                    date_list.append(fetch_data_processed_from_huwise(params["url"]))
                 elif "url" in params:
                     url_date = get_date_last_modified(url=params["url"])
                     if url_date:
