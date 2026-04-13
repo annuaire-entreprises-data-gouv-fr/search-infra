@@ -196,7 +196,7 @@ def delete_old_snapshots():
         hosts=[ELASTIC_URL],
         basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
         retry_on_timeout=True,
-        timeout=60,
+        request_timeout=60,
     )
 
     elastic_connection = connections.get_connection()
