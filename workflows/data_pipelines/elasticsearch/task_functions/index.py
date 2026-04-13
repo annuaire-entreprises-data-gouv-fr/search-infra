@@ -3,7 +3,7 @@ from datetime import datetime
 
 from airflow.sdk import get_current_context, task
 from elasticsearch import NotFoundError
-from elasticsearch_dsl import connections
+from elasticsearch.dsl import connections
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DATA_DIR,
@@ -19,6 +19,9 @@ from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.create_index import (
     ElasticCreateIndex,
+)
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.es_indexing_diagnostics import (
+    log_elasticsearch_versions_for_indexing,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.indexing_unite_legale import (
     index_unites_legales_by_chunk,
@@ -60,10 +63,13 @@ def fill_elastic_siren_index():
 
     connections.create_connection(
         hosts=[ELASTIC_URL],
-        http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
         retry_on_timeout=True,
     )
     elastic_connection = connections.get_connection()
+    log_elasticsearch_versions_for_indexing(
+        elastic_connection, log_prefix="fill_elastic_siren_index"
+    )
 
     doc_count = index_unites_legales_by_chunk(
         cursor=sqlite_client.db_cursor,
@@ -99,11 +105,14 @@ def check_elastic_index():
 def delete_previous_elastic_indices():
     connections.create_connection(
         hosts=[ELASTIC_URL],
-        http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
         retry_on_timeout=True,
     )
 
     elastic_connection = connections.get_connection()
+    log_elasticsearch_versions_for_indexing(
+        elastic_connection, log_prefix="delete_previous_elastic_indices"
+    )
 
     indices = elastic_connection.cat.indices(index="siren-*", format="json")
     indices = [
@@ -134,16 +143,19 @@ def update_elastic_alias():
         When called, this function detach the "siren-20240206011523" index from the alias "siren-reader"
         And attach the "siren-20240208001729" index to the alias "siren-reader"
 
-    @see: https://www.elastic.co/guide/en/elasticsearch/reference/7.17/aliases.html
+    @see: https://www.elastic.co/guide/en/elasticsearch/reference/current/aliases.html
     """
 
     connections.create_connection(
         hosts=[ELASTIC_URL],
-        http_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
         retry_on_timeout=True,
     )
 
     elastic_connection = connections.get_connection()
+    log_elasticsearch_versions_for_indexing(
+        elastic_connection, log_prefix="update_elastic_alias"
+    )
 
     alias = "siren-reader"
     ti = get_current_context()["ti"]
@@ -173,4 +185,4 @@ def update_elastic_alias():
         f"Updating alias siren-reader : add {elastic_index}, remove {', '.join(indices)}"
     )
 
-    elastic_connection.indices.update_aliases({"actions": actions})
+    elastic_connection.indices.update_aliases(actions=actions)

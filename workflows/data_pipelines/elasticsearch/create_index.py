@@ -1,8 +1,11 @@
 import logging
 from typing import Optional
 
-from elasticsearch_dsl import Index, connections
+from elasticsearch.dsl import Index, connections
 
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.es_indexing_diagnostics import (
+    log_elasticsearch_versions_for_indexing,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.mapping_index import (
     StructureMapping,
 )
@@ -40,13 +43,17 @@ class ElasticCreateIndex:
         self.elastic_bulk_size = elastic_bulk_size
 
         # initiate the default connection to elasticsearch
+        ### for later : consider using API keys instead of basic auth (more secure) ###
         connections.create_connection(
             hosts=[self.elastic_url],
-            http_auth=(self.elastic_user, self.elastic_password),
+            basic_auth=(self.elastic_user, self.elastic_password),
             retry_on_timeout=True,
         )
 
         self.elastic_connection = connections.get_connection()
+        log_elasticsearch_versions_for_indexing(
+            self.elastic_connection, log_prefix="ElasticCreateIndex"
+        )
         self.elastic_health = self.elastic_connection.cluster.health()
         self.elastic_status = self.elastic_health["status"]
         self.elastic_mapping = self.elastic_connection.indices.get_mapping()
