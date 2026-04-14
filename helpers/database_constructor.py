@@ -16,7 +16,14 @@ class DatabaseTableConstructor:
 
     def etl_get_preprocessed_data(self) -> pd.DataFrame:
         if self.config.url_object_storage:
-            return pd.read_csv(self.config.url_object_storage, dtype=str)
+            df = pd.read_csv(self.config.url_object_storage, dtype=str)
+
+            if self.config.name == "fondation":
+                df["siren"] = df["siret"].str[:9]
+                df = df[["siren", "numero_rnf", "type_organisme"]]
+                df["est_fondation"] = "1"
+
+            return df
         else:
             raise ValueError("No object storage URL provided in the configuration.")
 
