@@ -61,7 +61,7 @@ def parse_date_bodacc(date_str: str) -> str:
 
 
 def parse_radiation_json(radiation_str: str) -> str:
-    """Extrait la date de cessation depuis le champs radiationaurcs."""
+    """Extrait la date de cessation depuis le champ radiationaurcs."""
     if pd.isna(radiation_str) or not radiation_str:
         return ""
     data = json.loads(radiation_str)
