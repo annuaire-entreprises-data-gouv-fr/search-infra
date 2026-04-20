@@ -32,6 +32,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.bilan_ges.config import (
 from data_pipelines_annuaire.workflows.data_pipelines.bilans_financiers.config import (
     BILANS_FINANCIERS_CONFIG,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.bodacc.config import (
+    BODACC_CONFIG,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.colter.config import (
     COLTER_CONFIG,
     ELUS_CONFIG,
@@ -206,6 +209,7 @@ def database_constructor():
             ALIM_CONFIANCE_CONFIG,
             BILAN_GES_CONFIG,
             AIDES_CONFIG,
+            BODACC_CONFIG,
         ]
         tasks = []
         for config in config_list:
