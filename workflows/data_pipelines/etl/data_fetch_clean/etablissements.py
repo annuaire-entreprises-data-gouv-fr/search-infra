@@ -214,7 +214,7 @@ def preprocess_etablissement_data(file_type: Literal["stock", "flux"]):
         df_chunk["coord_source"] = df_chunk.apply(
             lambda row: (
                 file_type
-                if row["latitude"] is not None and row["longitude"] is not None
+                if pd.notna(row["latitude"]) and pd.notna(row["longitude"])
                 else f"{file_type}_vide"
             ),
             axis=1,
