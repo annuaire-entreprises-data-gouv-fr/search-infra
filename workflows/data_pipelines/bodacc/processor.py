@@ -149,7 +149,7 @@ class BodaccProcessor(DataProcessor):
 
         DataProcessor.push_message(
             Notification.notification_xcom_key,
-            description=f"{len(df)} Siren traités au BODACC\n* radiations : {len(df_radiations)}\n* procédures collectives : {len(df_procedures)}",
+            description=f"{len(df)} SIREN traités au BODACC<ul><li>radiations : {len(df_radiations)}</li><li>procédures collectives : {len(df_procedures)}</li></ul>",
         )
 
     def _process_radiations(self) -> pd.DataFrame:
