@@ -5,8 +5,8 @@ from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST
 from data_pipelines_annuaire.helpers import Notification
-from data_pipelines_annuaire.workflows.data_pipelines.aides.processor import (
-    AidesProcessor,
+from data_pipelines_annuaire.workflows.data_pipelines.aides_minimis.processor import (
+    AidesMinimisProcessor,
 )
 
 default_args = {
@@ -19,7 +19,7 @@ default_args = {
 
 
 @dag(
-    tags=["aides", "label"],
+    tags=["aides minimis", "label"],
     default_args=default_args,
     schedule="0 16 * * *",
     start_date=pendulum.today("UTC").add(days=-8),
@@ -28,9 +28,10 @@ default_args = {
     catchup=False,
     on_failure_callback=Notification(),
     on_success_callback=Notification(),
+    max_active_runs=1,
 )
-def data_processing_aides():
-    aides_processor = AidesProcessor()
+def data_processing_aides_minimis():
+    aides_processor = AidesMinimisProcessor()
 
     @task.bash
     def clean_previous_outputs():
@@ -74,4 +75,4 @@ def data_processing_aides():
     )
 
 
-data_processing_aides()
+data_processing_aides_minimis()

@@ -33,6 +33,7 @@ default_args = {
     catchup=False,
     on_failure_callback=Notification(),
     on_success_callback=Notification(),
+    max_active_runs=1,
 )
 def data_processing_bilan_ges():
     @task.bash
