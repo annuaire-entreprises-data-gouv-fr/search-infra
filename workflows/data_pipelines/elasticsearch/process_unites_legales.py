@@ -155,6 +155,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["aides_de_minimis_renseignee"]
         )
 
+        # Aides De l'Ademe
+        unite_legale_processed["aide_ademe_renseignee"] = sqlite_str_to_bool(
+            unite_legale["aide_ademe_renseignee"]
+        )
+
         # Bilans GES
         unite_legale_processed["bilan_ges_renseigne"] = sqlite_str_to_bool(
             unite_legale["bilan_ges_renseigne"]

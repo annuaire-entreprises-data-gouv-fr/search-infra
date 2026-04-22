@@ -20,6 +20,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.achats_responsables.config
 from data_pipelines_annuaire.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.aides_ademe.config import (
+    AIDES_ADEME_CONFIG,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.aides_minimis.config import (
     AIDES_MINIMIS_CONFIG,
 )
@@ -210,6 +213,7 @@ def database_constructor():
             BILAN_GES_CONFIG,
             AIDES_MINIMIS_CONFIG,
             BODACC_CONFIG,
+            AIDES_ADEME_CONFIG,
         ]
         tasks = []
         for config in config_list:
