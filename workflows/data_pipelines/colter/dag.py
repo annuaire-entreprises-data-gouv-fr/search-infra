@@ -33,6 +33,7 @@ dataset_colter = Asset(COLTER_CONFIG.name)
     dagrun_timeout=timedelta(minutes=60),
     on_failure_callback=Notification(),
     on_success_callback=Notification(),
+    max_active_runs=1,
     params={},
     catchup=False,
 )
