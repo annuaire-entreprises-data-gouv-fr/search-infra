@@ -36,8 +36,8 @@ class AidesMinimisProcessor(DataProcessor):
             )
         ).dropna(subset=["siren"])
 
-        df_aides_minimis = df_aides_minimis.assign(aides_de_minimis_renseignee=1)[
-            ["siren", "aides_de_minimis_renseignee"]
+        df_aides_minimis = df_aides_minimis.assign(aide_de_minimis_renseignee=1)[
+            ["siren", "aide_de_minimis_renseignee"]
         ].drop_duplicates(subset=["siren"])
 
         df_aides_minimis = clean_sirent_column(

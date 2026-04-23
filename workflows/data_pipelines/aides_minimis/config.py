@@ -24,7 +24,7 @@ AIDES_MINIMIS_CONFIG = DataSourceConfig(
         CREATE TABLE IF NOT EXISTS aides_minimis
         (
             siren TEXT PRIMARY KEY,
-            aides_de_minimis_renseignee INTEGER
+            aide_de_minimis_renseignee INTEGER
         );
         COMMIT;
     """,
