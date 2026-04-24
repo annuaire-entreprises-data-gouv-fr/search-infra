@@ -3,6 +3,8 @@ import re
 
 import pandas as pd
 
+from data_pipelines_annuaire.helpers.utils import parse_json_safe
+
 
 def parse_date_bodacc(date_str: str) -> str:
     """
@@ -140,15 +142,6 @@ def build_bodacc_id(
         lettre = code_publication.split()[-1] if code_publication else ""
         return f"{lettre}{numero_parution}{numero_annonce}"
     return None
-
-
-def parse_json_safe(json_str: str) -> dict | None:
-    if pd.isna(json_str) or not json_str:
-        return None
-    try:
-        return json.loads(json_str)
-    except (json.JSONDecodeError, TypeError):
-        return None
 
 
 def extract_cancelled_id_from_avis_precedent(avis_precedent_str: str) -> str | None:

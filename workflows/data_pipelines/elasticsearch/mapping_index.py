@@ -256,6 +256,13 @@ class ImmatriculationMapping(InnerDoc):
     devise_capital = Keyword()
 
 
+class BodaccMapping(InnerDoc):
+    radiation_rcs = Boolean()
+    radiation_rcs_date = Date()
+    procedure_collective_nature = Keyword()
+    procedure_collective_date_jugement = Date()
+
+
 class UniteLegaleMapping(InnerDoc):
     """
 
@@ -348,6 +355,7 @@ class UniteLegaleMapping(InnerDoc):
     statut_entrepreneur_spectacle = Text()
     type_siae = Keyword()
     tranche_effectif_salarie_unite_legale = Keyword()
+    bodacc = Object(BodaccMapping)
 
 
 class StructureMapping(Document):

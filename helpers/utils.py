@@ -680,3 +680,12 @@ def fetch_data_processed_from_huwise(huwise_url: str) -> str:
     response.raise_for_status()
     data = response.json()
     return data["metas"]["default"]["data_processed"]
+
+
+def parse_json_safe(json_str: str) -> dict | None:
+    if pd.isna(json_str) or not json_str:
+        return None
+    try:
+        return json.loads(json_str)
+    except (json.JSONDecodeError, TypeError):
+        return None

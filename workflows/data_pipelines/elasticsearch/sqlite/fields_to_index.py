@@ -397,7 +397,17 @@ select_fields_to_index_query = """SELECT
                     FROM immatriculation
                     WHERE siren = ul.siren
                 )
-            ) as immatriculation
+            ) as immatriculation,
+            (
+                SELECT json_object(
+                    'radiation_rcs', radiation_rcs,
+                    'radiation_rcs_date', radiation_rcs_date,
+                    'procedure_collective_nature', procedure_collective_nature,
+                    'procedure_collective_date_jugement', procedure_collective_date_jugement
+                )
+                FROM bodacc
+                WHERE siren = ul.siren
+            ) as bodacc
             FROM
                 unite_legale ul
             LEFT JOIN
