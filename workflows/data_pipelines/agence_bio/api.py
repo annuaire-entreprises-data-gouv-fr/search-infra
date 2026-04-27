@@ -19,7 +19,6 @@ class BioApiClient(ApiClient):
             initial_params = {
                 "nb": f"{self.BATCH_SIZE}",
                 "debut": "0",
-                "filtrerEngages": 1,
             }
             return None, initial_params
 
