@@ -771,3 +771,182 @@ def test_favicon(api_response_tester):
     """
     path = "/favicon.ico"
     api_response_tester.assert_api_response_code_204(path)
+
+
+def test_nd_personne_physique(api_response_tester):
+    path = "/search?q=929693232&include_admin=etablissements"
+    response = api_response_tester.get_api_response(path)
+    api_response_tester.assert_api_response_code_200(path)
+    ul = response.json()["results"][0]
+
+    # UL fields masked for PP
+    assert ul["nom_complet"] == "[NON-DIFFUSIBLE]"
+    assert ul.get("nom_raison_sociale") in (None, "[NON-DIFFUSIBLE]")
+    assert ul.get("sigle") in (None, "[NON-DIFFUSIBLE]")
+
+    # Siege denomination masked for PP
+    siege = ul.get("siege", {})
+    if "nom_commercial" in siege:
+        assert siege["nom_commercial"] == "[NON-DIFFUSIBLE]"
+    if "liste_enseignes" in siege and siege["liste_enseignes"]:
+        assert all(v == "[NON-DIFFUSIBLE]" for v in siege["liste_enseignes"])
+
+
+def test_nd_non_dote_pm(api_response_tester):
+    path = "/search?q=924852577&include_admin=etablissements"
+    response = api_response_tester.get_api_response(path)
+    api_response_tester.assert_api_response_code_200(path)
+    ul = response.json()["results"][0]
+
+    # UL fields masked for non doté de personnalité morale (same as PP)
+    assert ul["nom_complet"] == "[NON-DIFFUSIBLE]"
+    assert ul.get("nom_raison_sociale") in (None, "[NON-DIFFUSIBLE]")
+    assert ul.get("sigle") in (None, "[NON-DIFFUSIBLE]")
+
+    # Siege denomination masked
+    siege = ul.get("siege", {})
+    if "nom_commercial" in siege:
+        assert siege["nom_commercial"] == "[NON-DIFFUSIBLE]"
+    if "liste_enseignes" in siege and siege["liste_enseignes"]:
+        assert all(v == "[NON-DIFFUSIBLE]" for v in siege["liste_enseignes"])
+
+
+def test_nd_pm_sans_nom_commercial(api_response_tester):
+    path = "/search?q=101327518&include_admin=etablissements"
+    response = api_response_tester.get_api_response(path)
+    api_response_tester.assert_api_response_code_200(path)
+    ul = response.json()["results"][0]
+
+    # UL: only sigle masked for PM
+    assert ul.get("sigle") in (None, "[NON-DIFFUSIBLE]")
+    assert ul["nom_complet"] != "[NON-DIFFUSIBLE]"
+
+    # Siege: if nom_commercial exists, it should NOT be masked
+    siege = ul.get("siege", {})
+    if "nom_commercial" in siege and siege["nom_commercial"] is not None:
+        assert siege["nom_commercial"] != "[NON-DIFFUSIBLE]"
+
+    # Other etablissements: denomination masked if present
+    for etab_list_key in ("matching_etablissements", "etablissements"):
+        for etab in ul.get(etab_list_key, []):
+            if "nom_commercial" in etab:
+                assert etab["nom_commercial"] != "[NON-DIFFUSIBLE]"
+
+
+def test_nd_pm_avec_nom_commercial(api_response_tester):
+    path = "/search?q=414405977&include_admin=etablissements"
+    response = api_response_tester.get_api_response(path)
+    api_response_tester.assert_api_response_code_200(path)
+    ul = response.json()["results"][0]
+
+    # UL: only sigle masked for PM
+    assert ul.get("sigle") in (None, "[NON-DIFFUSIBLE]")
+    assert ul["nom_complet"] != "[NON-DIFFUSIBLE]"
+
+    # Siege: nom_commercial should NOT be masked if present
+    siege = ul.get("siege", {})
+    if "nom_commercial" in siege and siege["nom_commercial"] is not None:
+        assert siege["nom_commercial"] != "[NON-DIFFUSIBLE]"
+
+    # Other etablissements: denomination masked if present
+    for etab_list_key in ("matching_etablissements", "etablissements"):
+        for etab in ul.get(etab_list_key, []):
+            if "nom_commercial" in etab:
+                assert etab["nom_commercial"] != "[NON-DIFFUSIBLE]"
+
+
+def test_nd_pm_avec_sigle(api_response_tester):
+    path = "/search?q=312963804&include_admin=etablissements"
+    response = api_response_tester.get_api_response(path)
+    api_response_tester.assert_api_response_code_200(path)
+    ul = response.json()["results"][0]
+
+    # UL: sigle must be masked; nom_complet should not be masked
+    assert ul.get("sigle") == "[NON-DIFFUSIBLE]"
+    assert ul["nom_complet"] != "[NON-DIFFUSIBLE]"
+
+    # Siege: denomination should not be masked for PM if present
+    siege = ul.get("siege", {})
+    if "nom_commercial" in siege and siege["nom_commercial"] is not None:
+        assert siege["nom_commercial"] != "[NON-DIFFUSIBLE]"
+
+    # Other etablissements: denomination masked if present
+    for etab_list_key in ("matching_etablissements", "etablissements"):
+        for etab in ul.get(etab_list_key, []):
+            if "nom_commercial" in etab:
+                assert etab["nom_commercial"] != "[NON-DIFFUSIBLE]"
+
+
+def test_secondary_etab_nd_pm_avec_nom_commercial(api_response_tester):
+    path = "/search?q=94793126700027"
+    response = api_response_tester.get_api_response(path)
+    api_response_tester.assert_api_response_code_200(path)
+    ul = response.json()["results"][0]
+
+    # UL: sigle must be masked; nom_complet should not be masked
+    assert ul.get("sigle") == "[NON-DIFFUSIBLE]"
+    assert ul["nom_complet"] != "[NON-DIFFUSIBLE]"
+
+    # Siege: denomination should not be masked for PM if present
+    siege = ul.get("siege", {})
+    if "nom_commercial" in siege and siege["nom_commercial"] is not None:
+        assert siege["nom_commercial"] != "[NON-DIFFUSIBLE]"
+
+    # Other etablissements: denomination masked if present
+    for etab_list_key in ("matching_etablissements", "etablissements"):
+        for etab in ul.get(etab_list_key, []):
+            if "nom_commercial" in etab:
+                assert etab["nom_commercial"] != "[NON-DIFFUSIBLE]"
+
+
+def test_a_aide_minimis(api_response_tester):
+    path = "/search?q=504879842"
+    api_response_tester.assert_api_response_code_200(path)
+    api_response_tester.test_field_value(path, 0, "complements.a_aide_minimis", True)
+
+
+def test_a_aide_ademe(api_response_tester):
+    path = "/search?q=054392758"
+    api_response_tester.assert_api_response_code_200(path)
+    api_response_tester.test_field_value(path, 0, "complements.a_aide_ademe", True)
+
+
+def test_bodacc(api_response_tester):
+    # SIREN 552032534 : entreprise active sans radiation ni procédure collective
+    path = "/search?q=552032534&include_admin=bodacc"
+    api_response_tester.assert_api_response_code_200(path)
+
+    bodacc_data = {
+        "radiation_rcs": False,
+        "radiation_rcs_date": None,
+        "procedure_collective_date_jugement": None,
+        "procedure_collective_nature": None,
+    }
+
+    for field, expected_value in bodacc_data.items():
+        api_response_tester.test_field_value(path, 0, f"bodacc.{field}", expected_value)
+
+    # SIREN 442750196 : entreprise avec une date de radiation
+    path = "/search?q=442750196&include_admin=bodacc"
+    api_response_tester.assert_api_response_code_200(path)
+
+    bodacc_data = {
+        "radiation_rcs": True,
+        "radiation_rcs_date": "2014-06-01",
+        "procedure_collective_date_jugement": None,
+        "procedure_collective_nature": None,
+    }
+
+    for field, expected_value in bodacc_data.items():
+        api_response_tester.test_field_value(path, 0, f"bodacc.{field}", expected_value)
+
+    # SIREN 909324055 : entreprise en procédure collective
+    path = "/search?q=909324055&include_admin=bodacc"
+    api_response_tester.assert_api_response_code_200(path)
+
+    api_response_tester.test_field_not_none(
+        path, 0, "bodacc.procedure_collective_date_jugement"
+    )
+    api_response_tester.test_field_not_none(
+        path, 0, "bodacc.procedure_collective_nature"
+    )
