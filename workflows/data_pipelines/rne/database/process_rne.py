@@ -200,7 +200,7 @@ def create_index_db(cursor):
 def inject_records_into_db(
     file_path: str, db_path: str, file_type: Literal["flux", "stock"]
 ) -> int:
-    SIRENE_WITH_KNOWN_ISSUES = ["508799673", "123456789", "981418494"]
+    SIRENE_WITH_KNOWN_ISSUES = ["123456789", "981418494", "930636832"]
     unites_legales = []
     json_decode_error_count = 0
 
