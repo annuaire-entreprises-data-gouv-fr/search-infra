@@ -163,6 +163,7 @@ class EtablissementMapping(InnerDoc):
     nom_commercial = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     numero_voie = Text()
+    dernier_numero_voie = Text()
     region = Keyword()
     sigle = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     siren = Keyword(required=True)

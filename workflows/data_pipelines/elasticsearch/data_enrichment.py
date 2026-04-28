@@ -22,6 +22,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.clean_data i
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.es_fields import (
     get_elasticsearch_field_name,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.etl.data_fetch_clean.etablissements import (
+    combine_numero_voie,
+)
 
 sections_NAF = load_file("sections_codes_naf.json")
 mapping_dep_to_reg = load_file("dep_to_reg.json")
@@ -300,6 +303,7 @@ def map_categorie_to_number(categorie):
 def format_adresse_complete(
     complement_adresse,
     numero_voie,
+    dernier_numero_voie,
     indice_repetition,
     type_voie,
     libelle_voie,
@@ -315,7 +319,7 @@ def format_adresse_complete(
 ):
     col_list = [
         complement_adresse,
-        numero_voie,
+        combine_numero_voie(numero_voie, dernier_numero_voie),
         indice_repetition,
         type_voie,
         libelle_voie,
@@ -512,6 +516,7 @@ def format_etablissements_and_complements(
         etablissement["adresse"] = format_adresse_complete(
             etablissement["complement_adresse"],
             etablissement["numero_voie"],
+            etablissement["dernier_numero_voie"],
             etablissement["indice_repetition"],
             etablissement["type_voie"],
             etablissement["libelle_voie"],
@@ -590,6 +595,7 @@ def format_siege_unite_legale(siege, is_non_diffusible=False):
     siege["adresse"] = format_adresse_complete(
         siege["complement_adresse"],
         siege["numero_voie"],
+        siege["dernier_numero_voie"],
         siege["indice_repetition"],
         siege["type_voie"],
         siege["libelle_voie"],
