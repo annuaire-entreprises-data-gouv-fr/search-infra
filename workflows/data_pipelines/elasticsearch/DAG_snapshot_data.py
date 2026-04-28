@@ -31,7 +31,7 @@ default_args = {
     dag_id=AIRFLOW_SNAPSHOT_DAG_NAME,
     default_args=default_args,
     schedule=None,
-    start_date=datetime(2024, 1, 1),
+    start_date=datetime(2026, 1, 1),
     dagrun_timeout=timedelta(minutes=60 * 2),
     tags=["siren"],
     catchup=False,

@@ -1,6 +1,5 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
-import pendulum
 from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import (
@@ -27,7 +26,7 @@ default_args = {
     tags=["publication", "data.gouv"],
     default_args=default_args,
     schedule="0 17 * * *",  # Executes daily at 5 PM
-    start_date=pendulum.today("UTC").add(days=-8),
+    start_date=datetime(2026, 1, 1),
     dagrun_timeout=timedelta(minutes=60 * 3),
     params={},
     catchup=False,

@@ -53,7 +53,7 @@ default_args = {
     dag_id=AIRFLOW_ELK_DAG_NAME,
     default_args=default_args,
     schedule=None,  # Triggered by database etl
-    start_date=datetime(2023, 9, 4),
+    start_date=datetime(2026, 1, 1),
     dagrun_timeout=timedelta(minutes=60 * 12),
     tags=["index", "elasticsearch"],
     catchup=False,
