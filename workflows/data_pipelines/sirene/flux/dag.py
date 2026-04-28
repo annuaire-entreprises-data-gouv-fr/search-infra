@@ -25,7 +25,7 @@ default_args = {
     tags=["sirene", "flux"],
     default_args=default_args,
     schedule="30 6 * * *",  # Daily at 6:30 AM
-    start_date=datetime(2025, 8, 20),  # more naive than days_ago()
+    start_date=datetime(2026, 1, 1),  # more naive than days_ago()
     dagrun_timeout=timedelta(minutes=60 * 12),
     params={},
     catchup=False,

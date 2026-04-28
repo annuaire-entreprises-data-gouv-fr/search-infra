@@ -1,6 +1,5 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
-import pendulum
 from airflow.sdk import Asset, dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST
@@ -29,7 +28,7 @@ dataset_colter = Asset(COLTER_CONFIG.name)
     tags=["collectivités", "communes", "régions", "départements"],
     default_args=default_args,
     schedule="0 16 * * *",
-    start_date=pendulum.today("UTC").add(days=-8),
+    start_date=datetime(2026, 1, 1),
     dagrun_timeout=timedelta(minutes=60),
     on_failure_callback=Notification(),
     on_success_callback=Notification(),
@@ -85,7 +84,7 @@ def data_processing_collectivite_territoriale():
     tags=["collectivités", "élus", "conseillers", "epci"],
     default_args=default_args,
     schedule=[dataset_colter],
-    start_date=pendulum.today("UTC").add(days=-8),
+    start_date=datetime(2026, 1, 1),
     dagrun_timeout=timedelta(minutes=60),
     on_failure_callback=Notification(),
     on_success_callback=Notification(),

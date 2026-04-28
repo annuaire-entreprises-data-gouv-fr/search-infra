@@ -27,7 +27,7 @@ def rename_old_rne_folders():
     description="Delete old object storage files",
     default_args=default_args,
     schedule="0 12 * * *",  # run every day at 12:00 PM (UTC)
-    start_date=datetime(2023, 10, 5),
+    start_date=datetime(2026, 1, 1),
     dagrun_timeout=timedelta(minutes=(60 * 8)),
     catchup=False,
     max_active_runs=1,  # Allow only one execution at a time

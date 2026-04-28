@@ -131,7 +131,7 @@ default_args = {
     tags=["database", "all-data"],
     default_args=default_args,
     schedule=None,  # triggered by sirene flux dag (everyday at 9 am at the latest)
-    start_date=datetime(2025, 8, 20),
+    start_date=datetime(2026, 1, 1),
     dagrun_timeout=timedelta(minutes=60 * 5),
     params={},
     catchup=False,  # False to ignore past runs

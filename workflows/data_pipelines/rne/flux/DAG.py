@@ -22,7 +22,7 @@ default_args = {
     tags=["rne", "flux"],
     default_args=default_args,
     schedule="0 1 * * *",  # Run every day at 1 AM
-    start_date=datetime(2023, 10, 18),
+    start_date=datetime(2026, 1, 1),
     max_active_runs=1,
     dagrun_timeout=timedelta(days=30),
     params={},
