@@ -3,12 +3,14 @@ import re
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 
+from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ENV,
     EMAIL_LIST,
 )
+from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 
 
@@ -58,8 +60,6 @@ default_args = {
     "depends_on_past": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "email": EMAIL_LIST,
-    "email_on_failure": True,
 }
 
 
@@ -73,6 +73,8 @@ default_args = {
     start_date=datetime(2026, 1, 1),
     dagrun_timeout=timedelta(minutes=30),
     catchup=False,
+    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
+    on_success_callback=Notification(),
     max_active_runs=1,  # Allow only one execution at a time
 )
 def delete_old_object_storage_file():

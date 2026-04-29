@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta
 
+from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.sdk import dag, task, task_group
 
@@ -121,9 +122,6 @@ from data_pipelines_annuaire.workflows.data_pipelines.uai.config import UAI_CONF
 
 default_args = {
     "depends_on_past": False,
-    "email": EMAIL_LIST,
-    "email_on_failure": True,
-    "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=10),
 }
@@ -138,7 +136,7 @@ default_args = {
     dagrun_timeout=timedelta(minutes=60 * 5),
     params={},
     catchup=False,  # False to ignore past runs
-    on_failure_callback=Notification(),
+    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
     on_success_callback=Notification(),
     max_active_runs=1,
 )

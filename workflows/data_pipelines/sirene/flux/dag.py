@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.sdk import dag, task
 
@@ -14,9 +15,6 @@ from data_pipelines_annuaire.workflows.data_pipelines.sirene.flux.processor impo
 
 default_args = {
     "depends_on_past": False,
-    "email_on_failure": True,
-    "email_on_retry": False,
-    "email": EMAIL_LIST,
     "retries": 1,
 }
 
@@ -25,12 +23,12 @@ default_args = {
     tags=["sirene", "flux"],
     default_args=default_args,
     schedule="30 6 * * *",  # Daily at 6:30 AM
-    start_date=datetime(2026, 1, 1),  # more naive than days_ago()
+    start_date=datetime(2026, 1, 1),
     dagrun_timeout=timedelta(minutes=60 * 12),
     params={},
     catchup=False,
     max_active_runs=1,
-    on_failure_callback=Notification(),
+    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
     on_success_callback=Notification(),
 )
 def data_processing_sirene_flux():

@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag
 
 from data_pipelines_annuaire.config import (
@@ -16,9 +17,6 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functio
 
 default_args = {
     "depends_on_past": False,
-    "email": EMAIL_LIST,
-    "email_on_failure": True,
-    "email_on_retry": True,
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
 }
@@ -33,7 +31,7 @@ default_args = {
     tags=["siren"],
     catchup=False,
     max_active_runs=1,
-    on_failure_callback=Notification(),
+    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
     on_success_callback=Notification(),
 )
 def snapshot_index_rollback():

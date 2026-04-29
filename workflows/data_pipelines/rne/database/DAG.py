@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from airflow.sdk import dag, task
 
-from data_pipelines_annuaire.config import EMAIL_LIST, RNE_DB_TMP_FOLDER
+from data_pipelines_annuaire.config import RNE_DB_TMP_FOLDER
 from data_pipelines_annuaire.workflows.data_pipelines.rne.database.task_functions import (
     check_db_count,
     create_db,
@@ -18,9 +18,6 @@ from data_pipelines_annuaire.workflows.data_pipelines.rne.database.task_function
 
 default_args = {
     "depends_on_past": False,
-    "email": EMAIL_LIST,
-    "email_on_failure": True,
-    "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
 }
