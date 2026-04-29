@@ -4,7 +4,7 @@ from typing import Literal
 
 import pandas as pd
 import requests
-from airflow.exceptions import AirflowSkipException
+from airflow.sdk.exceptions import AirflowSkipException
 from botocore.exceptions import ClientError
 
 from data_pipelines_annuaire.config import (
