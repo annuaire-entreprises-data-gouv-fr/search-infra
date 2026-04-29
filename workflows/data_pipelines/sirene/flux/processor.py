@@ -87,6 +87,7 @@ class SireneFluxProcessor(DataProcessor):
         "libelleVoieEtablissement,"
         "codePostalEtablissement,"
         "numeroVoieEtablissement,"
+        "dernierNumeroVoieEtablissement,"
         "dateDernierTraitementEtablissement,"
         "libelleCommuneEtablissement,"
         "libelleCedexEtablissement,"

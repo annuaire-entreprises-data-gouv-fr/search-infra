@@ -131,6 +131,7 @@ select_fields_to_index_query = """SELECT
                         'longitude',longitude,
                         'nom_commercial',nom_commercial,
                         'numero_voie',numero_voie,
+                        'dernier_numero_voie',dernier_numero_voie,
                         'siren',siren,
                         'siret',siret,
                         'statut_diffusion_etablissement',
@@ -195,6 +196,7 @@ select_fields_to_index_query = """SELECT
                         (SELECT liste_uai FROM uai WHERE siret = s.siret) as liste_uai,
                         s.nom_commercial as nom_commercial,
                         s.numero_voie as numero_voie,
+                        s.dernier_numero_voie as dernier_numero_voie,
                         s.siren as siren,
                         s.siret as siret,
                         s.statut_diffusion_etablissement as
@@ -251,6 +253,7 @@ select_fields_to_index_query = """SELECT
                         'longitude',longitude,
                         'nom_commercial',nom_commercial,
                         'numero_voie',numero_voie,
+                        'dernier_numero_voie',dernier_numero_voie,
                         'siren',siren,
                         'siret',siret,
                         'statut_diffusion_etablissement',
@@ -308,6 +311,7 @@ select_fields_to_index_query = """SELECT
                         s.longitude as longitude,
                         s.nom_commercial as nom_commercial,
                         s.numero_voie as numero_voie,
+                        s.dernier_numero_voie as dernier_numero_voie,
                         s.siren as siren,
                         s.siret as siret,
                         s.statut_diffusion_etablissement as

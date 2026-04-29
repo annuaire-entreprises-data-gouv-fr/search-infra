@@ -221,6 +221,7 @@ class DataGouvProcessor:
             lambda row: format_adresse_complete(
                 row["complement_adresse"],
                 row["numero_voie"],
+                row["dernier_numero_voie"],
                 row["indice_repetition"],
                 row["type_voie"],
                 row["libelle_voie"],

@@ -33,6 +33,7 @@ STOCK_ETABLISSEMENT_COLUMNS = [
     "activitePrincipaleRegistreMetiersEtablissement",
     "etablissementSiege",
     "numeroVoieEtablissement",
+    "dernierNumeroVoieEtablissement",
     "libelleVoieEtablissement",
     "codePostalEtablissement",
     "libelleCommuneEtablissement",
@@ -89,6 +90,7 @@ FLUX_ETABLISSEMENT_COLUMNS = [
     "activitePrincipaleRegistreMetiersEtablissement",
     "etablissementSiege",
     "numeroVoieEtablissement",
+    "dernierNumeroVoieEtablissement",
     "libelleVoieEtablissement",
     "codePostalEtablissement",
     "libelleCommuneEtablissement",
@@ -164,6 +166,14 @@ def download_historique(data_dir):
     return df_iterator
 
 
+def combine_numero_voie(numero_voie, dernier_numero_voie) -> str | None:
+    if not pd.isna(dernier_numero_voie) and not pd.isna(numero_voie):
+        return f"{numero_voie}-{dernier_numero_voie}"
+    if not pd.isna(numero_voie):
+        return numero_voie
+    return None
+
+
 ETABLISSEMENT_RENAME_COLUMNS = {
     "dateCreationEtablissement": "date_creation",
     "trancheEffectifsEtablissement": "tranche_effectif_salarie",
@@ -173,6 +183,7 @@ ETABLISSEMENT_RENAME_COLUMNS = {
     "activitePrincipaleRegistreMetiersEtablissement": "activite_principale_registre_metier",
     "etablissementSiege": "est_siege",
     "numeroVoieEtablissement": "numero_voie",
+    "dernierNumeroVoieEtablissement": "dernier_numero_voie",
     "typeVoieEtablissement": "type_voie",
     "libelleVoieEtablissement": "libelle_voie",
     "codePostalEtablissement": "code_postal",

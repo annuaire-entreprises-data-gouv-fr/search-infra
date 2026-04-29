@@ -125,6 +125,7 @@ class UniteLegale(BaseModel):
             return format_adresse_complete(
                 addr.complement_localisation,
                 addr.num_voie,
+                None,
                 addr.indice_repetition,
                 addr.type_voie,
                 addr.voie,
