@@ -171,8 +171,6 @@ def combine_numero_voie(numero_voie, dernier_numero_voie) -> str | None:
         return f"{numero_voie}-{dernier_numero_voie}"
     if not pd.isna(numero_voie):
         return numero_voie
-    if not pd.isna(dernier_numero_voie):
-        return dernier_numero_voie
     return None
 
 
