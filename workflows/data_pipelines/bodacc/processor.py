@@ -12,10 +12,10 @@ from data_pipelines_annuaire.workflows.data_pipelines.bodacc.config import (
 )
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
     extract_siren_from_registre,
-    filter_cancelled_announcements,
     is_cloture,
     parse_jugement_json,
     parse_radiation_json,
+    process_discarded_announcements,
 )
 
 
@@ -168,7 +168,7 @@ class BodaccProcessor(DataProcessor):
         logging.info(f"Loaded {total_rows} radiation rows")
 
         # Filtrer les annulations
-        df_full = filter_cancelled_announcements(df_full)
+        df_full = process_discarded_announcements(df_full)
         logging.info(f"After filtering cancellations: {len(df_full)} rows")
 
         # Traiter par chunks pour la mémoire
@@ -242,7 +242,7 @@ class BodaccProcessor(DataProcessor):
         logging.info(f"Loaded {total_rows} procedure rows")
 
         # Filtrer les annulations et rétractations
-        df_full = filter_cancelled_announcements(df_full)
+        df_full = process_discarded_announcements(df_full)
         logging.info(f"After filtering cancellations: {len(df_full)} rows")
 
         # Traiter par chunks pour la mémoire
