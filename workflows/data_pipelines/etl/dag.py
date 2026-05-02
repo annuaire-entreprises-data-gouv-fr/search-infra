@@ -29,6 +29,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.aides_minimis.config impor
 from data_pipelines_annuaire.workflows.data_pipelines.alim_confiance.config import (
     ALIM_CONFIANCE_CONFIG,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.avocat.config import (
+    AVOCAT_CONFIG,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.bilan_ges.config import (
     BILAN_GES_CONFIG,
 )
@@ -214,6 +217,7 @@ def database_constructor():
             AIDES_MINIMIS_CONFIG,
             BODACC_CONFIG,
             AIDES_ADEME_CONFIG,
+            AVOCAT_CONFIG,
         ]
         tasks = []
         for config in config_list:
