@@ -5,7 +5,7 @@
 | Information | Valeur |
 | -------- | -------- |
 | Fichier source | `dag.py` |
-| Description | Ce traitement permet de récupérer l'index égalité professionnelle F/H des entreprises de plus de 250 salariés. |
+| Description | Ce traitement permet de récupérer l’annuaire national des avocats établit par le Conseil national des barreaux. |
 | Fréquence | Quotidienne |
-| Données sources | [Index Egalité Professionnelle F/H](https://www.data.gouv.fr/datasets/61a73dcfe3171089843587bf/) |
+| Données sources | [Annuaire des avocats de France](https://www.data.gouv.fr/datasets/annuaire-des-avocats-de-france) |
 | Données de sorties | Object Storage |
