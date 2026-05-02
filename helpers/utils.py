@@ -11,6 +11,8 @@ from typing import Literal
 from unicodedata import normalize
 from urllib.parse import urlparse
 
+import pyarrow as pa
+import pyarrow.parquet as pq
 import pandas as pd
 import requests
 
@@ -629,6 +631,21 @@ def fetch_hyperlink_from_page(url: str, search_text: str) -> str:
     logging.info(f"Likely found the hyperlink: {hyperlink}")
 
     return hyperlink
+
+
+def read_parquet_batches(filepath, batch_size=100000, columns=None):
+    """Read a Parquet file in batches, casting all columns to string.
+
+    Equivalent to pd.read_csv(..., chunksize=batch_size, dtype=str) for Parquet files.
+    Null values are preserved as None/NaN (same behavior as dtype=str with CSV).
+    """
+    pf = pq.ParquetFile(filepath)
+    for batch in pf.iter_batches(batch_size=batch_size, columns=columns):
+        string_arrays = [col.cast(pa.string()) for col in batch.columns]
+        string_batch = pa.RecordBatch.from_arrays(
+            string_arrays, names=batch.schema.names
+        )
+        yield string_batch.to_pandas()
 
 
 def is_url_valid(url: str) -> bool:
