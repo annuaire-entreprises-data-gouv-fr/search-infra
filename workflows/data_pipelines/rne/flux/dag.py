@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST, RNE_FLUX_TMP_FOLDER
@@ -10,9 +11,6 @@ from data_pipelines_annuaire.workflows.data_pipelines.rne.flux.flux_tasks import
 
 default_args = {
     "depends_on_past": False,
-    "email": EMAIL_LIST,
-    "email_on_failure": True,
-    "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
 }
@@ -27,7 +25,7 @@ default_args = {
     dagrun_timeout=timedelta(days=30),
     params={},
     catchup=False,
-    on_failure_callback=Notification(),
+    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
     on_success_callback=Notification(),
 )
 def get_flux_rne():
