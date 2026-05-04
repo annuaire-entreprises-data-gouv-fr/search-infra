@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST
@@ -9,13 +10,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.avocat.processor import (
     AvocatProcessor,
 )
 
-avocat_processor = AvocatProcessor()
-
 default_args = {
     "depends_on_past": False,
-    "email_on_failure": True,
-    "email_on_retry": False,
-    "email": EMAIL_LIST,
     "retries": 1,
 }
 
@@ -28,11 +24,13 @@ default_args = {
     dagrun_timeout=timedelta(minutes=60),
     params={},
     catchup=False,
-    on_failure_callback=Notification(),
+    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
     on_success_callback=Notification(),
     max_active_runs=1,
 )
 def data_processing_avocat():
+    avocat_processor = AvocatProcessor()
+
     @task.bash
     def clean_previous_outputs():
         return (
