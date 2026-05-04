@@ -314,6 +314,7 @@ class UniteLegaleMapping(InnerDoc):
     est_achats_responsables = Boolean()
     est_alim_confiance = Boolean()
     est_association = Boolean()
+    est_avocat = Boolean()
     est_finess = Boolean()
     est_bio = Boolean()
     est_ess = Boolean()

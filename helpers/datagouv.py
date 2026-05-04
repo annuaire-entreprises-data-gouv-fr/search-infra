@@ -174,23 +174,41 @@ def fetch_last_resource_from_dataset(
             - first element is the resource id
             - second element is the resource url
     """
+    logging.info(
+        f"Fetching dataset metadata from {dataset_url} (extension: {resource_extension})"
+    )
+
     response = requests.get(dataset_url)
     if response.ok:
         dataset_metadata = response.json()
+        logging.info(f"Successfully fetched dataset metadata from {dataset_url}")
     else:
         logging.error(f"Error fetching dataset metadata from {dataset_url}")
         response.raise_for_status()
 
+    resources = dataset_metadata.get("resources", [])
+    logging.info(f"Found {len(resources)} total resources in dataset")
+
+    matching_resources = [r for r in resources if r["format"] == resource_extension]
+    logging.info(
+        f"Found {len(matching_resources)} resources with extension '{resource_extension}'"
+    )
+
     resource_id, _ = max(
         (
             (resource["id"], resource["last_modified"])
-            for resource in dataset_metadata.get("resources", [])
-            if resource["format"] == resource_extension
+            for resource in matching_resources
         ),
         default=(None, None),
         key=lambda x: x[1],  # Sort by 'last_modified'
     )
-    if resource_id:
-        return resource_id, f"{DATA_GOUV_BASE_URL}{resource_id}"
 
-    raise ValueError(f"No CSV resource found for dataset at {dataset_url}.")
+    if resource_id:
+        resource_url = f"{DATA_GOUV_BASE_URL}{resource_id}"
+        logging.info(
+            f"Found most recent {resource_extension} resource: id={resource_id}, url={resource_url}"
+        )
+        return resource_id, resource_url
+    raise ValueError(
+        f"No '{resource_extension}' resource found for dataset at {dataset_url}."
+    )
