@@ -679,7 +679,7 @@ def fetch_data_processed_from_huwise(huwise_url: str) -> str:
     response = requests.get(metadata_url, timeout=10)
     response.raise_for_status()
     data = response.json()
-    return data["metas"]["default"]["data_processed"]
+    return data["metas"]["default"]["metadata_processed"]
 
 
 def parse_json_safe(json_str: str) -> dict | None:
