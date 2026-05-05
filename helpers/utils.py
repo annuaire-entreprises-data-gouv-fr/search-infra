@@ -38,8 +38,8 @@ def str_to_list(string):
     try:
         li = literal_eval(string)
         return li
-    except (ValueError, SyntaxError):
-        logging.warning(f"////////////////Could not evaluate: {string}")
+    except (ValueError, SyntaxError, TypeError):
+        logging.warning(f"***** str_to_list: Could not evaluate: {string!r}")
         return None
 
 

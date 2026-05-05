@@ -358,6 +358,7 @@ class UniteLegaleMapping(InnerDoc):
     type_siae = Keyword()
     tranche_effectif_salarie_unite_legale = Keyword()
     bodacc = Object(BodaccMapping)
+    liste_tva = Text()
 
 
 class StructureMapping(Document):

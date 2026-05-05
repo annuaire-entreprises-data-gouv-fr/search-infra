@@ -293,6 +293,11 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         else:
             unite_legale_processed["bodacc"] = {}
 
+        # TVA
+        unite_legale_processed["liste_tva"] = str_to_list(
+            unite_legale_processed["liste_tva"]
+        )
+
         # Create unité légale (structure) to be indexed
         unite_legale_to_index = {}
         unite_legale_to_index["identifiant"] = unite_legale_processed["siren"]

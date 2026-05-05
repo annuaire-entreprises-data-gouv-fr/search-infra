@@ -118,6 +118,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.rge.config import RGE_CONF
 from data_pipelines_annuaire.workflows.data_pipelines.spectacle.config import (
     SPECTACLE_CONFIG,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.tva.config import TVA_CONFIG
 from data_pipelines_annuaire.workflows.data_pipelines.uai.config import UAI_CONFIG
 
 default_args = {
@@ -216,6 +217,7 @@ def database_constructor():
             BODACC_CONFIG,
             AIDES_ADEME_CONFIG,
             AVOCAT_CONFIG,
+            TVA_CONFIG,
         ]
         tasks = []
         for config in config_list:
