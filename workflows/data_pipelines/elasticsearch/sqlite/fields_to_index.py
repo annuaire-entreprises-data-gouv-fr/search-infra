@@ -380,6 +380,8 @@ select_fields_to_index_query = """SELECT
             (SELECT est_siae  FROM marche_inclusion WHERE siren = ul.siren) AS est_siae,
             (SELECT type_siae FROM marche_inclusion WHERE siren = ul.siren)
             AS type_siae,
+            (SELECT liste_tva FROM tva WHERE siren = ul.siren)
+              as liste_tva,
             (
                 SELECT json_object(
                     'date_immatriculation', date_immatriculation,
