@@ -157,7 +157,7 @@ def build_bodacc_id(
 
 
 def extract_id_from_avis_precedent(avis_precedent_str: str) -> str | None:
-    """Extrait l'ID de l'annonce annulée ou rectifiée depuis le champs Json parutionavisprecedent."""
+    """Extrait l'ID de l'annonce annulée ou rectifiée depuis le champ json parutionavisprecedent."""
     avis = parse_json_safe(avis_precedent_str)
     if not avis:
         return None
