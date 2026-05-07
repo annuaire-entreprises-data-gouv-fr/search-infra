@@ -1,5 +1,4 @@
 import json
-import logging
 import re
 
 import pandas as pd
@@ -136,17 +135,6 @@ def is_retractation(famille: str) -> bool:
     return any(kw in famille_lower for kw in FAMILLES_ANNULATION)
 
 
-def is_rapport_de_radiation_doffice(radiationaurcs_str: str) -> bool:
-    """
-    Vérifie si le champ radiationaurcs indique un rapport de radiation d'office.
-    Un rapport de radiation d'office correspond à l'annulation d'une radiation.
-    """
-    data = parse_json_safe(radiationaurcs_str)
-    if not data:
-        return False
-    return data.get("commentaire", "") == "Rapport de radiation d'office"
-
-
 def build_bodacc_id(
     code_publication: str, numero_parution: str | int, numero_annonce: str | int
 ) -> str | None:
@@ -156,8 +144,8 @@ def build_bodacc_id(
     return None
 
 
-def extract_id_from_avis_precedent(avis_precedent_str: str) -> str | None:
-    """Extrait l'ID de l'annonce annulée ou rectifiée depuis le champ json parutionavisprecedent."""
+def extract_cancelled_id_from_avis_precedent(avis_precedent_str: str) -> str | None:
+    """Extrait l'ID de l'annonce annulée depuis le champs Json parutionavisprecedent."""
     avis = parse_json_safe(avis_precedent_str)
     if not avis:
         return None
@@ -168,29 +156,20 @@ def extract_id_from_avis_precedent(avis_precedent_str: str) -> str | None:
     )
 
 
-def get_previous_ids_to_discard(df: pd.DataFrame) -> set:
-    """Extrait les IDs des annonces précédentes annulées, rectifiées ou rétractées."""
-    discarded_ids = set()
+def get_cancelled_ids(df: pd.DataFrame) -> set:
+    """Extrait les IDs des annonces annulées (annulations + rétractations)."""
+    cancelled_ids = set()
 
-    # Annulation explicite de l'avis précédent
+    # Annulations explicites
     annulations = df[df["typeavis"] == "annulation"]
     if not annulations.empty:
         ids_from_annulations = annulations["parutionavisprecedent"].apply(
-            extract_id_from_avis_precedent
+            extract_cancelled_id_from_avis_precedent
         )
-        discarded_ids.update(ids_from_annulations.dropna())
-
-    # Rectificatif (remplacement) de l'annonce précédente
-    rectificatifs = df[df["typeavis"] == "rectificatif"]
-    if not rectificatifs.empty:
-        ids_from_rectificatifs = rectificatifs["parutionavisprecedent"].apply(
-            extract_id_from_avis_precedent
-        )
-        discarded_ids.update(ids_from_rectificatifs.dropna())
+        cancelled_ids.update(ids_from_annulations.dropna())
 
     # Rétractations sur tierce opposition
     # S'applique aux procédures collectives et non aux radiations
-    # Le filtre sur jugement permet d'identifier les procédures collectives des radiations
     if "jugement" in df.columns:
         familles = df["jugement"].apply(
             lambda x: (
@@ -200,63 +179,38 @@ def get_previous_ids_to_discard(df: pd.DataFrame) -> set:
         retractations = df[familles.apply(is_retractation)]
         if not retractations.empty:
             ids_from_retractations = retractations["parutionavisprecedent"].apply(
-                extract_id_from_avis_precedent
+                extract_cancelled_id_from_avis_precedent
             )
-            discarded_ids.update(ids_from_retractations.dropna())
+            cancelled_ids.update(ids_from_retractations.dropna())
 
-    return discarded_ids
+    return cancelled_ids
 
 
-def get_processed_ids_to_discard(df: pd.DataFrame) -> set:
+def filter_cancelled_announcements(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Extrait les IDs des :
-       - avis d'annulation,
-       - rectificatifs avec rapport de radiation d'office,
-       - jugements de rétractations.
+    Exclut :
+        - les annonces annulées
+        - les avis d'annulations
+        - les rétractations
     """
-    ids_to_discard = set()
+    cancelled_ids = get_cancelled_ids(df)
 
-    # Avis d'annulations
-    annulations = df[df["typeavis"] == "annulation"]
-    ids_to_discard.update(annulations["id"].dropna())
+    # Exclut les annonces annulées
+    df = df[~df["id"].isin(cancelled_ids)]
 
-    # Rectificatifs de type "radiation d'office" (équivalent annulation)
-    if "radiationaurcs" in df.columns:
-        is_rectificatif = df["typeavis"] == "rectificatif"
-        is_rad_doffice = df["radiationaurcs"].apply(is_rapport_de_radiation_doffice)
-        ids_to_discard.update(df.loc[is_rectificatif & is_rad_doffice, "id"].dropna())
+    # Exclut les avis d'annulations
+    df = df[df["typeavis"] != "annulation"]
 
-    # Rétractations sur tierce opposition
-    # Le filtre sur jugement permet d'identifier les procédures collectives des radiations
+    # Exclut aussi les rétractations elles-mêmes (seulement si colonne jugement existe)
     if "jugement" in df.columns:
-        familles = df["jugement"].apply(
+        df = df.copy()
+        df["_famille"] = df["jugement"].apply(
             lambda x: (
                 parse_json_safe(x).get("famille", "") if parse_json_safe(x) else ""
             )
         )
-        retractations = df[familles.apply(is_retractation)]
-        ids_to_discard.update(retractations["id"].dropna())
-
-    return ids_to_discard
-
-
-def process_discarded_announcements(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Exclut :
-        - les annonces annulées,
-        - les annonces rectifiées,
-        - les avis d'annulations,
-        - les rétractations.
-    Les rectificatifs sont conservés car ils portent la valeur à jour.
-    """
-
-    logging.info("Supprime les annonces annulées ou remplacées")
-    discarded_ids = get_previous_ids_to_discard(df)
-    df = df[~df["id"].isin(discarded_ids)]
-
-    logging.info("Supprime les annonces qui annulent les annonces précédentes")
-    ids_to_discard = get_processed_ids_to_discard(df)
-    df = df[~df["id"].isin(ids_to_discard)]
+        df = df[~df["_famille"].apply(is_retractation)]
+        df = df.drop(columns=["_famille"])
 
     return df
 
