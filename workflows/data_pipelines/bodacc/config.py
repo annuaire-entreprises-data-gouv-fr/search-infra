@@ -27,15 +27,15 @@ BODACC_CONFIG = DataSourceConfig(
         CREATE TABLE IF NOT EXISTS bodacc
         (
             siren TEXT PRIMARY KEY,
-            radiation_rcs_id TEXT,
-            radiation_rcs INTEGER,
-            radiation_rcs_date DATE,
-            radiation_rcs_date_publication DATE,
-            procedure_collective_id TEXT,
+            radiation_id_annonce TEXT,
+            radiation_est_radie INTEGER,
+            radiation_date DATE,
+            radiation_date_publication DATE,
+            procedure_collective_id_annonce TEXT,
             procedure_collective_statut TEXT,
             procedure_collective_nature TEXT,
-            procedure_collective_complement_jugement TEXT,
-            procedure_collective_date_jugement DATE,
+            procedure_collective_complement TEXT,
+            procedure_collective_date DATE,
             procedure_collective_date_publication DATE,
 
             procedure_collective_cloturee_nature TEXT
