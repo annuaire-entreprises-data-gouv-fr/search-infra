@@ -7,6 +7,16 @@ import pandas as pd
 from data_pipelines_annuaire.helpers.utils import parse_json_safe
 
 
+def fix_mojibake(text: str) -> str:
+    """Répare les chaînes UTF-8 mal décodées en Latin-1 (ex: 'clÃ´ture' -> 'clôture')."""
+    if not text:
+        return text
+    try:
+        return text.encode("latin-1").decode("utf-8")
+    except (UnicodeDecodeError, UnicodeEncodeError):
+        return text
+
+
 def parse_date_bodacc(date_str: str) -> str:
     """
     Parse une date BODACC et retourne au format YYYY-MM-DD.
@@ -112,10 +122,8 @@ def is_procedure_en_cours(nature: str) -> bool:
 
 def is_cloture(famille: str) -> bool:
     """Vérifie si la famille correspond à une clôture de procédure."""
-    # Familles de jugement indiquant une clôture
     FAMILLES_CLOTURE = [
         "jugement de clôture",
-        "jugement de clÃ´ture",  # Encodage UTF-8 mal interprété
     ]
     if pd.isna(famille) or not famille:
         return False

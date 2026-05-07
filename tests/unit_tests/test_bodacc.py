@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
+    fix_mojibake,
     get_previous_ids_to_discard,
     get_processed_ids_to_discard,
     is_cloture,
@@ -12,6 +13,25 @@ from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
     parse_radiation_json,
     process_discarded_announcements,
 )
+
+# fix_mojibake()
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        ("clÃ´ture", "clôture"),
+        ("procÃ©dure", "procédure"),
+        ("DÃ©pÃ´t de l'Ã©tat des crÃ©ances", "Dépôt de l'état des créances"),
+        ("ArrÃªt de la cour d'appel", "Arrêt de la cour d'appel"),
+        ("Jugement prononÃ§ant", "Jugement prononçant"),
+        ("Jugement de clôture", "Jugement de clôture"),
+        ("", ""),
+    ],
+)
+def test_fix_mojibake(input, expected):
+    assert fix_mojibake(input) == expected
+
 
 # parse_date_bodacc()
 
