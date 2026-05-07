@@ -1,8 +1,10 @@
 import json
 import logging
 import re
+from pathlib import Path
 
 import pandas as pd
+import yaml
 
 from data_pipelines_annuaire.helpers.utils import parse_json_safe
 
@@ -285,3 +287,38 @@ def extract_siren_from_registre(df: pd.DataFrame) -> pd.DataFrame:
     # que les Siren avec un mauvais format
     df = df[df["siren"].notna() & (df["siren"] != "")]
     return df
+
+
+RULES_PATH = Path(__file__).parent / "rule.yml"
+
+
+def load_procedure_collective_rules() -> list[dict]:
+    with open(RULES_PATH, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    return data["procedure_collective_rules"]
+
+
+def apply_procedure_collective_rules(
+    nature: str, complement_jugement: str, rules: list[dict]
+) -> str | None:
+    """
+    Applique les règles dans l'ordre. Retourne le statut de la première règle
+    qui matche, ou None si aucune règle ne correspond (avec un warning loggé).
+    """
+    if not nature:
+        return None
+
+    for rule in rules:
+        if rule["nature"] != nature:
+            continue
+        if "complement_contains" in rule:
+            if (
+                not complement_jugement
+                or rule["complement_contains"].lower()
+                not in complement_jugement.lower()
+            ):
+                continue
+        return rule.get("statut")
+
+    logging.warning(f"BODACC: nature non traitée dans rule.yml : '{nature}'")
+    return None

@@ -11,8 +11,10 @@ from data_pipelines_annuaire.workflows.data_pipelines.bodacc.config import (
     BODACC_CONFIG,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
+    apply_procedure_collective_rules,
     extract_siren_from_registre,
     is_cloture,
+    load_procedure_collective_rules,
     parse_jugement_json,
     parse_radiation_json,
     process_discarded_announcements,
@@ -78,7 +80,7 @@ def process_procedure_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
     )
 
     # Exclure les familles non pertinentes
-    familles_exclues = ["Avis de dépôt", "Extrait de jugement"]
+    familles_exclues = ["Avis de dépôt", "Extrait de jugement", "Loi de 1967"]
     chunk = chunk[~chunk["procedure_collective_famille"].isin(familles_exclues)]
 
     if chunk.empty:
@@ -262,6 +264,7 @@ class BodaccProcessor(DataProcessor):
                 columns=[
                     "siren",
                     "procedure_collective_id",
+                    "procedure_collective_statut",
                     "procedure_collective_nature",
                     "procedure_collective_complement_jugement",
                     "procedure_collective_date_jugement",
@@ -272,6 +275,17 @@ class BodaccProcessor(DataProcessor):
 
         # Concaténer tous les chunks
         df = pd.concat(chunks_processed, ignore_index=True)
+
+        # Appliquer les règles de classification
+        rules = load_procedure_collective_rules()
+        df["procedure_collective_statut"] = df.apply(
+            lambda row: apply_procedure_collective_rules(
+                row["procedure_collective_nature"],
+                row["procedure_collective_complement_jugement"],
+                rules,
+            ),
+            axis=1,
+        )
 
         # Environ 5 dates de procédures collectives avec des dates absurdes comme 0009-12-02 ou 5025-05-27
         # Ces "erreurs" sont ignorées lors des conversions en datetime
@@ -345,6 +359,7 @@ class BodaccProcessor(DataProcessor):
             [
                 "siren",
                 "procedure_collective_id",
+                "procedure_collective_statut",
                 "procedure_collective_nature",
                 "procedure_collective_complement_jugement",
                 "procedure_collective_date_jugement",

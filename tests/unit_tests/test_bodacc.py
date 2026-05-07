@@ -4,10 +4,12 @@ import pandas as pd
 import pytest
 
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
+    apply_procedure_collective_rules,
     fix_mojibake,
     get_previous_ids_to_discard,
     get_processed_ids_to_discard,
     is_cloture,
+    load_procedure_collective_rules,
     parse_date_bodacc,
     parse_jugement_json,
     parse_radiation_json,
@@ -346,3 +348,67 @@ def test_cloture_procedure_has_no_nature_regardless_of_age():
     )
     result = _apply_expiration_logic(df)
     assert result["procedure_collective_nature"].iloc[0] == ""
+
+
+# apply_procedure_collective_rules()
+
+
+@pytest.fixture
+def rules():
+    return load_procedure_collective_rules()
+
+
+def test_rules_liquidation_judiciaire(rules):
+    statut = apply_procedure_collective_rules(
+        "Jugement d'ouverture de liquidation judiciaire", "", rules
+    )
+    assert statut == "liquidation_judiciaire"
+
+
+def test_rules_redressement_judiciaire(rules):
+    statut = apply_procedure_collective_rules(
+        "Jugement d'ouverture d'une procédure de redressement judiciaire", "", rules
+    )
+    assert statut == "redressement_judiciaire"
+
+
+def test_rules_sauvegarde(rules):
+    statut = apply_procedure_collective_rules(
+        "Jugement d'ouverture d'une procédure de sauvegarde", "", rules
+    )
+    assert statut == "sauvegarde"
+
+
+def test_rules_cloture_returns_none(rules):
+    statut = apply_procedure_collective_rules(
+        "Jugement de clôture pour insuffisance d'actif", "", rules
+    )
+    assert statut is None
+
+
+def test_rules_autre_jugement_with_complement(rules):
+    statut = apply_procedure_collective_rules(
+        "Autre jugement prononçant",
+        "la clôture de la procédure pour insuffisance d'actif",
+        rules,
+    )
+    assert statut is None
+
+
+def test_rules_autre_jugement_with_complement_liquidation(rules):
+    statut = apply_procedure_collective_rules(
+        "Autre jugement prononçant",
+        "l'ouverture d'une procédure de liquidation judiciaire",
+        rules,
+    )
+    assert statut == "liquidation_judiciaire"
+
+
+def test_rules_unknown_nature_returns_none(rules):
+    statut = apply_procedure_collective_rules("Nature inconnue", "", rules)
+    assert statut is None
+
+
+def test_rules_empty_nature():
+    rules = load_procedure_collective_rules()
+    assert apply_procedure_collective_rules("", "", rules) is None
