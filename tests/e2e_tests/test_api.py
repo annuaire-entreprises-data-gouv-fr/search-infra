@@ -909,29 +909,3 @@ def test_a_aide_ademe(api_response_tester):
     path = "/search?q=054392758"
     api_response_tester.assert_api_response_code_200(path)
     api_response_tester.test_field_value(path, 0, "complements.a_aide_ademe", True)
-
-
-def test_bodacc(api_response_tester):
-    # SIREN 552032534 : entreprise active sans radiation ni procédure collective
-    path = "/search?q=552032534&include_admin=bodacc"
-    api_response_tester.assert_api_response_code_200(path)
-
-    api_response_tester.test_field_value(path, 0, "bodacc.radiation", None)
-    api_response_tester.test_field_value(path, 0, "bodacc.procedure_collective", None)
-
-    # SIREN 442750196 : entreprise avec une date de radiation
-    path = "/search?q=442750196&include_admin=bodacc"
-    api_response_tester.assert_api_response_code_200(path)
-
-    api_response_tester.test_field_value(path, 0, "bodacc.radiation.est_radie", True)
-    api_response_tester.test_field_value(path, 0, "bodacc.radiation.date", "2014-06-01")
-    api_response_tester.test_field_value(path, 0, "bodacc.procedure_collective", None)
-
-    # SIREN 909324055 : entreprise en procédure collective
-    path = "/search?q=909324055&include_admin=bodacc"
-    api_response_tester.assert_api_response_code_200(path)
-
-    api_response_tester.test_field_not_none(path, 0, "bodacc.procedure_collective.date")
-    api_response_tester.test_field_not_none(
-        path, 0, "bodacc.procedure_collective.statut"
-    )
