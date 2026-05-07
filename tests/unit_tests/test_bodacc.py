@@ -6,6 +6,7 @@ import pytest
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
     get_previous_ids_to_discard,
     get_processed_ids_to_discard,
+    is_cloture,
     parse_date_bodacc,
     parse_jugement_json,
     parse_radiation_json,
@@ -244,3 +245,61 @@ def test_filter_discarded_keeps_normal_rectificatif_with_radiationaurcs():
     )
     result = process_discarded_announcements(df)
     assert result["id"].tolist() == ["A20243000"]
+
+
+# Expiration des procédures > 10 ans
+
+
+def _apply_expiration_logic(df: pd.DataFrame) -> pd.DataFrame:
+    """Reproduit la logique d'expiration de _process_procedures_collectives."""
+    df["procedure_collective_date_jugement"] = pd.to_datetime(
+        df["procedure_collective_date_jugement"], errors="coerce", format="%Y-%m-%d"
+    )
+    df["is_cloture"] = df["procedure_collective_famille"].apply(is_cloture)
+    ten_years_ago = pd.Timestamp.now() - pd.DateOffset(years=10)
+    df["is_expired"] = df["procedure_collective_date_jugement"] < ten_years_ago
+    df["procedure_collective_nature"] = df.apply(
+        lambda row: (
+            ""
+            if row["is_cloture"] or row["is_expired"]
+            else row["procedure_collective_nature"]
+        ),
+        axis=1,
+    )
+    return df
+
+
+def test_procedure_older_than_10_years_has_no_nature():
+    df = pd.DataFrame(
+        {
+            "procedure_collective_famille": ["Ouverture"],
+            "procedure_collective_nature": ["Redressement judiciaire"],
+            "procedure_collective_date_jugement": ["2010-01-01"],
+        }
+    )
+    result = _apply_expiration_logic(df)
+    assert result["procedure_collective_nature"].iloc[0] == ""
+
+
+def test_recent_procedure_keeps_nature():
+    df = pd.DataFrame(
+        {
+            "procedure_collective_famille": ["Ouverture"],
+            "procedure_collective_nature": ["Redressement judiciaire"],
+            "procedure_collective_date_jugement": ["2024-01-01"],
+        }
+    )
+    result = _apply_expiration_logic(df)
+    assert result["procedure_collective_nature"].iloc[0] == "Redressement judiciaire"
+
+
+def test_cloture_procedure_has_no_nature_regardless_of_age():
+    df = pd.DataFrame(
+        {
+            "procedure_collective_famille": ["Jugement de clôture"],
+            "procedure_collective_nature": ["Liquidation judiciaire"],
+            "procedure_collective_date_jugement": ["2024-01-01"],
+        }
+    )
+    result = _apply_expiration_logic(df)
+    assert result["procedure_collective_nature"].iloc[0] == ""

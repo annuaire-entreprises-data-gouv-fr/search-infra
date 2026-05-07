@@ -299,23 +299,41 @@ class BodaccProcessor(DataProcessor):
         # Déterminer si la procédure la plus récente est une clôture
         df["is_cloture"] = df["procedure_collective_famille"].apply(is_cloture)
 
+        ten_years_ago = pd.Timestamp.now() - pd.DateOffset(years=10)
+        df["is_expired"] = df["procedure_collective_date_jugement"] < ten_years_ago
+
         # Créer les colonnes finales
         df["procedure_collective_cloturee_nature"] = df.apply(
             lambda row: row["procedure_collective_nature"] if row["is_cloture"] else "",
             axis=1,
         )
         df["procedure_collective_nature_finale"] = df.apply(
-            lambda row: "" if row["is_cloture"] else row["procedure_collective_nature"],
+            lambda row: (
+                ""
+                if row["is_cloture"] or row["is_expired"]
+                else row["procedure_collective_nature"]
+            ),
             axis=1,
         )
 
         # Renommer pour l'export
         df["procedure_collective_nature"] = df["procedure_collective_nature_finale"]
 
+        # Effacer le statut pour les procédures clôturées ou expirées
+        df["procedure_collective_statut"] = df.apply(
+            lambda row: (
+                ""
+                if row["is_cloture"] or row["is_expired"]
+                else row["procedure_collective_statut"] or ""
+            ),
+            axis=1,
+        )
+
         logging.info(
             f"Procedures: {len(df)} unique SIRENs, "
             f"{df['is_cloture'].sum()} clôturées, "
-            f"{(~df['is_cloture']).sum()} en cours"
+            f"{(~df['is_cloture'] & df['is_expired']).sum()} expirées (>10 ans), "
+            f"{(~df['is_cloture'] & ~df['is_expired']).sum()} en cours"
         )
 
         return df[
