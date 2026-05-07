@@ -89,18 +89,19 @@ def parse_radiation_json(radiation_str: str) -> str:
 
 
 def parse_jugement_json(jugement_str: str) -> dict:
-    """Parse le champs Json jugement et en extraire famille, nature et date."""
+    """Parse le champ json jugement et en extraire famille, nature, complementJugement et date."""
     if pd.isna(jugement_str) or not jugement_str:
-        return {"famille": "", "nature": "", "date": ""}
+        return {"famille": "", "nature": "", "complementJugement": "", "date": ""}
     try:
         data = json.loads(jugement_str)
         return {
-            "famille": data.get("famille", ""),
-            "nature": data.get("nature", ""),
+            "famille": fix_mojibake(data.get("famille", "")),
+            "nature": fix_mojibake(data.get("nature", "")),
+            "complementJugement": fix_mojibake(data.get("complementJugement", "")),
             "date": parse_date_bodacc(data.get("date", "")),
         }
     except json.JSONDecodeError:
-        return {"famille": "", "nature": "", "date": ""}
+        return {"famille": "", "nature": "", "complementJugement": "", "date": ""}
 
 
 def is_procedure_en_cours(nature: str) -> bool:

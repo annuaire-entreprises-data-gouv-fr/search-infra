@@ -83,6 +83,7 @@ def test_parse_jugement_json_full():
     assert parse_jugement_json(data) == {
         "famille": "Ouverture",
         "nature": "Redressement judiciaire",
+        "complementJugement": "",
         "date": "2024-07-24",
     }
 
@@ -94,15 +95,37 @@ def test_parse_jugement_json_date_converted():
 
 
 def test_parse_jugement_json_missing_keys():
-    assert parse_jugement_json("{}") == {"famille": "", "nature": "", "date": ""}
+    assert parse_jugement_json("{}") == {
+        "famille": "",
+        "nature": "",
+        "complementJugement": "",
+        "date": "",
+    }
 
 
 def test_parse_jugement_json_invalid_json():
-    assert parse_jugement_json("not json") == {"famille": "", "nature": "", "date": ""}
+    assert parse_jugement_json("not json") == {
+        "famille": "",
+        "nature": "",
+        "complementJugement": "",
+        "date": "",
+    }
 
 
 def test_parse_jugement_json_empty():
-    assert parse_jugement_json("") == {"famille": "", "nature": "", "date": ""}
+    assert parse_jugement_json("") == {
+        "famille": "",
+        "nature": "",
+        "complementJugement": "",
+        "date": "",
+    }
+
+
+def test_parse_jugement_json_fixes_mojibake():
+    data = '{"famille": "Jugement de clÃ´ture", "nature": "Jugement de clÃ´ture pour insuffisance d\'actif", "date": "2024-01-15"}'
+    result = parse_jugement_json(data)
+    assert result["famille"] == "Jugement de clôture"
+    assert result["nature"] == "Jugement de clôture pour insuffisance d'actif"
 
 
 # Helper to build parutionavisprecedent JSON

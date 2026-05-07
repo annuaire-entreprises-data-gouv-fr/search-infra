@@ -87,6 +87,9 @@ def process_procedure_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
     chunk["procedure_collective_nature"] = chunk["jugement_parsed"].apply(
         lambda x: x.get("nature", "") if x else ""
     )
+    chunk["procedure_collective_complement_jugement"] = chunk["jugement_parsed"].apply(
+        lambda x: x.get("complementJugement", "") if x else ""
+    )
     chunk["procedure_collective_date_jugement"] = chunk["jugement_parsed"].apply(
         lambda x: x.get("date", "") if x else ""
     )
@@ -100,6 +103,7 @@ def process_procedure_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
             "procedure_collective_id",
             "procedure_collective_famille",
             "procedure_collective_nature",
+            "procedure_collective_complement_jugement",
             "procedure_collective_date_jugement",
             "procedure_collective_date_publication",
         ]
@@ -259,6 +263,7 @@ class BodaccProcessor(DataProcessor):
                     "siren",
                     "procedure_collective_id",
                     "procedure_collective_nature",
+                    "procedure_collective_complement_jugement",
                     "procedure_collective_date_jugement",
                     "procedure_collective_date_publication",
                     "procedure_collective_cloturee_nature",
@@ -341,6 +346,7 @@ class BodaccProcessor(DataProcessor):
                 "siren",
                 "procedure_collective_id",
                 "procedure_collective_nature",
+                "procedure_collective_complement_jugement",
                 "procedure_collective_date_jugement",
                 "procedure_collective_date_publication",
                 "procedure_collective_cloturee_nature",

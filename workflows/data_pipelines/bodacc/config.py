@@ -33,6 +33,7 @@ BODACC_CONFIG = DataSourceConfig(
             radiation_rcs_date_publication DATE,
             procedure_collective_id TEXT,
             procedure_collective_nature TEXT,
+            procedure_collective_complement_jugement TEXT,
             procedure_collective_date_jugement DATE,
             procedure_collective_date_publication DATE,
 
