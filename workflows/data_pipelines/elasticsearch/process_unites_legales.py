@@ -282,6 +282,17 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             calculate_company_size_factor(unite_legale_processed)
         )
 
+        # BODACC (procédures collectives et radiations)
+        bodacc = unite_legale.get("bodacc")
+        if bodacc:
+            bodacc_data = json.loads(bodacc)
+            bodacc_data["radiation_rcs"] = sqlite_str_to_bool(
+                bodacc_data.get("radiation_rcs", 0)
+            )
+            unite_legale_processed["bodacc"] = bodacc_data
+        else:
+            unite_legale_processed["bodacc"] = {}
+
         # TVA
         unite_legale_processed["liste_tva"] = str_to_list(
             unite_legale_processed["liste_tva"]
