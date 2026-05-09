@@ -276,6 +276,7 @@ class UniteLegaleMapping(InnerDoc):
 
     """
 
+    a_acces_espace_agent = Boolean()
     activite_principale_unite_legale = Keyword()
     activite_principale_naf25_unite_legale = Keyword()
     annee_categorie_entreprise = Date()
@@ -311,6 +312,7 @@ class UniteLegaleMapping(InnerDoc):
     egapro_renseignee = Boolean()
     aide_minimis_renseignee = Boolean()
     aide_ademe_renseignee = Boolean()
+    est_administration = Boolean()
     est_achats_responsables = Boolean()
     est_alim_confiance = Boolean()
     est_association = Boolean()
@@ -321,10 +323,10 @@ class UniteLegaleMapping(InnerDoc):
     est_organisme_formation = Boolean()
     liste_id_organisme_formation = Keyword()
     est_qualiopi = Boolean()
-    est_l100_3 = Boolean()
+    est_l100_3 = Boolean()  # Deprecated
     est_patrimoine_vivant = Boolean()
     est_rge = Boolean()
-    est_service_public = Boolean()
+    est_service_public = Boolean()  # Deprecated
     est_siae = Boolean()
     est_personne_morale_insee = Boolean()
     est_societe_mission = Keyword()

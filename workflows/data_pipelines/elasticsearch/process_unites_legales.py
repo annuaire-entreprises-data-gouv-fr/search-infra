@@ -16,12 +16,12 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichm
     format_siege_unite_legale,
     format_slug,
     get_nom_commercial,
-    is_administration_l100_3,
+    has_access_espace_agent,
+    is_administration,
     is_association,
     is_entrepreneur_individuel,
     is_ess,
     is_personne_morale_insee,
-    is_service_public,
     label_section_from_activite,
     map_categorie_to_number,
 )
@@ -266,16 +266,22 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         # Administration
-        unite_legale_processed["est_service_public"] = is_service_public(
+        unite_legale_processed["est_administration"] = is_administration(
             unite_legale["nature_juridique_unite_legale"],
             unite_legale_processed["siren"],
             unite_legale_processed["etat_administratif_unite_legale"],
         )
-        unite_legale_processed["est_l100_3"] = is_administration_l100_3(
+
+        # Accès espace agent : service public administratif + whitelist siren
+        unite_legale_processed["a_acces_espace_agent"] = has_access_espace_agent(
             unite_legale_processed["siren"],
             unite_legale["nature_juridique_unite_legale"],
-            unite_legale_processed["est_service_public"],
+            unite_legale_processed["est_administration"],
         )
+
+        # Deprecated - to be deleted once prod is stable and frontend is updated
+        unite_legale_processed["est_service_public"] = None
+        unite_legale_processed["est_l100_3"] = None
 
         # Produits catégorie/nombre étabs
         unite_legale_processed["facteur_taille_entreprise"] = (
