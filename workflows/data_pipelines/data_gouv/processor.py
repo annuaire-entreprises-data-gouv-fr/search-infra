@@ -31,12 +31,13 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichm
     format_adresse_complete,
     format_departement,
     format_nom_complet,
-    is_administration_l100_3,
+    has_access_espace_agent,
+    has_mission_service_public_administratif,
+    is_administration,
     is_association,
     is_entrepreneur_individuel,
     is_ess,
     is_personne_morale_insee,
-    is_service_public,
 )
 
 
@@ -203,8 +204,8 @@ class DataGouvProcessor:
         chunk["date_mise_a_jour_rne"] = chunk["date_mise_a_jour_rne"].apply(
             convert_date_format
         )
-        chunk["est_service_public"] = chunk.apply(
-            lambda row: is_service_public(
+        chunk["est_administration"] = chunk.apply(
+            lambda row: is_administration(
                 row["nature_juridique"], row["siren"], row["etat_administratif"]
             ),
             axis=1,
@@ -304,13 +305,22 @@ class DataGouvProcessor:
         )
 
         df = pd.read_csv(ul_csv_path, dtype=str)
-        admin_df = df[df["est_service_public"] == "True"][
+        admin_df = df[df["est_administration"] == "True"][
             ["siren", "nom_complet", "nature_juridique"]
         ]
 
-        admin_df["administration_au_sens_article_L100-3"] = admin_df.apply(
-            lambda row: is_administration_l100_3(
-                row["siren"], row["nature_juridique"], True
+        admin_df["a_mission_service_public_administratif"] = admin_df.apply(
+            lambda row: has_mission_service_public_administratif(
+                nature_juridique=row["nature_juridique"], is_administration=True
+            ),
+            axis=1,
+        )
+
+        admin_df["a_acces_espace_agent"] = admin_df.apply(
+            lambda row: has_access_espace_agent(
+                siren=row["siren"],
+                nature_juridique=row["nature_juridique"],
+                is_administration=True,
             ),
             axis=1,
         )
