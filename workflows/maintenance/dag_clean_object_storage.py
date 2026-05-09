@@ -102,5 +102,11 @@ def delete_old_object_storage_file():
         retention_days=30,
     )
 
+    delete_old_files.override(task_id="fichiers_publiés_sur_datagouv")(
+        prefix=f"ae/{AIRFLOW_ENV}/data_gouv/",
+        keep_latest=3,
+        retention_days=30,
+    )
+
 
 delete_old_object_storage_file()
