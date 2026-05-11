@@ -408,10 +408,12 @@ select_fields_to_index_query = """SELECT
             ) as immatriculation,
             (
                 SELECT json_object(
-                    'radiation_rcs', radiation_rcs,
-                    'radiation_rcs_date', radiation_rcs_date,
-                    'procedure_collective_nature', procedure_collective_nature,
-                    'procedure_collective_date_jugement', procedure_collective_date_jugement
+                    'radiation_est_radie', radiation_est_radie,
+                    'radiation_id_annonce', radiation_id_annonce,
+                    'radiation_date', radiation_date,
+                    'procedure_collective_id_annonce', procedure_collective_id_annonce,
+                    'procedure_collective_statut', procedure_collective_statut,
+                    'procedure_collective_date', procedure_collective_date
                 )
                 FROM bodacc
                 WHERE siren = ul.siren
