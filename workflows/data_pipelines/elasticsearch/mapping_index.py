@@ -257,21 +257,11 @@ class ImmatriculationMapping(InnerDoc):
     devise_capital = Keyword()
 
 
-class BodaccRadiationMapping(InnerDoc):
-    est_radie = Boolean()
-    id_annonce = Keyword()
-    date = Date()
-
-
-class BodaccProcedureCollectiveMapping(InnerDoc):
-    statut = Keyword()
-    id_annonce = Keyword()
-    date = Date()
-
-
 class BodaccMapping(InnerDoc):
-    radiation = Object(BodaccRadiationMapping)
-    procedure_collective = Object(BodaccProcedureCollectiveMapping)
+    radiation_rcs = Boolean()
+    radiation_rcs_date = Date()
+    procedure_collective_nature = Keyword()
+    procedure_collective_date_jugement = Date()
 
 
 class UniteLegaleMapping(InnerDoc):

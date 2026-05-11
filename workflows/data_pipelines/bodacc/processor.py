@@ -11,10 +11,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.bodacc.config import (
     BODACC_CONFIG,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
-    apply_procedure_collective_rules,
     extract_siren_from_registre,
     is_cloture,
-    load_procedure_collective_rules,
     parse_jugement_json,
     parse_radiation_json,
     process_discarded_announcements,
@@ -38,21 +36,21 @@ def process_radiation_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
         return chunk
 
     # Parser le JSON radiationaurcs pour extraire la date
-    chunk["radiation_date"] = chunk["radiationaurcs"].apply(parse_radiation_json)
+    chunk["radiation_rcs_date"] = chunk["radiationaurcs"].apply(parse_radiation_json)
 
     # Marquer comme radié (présent dans le fichier = radié)
-    chunk["radiation_est_radie"] = 1
+    chunk["radiation_rcs"] = 1
 
     # Garder uniquement les colonnes nécessaires
-    chunk["radiation_date_publication"] = chunk["dateparution"]
-    chunk["radiation_id_annonce"] = chunk["id"]
+    chunk["radiation_rcs_date_publication"] = chunk["dateparution"]
+    chunk["radiation_rcs_id"] = chunk["id"]
     return chunk[
         [
             "siren",
-            "radiation_id_annonce",
-            "radiation_est_radie",
-            "radiation_date",
-            "radiation_date_publication",
+            "radiation_rcs_id",
+            "radiation_rcs",
+            "radiation_rcs_date",
+            "radiation_rcs_date_publication",
         ]
     ]
 
@@ -80,7 +78,7 @@ def process_procedure_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
     )
 
     # Exclure les familles non pertinentes
-    familles_exclues = ["Avis de dépôt", "Extrait de jugement", "Loi de 1967"]
+    familles_exclues = ["Avis de dépôt", "Extrait de jugement"]
     chunk = chunk[~chunk["procedure_collective_famille"].isin(familles_exclues)]
 
     if chunk.empty:
@@ -89,24 +87,20 @@ def process_procedure_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
     chunk["procedure_collective_nature"] = chunk["jugement_parsed"].apply(
         lambda x: x.get("nature", "") if x else ""
     )
-    chunk["procedure_collective_complement"] = chunk["jugement_parsed"].apply(
-        lambda x: x.get("complementJugement", "") if x else ""
-    )
-    chunk["procedure_collective_date"] = chunk["jugement_parsed"].apply(
+    chunk["procedure_collective_date_jugement"] = chunk["jugement_parsed"].apply(
         lambda x: x.get("date", "") if x else ""
     )
 
     # Garder uniquement les colonnes nécessaires
     chunk["procedure_collective_date_publication"] = chunk["dateparution"]
-    chunk["procedure_collective_id_annonce"] = chunk["id"]
+    chunk["procedure_collective_id"] = chunk["id"]
     return chunk[
         [
             "siren",
-            "procedure_collective_id_annonce",
+            "procedure_collective_id",
             "procedure_collective_famille",
             "procedure_collective_nature",
-            "procedure_collective_complement",
-            "procedure_collective_date",
+            "procedure_collective_date_jugement",
             "procedure_collective_date_publication",
         ]
     ]
@@ -189,10 +183,10 @@ class BodaccProcessor(DataProcessor):
             return pd.DataFrame(
                 columns=[
                     "siren",
-                    "radiation_id_annonce",
-                    "radiation_est_radie",
-                    "radiation_date",
-                    "radiation_date_publication",
+                    "radiation_rcs_id",
+                    "radiation_rcs",
+                    "radiation_rcs_date",
+                    "radiation_rcs_date_publication",
                 ]
             )
 
@@ -201,16 +195,16 @@ class BodaccProcessor(DataProcessor):
 
         # Environ 109 dates de radiations avec des dates absurdes comme 1213-10-03 ou 5019-06-01
         # Ces "erreurs" sont ignorées lors des conversions en datetime
-        df["radiation_date"] = pd.to_datetime(
-            df["radiation_date"], errors="coerce", format="%Y-%m-%d"
+        df["radiation_rcs_date"] = pd.to_datetime(
+            df["radiation_rcs_date"], errors="coerce", format="%Y-%m-%d"
         )
-        df["radiation_date_publication"] = pd.to_datetime(
-            df["radiation_date_publication"], errors="coerce", format="%Y-%m-%d"
+        df["radiation_rcs_date_publication"] = pd.to_datetime(
+            df["radiation_rcs_date_publication"], errors="coerce", format="%Y-%m-%d"
         )
 
         # Dédupliquer par Siren en gardant la radiation la plus récente
         df = df.sort_values(
-            ["radiation_date", "radiation_date_publication"],
+            ["radiation_rcs_date", "radiation_rcs_date_publication"],
             ascending=[False, False],
         )
         duplicated_mask = df.duplicated(subset=["siren"], keep="first")
@@ -225,10 +219,10 @@ class BodaccProcessor(DataProcessor):
         return df[
             [
                 "siren",
-                "radiation_id_annonce",
-                "radiation_est_radie",
-                "radiation_date",
-                "radiation_date_publication",
+                "radiation_rcs_id",
+                "radiation_rcs",
+                "radiation_rcs_date",
+                "radiation_rcs_date_publication",
             ]
         ]
 
@@ -263,11 +257,9 @@ class BodaccProcessor(DataProcessor):
             return pd.DataFrame(
                 columns=[
                     "siren",
-                    "procedure_collective_id_annonce",
-                    "procedure_collective_statut",
+                    "procedure_collective_id",
                     "procedure_collective_nature",
-                    "procedure_collective_complement",
-                    "procedure_collective_date",
+                    "procedure_collective_date_jugement",
                     "procedure_collective_date_publication",
                     "procedure_collective_cloturee_nature",
                 ]
@@ -276,21 +268,10 @@ class BodaccProcessor(DataProcessor):
         # Concaténer tous les chunks
         df = pd.concat(chunks_processed, ignore_index=True)
 
-        # Appliquer les règles de classification
-        rules = load_procedure_collective_rules()
-        df["procedure_collective_statut"] = df.apply(
-            lambda row: apply_procedure_collective_rules(
-                row["procedure_collective_nature"],
-                row["procedure_collective_complement"],
-                rules,
-            ),
-            axis=1,
-        )
-
         # Environ 5 dates de procédures collectives avec des dates absurdes comme 0009-12-02 ou 5025-05-27
         # Ces "erreurs" sont ignorées lors des conversions en datetime
-        df["procedure_collective_date"] = pd.to_datetime(
-            df["procedure_collective_date"], errors="coerce", format="%Y-%m-%d"
+        df["procedure_collective_date_jugement"] = pd.to_datetime(
+            df["procedure_collective_date_jugement"], errors="coerce", format="%Y-%m-%d"
         )
         df["procedure_collective_date_publication"] = pd.to_datetime(
             df["procedure_collective_date_publication"],
@@ -301,7 +282,7 @@ class BodaccProcessor(DataProcessor):
         # Dédupliquer par SIREN en gardant la procédure la plus récente
         df = df.sort_values(
             [
-                "procedure_collective_date",
+                "procedure_collective_date_jugement",
                 "procedure_collective_date_publication",
             ],
             ascending=[False, False],
@@ -318,51 +299,31 @@ class BodaccProcessor(DataProcessor):
         # Déterminer si la procédure la plus récente est une clôture
         df["is_cloture"] = df["procedure_collective_famille"].apply(is_cloture)
 
-        ten_years_ago = pd.Timestamp.now() - pd.DateOffset(years=10)
-        df["is_expired"] = df["procedure_collective_date"] < ten_years_ago
-
         # Créer les colonnes finales
         df["procedure_collective_cloturee_nature"] = df.apply(
             lambda row: row["procedure_collective_nature"] if row["is_cloture"] else "",
             axis=1,
         )
         df["procedure_collective_nature_finale"] = df.apply(
-            lambda row: (
-                ""
-                if row["is_cloture"] or row["is_expired"]
-                else row["procedure_collective_nature"]
-            ),
+            lambda row: "" if row["is_cloture"] else row["procedure_collective_nature"],
             axis=1,
         )
 
         # Renommer pour l'export
         df["procedure_collective_nature"] = df["procedure_collective_nature_finale"]
 
-        # Effacer le statut pour les procédures clôturées ou expirées
-        df["procedure_collective_statut"] = df.apply(
-            lambda row: (
-                ""
-                if row["is_cloture"] or row["is_expired"]
-                else row["procedure_collective_statut"] or ""
-            ),
-            axis=1,
-        )
-
         logging.info(
             f"Procedures: {len(df)} unique SIRENs, "
             f"{df['is_cloture'].sum()} clôturées, "
-            f"{(~df['is_cloture'] & df['is_expired']).sum()} expirées (>10 ans), "
-            f"{(~df['is_cloture'] & ~df['is_expired']).sum()} en cours"
+            f"{(~df['is_cloture']).sum()} en cours"
         )
 
         return df[
             [
                 "siren",
-                "procedure_collective_id_annonce",
-                "procedure_collective_statut",
+                "procedure_collective_id",
                 "procedure_collective_nature",
-                "procedure_collective_complement",
-                "procedure_collective_date",
+                "procedure_collective_date_jugement",
                 "procedure_collective_date_publication",
                 "procedure_collective_cloturee_nature",
             ]

@@ -1,22 +1,10 @@
 import json
 import logging
 import re
-from pathlib import Path
 
 import pandas as pd
-import yaml
 
 from data_pipelines_annuaire.helpers.utils import parse_json_safe
-
-
-def fix_mojibake(text: str) -> str:
-    """Répare les chaînes UTF-8 mal décodées en Latin-1 (ex: 'clÃ´ture' -> 'clôture')."""
-    if not text:
-        return text
-    try:
-        return text.encode("latin-1").decode("utf-8")
-    except (UnicodeDecodeError, UnicodeEncodeError):
-        return text
 
 
 def parse_date_bodacc(date_str: str) -> str:
@@ -91,19 +79,18 @@ def parse_radiation_json(radiation_str: str) -> str:
 
 
 def parse_jugement_json(jugement_str: str) -> dict:
-    """Parse le champ json jugement et en extraire famille, nature, complementJugement et date."""
+    """Parse le champs Json jugement et en extraire famille, nature et date."""
     if pd.isna(jugement_str) or not jugement_str:
-        return {"famille": "", "nature": "", "complementJugement": "", "date": ""}
+        return {"famille": "", "nature": "", "date": ""}
     try:
         data = json.loads(jugement_str)
         return {
-            "famille": fix_mojibake(data.get("famille", "")),
-            "nature": fix_mojibake(data.get("nature", "")),
-            "complementJugement": fix_mojibake(data.get("complementJugement", "")),
+            "famille": data.get("famille", ""),
+            "nature": data.get("nature", ""),
             "date": parse_date_bodacc(data.get("date", "")),
         }
     except json.JSONDecodeError:
-        return {"famille": "", "nature": "", "complementJugement": "", "date": ""}
+        return {"famille": "", "nature": "", "date": ""}
 
 
 def is_procedure_en_cours(nature: str) -> bool:
@@ -125,8 +112,10 @@ def is_procedure_en_cours(nature: str) -> bool:
 
 def is_cloture(famille: str) -> bool:
     """Vérifie si la famille correspond à une clôture de procédure."""
+    # Familles de jugement indiquant une clôture
     FAMILLES_CLOTURE = [
         "jugement de clôture",
+        "jugement de clÃ´ture",  # Encodage UTF-8 mal interprété
     ]
     if pd.isna(famille) or not famille:
         return False
@@ -287,38 +276,3 @@ def extract_siren_from_registre(df: pd.DataFrame) -> pd.DataFrame:
     # que les Siren avec un mauvais format
     df = df[df["siren"].notna() & (df["siren"] != "")]
     return df
-
-
-RULES_PATH = Path(__file__).parent / "rule.yml"
-
-
-def load_procedure_collective_rules() -> list[dict]:
-    with open(RULES_PATH, encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    return data["procedure_collective_rules"]
-
-
-def apply_procedure_collective_rules(
-    nature: str, complement_jugement: str, rules: list[dict]
-) -> str | None:
-    """
-    Applique les règles dans l'ordre. Retourne le statut de la première règle
-    qui matche, ou None si aucune règle ne correspond (avec un warning loggé).
-    """
-    if not nature:
-        return None
-
-    for rule in rules:
-        if rule["nature"] != nature:
-            continue
-        if "complement_contains" in rule:
-            if (
-                not complement_jugement
-                or rule["complement_contains"].lower()
-                not in complement_jugement.lower()
-            ):
-                continue
-        return rule.get("statut")
-
-    logging.warning(f"BODACC: nature non traitée dans rule.yml : '{nature}'")
-    return None

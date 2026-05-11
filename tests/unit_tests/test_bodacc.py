@@ -4,36 +4,13 @@ import pandas as pd
 import pytest
 
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
-    apply_procedure_collective_rules,
-    fix_mojibake,
     get_previous_ids_to_discard,
     get_processed_ids_to_discard,
-    is_cloture,
-    load_procedure_collective_rules,
     parse_date_bodacc,
     parse_jugement_json,
     parse_radiation_json,
     process_discarded_announcements,
 )
-
-# fix_mojibake()
-
-
-@pytest.mark.parametrize(
-    "input, expected",
-    [
-        ("clÃ´ture", "clôture"),
-        ("procÃ©dure", "procédure"),
-        ("DÃ©pÃ´t de l'Ã©tat des crÃ©ances", "Dépôt de l'état des créances"),
-        ("ArrÃªt de la cour d'appel", "Arrêt de la cour d'appel"),
-        ("Jugement prononÃ§ant", "Jugement prononçant"),
-        ("Jugement de clôture", "Jugement de clôture"),
-        ("", ""),
-    ],
-)
-def test_fix_mojibake(input, expected):
-    assert fix_mojibake(input) == expected
-
 
 # parse_date_bodacc()
 
@@ -85,7 +62,6 @@ def test_parse_jugement_json_full():
     assert parse_jugement_json(data) == {
         "famille": "Ouverture",
         "nature": "Redressement judiciaire",
-        "complementJugement": "",
         "date": "2024-07-24",
     }
 
@@ -97,37 +73,15 @@ def test_parse_jugement_json_date_converted():
 
 
 def test_parse_jugement_json_missing_keys():
-    assert parse_jugement_json("{}") == {
-        "famille": "",
-        "nature": "",
-        "complementJugement": "",
-        "date": "",
-    }
+    assert parse_jugement_json("{}") == {"famille": "", "nature": "", "date": ""}
 
 
 def test_parse_jugement_json_invalid_json():
-    assert parse_jugement_json("not json") == {
-        "famille": "",
-        "nature": "",
-        "complementJugement": "",
-        "date": "",
-    }
+    assert parse_jugement_json("not json") == {"famille": "", "nature": "", "date": ""}
 
 
 def test_parse_jugement_json_empty():
-    assert parse_jugement_json("") == {
-        "famille": "",
-        "nature": "",
-        "complementJugement": "",
-        "date": "",
-    }
-
-
-def test_parse_jugement_json_fixes_mojibake():
-    data = '{"famille": "Jugement de clÃ´ture", "nature": "Jugement de clÃ´ture pour insuffisance d\'actif", "date": "2024-01-15"}'
-    result = parse_jugement_json(data)
-    assert result["famille"] == "Jugement de clôture"
-    assert result["nature"] == "Jugement de clôture pour insuffisance d'actif"
+    assert parse_jugement_json("") == {"famille": "", "nature": "", "date": ""}
 
 
 # Helper to build parutionavisprecedent JSON
@@ -290,125 +244,3 @@ def test_filter_discarded_keeps_normal_rectificatif_with_radiationaurcs():
     )
     result = process_discarded_announcements(df)
     assert result["id"].tolist() == ["A20243000"]
-
-
-# Expiration des procédures > 10 ans
-
-
-def _apply_expiration_logic(df: pd.DataFrame) -> pd.DataFrame:
-    """Reproduit la logique d'expiration de _process_procedures_collectives."""
-    df["procedure_collective_date"] = pd.to_datetime(
-        df["procedure_collective_date"], errors="coerce", format="%Y-%m-%d"
-    )
-    df["is_cloture"] = df["procedure_collective_famille"].apply(is_cloture)
-    ten_years_ago = pd.Timestamp.now() - pd.DateOffset(years=10)
-    df["is_expired"] = df["procedure_collective_date"] < ten_years_ago
-    df["procedure_collective_nature"] = df.apply(
-        lambda row: (
-            ""
-            if row["is_cloture"] or row["is_expired"]
-            else row["procedure_collective_nature"]
-        ),
-        axis=1,
-    )
-    return df
-
-
-def test_procedure_older_than_10_years_has_no_nature():
-    df = pd.DataFrame(
-        {
-            "procedure_collective_famille": ["Ouverture"],
-            "procedure_collective_nature": ["Redressement judiciaire"],
-            "procedure_collective_date": ["2010-01-01"],
-        }
-    )
-    result = _apply_expiration_logic(df)
-    assert result["procedure_collective_nature"].iloc[0] == ""
-
-
-def test_recent_procedure_keeps_nature():
-    df = pd.DataFrame(
-        {
-            "procedure_collective_famille": ["Ouverture"],
-            "procedure_collective_nature": ["Redressement judiciaire"],
-            "procedure_collective_date": ["2024-01-01"],
-        }
-    )
-    result = _apply_expiration_logic(df)
-    assert result["procedure_collective_nature"].iloc[0] == "Redressement judiciaire"
-
-
-def test_cloture_procedure_has_no_nature_regardless_of_age():
-    df = pd.DataFrame(
-        {
-            "procedure_collective_famille": ["Jugement de clôture"],
-            "procedure_collective_nature": ["Liquidation judiciaire"],
-            "procedure_collective_date": ["2024-01-01"],
-        }
-    )
-    result = _apply_expiration_logic(df)
-    assert result["procedure_collective_nature"].iloc[0] == ""
-
-
-# apply_procedure_collective_rules()
-
-
-@pytest.fixture
-def rules():
-    return load_procedure_collective_rules()
-
-
-def test_rules_liquidation_judiciaire(rules):
-    statut = apply_procedure_collective_rules(
-        "Jugement d'ouverture de liquidation judiciaire", "", rules
-    )
-    assert statut == "liquidation_judiciaire"
-
-
-def test_rules_redressement_judiciaire(rules):
-    statut = apply_procedure_collective_rules(
-        "Jugement d'ouverture d'une procédure de redressement judiciaire", "", rules
-    )
-    assert statut == "redressement_judiciaire"
-
-
-def test_rules_sauvegarde(rules):
-    statut = apply_procedure_collective_rules(
-        "Jugement d'ouverture d'une procédure de sauvegarde", "", rules
-    )
-    assert statut == "sauvegarde"
-
-
-def test_rules_cloture_returns_none(rules):
-    statut = apply_procedure_collective_rules(
-        "Jugement de clôture pour insuffisance d'actif", "", rules
-    )
-    assert statut is None
-
-
-def test_rules_autre_jugement_with_complement(rules):
-    statut = apply_procedure_collective_rules(
-        "Autre jugement prononçant",
-        "la clôture de la procédure pour insuffisance d'actif",
-        rules,
-    )
-    assert statut is None
-
-
-def test_rules_autre_jugement_with_complement_liquidation(rules):
-    statut = apply_procedure_collective_rules(
-        "Autre jugement prononçant",
-        "l'ouverture d'une procédure de liquidation judiciaire",
-        rules,
-    )
-    assert statut == "liquidation_judiciaire"
-
-
-def test_rules_unknown_nature_returns_none(rules):
-    statut = apply_procedure_collective_rules("Nature inconnue", "", rules)
-    assert statut is None
-
-
-def test_rules_empty_nature():
-    rules = load_procedure_collective_rules()
-    assert apply_procedure_collective_rules("", "", rules) is None
