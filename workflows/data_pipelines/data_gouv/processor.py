@@ -71,7 +71,7 @@ class DataGouvProcessor:
             "est_ess",
             "est_organisme_formation",
             "est_qualiopi",
-            "est_service_public",
+            "est_administration",
             "est_societe_mission",
             "liste_elus",
             "liste_id_organisme_formation",
