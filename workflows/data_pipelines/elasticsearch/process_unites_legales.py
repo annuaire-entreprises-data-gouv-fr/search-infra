@@ -286,24 +286,10 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         bodacc = unite_legale.get("bodacc")
         if bodacc:
             bodacc_data = json.loads(bodacc)
-            est_radie = sqlite_str_to_bool(bodacc_data.get("radiation_est_radie", 0))
-            procedure_colletive_statut = bodacc_data.get("procedure_collective_statut")
-            unite_legale_processed["bodacc"] = {
-                "radiation": {
-                    "est_radie": est_radie,
-                    "id_annonce": bodacc_data.get("radiation_id_annonce"),
-                    "date": bodacc_data.get("radiation_date"),
-                }
-                if est_radie
-                else None,
-                "procedure_collective": {
-                    "statut": procedure_colletive_statut,
-                    "id_annonce": bodacc_data.get("procedure_collective_id_annonce"),
-                    "date": bodacc_data.get("procedure_collective_date"),
-                }
-                if procedure_colletive_statut
-                else None,
-            }
+            bodacc_data["radiation_rcs"] = sqlite_str_to_bool(
+                bodacc_data.get("radiation_rcs", 0)
+            )
+            unite_legale_processed["bodacc"] = bodacc_data
         else:
             unite_legale_processed["bodacc"] = {}
 
