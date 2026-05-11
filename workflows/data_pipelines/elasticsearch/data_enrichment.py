@@ -30,13 +30,13 @@ sections_NAF = load_file("sections_codes_naf.json")
 mapping_dep_to_reg = load_file("dep_to_reg.json")
 mapping_role_dirigeants = load_file("roles_dirigeants.json")
 mapping_commune_to_epci = load_file("epci.json")
-nature_juridique_service_public = set(load_file("administration_nature_juridique.json"))
-service_public_whitelist = set(load_file("administration_siren_whitelist.json"))
-service_public_blacklist = set(load_file("administration_siren_blacklist.json"))
-L100_3_siren_whitelist = set(load_file("administration_L100-3_siren_whitelist.json"))
-excluded_nature_juridique_L100_3 = set(
-    load_file("administration_L100-3_nature_juridique_exclue.json")
+administration_nature_juridique = set(
+    load_file("administration_natures_juridiques.json")
 )
+administration_whitelist = set(load_file("administration_whitelist.json"))
+administration_blacklist = set(load_file("administration_blacklist.json"))
+spa_nature_juridique = set(load_file("spa_natures_juridiques.json"))
+espace_agent_siren_whitelist = set(load_file("espace_agent_siren_whitelist.json"))
 
 
 # Nom complet
@@ -168,70 +168,73 @@ def is_ess(est_ess_france, ess_insee):
     return est_ess_france or est_ess_insee
 
 
-# Administration
-def is_service_public(
-    nature_juridique_unite_legale: str, siren: str, etat_administratif: str
+# Administration (liste définie par le juridique)
+def is_administration(
+    nature_juridique_unite_legale: str,
+    siren: str,
+    etat_administratif: str,
 ) -> bool:
     """
-    Determine if a given entity is classified as a Administration.
-    Args:
-        nature_juridique_unite_legale (str): The legal nature code of the entity
-        siren (str): The SIREN identification number of the entity
-        etat_administratif (str): Administrative status of the entity ('A' for active, 'C' for closed)
-    Returns:
-        bool: True if the entity is classified as a Administration, False otherwise
-    Notes:
-        - Entities in the service_public_blacklist are never considered public services
-        - Closed entities (etat_administratif == 'C') are never considered public services
-        - Entities are considered public services if either:
-          1. Their legal nature code starts with '4' or '7', or
-          2. Their legal nature code is in nature_juridique_service_public, or
-          3. Their SIREN is in service_public_whitelist
-    """
+    Determine if a given entity is classified as an Administration.
 
+    Args:
+        nature_juridique_unite_legale: The legal nature code of the entity.
+        siren: Identification number of the entity.
+        etat_administratif: 'A' for active, 'C' for cessée.
+
+    Returns:
+        True if the entity is classified as an Administration, False otherwise.
+
+    Notes:
+        - Entities in blacklist_administration are never considered public services.
+        - Closed entities (etat_administratif == 'C') are never considered public services.
+        - Entities are considered public services if either:
+            1. Their legal nature code is in administration_nature_juridique, or
+            2. Their SIREN is in whitelist_administration.
+    """
     if nature_juridique_unite_legale is None:
         return False
 
-    # Check blacklist first
-    if siren in service_public_blacklist:
+    if siren in administration_blacklist:
         return False
 
-    # Closed entities are not considered `Administration`
     if etat_administratif == "C":
         return False
 
-    # Check SIREN whitelist
-    if siren in service_public_whitelist:
+    if siren in administration_whitelist:
         return True
 
-    # Nature juridique codes starting with 4 or 7 are `Administrations`
-    if nature_juridique_unite_legale.startswith(("4", "7")):
-        return True
-
-    # Check if in specific nature juridique list
-    return nature_juridique_unite_legale in nature_juridique_service_public
+    return nature_juridique_unite_legale in administration_nature_juridique
 
 
-def is_administration_l100_3(
-    siren: str, nature_juridique: str, is_service_public: bool = False
+def has_mission_service_public_administratif(
+    nature_juridique: str,
+    is_administration: bool = False,
 ) -> bool:
     """
-    Determine if a given entity is classified as `administration au sens L100-3`
+    Determine if a given entity has a mission de service public administratif.
     """
-    # Only Administration can be L100-3 administrations
-    if not is_service_public:
+    if not is_administration:
+        return False
+    # SPA : service public administratif
+    return nature_juridique in spa_nature_juridique
+
+
+def has_access_espace_agent(
+    siren: str,
+    nature_juridique: str,
+    is_administration: bool = False,
+) -> bool:
+    """
+    Determine if a given entity can access espace agent : SPA + whitelist siren
+    """
+    if not is_administration:
         return False
 
-    # Whitelist takes precedence
-    if siren in L100_3_siren_whitelist:
+    if siren in espace_agent_siren_whitelist:
         return True
 
-    # Exclude specific nature juridique codes
-    if nature_juridique in excluded_nature_juridique_L100_3:
-        return False
-
-    # All other public services are L100-3 administrations
-    return True
+    return has_mission_service_public_administratif(nature_juridique, is_administration)
 
 
 # Association
