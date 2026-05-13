@@ -3,9 +3,6 @@ import logging
 
 from slugify import slugify
 
-from data_pipelines_annuaire.helpers.geolocalisation import (
-    transform_coordinates,
-)
 from data_pipelines_annuaire.helpers.utils import (
     drop_exact_duplicates,
     get_empty_string_if_none,
@@ -550,15 +547,6 @@ def format_etablissements_and_complements(
         etablissement["region"] = label_region_from_departement(
             etablissement["departement"]
         )
-        if etablissement["latitude"] is None or etablissement["longitude"] is None:
-            (
-                etablissement["latitude"],
-                etablissement["longitude"],
-            ) = transform_coordinates(
-                etablissement["departement"],
-                etablissement["x"],
-                etablissement["y"],
-            )
         etablissement["ancien_siege"] = sqlite_str_to_bool(
             etablissement["ancien_siege"]
         )
@@ -613,12 +601,6 @@ def format_siege_unite_legale(siege, is_non_diffusible=False):
         is_non_diffusible,
     )
     siege["departement"] = format_departement(siege["commune"])
-    if siege["latitude"] is None or siege["longitude"] is None:
-        siege["latitude"], siege["longitude"] = transform_coordinates(
-            siege["departement"],
-            siege["x"],
-            siege["y"],
-        )
     siege["coordonnees"] = format_coordonnees(siege["longitude"], siege["latitude"])
     siege["region"] = label_region_from_departement(siege["departement"])
     siege["epci"] = label_epci_from_commune(siege["commune"])

@@ -4,8 +4,6 @@ import numpy as np
 import pandas as pd
 import pyproj
 
-from data_pipelines_annuaire.helpers.utils import is_valid_number
-
 EPSG_BY_TERRITORY: dict[str, int] = {
     # La France européenne - RGF93 / Lambert-93
     "default": 2154,
@@ -154,14 +152,3 @@ def convert_dataframe_lambert_to_gps(
     df["longitude"] = coords["longitude"]
 
     return df
-
-
-def transform_coordinates(department_code, x, y):
-    if not is_valid_number(x) or not is_valid_number(y):
-        return None, None
-
-    epsg = get_epsg_from_code(department_code, None) or 2154
-    lat, lon = convert_lambert_to_gps(float(x), float(y), epsg)
-
-    # Return as string to maintain backward compatibility with the datagouv DAG
-    return str(lat) if lat is not None else None, str(lon) if lon is not None else None
