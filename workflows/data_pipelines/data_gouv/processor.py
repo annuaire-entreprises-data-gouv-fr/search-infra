@@ -110,7 +110,7 @@ class DataGouvProcessor:
             "est_ess": "bool",
             "est_organisme_formation": "bool",
             "est_qualiopi": "bool",
-            "est_service_public": "bool",
+            "est_administration": "bool",
             "est_siae": "bool",
             "a_aide_ademe": "bool",
             "est_avocat": "bool",
@@ -370,8 +370,15 @@ class DataGouvProcessor:
         chunk.to_csv(filepath, mode=mode, header=header, index=False, columns=columns)
 
     def _csv_to_parquet(self, csv_path, parquet_path, parquet_dtypes=None):
+        dtype_to_arrow = {
+            "int": pa.int64(),
+            "float": pa.float64(),
+            "bool": pa.bool_(),
+            "datetime": pa.timestamp("ns"),
+            "list_str": pa.list_(pa.string()),
+        }
         writer = None
-        list_str_type = pa.list_(pa.string())
+        schema = None
         try:
             for chunk in pd.read_csv(
                 csv_path,
@@ -379,7 +386,6 @@ class DataGouvProcessor:
                 keep_default_na=False,
                 chunksize=self.chunk_size,
             ):
-                # Apply a conversion depending of the type of column
                 if parquet_dtypes:
                     for col, dtype in parquet_dtypes.items():
                         if col not in chunk.columns:
@@ -396,24 +402,28 @@ class DataGouvProcessor:
                             chunk[col] = pd.to_datetime(chunk[col], errors="coerce")
                         elif dtype == "list_str":
                             chunk[col] = chunk[col].apply(
-                                lambda x: ast.literal_eval(x) if x else []
-                            )
-                table = pa.Table.from_pandas(chunk)
-                # For lists PyArrow defaults to list<null> when a chunk has only empty lists,
-                # which conflicts with the list<string> from chunks which do contain values.
-                # Because of that we need to force the list<string> type to avoid schema mismatch
-                if parquet_dtypes:
-                    for col, dtype in parquet_dtypes.items():
-                        if dtype == "list_str" and col in table.column_names:
-                            col_idx = table.column_names.index(col)
-                            if table.schema.field(col).type != list_str_type:
-                                table = table.set_column(
-                                    col_idx,
-                                    table.schema.field(col).with_type(list_str_type),
-                                    table.column(col).cast(list_str_type),
+                                lambda x: (
+                                    [str(i) for i in ast.literal_eval(x)] if x else []
                                 )
-                if writer is None:
-                    writer = pq.ParquetWriter(parquet_path, table.schema)
+                            )
+                string_columns = chunk.select_dtypes(include="object").columns
+                chunk[string_columns] = chunk[string_columns].replace("", None)
+                # Define the schema once so PyArrow doesn't infer null/list<null>
+                # types from all-empty chunks
+                if schema is None:
+                    schema = pa.schema(
+                        [
+                            pa.field(
+                                col,
+                                dtype_to_arrow[parquet_dtypes[col]]
+                                if parquet_dtypes and col in parquet_dtypes
+                                else pa.string(),
+                            )
+                            for col in chunk.columns
+                        ]
+                    )
+                    writer = pq.ParquetWriter(parquet_path, schema)
+                table = pa.Table.from_pandas(chunk, schema=schema)
                 writer.write_table(table)
         finally:
             if writer:
