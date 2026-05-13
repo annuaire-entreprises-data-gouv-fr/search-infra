@@ -1,3 +1,4 @@
+import ast
 import gzip
 import json
 import logging
@@ -7,13 +8,14 @@ import shutil
 from datetime import datetime
 
 import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_DATAGOUV_DATA_DIR,
     SIRENE_OBJECT_STORAGE_DATA_PATH,
 )
 from data_pipelines_annuaire.helpers.datagouv import post_resource
-from data_pipelines_annuaire.helpers.geolocalisation import transform_coordinates
 from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 from data_pipelines_annuaire.helpers.utils import (
@@ -29,7 +31,6 @@ from data_pipelines_annuaire.workflows.data_pipelines.data_gouv.queries import (
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichment import (
     create_list_names_elus,
     format_adresse_complete,
-    format_departement,
     format_nom_complet,
     has_access_espace_agent,
     has_mission_service_public_administratif,
@@ -72,13 +73,15 @@ class DataGouvProcessor:
             "est_organisme_formation",
             "est_qualiopi",
             "est_administration",
-            "est_societe_mission",
+            "est_societe_mission",  # Contains a string
             "liste_elus",
             "liste_id_organisme_formation",
             "liste_idcc",
             "est_siae",
             "type_siae",
             "liste_finess_juridique",
+            "a_aide_ademe",
+            "est_avocat",
         ]
         self.etab_columns = [
             "siren",
@@ -93,9 +96,40 @@ class DataGouvProcessor:
             "liste_idcc",
             "liste_rge",
             "liste_uai",
-            "latitude",
-            "longitude",
         ]
+        self.ul_parquet_dtypes = {
+            "nombre_etablissements": "int",
+            "nombre_etablissements_ouverts": "int",
+            "egapro_renseignee": "bool",
+            "est_achats_responsables": "bool",
+            "est_alim_confiance": "bool",
+            "est_association": "bool",
+            "est_entrepreneur_individuel": "bool",
+            "est_entrepreneur_spectacle": "bool",
+            "est_patrimoine_vivant": "bool",
+            "est_ess": "bool",
+            "est_organisme_formation": "bool",
+            "est_qualiopi": "bool",
+            "est_administration": "bool",
+            "est_siae": "bool",
+            "a_aide_ademe": "bool",
+            "est_avocat": "bool",
+            "date_mise_a_jour_insee": "datetime",
+            "date_mise_a_jour_rne": "datetime",
+            "liste_elus": "list_str",
+            "liste_id_organisme_formation": "list_str",
+            "liste_idcc": "list_str",
+            "liste_finess_juridique": "list_str",
+        }
+        self.etab_parquet_dtypes = {
+            "est_siege": "bool",
+            "ancien_siege": "bool",
+            "liste_finess_geographique": "list_str",
+            "liste_id_bio": "list_str",
+            "liste_idcc": "list_str",
+            "liste_rge": "list_str",
+            "liste_uai": "list_str",
+        }
 
     def get_latest_database(self):
         """Get the latest database from object storage"""
@@ -213,6 +247,8 @@ class DataGouvProcessor:
         chunk["liste_finess_juridique"] = chunk["liste_finess_juridique"].apply(
             str_to_list
         )
+        chunk["a_aide_ademe"] = chunk["aide_ademe_renseignee"].apply(sqlite_str_to_bool)
+        chunk["est_avocat"] = chunk["est_avocat"].apply(sqlite_str_to_bool)
 
         return chunk
 
@@ -238,12 +274,6 @@ class DataGouvProcessor:
             ),
             axis=1,
         )
-        chunk["departement"] = chunk["commune"].apply(format_departement)
-        coordinates = chunk.apply(
-            lambda row: transform_coordinates(row["departement"], row["x"], row["y"]),
-            axis=1,
-        )
-        chunk["latitude"], chunk["longitude"] = zip(*coordinates)
         chunk["est_siege"] = chunk["est_siege"].apply(str_to_bool)
         chunk["ancien_siege"] = chunk["ancien_siege"].apply(sqlite_str_to_bool)
         chunk["liste_idcc"] = chunk["liste_idcc"].apply(str_to_list)
@@ -258,7 +288,8 @@ class DataGouvProcessor:
     def fill_ul_file(self):
         """Process and fill unites legales file"""
         sqlite_client = SqliteClient(f"{AIRFLOW_DATAGOUV_DATA_DIR}sirene.db")
-        ul_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{self.today_date}.csv"
+        ul_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{self.today_date}"
+        ul_csv_path = f"{ul_path}.csv"
 
         first_chunk = True
         total_siren = 0
@@ -276,11 +307,16 @@ class DataGouvProcessor:
         logging.info(f"******* Nombre des unites_legales : {total_siren}")
         return ul_csv_path
 
+    def convert_ul_to_parquet(self):
+        ul_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{self.today_date}"
+        self._csv_to_parquet(
+            f"{ul_path}.csv", f"{ul_path}.parquet", self.ul_parquet_dtypes
+        )
+
     def fill_etab_file(self):
         sqlite_client = SqliteClient(f"{AIRFLOW_DATAGOUV_DATA_DIR}sirene.db")
-        etab_csv_path = (
-            f"{AIRFLOW_DATAGOUV_DATA_DIR}etablissements_{self.today_date}.csv"
-        )
+        etab_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}etablissements_{self.today_date}"
+        etab_csv_path = f"{etab_path}.csv"
 
         first_chunk = True
         total_siret = 0
@@ -297,6 +333,12 @@ class DataGouvProcessor:
         sqlite_client.commit_and_close_conn()
         logging.info(f"******* Nombre des etablissements : {total_siret}")
         return etab_csv_path
+
+    def convert_etab_to_parquet(self):
+        etab_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}etablissements_{self.today_date}"
+        self._csv_to_parquet(
+            f"{etab_path}.csv", f"{etab_path}.parquet", self.etab_parquet_dtypes
+        )
 
     def process_administration_list(self):
         ul_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{self.today_date}.csv"
@@ -335,6 +377,66 @@ class DataGouvProcessor:
         header = is_first_chunk
         chunk.to_csv(filepath, mode=mode, header=header, index=False, columns=columns)
 
+    def _csv_to_parquet(self, csv_path, parquet_path, parquet_dtypes=None):
+        dtype_to_arrow = {
+            "int": pa.int64(),
+            "float": pa.float64(),
+            "bool": pa.bool_(),
+            "datetime": pa.timestamp("ns"),
+            "list_str": pa.list_(pa.string()),
+        }
+        writer = None
+        schema = None
+        try:
+            for chunk in pd.read_csv(
+                csv_path,
+                dtype=str,
+                keep_default_na=False,
+                chunksize=self.chunk_size,
+            ):
+                if parquet_dtypes:
+                    for col, dtype in parquet_dtypes.items():
+                        if col not in chunk.columns:
+                            continue
+                        if dtype == "int":
+                            chunk[col] = pd.to_numeric(
+                                chunk[col], errors="coerce"
+                            ).astype("Int64")
+                        elif dtype == "float":
+                            chunk[col] = pd.to_numeric(chunk[col], errors="coerce")
+                        elif dtype == "bool":
+                            chunk[col] = chunk[col].map({"True": True, "False": False})
+                        elif dtype == "datetime":
+                            chunk[col] = pd.to_datetime(chunk[col], errors="coerce")
+                        elif dtype == "list_str":
+                            chunk[col] = chunk[col].apply(
+                                lambda x: (
+                                    [str(i) for i in ast.literal_eval(x)] if x else []
+                                )
+                            )
+                string_columns = chunk.select_dtypes(include="object").columns
+                chunk[string_columns] = chunk[string_columns].replace("", None)
+                # Define the schema once so PyArrow doesn't infer null/list<null>
+                # types from all-empty chunks
+                if schema is None:
+                    schema = pa.schema(
+                        [
+                            pa.field(
+                                col,
+                                dtype_to_arrow[parquet_dtypes[col]]
+                                if parquet_dtypes and col in parquet_dtypes
+                                else pa.string(),
+                            )
+                            for col in chunk.columns
+                        ]
+                    )
+                    writer = pq.ParquetWriter(parquet_path, schema)
+                table = pa.Table.from_pandas(chunk, schema=schema)
+                writer.write_table(table)
+        finally:
+            if writer:
+                writer.close()
+
     def compress_and_upload_file(self, filepath):
         with open(filepath, "rb") as f_in:
             with gzip.open(f"{filepath}.gz", "wb") as f_out:
@@ -360,6 +462,12 @@ class DataGouvProcessor:
                 },
                 {
                     "source_path": AIRFLOW_DATAGOUV_DATA_DIR,
+                    "source_name": f"unites_legales_{self.today_date}.parquet",
+                    "dest_path": "data_gouv/",
+                    "dest_name": f"unites_legales_{self.today_date}.parquet",
+                },
+                {
+                    "source_path": AIRFLOW_DATAGOUV_DATA_DIR,
                     "source_name": f"liste_administrations_{self.today_date}.csv",
                     "dest_path": "data_gouv/",
                     "dest_name": f"liste_administrations_{self.today_date}.csv",
@@ -380,7 +488,13 @@ class DataGouvProcessor:
                     "source_name": f"etablissements_{self.today_date}.csv.gz",
                     "dest_path": "data_gouv/",
                     "dest_name": f"etablissements_{self.today_date}.csv.gz",
-                }
+                },
+                {
+                    "source_path": AIRFLOW_DATAGOUV_DATA_DIR,
+                    "source_name": f"etablissements_{self.today_date}.parquet",
+                    "dest_path": "data_gouv/",
+                    "dest_name": f"etablissements_{self.today_date}.parquet",
+                },
             ]
         )
 
@@ -393,9 +507,19 @@ class DataGouvProcessor:
                 "resource_id": "b8e5376c-c158-4d88-91f3-f6bb0d165332",
             },
             {
+                "file": f"unites_legales_{self.today_date}.parquet",
+                "dataset_id": "667ebdd4547ab9bd6e4682d3",
+                "resource_id": None,  # TODO: fill after first creation on data.gouv
+            },
+            {
                 "file": f"etablissements_{self.today_date}.csv.gz",
                 "dataset_id": "667ebdd4547ab9bd6e4682d3",
                 "resource_id": "12812d7d-d11c-45f4-965c-35a3b149c585",
+            },
+            {
+                "file": f"etablissements_{self.today_date}.parquet",
+                "dataset_id": "667ebdd4547ab9bd6e4682d3",
+                "resource_id": None,  # TODO: fill after first creation on data.gouv
             },
             {
                 "file": f"liste_administrations_{self.today_date}.csv",

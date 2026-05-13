@@ -131,7 +131,17 @@ SELECT ul.etat_administratif_unite_legale as etat_administratif,
         SELECT liste_finess_juridique
         FROM finess_juridique
         WHERE siren = ul.siren
-    ) as liste_finess_juridique
+    ) as liste_finess_juridique,
+    (
+        SELECT aide_ademe_renseignee
+        FROM aides_ademe
+        WHERE siren = ul.siren
+    ) as aide_ademe_renseignee,
+    (
+        SELECT est_avocat
+        FROM avocat
+        WHERE siren = ul.siren
+    ) as est_avocat
 FROM unite_legale ul
     LEFT JOIN siege st ON ul.siren = st.siren
 WHERE ul.siren IS NOT NULL;
@@ -204,8 +214,6 @@ etab_fields_to_select = """SELECT s.activite_principale as activite_principale,
     s.tranche_effectif_salarie as tranche_effectif_salarie,
     s.annee_tranche_effectif_salarie as annee_tranche_effectif_salarie,
     s.date_mise_a_jour_insee as date_mise_a_jour_insee,
-    s.type_voie as type_voie,
-    s.x as x,
-    s.y as y
+    s.type_voie as type_voie
 FROM etablissement s;
 """
