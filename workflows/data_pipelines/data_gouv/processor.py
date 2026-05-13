@@ -79,6 +79,8 @@ class DataGouvProcessor:
             "est_siae",
             "type_siae",
             "liste_finess_juridique",
+            "a_aide_ademe",
+            "est_avocat",
         ]
         self.etab_columns = [
             "siren",
@@ -93,8 +95,6 @@ class DataGouvProcessor:
             "liste_idcc",
             "liste_rge",
             "liste_uai",
-            "latitude",
-            "longitude",
         ]
 
     def get_latest_database(self):
@@ -213,6 +213,8 @@ class DataGouvProcessor:
         chunk["liste_finess_juridique"] = chunk["liste_finess_juridique"].apply(
             str_to_list
         )
+        chunk["a_aide_ademe"] = chunk["aide_ademe_renseignee"].apply(sqlite_str_to_bool)
+        chunk["est_avocat"] = chunk["est_avocat"].apply(sqlite_str_to_bool)
 
         return chunk
 
