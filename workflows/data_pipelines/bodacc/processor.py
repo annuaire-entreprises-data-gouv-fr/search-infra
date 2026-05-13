@@ -12,7 +12,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.bodacc.config import (
 )
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
     apply_procedure_collective_rules,
-    extract_siren_from_registre,
+    extract_sirens_from_listepersonnes,
     is_cloture,
     load_procedure_collective_rules,
     parse_jugement_json,
@@ -23,7 +23,11 @@ from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
 
 def process_radiation_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
     """Traiter un chunk de données radiations."""
-    chunk = extract_siren_from_registre(chunk)
+    # Un avis de radiation ne concerne à chaque fois qu'une seule "personne"
+    # Quelques rares cas ont cependant plusieurs objets "personne"
+    # Mais ils partagent à chaque fois le même siren, ainsi après déduplication
+    # on se retrouve tout de même avec une seule "personne" par annonce
+    chunk = extract_sirens_from_listepersonnes(chunk)
 
     # Nettoyer et valider les SIREN
     chunk = clean_sirent_column(
@@ -59,7 +63,8 @@ def process_radiation_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
 
 def process_procedure_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
     """Traiter un chunk de données procédures collectives."""
-    chunk = extract_siren_from_registre(chunk)
+    # Un avis de procédure collective peut concerner qu'une ou plusieurs "personnes"
+    chunk = extract_sirens_from_listepersonnes(chunk)
 
     # Nettoyer et valider les SIREN
     chunk = clean_sirent_column(
@@ -117,7 +122,7 @@ class BodaccProcessor(DataProcessor):
 
     COLUMNS_RADIATIONS = [
         "id",
-        "registre",
+        "listepersonnes",
         "dateparution",
         "typeavis",
         "radiationaurcs",
@@ -125,7 +130,7 @@ class BodaccProcessor(DataProcessor):
     ]
     COLUMNS_PROCEDURES = [
         "id",
-        "registre",
+        "listepersonnes",
         "dateparution",
         "typeavis",
         "jugement",

@@ -5,6 +5,8 @@ import pytest
 
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
     apply_procedure_collective_rules,
+    extract_sirens_from_listepersonnes,
+    extract_sirens_from_personne,
     fix_mojibake,
     get_previous_ids_to_discard,
     get_processed_ids_to_discard,
@@ -412,3 +414,159 @@ def test_rules_unknown_nature_returns_none(rules):
 def test_rules_empty_nature():
     rules = load_procedure_collective_rules()
     assert apply_procedure_collective_rules("", "", rules) is None
+
+
+# extract_sirens_from_personne()
+
+
+def test_extract_sirens_rcs_and_rm():
+    data = json.dumps(
+        {
+            "personne": [
+                {
+                    "typePersonne": "pm",
+                    "numeroImmatriculation": {
+                        "numeroIdentification": "481 738 821",
+                        "codeRCS": "RCS",
+                    },
+                },
+                {
+                    "typePersonne": "pm",
+                    "numeroImmatriculation": {
+                        "numeroIdentification": "510 784 887",
+                        "codeRCS": "RCS",
+                    },
+                },
+                {
+                    "typePersonne": "pp",
+                    "inscriptionRM": {
+                        "numeroIdentificationRM": "424 557 189",
+                        "codeRM": "RM",
+                    },
+                },
+            ]
+        }
+    )
+    assert extract_sirens_from_personne(data) == [
+        "481738821",
+        "510784887",
+        "424557189",
+    ]
+
+
+def test_extract_sirens_deduplicates():
+    data = json.dumps(
+        {
+            "personne": [
+                {
+                    "typePersonne": "pm",
+                    "numeroImmatriculation": {
+                        "numeroIdentification": "123 456 789",
+                    },
+                },
+                {
+                    "typePersonne": "pm",
+                    "numeroImmatriculation": {
+                        "numeroIdentification": "123 456 789",
+                    },
+                },
+            ]
+        }
+    )
+    assert extract_sirens_from_personne(data) == ["123456789"]
+
+
+def test_extract_sirens_empty_json():
+    assert extract_sirens_from_personne("{}") == []
+
+
+def test_extract_sirens_invalid_json():
+    assert extract_sirens_from_personne("not json") == []
+
+
+def test_extract_sirens_missing_identification():
+    data = json.dumps(
+        {
+            "personne": [
+                {"typePersonne": "pm", "denomination": "SOME COMPANY"},
+            ]
+        }
+    )
+    assert extract_sirens_from_personne(data) == []
+
+
+def test_extract_sirens_single_personne_not_list():
+    data = json.dumps(
+        {
+            "personne": {
+                "typePersonne": "pm",
+                "numeroImmatriculation": {
+                    "numeroIdentification": "111 222 333",
+                },
+            }
+        }
+    )
+    assert extract_sirens_from_personne(data) == ["111222333"]
+
+
+# extract_sirens_from_listepersonnes()
+
+
+def test_unnest_listepersonnes_creates_multiple_rows():
+    lp = json.dumps(
+        {
+            "personne": [
+                {
+                    "typePersonne": "pm",
+                    "numeroImmatriculation": {
+                        "numeroIdentification": "111 111 111",
+                    },
+                },
+                {
+                    "typePersonne": "pp",
+                    "inscriptionRM": {
+                        "numeroIdentificationRM": "222 222 222",
+                    },
+                },
+            ]
+        }
+    )
+    df = pd.DataFrame(
+        {
+            "id": ["A001"],
+            "listepersonnes": [lp],
+            "dateparution": ["2024-01-01"],
+        }
+    )
+    result = extract_sirens_from_listepersonnes(df)
+    assert len(result) == 2
+    assert result["siren"].tolist() == ["111111111", "222222222"]
+    assert result["id"].tolist() == ["A001", "A001"]
+    assert result["dateparution"].tolist() == ["2024-01-01", "2024-01-01"]
+
+
+def test_unnest_listepersonnes_drops_rows_without_siren():
+    df = pd.DataFrame(
+        {
+            "id": ["A001", "A002"],
+            "listepersonnes": [
+                "{}",
+                json.dumps(
+                    {
+                        "personne": [
+                            {
+                                "typePersonne": "pm",
+                                "numeroImmatriculation": {
+                                    "numeroIdentification": "999 999 999"
+                                },
+                            }
+                        ]
+                    }
+                ),
+            ],
+            "dateparution": ["2024-01-01", "2024-01-02"],
+        }
+    )
+    result = extract_sirens_from_listepersonnes(df)
+    assert len(result) == 1
+    assert result["siren"].iloc[0] == "999999999"

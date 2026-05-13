@@ -689,3 +689,9 @@ def parse_json_safe(json_str: str) -> dict | None:
         return json.loads(json_str)
     except (json.JSONDecodeError, TypeError):
         return None
+
+
+def keep_only_numbers(input_string: str | None) -> str | None:
+    if input_string is None:
+        return None
+    return re.sub(r"[^\d]", "", input_string)
