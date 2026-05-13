@@ -48,6 +48,10 @@ def publish_files_in_data_gouv():
         return data_gouv_processor.fill_ul_file()
 
     @task
+    def convert_unite_legale_to_parquet():
+        return data_gouv_processor.convert_ul_to_parquet()
+
+    @task
     def fill_liste_administration_file():
         return data_gouv_processor.process_administration_list()
 
@@ -58,6 +62,10 @@ def publish_files_in_data_gouv():
     @task
     def fill_etablissement_file():
         return data_gouv_processor.fill_etab_file()
+
+    @task
+    def convert_etablissement_to_parquet():
+        return data_gouv_processor.convert_etab_to_parquet()
 
     @task
     def upload_etablissement_file_to_object_storage():
@@ -79,9 +87,11 @@ def publish_files_in_data_gouv():
         clean_previous_outputs()
         >> get_latest_sqlite_db()
         >> fill_unite_legale_file()
+        >> convert_unite_legale_to_parquet()
         >> fill_liste_administration_file()
         >> upload_unite_legale_and_administration_files_to_object_storage()
         >> fill_etablissement_file()
+        >> convert_etablissement_to_parquet()
         >> upload_etablissement_file_to_object_storage()
         >> check_if_prod_env()
         >> send_files_to_data_gouv()

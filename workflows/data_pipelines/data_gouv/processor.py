@@ -290,7 +290,6 @@ class DataGouvProcessor:
         sqlite_client = SqliteClient(f"{AIRFLOW_DATAGOUV_DATA_DIR}sirene.db")
         ul_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{self.today_date}"
         ul_csv_path = f"{ul_path}.csv"
-        ul_parquet_path = f"{ul_path}.parquet"
 
         first_chunk = True
         total_siren = 0
@@ -305,15 +304,19 @@ class DataGouvProcessor:
             first_chunk = False
 
         sqlite_client.commit_and_close_conn()
-        self._csv_to_parquet(ul_csv_path, ul_parquet_path, self.ul_parquet_dtypes)
         logging.info(f"******* Nombre des unites_legales : {total_siren}")
         return ul_csv_path
+
+    def convert_ul_to_parquet(self):
+        ul_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{self.today_date}"
+        self._csv_to_parquet(
+            f"{ul_path}.csv", f"{ul_path}.parquet", self.ul_parquet_dtypes
+        )
 
     def fill_etab_file(self):
         sqlite_client = SqliteClient(f"{AIRFLOW_DATAGOUV_DATA_DIR}sirene.db")
         etab_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}etablissements_{self.today_date}"
         etab_csv_path = f"{etab_path}.csv"
-        etab_parquet_path = f"{etab_path}.parquet"
 
         first_chunk = True
         total_siret = 0
@@ -328,9 +331,14 @@ class DataGouvProcessor:
             first_chunk = False
 
         sqlite_client.commit_and_close_conn()
-        self._csv_to_parquet(etab_csv_path, etab_parquet_path, self.etab_parquet_dtypes)
         logging.info(f"******* Nombre des etablissements : {total_siret}")
         return etab_csv_path
+
+    def convert_etab_to_parquet(self):
+        etab_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}etablissements_{self.today_date}"
+        self._csv_to_parquet(
+            f"{etab_path}.csv", f"{etab_path}.parquet", self.etab_parquet_dtypes
+        )
 
     def process_administration_list(self):
         ul_csv_path = f"{AIRFLOW_DATAGOUV_DATA_DIR}unites_legales_{self.today_date}.csv"
