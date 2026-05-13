@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
-from data_pipelines_annuaire.helpers.utils import parse_json_safe
+from data_pipelines_annuaire.helpers.utils import keep_only_numbers, parse_json_safe
 
 
 def fix_mojibake(text: str) -> str:
@@ -272,20 +272,69 @@ def process_discarded_announcements(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def extract_siren_from_registre(df: pd.DataFrame) -> pd.DataFrame:
+def extract_sirens_from_personne(listepersonnes: str) -> list[str]:
     """
-    Extrait le Siren depuis la colonne registre.
-    Exemple :
-        - formats d'input existants :
-            - "123 456 789,123456789"
-            - "123456789,123 456 789"
-        - output: "123456789"
+    Extract all unique siren from the listepersonnes field.
+    If there is multiple entries, "listepersonnes" looks like:
+        ```json
+        {
+          "personne": [
+            {"numeroImmatriculation": {"numeroIdentification": "123 456 789",[...]},[...]},
+            {"inscriptionRM": {"numeroIdentificationRM": "424 557 189",[...]},[...]},
+            [...]
+          ]
+        }
+        ```
+    But if there is only one entry, "listepersonnes" looks like:
+        ```json
+        {
+          "personne": {"numeroImmatriculation": {"numeroIdentification": "123 456 789",[...]},[...]},
+        }
+        ```
+    Or:
+        ```json
+        {
+          "personne": {"inscriptionRM": {"numeroIdentificationRM": "123 456 789",[...]},[...]},
+        }
+        ```
+
+    """
+    data = parse_json_safe(listepersonnes)
+    if not data:
+        return []
+
+    personnes = data.get("personne", [])
+    if not isinstance(personnes, list):
+        personnes = [personnes]
+
+    sirens = []
+    for personne in personnes:
+        if not isinstance(personne, dict):
+            continue
+        siren = None
+        immat_rcs = personne.get("numeroImmatriculation")
+        if isinstance(immat_rcs, dict):
+            siren = immat_rcs.get("numeroIdentification")
+        if not siren:
+            immat_rm = personne.get("inscriptionRM")
+            if isinstance(immat_rm, dict):
+                siren = immat_rm.get("numeroIdentificationRM")
+        siren = keep_only_numbers(siren)
+        if siren and siren not in sirens:
+            sirens.append(siren)
+    return sirens
+
+
+def extract_sirens_from_listepersonnes(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Unnest listepersonnes to produce one row per unique siren.
+    All columns keep the same values, only the siren one changes.
     """
     df = df.copy()
-    df["siren"] = df["registre"].str.split(",").str[0].str.strip()
-    # Retire les Siren manquants avant clean_sirent_column afin de ne logger
-    # que les Siren avec un mauvais format
-    df = df[df["siren"].notna() & (df["siren"] != "")]
+    df["_sirens"] = df["listepersonnes"].apply(extract_sirens_from_personne)
+    df = df[df["_sirens"].apply(len) > 0]
+    df = df.explode("_sirens", ignore_index=True)
+    df = df.rename(columns={"_sirens": "siren"})
     return df
 
 
