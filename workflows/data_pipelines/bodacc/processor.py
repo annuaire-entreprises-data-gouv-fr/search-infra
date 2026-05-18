@@ -84,7 +84,10 @@ def process_procedure_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
         lambda x: x.get("famille", "") if x else ""
     )
 
-    # Exclure les familles non pertinentes
+    # Ces familles ne représentent pas des procédures collectives à proprement parler :
+    # - "Avis de dépôt" : simple formalité de dépôt de créances
+    # - "Extrait de jugement" : cas marginaux mal catégorisés
+    # - "Loi de 1967" : régime juridique obsolète
     familles_exclues = ["Avis de dépôt", "Extrait de jugement", "Loi de 1967"]
     chunk = chunk[~chunk["procedure_collective_famille"].isin(familles_exclues)]
 
@@ -320,9 +323,12 @@ class BodaccProcessor(DataProcessor):
             )
         df = df.drop_duplicates(subset=["siren"], keep="first")
 
-        # Déterminer si la procédure la plus récente est une clôture
+        # Si le dernier jugement est une clôture, la procédure n'est plus active.
         df["is_cloture"] = df["procedure_collective_famille"].apply(is_cloture)
 
+        # Au-delà de 10 ans sans nouveau jugement, on considère la procédure
+        # comme expirée. C'est une règle de précaution car les procédures
+        # ne sont pss censées durer aussi longtemps.
         ten_years_ago = pd.Timestamp.now() - pd.DateOffset(years=10)
         df["is_expired"] = df["procedure_collective_date"] < ten_years_ago
 
