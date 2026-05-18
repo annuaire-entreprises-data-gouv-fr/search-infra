@@ -22,16 +22,6 @@ def check_if_prod():
     return AIRFLOW_ENV == "prod"
 
 
-def is_valid_number(value):
-    if value is None:
-        return False
-    try:
-        float(value)
-        return True
-    except ValueError:
-        return False
-
-
 def str_to_list(string):
     if string is None:
         return None
