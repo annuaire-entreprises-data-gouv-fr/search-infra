@@ -29,7 +29,7 @@ class DatabaseTableConstructor:
             - self.config.name (str): The name of the table to create.
 
         Args:
-            sqlite_client (SqliteClient): The SQLite client to use.
+            db_location (str): The SQLite database location to target.
         """
         if not self.config.table_ddl:
             raise ValueError("No table DDL provided in the configuration.")
@@ -56,3 +56,40 @@ class DatabaseTableConstructor:
             f"************ {row_count} total records have been added to the "
             f"{self.config.name} table!"
         )
+
+    def etl_post_processing(self, db_location: str) -> None:
+        """
+        Execute queries after the table creation.
+        Especially useful to apply updates requiring joins on other tables.
+
+        Configurations:
+            - self.config.post_processing_queries (list[str]):
+                The queries to execute in order.
+            - self.config.name (str): The name of the table to update.
+
+        Args:
+            db_location (str): The SQLite database location to target.
+        """
+        if not self.config.post_processing_queries:
+            raise ValueError(
+                "No post-processing queries provided in the configuration."
+            )
+        if not self.config.name:
+            raise ValueError("No table name provided in the configuration.")
+        queries = self.config.post_processing_queries
+        if isinstance(queries, str):
+            queries = [queries]
+
+        with SqliteClient(db_location) as sqlite_client:
+            logging.info(
+                f"Execution post-processing queries on {self.config.name} table.."
+            )
+            previous_total = 0
+            for i, query in enumerate(queries):
+                sqlite_client.execute(query)
+                current_total = sqlite_client.db_conn.total_changes
+                logging.info(
+                    f"post-processing query {i + 1}: {current_total - previous_total} rows updated"
+                )
+                previous_total = current_total
+            sqlite_client.commit_and_close_conn()

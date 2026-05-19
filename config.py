@@ -29,6 +29,7 @@ class DataSourceConfig:
         endpoint_api (str | None): Specific endpoint of the API to fetch data from. Defaults to None.
         auth_api (str | None): Authentication credentials for the API. Defaults to None.
         table_ddl (str | None): SQL query to create the database table in the ETL DAG. Defaults to None.
+        post_processing_queries (str | list[str] | None): queries to execute after the table has been created and loaded
     """
 
     name: str
@@ -44,6 +45,7 @@ class DataSourceConfig:
     endpoint_api: str | None = None
     auth_api: str | None = None
     table_ddl: str | None = None
+    post_processing_queries: str | list[str] | None = None
 
 
 CURRENT_MONTH: str = datetime.now().strftime("%Y-%m")
