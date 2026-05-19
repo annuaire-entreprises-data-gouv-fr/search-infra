@@ -509,7 +509,7 @@ class DataGouvProcessor:
             {
                 "file": f"unites_legales_{self.today_date}.parquet",
                 "dataset_id": "667ebdd4547ab9bd6e4682d3",
-                "resource_id": None,  # TODO: fill after first creation on data.gouv
+                "resource_id": "77f09ee6-8ccb-4eb8-ad10-382be6416065",
             },
             {
                 "file": f"etablissements_{self.today_date}.csv.gz",
@@ -519,7 +519,7 @@ class DataGouvProcessor:
             {
                 "file": f"etablissements_{self.today_date}.parquet",
                 "dataset_id": "667ebdd4547ab9bd6e4682d3",
-                "resource_id": None,  # TODO: fill after first creation on data.gouv
+                "resource_id": "58427078-8afb-4651-9469-c9043991d892",
             },
             {
                 "file": f"liste_administrations_{self.today_date}.csv",
