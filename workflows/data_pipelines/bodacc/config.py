@@ -38,8 +38,47 @@ BODACC_CONFIG = DataSourceConfig(
             procedure_collective_date DATE,
             procedure_collective_date_publication DATE,
 
-            procedure_collective_cloturee_nature TEXT
+            procedure_collective_cloturee_nature TEXT,
+
+            radiation_visibility INTEGER DEFAULT 1,
+            radiation_visibility_reason TEXT DEFAULT 'visible_by_default'
         );
         COMMIT;
     """,
+    post_processing_queries=[
+        """
+            UPDATE bodacc
+            SET radiation_visibility = 0,
+                radiation_visibility_reason = 'ei_active_on_sirene'
+            WHERE bodacc.radiation_est_radie
+            AND siren IN (
+                SELECT ul.siren
+                FROM unite_legale AS ul
+                INNER JOIN etablissement AS e ON e.siren = ul.siren
+                WHERE bodacc.siren = ul.siren
+                AND ul.nature_juridique_unite_legale = '1000'
+                AND ul.etat_administratif_unite_legale = 'A'
+                AND e.etat_administratif_etablissement = 'A'
+            )
+            """,
+        """
+            UPDATE bodacc
+            SET radiation_visibility = 0,
+                radiation_visibility_reason = 'ei_with_new_etab_since_radiation'
+            WHERE bodacc.radiation_est_radie
+            AND siren IN (
+                SELECT ul.siren
+                FROM unite_legale AS ul
+                INNER JOIN etablissement AS e ON e.siren = ul.siren
+                left join immatriculation AS i on i.siren = ul.siren
+                WHERE bodacc.siren = ul.siren
+                AND ul.nature_juridique_unite_legale = '1000'
+                AND (
+                    e.date_creation >= bodacc.radiation_date
+                 OR e.date_debut_activite >= bodacc.radiation_date
+                 OR i.date_immatriculation >= bodacc.radiation_date
+                 )
+            )
+            """,
+    ],
 )

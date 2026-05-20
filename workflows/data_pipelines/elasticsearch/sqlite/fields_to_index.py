@@ -408,9 +408,9 @@ select_fields_to_index_query = """SELECT
             ) as immatriculation,
             (
                 SELECT json_object(
-                    'radiation_est_radie', radiation_est_radie,
-                    'radiation_id_annonce', radiation_id_annonce,
-                    'radiation_date', radiation_date,
+                    'radiation_est_radie', case when radiation_visibility then radiation_est_radie end,
+                    'radiation_id_annonce', case when radiation_visibility then radiation_id_annonce end,
+                    'radiation_date', case when radiation_visibility then radiation_date end,
                     'procedure_collective_id_annonce', procedure_collective_id_annonce,
                     'procedure_collective_statut', procedure_collective_statut,
                     'procedure_collective_date', procedure_collective_date
