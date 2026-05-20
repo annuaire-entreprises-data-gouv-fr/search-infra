@@ -34,6 +34,10 @@ administration_whitelist = set(load_file("administration_whitelist.json"))
 administration_blacklist = set(load_file("administration_blacklist.json"))
 spa_nature_juridique = set(load_file("spa_natures_juridiques.json"))
 espace_agent_siren_whitelist = set(load_file("espace_agent_siren_whitelist.json"))
+administration_etat_nature_juridique = set(
+    load_file("administration_etat_natures_juridiques.json")
+)
+collectivite_nature_juridique = set(load_file("collectivite_natures_juridiques.json"))
 
 
 # Nom complet
@@ -215,6 +219,26 @@ def has_mission_service_public_administratif(
         return False
     # SPA : service public administratif
     return nature_juridique in spa_nature_juridique
+
+
+def is_administration_d_etat(
+    nature_juridique: str,
+    is_administration: bool = False,
+) -> bool:
+    if not is_administration:
+        return False
+    # Administration de l'Etat (services centraux, déconcentrés et critères de régie ou quasi-régie)
+    return nature_juridique in administration_etat_nature_juridique
+
+
+def is_collectivite(
+    nature_juridique: str,
+    is_administration: bool = False,
+) -> bool:
+    if not is_administration:
+        return False
+    # Collectivité territoriale
+    return nature_juridique in collectivite_nature_juridique
 
 
 def has_access_espace_agent(
