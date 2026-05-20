@@ -22,6 +22,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.helpers import 
     get_table_count,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.queries.unite_legale import (
+    add_en_sommeil_column_query,
     create_table_date_fermeture_unite_legale_query,
     create_table_flux_unite_legale_query,
     create_table_historique_unite_legale_query,
@@ -29,6 +30,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.queries.unite_l
     insert_date_fermeture_unite_legale_query,
     insert_remaining_rne_data_into_main_table_query,
     replace_table_unite_legale_query,
+    update_en_sommeil_query,
     update_main_table_fields_with_rne_data_query,
 )
 
@@ -217,4 +219,20 @@ def create_date_fermeture_unite_legale_table():
 def insert_date_fermeture_unite_legale():
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(insert_date_fermeture_unite_legale_query)
+    sqlite_client.commit_and_close_conn()
+
+
+@task
+def enrich_unite_legale_with_etablissement_data():
+    sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
+    # Une unité légale est définie comme "en sommeil" lorsqu'elle est active
+    # dans la base SIRENE mais que tous ses établissements sont fermés
+    sqlite_client.execute(add_en_sommeil_column_query)
+    sqlite_client.execute(update_en_sommeil_query)
+
+    for row in sqlite_client.execute(
+        "SELECT en_sommeil, COUNT(*) AS n_siren FROM unite_legale GROUP BY 1"
+    ):
+        logging.info(f"En sommeil summary: en_sommeil={row[0]}, n_siren={row[1]}")
+
     sqlite_client.commit_and_close_conn()
