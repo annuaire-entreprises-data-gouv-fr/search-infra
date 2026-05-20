@@ -213,3 +213,19 @@ insert_date_fermeture_unite_legale_query = """
     )
     WHERE unite_legale.etat_administratif_unite_legale = 'C'
 """
+
+add_en_sommeil_column_query = """
+    ALTER TABLE unite_legale
+    ADD COLUMN en_sommeil INT DEFAULT 0
+"""
+
+update_en_sommeil_query = """
+    UPDATE unite_legale
+    SET en_sommeil = 1
+    WHERE etat_administratif_unite_legale = 'A'
+    AND NOT EXISTS (
+        SELECT 1 FROM etablissement
+        WHERE etablissement.siren = unite_legale.siren
+        AND etat_administratif_etablissement = 'A'
+    )
+"""
