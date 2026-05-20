@@ -1,0 +1,150 @@
+{
+  "fields": [
+    {
+      "name": "siren",
+      "type": "string",
+      "description": "Numéro unique de l'entreprise (source: base Sirene)"
+    },
+    {
+      "name": "siret_siege",
+      "type": "string",
+      "description": "Numéro unique de l'établissement siège (source: base Sirene)"
+    },
+    {
+      "name": "nom_complet",
+      "type": "string",
+      "description": "Champs construit depuis les champs de dénomination : denomination de l'unité légale | Nom et prénom | Nom inconnu (dénomination usuelle : construite à partir des trois champs de dénomination usuelle de la base SIRENE) (sigle de l'unité légale)"
+    },
+    {
+      "name": "etat_administratif",
+      "type": "string",
+      "description": "État administratif de l'unité légale. 'A' pour Active, 'C' pour Cessée (source : base Sirene)"
+    },
+    {
+      "name": "statut_diffusion",
+      "type": "string",
+      "description": "Statut de diffusion de le l'unité légale (source : base Sirene)",
+      "constraints": {
+        "enum": ["O", "P"]
+      }
+    },
+    {
+      "name": "nombre_etablissements",
+      "type": "integer",
+      "description": "Nombre des établissements de l'unité légale (source : base Sirene)"
+    },
+    {
+      "name": "nombre_etablissements_ouverts",
+      "type": "integer",
+      "description": "Nombre des établissements ouverts de l'unité légale (source : base Sirene)"
+    },
+    {
+      "name": "colter_code",
+      "type": "string",
+      "description": "Code affilié à une collectivité territoriale (Commune - code INSEE, EPCI - n° SIREN, Département - Code INSEE + 'D' (sauf cas particulier), Région - Code INSEE)"
+    },
+    {
+      "name": "colter_code_insee",
+      "type": "string",
+      "description": "Code INSEE de la collectivité territoriale"
+    },
+    {
+      "name": "colter_elus",
+      "type": "string",
+      "description": "Élus enregistrés au Répertoire National des Élus(source : Ministère de l'Intérieur et des Outre-Mer)"
+    },
+    {
+      "name": "colter_niveau",
+      "type": "string",
+      "description": "Niveau de collectivité territoriale",
+      "constraints": {
+        "enum": ["commune", "epci", "departement", "region", "particulier"]
+      }
+    },
+    {
+      "name": "date_mise_a_jour_insee",
+      "type": "date",
+      "description": "Date de mise à jour de la donnée dans la base Sirene (source: base Sirene)"
+    },
+    {
+      "name": "date_mise_a_jour_rne",
+      "type": "date",
+      "description": "Date de mise à jour de la donnée dans le RNE (source : le RNE)"
+    },
+    {
+      "name": "egapro_renseignee",
+      "type": "boolean",
+      "description": "Indique si au moins un établissement a un indice égalité professionnel H/F renseigné (source : Ministère du Travail du Plein emploi et de l'Insertion)"
+    },
+    {
+      "name": "est_association",
+      "type": "boolean",
+      "description": "L'unité légale est une association (source : base Sirene)"
+    },
+    {
+      "name": "est_entrepreneur_individuel",
+      "type": "boolean",
+      "description": "Entreprise individuelle (source : base Sirene)"
+    },
+    {
+      "name": "est_entrepreneur_spectacle",
+      "type": "boolean",
+      "description": "Entreprise ayant une licence d'entrepreneur du spectacle (source : Ministère de la Culture)"
+    },
+    {
+      "name": "statut_entrepreneur_spectacle",
+      "type": "string",
+      "description": "Statut des établissements ayant fait une demande de licence d'entrepreneur du spectacle (source : Ministère de la Culture)"
+    },
+    {
+      "name": "est_ess",
+      "type": "boolean",
+      "description": "Entreprises appartenant au champ de l'économie sociale et solidaire (source : base Sirene et ESS France)"
+    },
+    {
+      "name": "est_organisme_formation",
+      "type": "boolean",
+      "description": "Entreprise ayant au moins un établissement organisme de formation (source : Ministère du Travail)"
+    },
+    {
+      "name": "est_qualiopi",
+      "type": "boolean",
+      "description": "Entreprise ayant une certification de la marque « Qualiopi » (source : Ministère du Travail)"
+    },
+    {
+      "name": "est_administration",
+      "type": "boolean",
+      "description": "Uniquement les structures reconnues comme administration. Attention : Cette donnée se base sur des règles de gestion documentées ici: https://github.com/annuaire-entreprises-data-gouv-fr/search-infra/blob/97b81953f060015b881f44482897a066f2cd34cf/data_enrichment.py#L103. Cette donnée n'est pas exhaustive et peut contenir des faux positifs."
+    },
+    {
+      "name": "est_societe_mission",
+      "type": "boolean",
+      "description": "Société qui appartient au champ des sociétés à mission (source : base Sirene)"
+    },
+    {
+      "name": "liste_elus",
+      "type": "string",
+      "description": "Liste des élus s'il s'agit de collectivé territoriale (source : Ministère de l'Intérieur et des Outre-Mer)"
+    },
+    {
+      "name": "liste_id_organisme_formation",
+      "type": "string",
+      "description": "Liste des numéros de déclaration d'activité des établissement organismes de formation (source : Ministère du Travail)"
+    },
+    {
+      "name": "liste_idcc",
+      "type": "string",
+      "description": "Liste des conventions collectives de l'unité légale (source : Ministère du travail)"
+    },
+    {
+      "name": "est_siae",
+      "type": "boolean",
+      "description": "Structure d'insertion par l'activité économique (source : Marché de l'Inclusion)"
+    },
+    {
+      "name": "type_siae",
+      "type": "string",
+      "description": "Type de structure de l'inclusion (source : Marché de l'Inclusion)"
+    }
+  ]
+}

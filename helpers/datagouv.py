@@ -132,6 +132,20 @@ def post_resource(
     return r
 
 
+def update_dataset_metadata(dataset_id: str, payload: dict):
+    url = f"{DATAGOUV_URL}/api/1/datasets/{dataset_id}/"
+    r = datagouv_session.put(url, json=payload)
+    r.raise_for_status()
+    return r.json()
+
+
+def update_dataset_description(dataset_id: str, dest_path: str, dest_name: str):
+    with open(os.path.join(dest_path, dest_name), "r", encoding="utf-8") as f:
+        description = f.read()
+    update_dataset_metadata(dataset_id, {"description": description})
+    logging.info(f"Updated description for dataset {dataset_id}")
+
+
 def fetch_last_modified_date(resource_id: str) -> str:
     """
     Fetch the 'last_modified' date of a resource from data.gouv.fr.

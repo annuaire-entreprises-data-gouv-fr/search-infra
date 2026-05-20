@@ -8,6 +8,10 @@ from data_pipelines_annuaire.config import (
     EMAIL_LIST,
 )
 from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.helpers.datagouv import (
+    post_resource,
+    update_dataset_description,
+)
 from data_pipelines_annuaire.helpers.utils import check_if_prod
 from data_pipelines_annuaire.workflows.data_pipelines.data_gouv.processor import (
     DataGouvProcessor,
@@ -79,6 +83,44 @@ def publish_files_in_data_gouv():
     def send_files_to_data_gouv():
         return data_gouv_processor.publish_to_datagouv()
 
+    @task
+    def update_annuaire_description():
+        return update_dataset_description(
+            DataGouvProcessor.DATASET_ID_ANNUAIRE,
+            DataGouvProcessor.DESCRIPTIONS_DIR,
+            "description_annuaire.md",
+        )
+
+    @task
+    def update_administration_description():
+        return update_dataset_description(
+            DataGouvProcessor.DATASET_ID_ADMINISTRATION,
+            DataGouvProcessor.DESCRIPTIONS_DIR,
+            "description_administration.md",
+        )
+
+    @task
+    def update_doc_unite_legale():
+        return post_resource(
+            file_to_upload={
+                "dest_path": DataGouvProcessor.DESCRIPTIONS_DIR,
+                "dest_name": "documentation_unite_legale.json",
+            },
+            dataset_id=DataGouvProcessor.DATASET_ID_ANNUAIRE,
+            resource_id=DataGouvProcessor.RESOURCE_ID_DOC_UL,
+        )
+
+    @task
+    def update_doc_etablissement():
+        return post_resource(
+            file_to_upload={
+                "dest_path": DataGouvProcessor.DESCRIPTIONS_DIR,
+                "dest_name": "documentation_etablissement.json",
+            },
+            dataset_id=DataGouvProcessor.DATASET_ID_ANNUAIRE,
+            resource_id=DataGouvProcessor.RESOURCE_ID_DOC_ETAB,
+        )
+
     @task.bash(trigger_rule="all_done")
     def clean_outputs():
         return f"rm -rf {AIRFLOW_DAG_TMP}publish_data_gouv"
@@ -95,6 +137,12 @@ def publish_files_in_data_gouv():
         >> upload_etablissement_file_to_object_storage()
         >> check_if_prod_env()
         >> send_files_to_data_gouv()
+        >> [
+            update_annuaire_description(),
+            update_administration_description(),
+            update_doc_unite_legale(),
+            update_doc_etablissement(),
+        ]
         >> clean_outputs()
     )
 
