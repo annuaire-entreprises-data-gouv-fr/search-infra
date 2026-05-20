@@ -920,7 +920,7 @@ def test_bodacc(api_response_tester):
     api_response_tester.test_field_value(path, 0, "bodacc.procedure_collective", None)
 
     # SIREN 442750196 : entreprise PP EI, radiée au RCS le 1er juin 2024
-    # Mais nouvelle établissement avec date de début d'activité au 2016-09-15
+    # Mais nouveau établissement avec date de début d'activité au 2016-09-15
     # Donc on considère la date de radiation comme obsolète et doit être masquée
     path = "/search?q=442750196&include_admin=bodacc"
     api_response_tester.assert_api_response_code_200(path)

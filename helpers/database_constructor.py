@@ -57,7 +57,10 @@ class DatabaseTableConstructor:
             f"{self.config.name} table!"
         )
 
-    def etl_post_processing(self, db_location: str) -> None:
+        if self.config.post_processing_queries:
+            self._etl_post_processing(db_location)
+
+    def _etl_post_processing(self, db_location: str) -> None:
         """
         Execute queries after the table creation.
         Especially useful to apply updates requiring joins on other tables.
@@ -92,4 +95,3 @@ class DatabaseTableConstructor:
                     f"post-processing query {i + 1}: {current_total - previous_total} rows updated"
                 )
                 previous_total = current_total
-            sqlite_client.commit_and_close_conn()
