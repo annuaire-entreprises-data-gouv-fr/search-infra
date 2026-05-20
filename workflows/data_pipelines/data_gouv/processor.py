@@ -35,7 +35,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichm
     has_access_espace_agent,
     has_mission_service_public_administratif,
     is_administration,
+    is_administration_d_etat,
     is_association,
+    is_collectivite,
     is_entrepreneur_individuel,
     is_ess,
     is_personne_morale_insee,
@@ -353,6 +355,18 @@ class DataGouvProcessor:
 
         admin_df["a_mission_service_public_administratif"] = admin_df.apply(
             lambda row: has_mission_service_public_administratif(
+                nature_juridique=row["nature_juridique"], is_administration=True
+            ),
+            axis=1,
+        )
+        admin_df["est_administration_d_etat"] = admin_df.apply(
+            lambda row: is_administration_d_etat(
+                nature_juridique=row["nature_juridique"], is_administration=True
+            ),
+            axis=1,
+        )
+        admin_df["est_collectivite"] = admin_df.apply(
+            lambda row: is_collectivite(
                 nature_juridique=row["nature_juridique"], is_administration=True
             ),
             axis=1,
