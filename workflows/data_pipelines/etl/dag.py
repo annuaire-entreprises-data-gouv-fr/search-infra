@@ -270,7 +270,6 @@ def database_constructor():
         >> insert_date_fermeture_etablissement()
         >> count_nombre_etablissement()
         >> count_nombre_etablissement_ouvert()
-        >> enrich_unite_legale_with_etablissement_data()
         # Établissement géocodage
         # Has to be after the stock and flux to overwrite coordinates when available
         >> create_geo_stats_table()
@@ -286,6 +285,8 @@ def database_constructor():
         >> create_dirig_pp_table()
         >> create_dirig_pm_table()
         >> copy_immatriculation_table()
+        # Runs after RNE since RNE tasks do update unité légale
+        >> enrich_unite_legale_with_etablissement_data()
         # Labels and others
         >> additional_data_enrichement()
         # The End
