@@ -106,6 +106,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.finess.geographique.config
 from data_pipelines_annuaire.workflows.data_pipelines.finess.juridique.config import (
     FINESS_JURIDIQUE_CONFIG,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.fondation.config import (
+    FONDATION_CONFIG,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.formation.config import (
     FORMATION_CONFIG,
 )
@@ -219,6 +222,7 @@ def database_constructor():
             AIDES_ADEME_CONFIG,
             AVOCAT_CONFIG,
             TVA_CONFIG,
+            FONDATION_CONFIG,
         ]
         tasks = []
         for config in config_list:
