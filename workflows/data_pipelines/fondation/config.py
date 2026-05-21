@@ -11,8 +11,8 @@ FONDATION_CONFIG = DataSourceConfig(
     file_name="fondation",
     files_to_download={
         "fondation": {
-            "url": f"{DATA_GOUV_BASE_URL}0297b5c2-d825-423c-94ba-610511ed1786",
-            "resource_id": "0297b5c2-d825-423c-94ba-610511ed1786",
+            "url": f"{DATA_GOUV_BASE_URL}45d450f1-b0d4-42b7-bb16-7b46895eb83a",
+            "resource_id": "45d450f1-b0d4-42b7-bb16-7b46895eb83a",
             "destination": f"{DataSourceConfig.base_tmp_folder}/fondation/fondation-download.zip",
         },
     },
