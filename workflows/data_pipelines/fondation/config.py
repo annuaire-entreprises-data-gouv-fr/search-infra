@@ -26,6 +26,7 @@ FONDATION_CONFIG = DataSourceConfig(
             siret TEXT,
             siren TEXT,
             titre TEXT,
+            date_creation DATE,
             numero_rnf TEXT,
             adresse TEXT,
             code_postal TEXT,

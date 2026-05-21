@@ -27,6 +27,7 @@ class FondationProcessor(DataProcessor):
                 "titre",
                 "numero_rnf",
                 "siret",
+                "date_creation",
                 "adresse",
                 "code_postal",
                 "ville",
@@ -34,14 +35,30 @@ class FondationProcessor(DataProcessor):
         )
 
         df["siren"] = df["siret"].str[:9]
+        df["date_creation"] = df["date_creation"].str[:10]
 
-        # Five SIRET are duplicates
-        # Until we know better, let's prioritise the last numero_rnf
-        df = df.sort_values("numero_rnf", ascending=True)
+        df_with_siret = df[df["siret"].notna()]
+        df_without_siret = df[df["siret"].isna()]
+
+        # If a SIRET is duplicated we need to know to informe the producer so it can fix it
+        duplicated_mask = df_with_siret.duplicated(subset=["siret"], keep=False)
+        duplicated_sirets = df_with_siret.loc[duplicated_mask, "siret"].unique()
+        n_duplicates = len(duplicated_sirets)
+        if n_duplicates > 0:
+            sample_sirets = duplicated_sirets[:10].tolist()
+            warning_message = f"⚠️ {n_duplicates} SIRET dupliqués, échantillon : {sample_sirets}. À remonter au producteur."
+            DataProcessor.push_message(
+                Notification.notification_xcom_key,
+                description=warning_message,
+            )
+
+        # When we have duplicated on the SIRET, and until we know better
+        # let's prioritise the most recent date_creation
+        df_with_siret = df_with_siret.sort_values("date_creation", ascending=False)
         df = pd.concat(
             [
-                df[df["siret"].isna()],
-                df[df["siret"].notna()].drop_duplicates(subset=["siret"], keep="first"),
+                df_without_siret,
+                df_with_siret.drop_duplicates(subset=["siret"], keep="first"),
             ]
         )
 
@@ -50,6 +67,10 @@ class FondationProcessor(DataProcessor):
         DataProcessor.push_message(
             Notification.notification_xcom_key,
             column=df.siret,
+        )
+        DataProcessor.push_message(
+            Notification.notification_xcom_key,
+            column=df.numero_rnf,
         )
 
         del df
