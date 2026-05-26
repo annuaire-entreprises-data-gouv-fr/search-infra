@@ -11,11 +11,6 @@
       "description": "Numéro unique de l'établissement siège (source: base Sirene)"
     },
     {
-      "name": "nom_complet",
-      "type": "string",
-      "description": "Champs construit depuis les champs de dénomination : denomination de l'unité légale | Nom et prénom | Nom inconnu (dénomination usuelle : construite à partir des trois champs de dénomination usuelle de la base SIRENE) (sigle de l'unité légale)"
-    },
-    {
       "name": "etat_administratif",
       "type": "string",
       "description": "État administratif de l'unité légale. 'A' pour Active, 'C' pour Cessée (source : base Sirene)"
@@ -37,6 +32,16 @@
       "name": "nombre_etablissements_ouverts",
       "type": "integer",
       "description": "Nombre des établissements ouverts de l'unité légale (source : base Sirene)"
+    },
+    {
+      "name": "nom_complet",
+      "type": "string",
+      "description": "Champs construit depuis les champs de dénomination : denomination de l'unité légale | Nom et prénom | Nom inconnu (dénomination usuelle : construite à partir des trois champs de dénomination usuelle de la base SIRENE) (sigle de l'unité légale)"
+    },
+    {
+      "name": "nature_juridique",
+      "type": "string",
+      "description": "Nature juridique de l'unité légale (source : base Sirene)"
     },
     {
       "name": "colter_code",
@@ -77,6 +82,16 @@
       "description": "Indique si au moins un établissement a un indice égalité professionnel H/F renseigné (source : Ministère du Travail du Plein emploi et de l'Insertion)"
     },
     {
+      "name": "est_achats_responsables",
+      "type": "boolean",
+      "description": "Entreprise engagée dans une démarche d'achats responsables (source : Marché de l'Inclusion)"
+    },
+    {
+      "name": "est_alim_confiance",
+      "type": "boolean",
+      "description": "Établissement référencé dans Alim'confiance (source : Ministère de l'Agriculture et de la Souveraineté alimentaire)"
+    },
+    {
       "name": "est_association",
       "type": "boolean",
       "description": "L'unité légale est une association (source : base Sirene)"
@@ -90,6 +105,11 @@
       "name": "est_entrepreneur_spectacle",
       "type": "boolean",
       "description": "Entreprise ayant une licence d'entrepreneur du spectacle (source : Ministère de la Culture)"
+    },
+    {
+      "name": "est_patrimoine_vivant",
+      "type": "boolean",
+      "description": "Entreprise détentrice du label Entreprise du Patrimoine Vivant (source : Ministère de l'Économie)"
     },
     {
       "name": "statut_entrepreneur_spectacle",
@@ -118,7 +138,7 @@
     },
     {
       "name": "est_societe_mission",
-      "type": "boolean",
+      "type": "string",
       "description": "Société qui appartient au champ des sociétés à mission (source : base Sirene)"
     },
     {
@@ -145,6 +165,24 @@
       "name": "type_siae",
       "type": "string",
       "description": "Type de structure de l'inclusion (source : Marché de l'Inclusion)"
+    },
+    {
+      "name": "liste_finess_juridique",
+      "type": "array",
+      "description": "Liste des identifiants FINESS juridiques de l'unité légale (source : Ministère des Solidarités et de la Santé)",
+      "items": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "a_aide_ademe",
+      "type": "boolean",
+      "description": "Entreprise ayant reçu une aide de l'ADEME (source : ADEME)"
+    },
+    {
+      "name": "est_avocat",
+      "type": "boolean",
+      "description": "Unité légale enregistrée en tant qu'avocat (source : Conseil National des Barreaux)"
     }
   ]
 }

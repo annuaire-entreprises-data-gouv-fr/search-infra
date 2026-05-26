@@ -21,6 +21,11 @@
       "description": "L'établissement a précédemment servi de siège de l'unité légale (source : base Sirene)"
     },
     {
+      "name": "adresse",
+      "type": "string",
+      "description": "Champ construit depuis les champs d'adresse de la base SIRENE"
+    },
+    {
       "name": "etat_administratif",
       "type": "string",
       "description": "Etat administratif de l'établissement. 'A' pour Actif, 'F' pour Fermé (source : base Sirene)"
@@ -34,24 +39,9 @@
       }
     },
     {
-      "name": "adresse",
-      "type": "string",
-      "description": "Champs construit depuis les champs d'adresse de la base SIRENE : complement adresse + numéro voie + indice repetition + type voie + libelle voie + distribution spéciale + (code postal + libelle commune | cedex + libelle cedex) + libelle commune étranger + libelle pays étranger"
-    },
-    {
-      "name": "latitude",
-      "type": "string",
-      "description": "Latitude de l'établissement (source : base Sirene géocodée par data.gouv)"
-    },
-    {
-      "name": "longitude",
-      "type": "string",
-      "description": "Longitude de l'établissement (source : base Sirene géocodée par data.gouv)"
-    },
-    {
-      "name": "liste_finess",
+      "name": "liste_finess_geographique",
       "type": "array",
-      "description": "Liste des identifiants FINESS de l'établissement (source : Ministère des Solidarités et de la Santé)",
+      "description": "Liste des identifiants FINESS Géographiques de l'établissement (source : Ministère des Solidarités et de la Santé)",
       "items": {
         "type": "string"
       }

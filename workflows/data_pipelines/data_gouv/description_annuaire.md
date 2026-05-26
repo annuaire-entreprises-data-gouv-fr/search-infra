@@ -1,8 +1,8 @@
 Ces jeux de données contiennent certaines informations sur les entreprises françaises disponibles dans [l'Annuaire des Entreprises](https://annuaire-entreprises.data.gouv.fr/) et dans son [API de Recherche](https://api.gouv.fr/les-api/api-recherche-entreprises).
 
-Les données proviennent de plusieurs [sources de données](https://annuaire-entreprises.data.gouv.fr/donnees/sources), soit à la maille de l’unité légale (siren) soit à la maille de l’établissement (siret).
+Les données proviennent de plusieurs [sources de données](https://annuaire-entreprises.data.gouv.fr/donnees/sources), soit à la maille de l'unité légale (siren) soit à la maille de l'établissement (siret).
 
-L’équipe data.gouv.fr publie ces jeux de données afin de simplifier la jointure entre les différents jeux de données publics utilisant le SIREN ou le SIRET.
+L'équipe data.gouv.fr publie ces jeux de données afin de simplifier la jointure entre les différents jeux de données publics utilisant le SIREN ou le SIRET.
 
 **Attention**, il ne s'agit pas ici d'une fusion de tous ces jeux de données.
 
@@ -20,15 +20,25 @@ L’équipe data.gouv.fr publie ces jeux de données afin de simplifier la joint
 
     * Statut de diffusion (OUI/NON)
 
-    * Nombre d’établissements
+    * Nombre d'établissements
+
+    * Nombre d'établissements ouverts
+
+    * Nature juridique
 
     * Entreprise individuelle (OUI/NON)
 
     * Association (OUI/NON et numéro RNA)
 
+    * Société à mission
+
+    * ESS
+
   * Champ calculé à partir des données de la base Sirene :
 
     * Nom complet affiché sur Annuaire des Entreprises
+
+    * Administration (OUI/NON)
 
   * Autre sources :
 
@@ -36,15 +46,25 @@ L’équipe data.gouv.fr publie ces jeux de données afin de simplifier la joint
 
     * Déclaration Egapro
 
-    * Récépissé de licence d’entrepreneur de spectacle
+    * Achats responsables
 
-    * ESS
+    * Alim'Confiance
+
+    * Récépissé de licence d'entrepreneur de spectacle
+
+    * Entreprise du Patrimoine Vivant
 
     * Organisme de formation
 
     * Qualiopi
 
     * Entreprise Inclusive / SIAE
+
+    * FINESS juridique
+
+    * Aide ADEME
+
+    * Avocat
 
     * Pour les collectivités territoriales
 
@@ -60,37 +80,29 @@ L’équipe data.gouv.fr publie ces jeux de données afin de simplifier la joint
 
     * SIRET
 
-    * SIREN de l’unité légale
+    * SIREN de l'unité légale
 
     * Siège social (OUI/NON)
+
+    * Ancien siège (OUI/NON)
 
     * État administratif (ACTIF/FERMÉ)
 
     * Statut de diffusion (OUI/NON)
 
-  * Champs calculés à partir de la Base Adresse Nationale et des champs d’adresse de la base Sirene :
-
-    * Adresse
-
-    * Coordonnées GPS (latitude, longitude)
+    * Adresse : champ calculé à partir des champs d'adresse de la base Sirene :
 
   * Autre sources :
 
-    * FINESS
+    * FINESS Géographique
 
     * BIO
 
     * Convention collective
 
-    * Reconnue Garant de l’Environnement
+    * Reconnue Garant de l'Environnement
 
     * UAI
-
-**Géolocalisation**
-
-Les coordonnées GPS ne sont pas calculés de la même manière que les coordonnées Lambert publiées par l’Insee dans la [base Sirene](https://www.data.gouv.fr/fr/datasets/base-sirene-des-entreprises-et-de-leurs-etablissements-siren-siret/).
-
-La plupart des numéros Siret utilisent le géocodage (latitude/longitude) provenant de la base SIRENE [géocodée par data.gouv](https://www.data.gouv.fr/fr/datasets/base-sirene-des-etablissements-siret-geolocalisee-avec-la-base-dadresse-nationale-ban/). Cependant, pour ceux modifiés après le début du mois en cours, la géolocalisation est directement extraite de la base SIRENE, en convertissant les coordonnées Lambert en coordonnées GPS.
 
 **Fréquence de publication**
 
