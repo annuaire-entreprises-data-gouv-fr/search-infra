@@ -1,6 +1,3 @@
-# This Dockerfile is used in production by l'Annuaire des Entreprises
-# Any modification should be thoroughly tested
-
 ARG AIRFLOW_VERSION=3.2.1
 ARG AIRFLOW_PYTHON_VERSION=3.12
 
@@ -17,11 +14,12 @@ RUN apt-get update && \
 
 USER airflow
 
-RUN pip install --no-cache-dir \
+ENV PATH="/home/airflow/.local/bin:$PATH"
+RUN pip install --no-cache-dir --user \
     "apache-airflow[postgres,statsd]==${AIRFLOW_VERSION}" \
     "apache-airflow-providers-fab" \
     "sentry-sdk" \
-    -c https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${AIRFLOW_PYTHON_VERSION}.txt
+    -c "https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${AIRFLOW_PYTHON_VERSION}.txt"
 
 COPY ./requirements.txt /opt/airflow/requirements.txt
-RUN pip install --no-cache-dir -r /opt/airflow/requirements.txt
+RUN pip install --no-cache-dir --user -r /opt/airflow/requirements.txt
