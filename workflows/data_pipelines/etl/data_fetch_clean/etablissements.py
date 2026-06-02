@@ -349,7 +349,7 @@ def download_geo_stats_iterator(data_dir: str, chunksize: int = 500_000):
             f"{data_dir}GeolocalisationEtablissement_Sirene_pour_etudes_statistiques_utf8.csv",
             sep=";",
             dtype=str,
-            usecols=["siret", "x_longitude", "y_latitude"],
+            usecols=["siret", "x_longitude", "y_latitude", "qualite_xy"],
             chunksize=chunksize,
         )
     except Exception as e:
@@ -359,6 +359,11 @@ def download_geo_stats_iterator(data_dir: str, chunksize: int = 500_000):
 
 def preprocess_geo_stats_data(data_dir: str):
     for df_chunk in download_geo_stats_iterator(data_dir):
+        # Qualité 33 est la plus mauvaise précision
+        # Elle consiste à afficher l'établissement de manière aléatoire dans la commune
+        # Suite au conseil du producteur de données nous l'excluons
+        df_chunk = df_chunk[df_chunk["qualite_xy"] != "33"]
+        df_chunk = df_chunk.drop(columns=["qualite_xy"])
         df_chunk = df_chunk.rename(
             columns={
                 "x_longitude": "longitude",
