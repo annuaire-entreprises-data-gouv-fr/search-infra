@@ -38,6 +38,8 @@ administration_etat_nature_juridique = set(
     load_file("administration_etat_natures_juridiques.json")
 )
 collectivite_nature_juridique = set(load_file("collectivite_natures_juridiques.json"))
+# Projet de loi de finances pour 2026 (PLF 2026), jaune opérateurs de l'Etat
+operateurs_lolf = set(load_file("operateurs_lolf.json"))
 
 
 # Nom complet
@@ -192,6 +194,7 @@ def is_administration(
         - Entities are considered public services if either:
             1. Their legal nature code is in administration_nature_juridique, or
             2. Their SIREN is in whitelist_administration.
+            3. Their SIREN is in operateurs_lolf (PLF 2026, jaune opérateurs de l'Etat)
     """
     if nature_juridique_unite_legale is None:
         return False
@@ -203,6 +206,9 @@ def is_administration(
         return False
 
     if siren in administration_whitelist:
+        return True
+
+    if siren in operateurs_lolf:
         return True
 
     return nature_juridique_unite_legale in administration_nature_juridique
@@ -223,10 +229,13 @@ def has_mission_service_public_administratif(
 
 def is_administration_d_etat(
     nature_juridique: str,
+    siren: str,
     is_administration: bool = False,
 ) -> bool:
     if not is_administration:
         return False
+    if siren in operateurs_lolf:
+        return True
     # Administration de l'Etat (services centraux, déconcentrés et critères de régie ou quasi-régie)
     return nature_juridique in administration_etat_nature_juridique
 
