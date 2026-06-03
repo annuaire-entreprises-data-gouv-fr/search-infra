@@ -30,7 +30,8 @@ FONDATION_CONFIG = DataSourceConfig(
             numero_rnf TEXT,
             adresse TEXT,
             code_postal TEXT,
-            ville TEXT
+            ville TEXT,
+            type_organisme TEXT
         );
         CREATE INDEX IF NOT EXISTS idx_fondation_siret ON fondation (siret);
         CREATE INDEX IF NOT EXISTS idx_fondation_siren ON fondation (siren);
