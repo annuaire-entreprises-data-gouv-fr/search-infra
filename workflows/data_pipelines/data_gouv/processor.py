@@ -361,7 +361,9 @@ class DataGouvProcessor:
         )
         admin_df["est_administration_d_etat"] = admin_df.apply(
             lambda row: is_administration_d_etat(
-                nature_juridique=row["nature_juridique"], is_administration=True
+                nature_juridique=row["nature_juridique"],
+                siren=row["siren"],
+                is_administration=True,
             ),
             axis=1,
         )
