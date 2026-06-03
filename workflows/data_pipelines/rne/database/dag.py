@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 
+from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, task
 
-from data_pipelines_annuaire.config import RNE_DB_TMP_FOLDER
+from data_pipelines_annuaire.config import EMAIL_LIST, RNE_DB_TMP_FOLDER
+from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.workflows.data_pipelines.rne.database.task_functions import (
     check_db_count,
     create_db,
@@ -28,6 +30,8 @@ default_args = {
     default_args=default_args,
     schedule="0 2 * * *",  # Run daily at 2 am
     start_date=datetime(2026, 1, 1),
+    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
+    on_success_callback=Notification(),
     max_active_runs=1,
     dagrun_timeout=timedelta(minutes=(60 * 200)),
     params={},
