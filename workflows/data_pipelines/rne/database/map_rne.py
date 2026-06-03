@@ -293,11 +293,11 @@ def map_rne_dirigeant_pp_to_ul(dirigeant_pp_rne, role_entreprise):
     return dirigeant_pp_ul
 
 
-def map_rne_dirigeant_pm_to_ul(dirigeant_pm_rne):
+def map_rne_dirigeant_pm_to_ul(dirigeant_pm_rne, role_entreprise=None):
     dirigeant_pm_ul = DirigeantsPM()
     dirigeant_pm_ul.siren = remove_spaces(dirigeant_pm_rne.siren)
     dirigeant_pm_ul.denomination = dirigeant_pm_rne.denomination
-    dirigeant_pm_ul.role = dirigeant_pm_rne.roleEntreprise
+    dirigeant_pm_ul.role = role_entreprise
     dirigeant_pm_ul.pays = dirigeant_pm_rne.pays
     dirigeant_pm_ul.forme_juridique = dirigeant_pm_rne.formeJuridique
     return dirigeant_pm_ul
@@ -343,7 +343,11 @@ def map_dirigeants_rne_to_dirigeants_list_ul(dirigeants_rne):
                     )
                 )
             elif dirigeant.typeDePersonne == "ENTREPRISE":
-                list_dirigeants.append(map_rne_dirigeant_pm_to_ul(dirigeant.entreprise))
+                list_dirigeants.append(
+                    map_rne_dirigeant_pm_to_ul(
+                        dirigeant.entreprise, dirigeant.roleEntreprise
+                    )
+                )
         # Cas personne physique
         else:
             list_dirigeants.append(
