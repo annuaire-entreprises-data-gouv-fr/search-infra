@@ -101,7 +101,7 @@ def publish_files_in_data_gouv():
 
     @task
     def update_doc_unite_legale():
-        return post_resource(
+        post_resource(
             file_to_upload={
                 "dest_path": DataGouvProcessor.DESCRIPTIONS_DIR,
                 "dest_name": "documentation_unite_legale.json",
@@ -112,7 +112,7 @@ def publish_files_in_data_gouv():
 
     @task
     def update_doc_etablissement():
-        return post_resource(
+        post_resource(
             file_to_upload={
                 "dest_path": DataGouvProcessor.DESCRIPTIONS_DIR,
                 "dest_name": "documentation_etablissement.json",
