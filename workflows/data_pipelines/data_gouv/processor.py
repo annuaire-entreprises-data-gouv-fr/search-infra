@@ -45,6 +45,12 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichm
 
 
 class DataGouvProcessor:
+    DESCRIPTIONS_DIR = os.path.dirname(__file__)
+    DATASET_ID_ANNUAIRE = "667ebdd4547ab9bd6e4682d3"
+    DATASET_ID_ADMINISTRATION = "67a5cd40941cbe4c206efcd1"
+    RESOURCE_ID_DOC_UL = "481a06cf-fcf9-417a-b4dd-687273727af9"
+    RESOURCE_ID_DOC_ETAB = "e8a88fe5-d1f5-4700-9cdf-af2c96eb7ef6"
+
     def __init__(self):
         self.today_date = datetime.today().strftime("%Y-%m-%d")
         self.chunk_size = 100000
@@ -519,27 +525,27 @@ class DataGouvProcessor:
         files_to_publish = [
             {
                 "file": f"unites_legales_{self.today_date}.csv.gz",
-                "dataset_id": "667ebdd4547ab9bd6e4682d3",
+                "dataset_id": self.DATASET_ID_ANNUAIRE,
                 "resource_id": "b8e5376c-c158-4d88-91f3-f6bb0d165332",
             },
             {
                 "file": f"unites_legales_{self.today_date}.parquet",
-                "dataset_id": "667ebdd4547ab9bd6e4682d3",
+                "dataset_id": self.DATASET_ID_ANNUAIRE,
                 "resource_id": "77f09ee6-8ccb-4eb8-ad10-382be6416065",
             },
             {
                 "file": f"etablissements_{self.today_date}.csv.gz",
-                "dataset_id": "667ebdd4547ab9bd6e4682d3",
+                "dataset_id": self.DATASET_ID_ANNUAIRE,
                 "resource_id": "12812d7d-d11c-45f4-965c-35a3b149c585",
             },
             {
                 "file": f"etablissements_{self.today_date}.parquet",
-                "dataset_id": "667ebdd4547ab9bd6e4682d3",
+                "dataset_id": self.DATASET_ID_ANNUAIRE,
                 "resource_id": "58427078-8afb-4651-9469-c9043991d892",
             },
             {
                 "file": f"liste_administrations_{self.today_date}.csv",
-                "dataset_id": "67a5cd40941cbe4c206efcd1",
+                "dataset_id": self.DATASET_ID_ADMINISTRATION,
                 "resource_id": "c0f355f1-66bd-4f57-8a3c-2c6f3527b364",
             },
         ]

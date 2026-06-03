@@ -1,0 +1,82 @@
+{
+  "fields": [
+    {
+      "name": "siren",
+      "type": "string",
+      "description": "SIREN de l'unité légale (source : base Sirene)"
+    },
+    {
+      "name": "siret",
+      "type": "string",
+      "description": "Numéro unique de l'établissement (source : base Sirene)"
+    },
+    {
+      "name": "est_siege",
+      "type": "boolean",
+      "description": "L'établissement est le siège de l'unité légale (source : base Sirene)"
+    },
+    {
+      "name": "ancien_siege",
+      "type": "boolean",
+      "description": "L'établissement a précédemment servi de siège de l'unité légale (source : base Sirene)"
+    },
+    {
+      "name": "adresse",
+      "type": "string",
+      "description": "Champ construit depuis les champs d'adresse de la base SIRENE"
+    },
+    {
+      "name": "etat_administratif",
+      "type": "string",
+      "description": "Etat administratif de l'établissement. 'A' pour Actif, 'F' pour Fermé (source : base Sirene)"
+    },
+    {
+      "name": "statut_diffusion",
+      "type": "string",
+      "description": "Statut de diffusion de l'établissement (source : base Sirene)",
+      "constraints": {
+        "enum": ["O", "P"]
+      }
+    },
+    {
+      "name": "liste_finess_geographique",
+      "type": "array",
+      "description": "Liste des identifiants FINESS Géographiques de l'établissement (source : Ministère des Solidarités et de la Santé)",
+      "items": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "liste_id_bio",
+      "type": "array",
+      "description": "Liste des identifiants BIO de l'établissement (source : Agence Bio)",
+      "items": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "liste_idcc",
+      "type": "array",
+      "description": "Liste des conventions collectives de l'établissement (source : Ministère du travail)",
+      "items": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "liste_rge",
+      "type": "array",
+      "description": "Liste des identifiants RGE de l'établissement (source : ADEME)",
+      "items": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "liste_uai",
+      "type": "array",
+      "description": "Liste des identifiants UAI de l'établissement (source : Ministère de l'enseignement supérieur et de la recherche)",
+      "items": {
+        "type": "string"
+      }
+    }
+  ]
+}
