@@ -31,6 +31,7 @@ class FondationProcessor(DataProcessor):
                 "adresse",
                 "code_postal",
                 "ville",
+                "type_organisme",
             ],
         )
 
