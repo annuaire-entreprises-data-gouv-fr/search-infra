@@ -70,7 +70,8 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     )
 
     company_address = get_adresse(rne_company)
-    unite_legale.adresse = map_address_rne_to_ul(company_address)
+    if company_address:
+        unite_legale.adresse = map_address_rne_to_ul(company_address)
 
     company_dirigeants = get_dirigeants(rne_company)
     unite_legale.dirigeants = map_dirigeants_rne_to_dirigeants_list_ul(
