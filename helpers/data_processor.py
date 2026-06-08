@@ -13,7 +13,7 @@ from data_pipelines_annuaire.helpers.datagouv import (
     fetch_last_modified_date,
     fetch_last_resource_from_dataset,
 )
-from data_pipelines_annuaire.helpers.notification import Notification, monitoring_logger
+from data_pipelines_annuaire.helpers.notification import Notification
 from data_pipelines_annuaire.helpers.object_storage import File, ObjectStorageClient
 from data_pipelines_annuaire.helpers.utils import (
     download_file,
@@ -173,7 +173,6 @@ class DataProcessor(ABC):
             metric = column.nunique()
             description = column.name if not description else description
             description = f"{metric} {description}"
-            monitoring_logger(key=column.name, value=metric)
 
         ti = get_current_context()["ti"]
         ti.xcom_push(key=xcom_key, value=description)

@@ -20,7 +20,6 @@ USER airflow
 RUN pip install --no-cache-dir \
     "apache-airflow[postgres,statsd]==${AIRFLOW_VERSION}" \
     "apache-airflow-providers-fab" \
-    "sentry-sdk" \
     -c https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${AIRFLOW_PYTHON_VERSION}.txt
 
 COPY ./requirements.txt /opt/airflow/requirements.txt
