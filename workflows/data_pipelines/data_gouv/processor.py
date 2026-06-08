@@ -46,8 +46,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichm
 
 class DataGouvProcessor:
     DESCRIPTIONS_DIR = os.path.dirname(__file__)
-    DATASET_ID_ANNUAIRE = "667ebdd4547ab9bd6e4682d3"
     DATASET_ID_ADMINISTRATION = "67a5cd40941cbe4c206efcd1"
+    RESOURCE_ID_DOC_ADMINISTRATION = "b905d718-cc7b-479e-a821-d8faf70ae1d4"
+    DATASET_ID_ANNUAIRE = "667ebdd4547ab9bd6e4682d3"
     RESOURCE_ID_DOC_UL = "481a06cf-fcf9-417a-b4dd-687273727af9"
     RESOURCE_ID_DOC_ETAB = "e8a88fe5-d1f5-4700-9cdf-af2c96eb7ef6"
 
