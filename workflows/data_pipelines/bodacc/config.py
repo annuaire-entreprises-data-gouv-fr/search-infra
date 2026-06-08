@@ -23,7 +23,7 @@ BODACC_CONFIG = DataSourceConfig(
     url_object_storage=f"{OBJECT_STORAGE_BASE_URL}bodacc/latest/bodacc.csv",
     url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}bodacc/latest/metadata.json",
     # radiation_visibility et radiation_visibility_reason sont alimentés par la
-    # tasl de postprocessing dans le DAG d'ETL pour masquer certaines radiations
+    # task de postprocessing dans le DAG d'ETL pour masquer certaines radiations
     table_ddl="""
         BEGIN;
         CREATE TABLE IF NOT EXISTS bodacc

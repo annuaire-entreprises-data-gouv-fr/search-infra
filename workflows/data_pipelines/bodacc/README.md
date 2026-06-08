@@ -4,8 +4,8 @@
 
 Ce module collecte et traite les **radiations** et **procédures collectives** publiées au [BODACC](https://www.bodacc.fr/) (Bulletin Officiel des Annonces Civiles et Commerciales).
 Seules les données suivantes sont intégrées :
-- radiation au RCS
-- procédure collective en cours
+- radiations au RCS
+- procédures collectives en cours
 
 | Information | Valeur |
 | -------- | -------- |
