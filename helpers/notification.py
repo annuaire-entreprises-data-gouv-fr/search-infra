@@ -1,22 +1,8 @@
-import logging
 from enum import Enum
 
 from airflow.sdk import BaseNotifier
 
 from data_pipelines_annuaire.helpers import AirflowApiClient, tchap
-
-
-def monitoring_logger(key: str, value: int) -> None:
-    """
-    Send logs to Kibana with the specified key and metric.
-    Kibana expect an info log with the following format:
-        ::STATS:: KEY:XXX VALUE:1234
-
-    Args:
-        key (str): The key for the log entry.
-        metric (int): The metric value for the log entry.
-    """
-    logging.info(f"::STATS:: KEY:{key} VALUE:{value}")
 
 
 class Notification(BaseNotifier):

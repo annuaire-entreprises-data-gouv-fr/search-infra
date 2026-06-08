@@ -7,7 +7,6 @@ from data_pipelines_annuaire.config import (
     DATABASE_VALIDATION_OBJECT_STORAGE_PATH,
 )
 from data_pipelines_annuaire.helpers.filesystem import LocalFile
-from data_pipelines_annuaire.helpers.notification import monitoring_logger
 from data_pipelines_annuaire.helpers.object_storage import ObjectStorageFile
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 
@@ -56,7 +55,6 @@ def validate_table(
             datatabase_location=datatabase_location,
             previous_data=previous_data,
         )
-        monitoring_logger(key=file_name, value=previous_data["row_count"])
 
     local_stats_file.write(lines=json.dumps(previous_data), mode="w")
     local_stats_file.upload_to_object_storage(
