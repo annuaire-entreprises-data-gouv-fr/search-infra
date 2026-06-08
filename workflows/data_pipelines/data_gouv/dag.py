@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from airflow.providers.smtp.notifications.smtp import SmtpNotifier
-from airflow.sdk import dag, task
+from airflow.sdk import dag, setup, task, teardown
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_DAG_TMP,
@@ -39,6 +39,7 @@ default_args = {
 def publish_files_in_data_gouv():
     data_gouv_processor = DataGouvProcessor()
 
+    @setup
     @task.bash
     def clean_previous_outputs():
         return f"rm -rf {AIRFLOW_DAG_TMP}publish_data_gouv && mkdir -p {AIRFLOW_DAG_TMP}publish_data_gouv"
@@ -84,19 +85,30 @@ def publish_files_in_data_gouv():
         return data_gouv_processor.publish_to_datagouv()
 
     @task
-    def update_annuaire_description():
-        return update_dataset_description(
-            DataGouvProcessor.DATASET_ID_ANNUAIRE,
-            DataGouvProcessor.DESCRIPTIONS_DIR,
-            "description_annuaire.md",
-        )
-
-    @task
     def update_administration_description():
         return update_dataset_description(
             DataGouvProcessor.DATASET_ID_ADMINISTRATION,
             DataGouvProcessor.DESCRIPTIONS_DIR,
             "description_administration.md",
+        )
+
+    @task
+    def update_doc_administration():
+        post_resource(
+            file_to_upload={
+                "dest_path": DataGouvProcessor.DESCRIPTIONS_DIR,
+                "dest_name": "documentation_administration.json",
+            },
+            dataset_id=DataGouvProcessor.DATASET_ID_ADMINISTRATION,
+            resource_id=DataGouvProcessor.RESOURCE_ID_DOC_ADMINISTRATION,
+        )
+
+    @task
+    def update_annuaire_description():
+        return update_dataset_description(
+            DataGouvProcessor.DATASET_ID_ANNUAIRE,
+            DataGouvProcessor.DESCRIPTIONS_DIR,
+            "description_annuaire.md",
         )
 
     @task
@@ -121,7 +133,8 @@ def publish_files_in_data_gouv():
             resource_id=DataGouvProcessor.RESOURCE_ID_DOC_ETAB,
         )
 
-    @task.bash(trigger_rule="all_done")
+    @teardown
+    @task.bash
     def clean_outputs():
         return f"rm -rf {AIRFLOW_DAG_TMP}publish_data_gouv"
 
@@ -139,9 +152,10 @@ def publish_files_in_data_gouv():
         >> send_files_to_data_gouv()
         >> [
             update_annuaire_description(),
-            update_administration_description(),
             update_doc_unite_legale(),
             update_doc_etablissement(),
+            update_administration_description(),
+            update_doc_administration(),
         ]
         >> clean_outputs()
     )

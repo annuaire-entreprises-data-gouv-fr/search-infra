@@ -1,0 +1,39 @@
+{
+  "fields": [
+    {
+      "name": "siren",
+      "type": "string",
+      "description": "Numéro unique de l'entreprise (source: base Sirene)"
+    },
+    {
+      "name": "nom_complet",
+      "type": "string",
+      "description": "Champs construit depuis les champs de dénomination : denomination de l'unité légale | Nom et prénom | Nom inconnu (dénomination usuelle : construite à partir des trois champs de dénomination usuelle de la base SIRENE) (sigle de l'unité légale)"
+    },
+    {
+      "name": "nature_juridique",
+      "type": "string",
+      "description": "Catégorie juridique de l'unité légale (source: base Sirene)"
+    },
+    {
+      "name": "a_mission_service_public_administratif",
+      "type": "boolean",
+      "description": "Est-elle chargée d'une mission de service public administratif ?"
+    },
+    {
+      "name": "est_administration_d_etat",
+      "type": "boolean",
+      "description": "Est-elle une administration de l'État (services centraux, déconcentrés et critères de régie ou quasi-régie) ?"
+    },
+    {
+      "name": "est_collectivite",
+      "type": "boolean",
+      "description": "Est-elle une collectivité territoriale ?"
+    },
+    {
+      "name": "a_acces_espace_agent",
+      "type": "boolean",
+      "description": "Est-elle autorisée à accéder à l'espace agent de l'Annuaire des Entreprises ?"
+    }
+  ]
+}
