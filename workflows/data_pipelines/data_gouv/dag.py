@@ -46,7 +46,7 @@ def publish_files_in_data_gouv():
 
     @task
     def get_latest_sqlite_db():
-        return data_gouv_processor.get_latest_database()
+        return data_gouv_processor.get_latest_sirene_database()
 
     @task
     def fill_unite_legale_file():
