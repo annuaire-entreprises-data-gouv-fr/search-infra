@@ -56,7 +56,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.ess_france.config import (
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_dirig_tables import (
     create_dirig_pm_table,
     create_dirig_pp_table,
-    get_rne_database,
+    get_latest_rne_database,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_etablissements_tables import (
     apply_geo_stats_coordinates,
@@ -278,7 +278,7 @@ def database_constructor():
         >> create_siege_table()
         >> create_ancien_siege_table()
         # RNE
-        >> get_rne_database()
+        >> get_latest_rne_database()
         >> add_rne_siren_data_to_unite_legale_table()
         >> validate_unite_legale_with_rne_table()
         >> add_rne_data_to_siege_table()

@@ -1,5 +1,8 @@
+import gzip
 import logging
 import os
+import re
+import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import TypedDict
@@ -178,67 +181,67 @@ class ObjectStorageClient:
             file_path, self.bucket, object_storage_path, ExtraArgs=extra_args
         )
 
-    def get_latest_file(
+    def get_latest_database(
         self,
         object_storage_path: str,
         local_path: str,
-    ):
+    ) -> str:
         """
-        Download the latest .db.gz file from S3 to the local file system.
+        Download and decompress the latest .db.gz file from object storage
+        to the local file system.
 
         Args:
-            object_storage_path (str): The path within the S3 bucket where compressed .db
+            object_storage_path (str): The path within the bucket where compressed .db
             files are located.
-            local_path (str): The local directory where the downloaded file
+            local_path (str): The local path where the decompressed .db file
             will be saved.
+
         Note:
-            This function assumes that the .db files in S3 have filenames
+            This function assumes that the .db files in object storage have filenames
             in the format:
-            'filename_YYYY-MM-DD.db', where YYYY-MM-DD represents the date.
+            'filename_YYYY-MM-DD.db.gz', where YYYY-MM-DD represents the date.
+            Files that do not match this pattern are ignored.
         """
+        prefix = f"{OBJECT_STORAGE_ENV_PATH}{object_storage_path}"
 
         # Use list_objects_v2 which is the recommended method
         paginator = self.client.get_paginator("list_objects_v2")
-        page_iterator = paginator.paginate(
-            Bucket=self.bucket, Prefix=object_storage_path
-        )
+        page_iterator = paginator.paginate(Bucket=self.bucket, Prefix=prefix)
 
-        # Filter and sort .gz files based on their names and the date in the filename
-        db_files = []
+        # Keep only dated 'blabla_YYYY-MM-DD.db.gz' files, pairing each with its date
+        db_file_date_pattern = re.compile(r"_(\d{4}-\d{2}-\d{2})\.db\.gz$")
+        dated_db_files = []
         for page in page_iterator:
             if "Contents" in page:
                 for obj in page["Contents"]:
-                    if obj["Key"].endswith(".gz"):
-                        db_files.append(obj["Key"])
+                    match = db_file_date_pattern.search(obj["Key"])
+                    if match:
+                        dated_db_files.append((match.group(1), obj["Key"]))
 
-        sorted_db_files = sorted(
-            db_files,
-            key=lambda x: datetime.strptime(x.split("_")[-1].split(".")[0], "%Y-%m-%d"),
-            reverse=True,
+        if not dated_db_files:
+            raise Exception(f"No database file was found in: {prefix}")
+
+        latest_file_date_str, latest_db_file = max(dated_db_files)
+        logging.info(f"Latest database: {latest_db_file}")
+
+        latest_file_date = datetime.strptime(latest_file_date_str, "%Y-%m-%d").strftime(
+            "%Y-%m-%dT%H:%M:%S"
         )
+        logging.info(f"Date of latest file: {latest_file_date}")
 
-        if sorted_db_files:
-            latest_db_file = sorted_db_files[0]
-            logging.info(f"Latest dirigeants database: {latest_db_file}")
+        # Ensure destination directory exists
+        os.makedirs(os.path.dirname(local_path), exist_ok=True)
 
-            # Extract the date from the filename
-            latest_file_date_str = latest_db_file.split("_")[-1].split(".")[0]
-            latest_file_date = datetime.strptime(
-                latest_file_date_str, "%Y-%m-%d"
-            ).strftime("%Y-%m-%dT%H:%M:%S")
-            logging.info(f"Date of latest file: {latest_file_date}")
+        compressed_path = f"{local_path}.gz"
+        self.client.download_file(self.bucket, latest_db_file, compressed_path)
 
-            # Ensure destination directory exists
-            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+        # Decompress the downloaded database file
+        with gzip.open(compressed_path, "rb") as f_in:
+            with open(local_path, "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        os.remove(compressed_path)
 
-            self.client.download_file(
-                self.bucket,
-                latest_db_file,
-                local_path,
-            )
-            return latest_file_date
-        else:
-            logging.warning("No .gz files found in the specified path.")
+        return latest_file_date
 
     def delete_file(self, file_path: str):
         """!! USE WITH CAUTION !!"""
