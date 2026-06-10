@@ -7,8 +7,8 @@ from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import (
-    AIRFLOW_ENV,
     EMAIL_LIST,
+    OBJECT_STORAGE_ENV_PATH,
 )
 from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
@@ -79,31 +79,31 @@ default_args = {
 )
 def delete_old_object_storage_file():
     delete_old_files.override(task_id="rne_database")(
-        prefix=f"ae/{AIRFLOW_ENV}/rne/database/",
+        prefix=f"{OBJECT_STORAGE_ENV_PATH}rne/database/",
         keep_latest=4,
         retention_days=3,
     )
 
     delete_old_files.override(task_id="sirene_database")(
-        prefix=f"ae/{AIRFLOW_ENV}/sirene/database/",
+        prefix=f"{OBJECT_STORAGE_ENV_PATH}sirene/database/",
         keep_latest=3,
         retention_days=3,
     )
 
     delete_old_files.override(task_id="sirene_flux")(
-        prefix=f"ae/{AIRFLOW_ENV}/insee/flux/",
+        prefix=f"{OBJECT_STORAGE_ENV_PATH}insee/flux/",
         keep_latest=3,
         retention_days=30,
     )
 
     delete_old_files.override(task_id="sirene_stock")(
-        prefix=f"ae/{AIRFLOW_ENV}/insee/sirene_stock/",
+        prefix=f"{OBJECT_STORAGE_ENV_PATH}insee/sirene_stock/",
         keep_latest=3,
         retention_days=30,
     )
 
     delete_old_files.override(task_id="fichiers_publiés_sur_datagouv")(
-        prefix=f"ae/{AIRFLOW_ENV}/data_gouv/",
+        prefix=f"{OBJECT_STORAGE_ENV_PATH}data_gouv/",
         keep_latest=3,
         retention_days=30,
     )

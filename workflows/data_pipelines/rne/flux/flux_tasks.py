@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from airflow.sdk import get_current_context, task
 
 from data_pipelines_annuaire.config import (
-    AIRFLOW_ENV,
+    OBJECT_STORAGE_ENV_PATH,
     RNE_DEFAULT_START_DATE,
     RNE_FLUX_DATADIR,
     RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
@@ -46,7 +46,7 @@ def get_latest_json_file(ti):
     start_date = compute_start_date()
     last_json_file_path = f"{RNE_FLUX_DATADIR}/rne_flux_{start_date}.json"
     ObjectStorageClient().get_object_object_storage(
-        f"ae/{AIRFLOW_ENV}/{RNE_OBJECT_STORAGE_FLUX_DATA_PATH}",
+        f"{OBJECT_STORAGE_ENV_PATH}{RNE_OBJECT_STORAGE_FLUX_DATA_PATH}",
         f"rne_flux_{start_date}.json.gz",
         f"{last_json_file_path}.gz",
     )

@@ -9,9 +9,9 @@ from botocore.exceptions import ClientError
 
 import data_pipelines_annuaire.helpers.filesystem as filesystem
 from data_pipelines_annuaire.config import (
-    AIRFLOW_ENV,
     OBJECT_STORAGE_ACCESS_KEY,
     OBJECT_STORAGE_BUCKET,
+    OBJECT_STORAGE_ENV_PATH,
     OBJECT_STORAGE_SECRET_KEY,
     OBJECT_STORAGE_URL,
 )
@@ -58,9 +58,6 @@ class ObjectStorageClient:
                 # Other errors (like access denied) should be raised
                 raise
 
-    def get_root_dirpath(self) -> str:
-        return f"ae/{AIRFLOW_ENV}"
-
     def send_files(
         self,
         list_files: list[File],
@@ -83,7 +80,9 @@ class ObjectStorageClient:
             )
             logging.info(f"Sending {file['source_name']}")
             if is_file:
-                object_key = f"ae/{AIRFLOW_ENV}/{file['dest_path']}{file['dest_name']}"
+                object_key = (
+                    f"{OBJECT_STORAGE_ENV_PATH}{file['dest_path']}{file['dest_name']}"
+                )
                 local_file_path = os.path.join(file["source_path"], file["source_name"])
 
                 extra_args = {}
@@ -112,7 +111,7 @@ class ObjectStorageClient:
         # Use list_objects_v2 which is the recommended method
         paginator = self.client.get_paginator("list_objects_v2")
         page_iterator = paginator.paginate(
-            Bucket=self.bucket, Prefix=f"ae/{AIRFLOW_ENV}/{prefix}"
+            Bucket=self.bucket, Prefix=f"{OBJECT_STORAGE_ENV_PATH}{prefix}"
         )
 
         for page in page_iterator:
@@ -122,7 +121,7 @@ class ObjectStorageClient:
                     if not object_name.endswith("/"):  # Exclude folders
                         logging.info(object_name)
                         list_objects.append(
-                            object_name.replace(f"ae/{AIRFLOW_ENV}/", "")
+                            object_name.replace(f"{OBJECT_STORAGE_ENV_PATH}", "")
                         )
         return list_objects
 
@@ -135,7 +134,9 @@ class ObjectStorageClient:
             `dest_path` and `dest_name` : local file destination ;
         """
         for file in list_files:
-            object_key = f"ae/{AIRFLOW_ENV}/{file['source_path']}{file['source_name']}"
+            object_key = (
+                f"{OBJECT_STORAGE_ENV_PATH}{file['source_path']}{file['source_name']}"
+            )
             local_path = f"{file['dest_path']}{file['dest_name']}"
 
             # Ensure destination directory exists
@@ -291,8 +292,8 @@ class ObjectStorageClient:
             raise AttributeError("A bucket has to be specified.")
 
         try:
-            file_1_key = f"ae/{AIRFLOW_ENV}/{file_path_1}{file_name_1}"
-            file_2_key = f"ae/{AIRFLOW_ENV}/{file_path_2}{file_name_2}"
+            file_1_key = f"{OBJECT_STORAGE_ENV_PATH}{file_path_1}{file_name_1}"
+            file_2_key = f"{OBJECT_STORAGE_ENV_PATH}{file_path_2}{file_name_2}"
 
             logging.info(file_1_key)
             logging.info(file_2_key)
@@ -315,14 +316,14 @@ class ObjectStorageClient:
 
     def rename_folder(self, old_folder_suffix: str, new_folder_suffix: str):
         """
-        Rename a folder in S3 under the default path 'ae/{env}/'.
+        Rename a folder in object storage under the default path.
 
         Args:
-            old_folder_suffix (str): The folder suffix to rename (after 'ae/{env}/').
-            new_folder_suffix (str): The new folder suffix (after 'ae/{env}/').
+            old_folder_suffix (str): The folder suffix to rename.
+            new_folder_suffix (str): The new folder suffix.
         """
-        old_folder = f"ae/{AIRFLOW_ENV}/{old_folder_suffix}"
-        new_folder = f"ae/{AIRFLOW_ENV}/{new_folder_suffix}"
+        old_folder = f"{OBJECT_STORAGE_ENV_PATH}{old_folder_suffix}"
+        new_folder = f"{OBJECT_STORAGE_ENV_PATH}{new_folder_suffix}"
 
         # Ensure folder suffixes end with '/'
         if not old_folder.endswith("/"):
@@ -366,7 +367,7 @@ class ObjectStorageClient:
         """
         try:
             stat = self.client.head_object(
-                Bucket=self.bucket, Key=f"ae/{AIRFLOW_ENV}/{file_path}"
+                Bucket=self.bucket, Key=f"{OBJECT_STORAGE_ENV_PATH}{file_path}"
             )
             # Format the datetime object to ISO 8601 format
             last_modified_str = stat["LastModified"].strftime("%Y-%m-%dT%H:%M:%S")
@@ -388,8 +389,8 @@ class ObjectStorageClient:
         """
         try:
             # Define the full S3 path with environment prefix
-            source_full_path = f"ae/{AIRFLOW_ENV}/{source_path}"
-            dest_full_path = f"ae/{AIRFLOW_ENV}/{dest_path}"
+            source_full_path = f"{OBJECT_STORAGE_ENV_PATH}{source_path}"
+            dest_full_path = f"{OBJECT_STORAGE_ENV_PATH}{dest_path}"
 
             # Copy object to the new location
             copy_source = {"Bucket": self.bucket, "Key": source_full_path}
@@ -439,7 +440,7 @@ class ObjectStorageFile:
             client = ObjectStorageClient()
             client.client.head_object(
                 Bucket=client.bucket,
-                Key=os.path.join(client.get_root_dirpath(), path),
+                Key=os.path.join(OBJECT_STORAGE_ENV_PATH, path),
             )
             return True
         except ClientError as _:
@@ -452,7 +453,7 @@ class ObjectStorageFile:
         if os.path.isdir(local_path):
             local_path = os.path.join(local_path, self.filename)
         self.client.get_object_object_storage(
-            os.path.join(self.client.get_root_dirpath(), self.filepath),
+            os.path.join(OBJECT_STORAGE_ENV_PATH, self.filepath),
             self.filename,
             local_path,
         )
