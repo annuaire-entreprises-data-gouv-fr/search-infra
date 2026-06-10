@@ -78,6 +78,7 @@ class LocalFile:
         self,
         object_storage_path: str,
         object_storage_filename: str | None = None,
+        content_type: str | None = None,
     ) -> object_storage.ObjectStorageFile:
         if object_storage_filename is None:
             object_storage_filename = self.filename
@@ -95,9 +96,12 @@ class LocalFile:
                     source_name=self.filename,
                     dest_path=object_storage_path,
                     dest_name=object_storage_filename,
-                    content_type=None,
+                    content_type=content_type,
                 )
             ]
+        )
+        logging.info(
+            f"File {object_storage_filename} uploaded to {object_storage_path}"
         )
 
         # Wait for the file to be uploaded before creating object storage file
@@ -109,6 +113,9 @@ class LocalFile:
 
     def delete(self) -> None:
         self.path.unlink()
+
+    def lines_count(self) -> int:
+        return sum(1 for _ in self.path.open())
 
 
 class JsonSerializer:
