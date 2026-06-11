@@ -1,13 +1,10 @@
-import gzip
 import logging
-import os
-import shutil
 
 from airflow.sdk import get_current_context, task
 
 from data_pipelines_annuaire.config import (
-    AIRFLOW_ENV,
     RNE_DATABASE_LOCATION,
+    RNE_OBJECT_STORAGE_DATA_PATH,
     SIRENE_DATABASE_LOCATION,
 )
 from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
@@ -30,21 +27,13 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.queries.dirigea
 
 
 @task
-def get_rne_database():
-    latest_file_date = ObjectStorageClient().get_latest_file(
-        f"ae/{AIRFLOW_ENV}/rne/database/",
-        f"{RNE_DATABASE_LOCATION}.gz",
+def get_latest_rne_database():
+    latest_file_date = ObjectStorageClient().get_latest_database(
+        RNE_OBJECT_STORAGE_DATA_PATH,
+        RNE_DATABASE_LOCATION,
     )
     ti = get_current_context()["ti"]
     ti.xcom_push(key="rne_last_modified", value=latest_file_date)
-
-    logging.info(f"******* Getting file : {RNE_DATABASE_LOCATION}.gz")
-    # Unzip database file
-    with gzip.open(f"{RNE_DATABASE_LOCATION}.gz", "rb") as f_in:
-        with open(RNE_DATABASE_LOCATION, "wb") as f_out:
-            shutil.copyfileobj(f_in, f_out)
-
-    os.remove(f"{RNE_DATABASE_LOCATION}.gz")
 
 
 @task

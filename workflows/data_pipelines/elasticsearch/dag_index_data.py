@@ -10,6 +10,7 @@ from data_pipelines_annuaire.config import (
     AIRFLOW_DAG_FOLDER,
     AIRFLOW_DAG_TMP,
     AIRFLOW_ELK_DAG_NAME,
+    AIRFLOW_ELK_DATA_DIR,
     AIRFLOW_SNAPSHOT_DAG_NAME,
     API_IS_REMOTE,
     EMAIL_LIST,
@@ -17,13 +18,11 @@ from data_pipelines_annuaire.config import (
     REDIS_HOST,
     REDIS_PASSWORD,
     REDIS_PORT,
+    SIRENE_OBJECT_STORAGE_DATA_PATH,
 )
-from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.helpers import Notification, ObjectStorageClient
 from data_pipelines_annuaire.helpers.flush_cache import flush_redis_cache
 from data_pipelines_annuaire.tests.e2e_tests.run_tests import run_e2e_tests
-from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.fetch_db import (
-    get_latest_database,
-)
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.index import (
     check_elastic_index,
     create_elastic_index,
@@ -66,10 +65,17 @@ def index_elasticsearch():
         if os.path.exists(folder_path) and os.path.isdir(folder_path):
             shutil.rmtree(folder_path)
 
+    @task
+    def get_latest_sirene_database():
+        ObjectStorageClient().get_latest_database(
+            SIRENE_OBJECT_STORAGE_DATA_PATH,
+            f"{AIRFLOW_ELK_DATA_DIR}sirene.db",
+        )
+
     elastic_alias_updated = (
         get_next_index_name()
         >> clean_folder()
-        >> get_latest_database()
+        >> get_latest_sirene_database()
         >> delete_previous_elastic_indices()
         >> create_elastic_index()
         >> fill_elastic_siren_index()
