@@ -11,8 +11,8 @@ TVA_CONFIG = DataSourceConfig(
     file_name="tva",
     files_to_download={
         "tva": {
-            "url": f"{DATA_GOUV_BASE_URL}d434859f-8d3b-4381-bcdb-ec9200653ae6",
-            "resource_id": "d434859f-8d3b-4381-bcdb-ec9200653ae6",
+            "url": f"{DATA_GOUV_BASE_URL}5199cd40-0e9c-4a24-8ba3-c2365999b2aa",
+            "resource_id": "5199cd40-0e9c-4a24-8ba3-c2365999b2aa",
             "destination": f"{DataSourceConfig.base_tmp_folder}/tva/tva-download.csv",
         }
     },
