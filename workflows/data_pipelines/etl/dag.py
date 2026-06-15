@@ -243,6 +243,7 @@ def database_constructor():
     trigger_indexing_dag = TriggerDagRunOperator(
         task_id="trigger_indexing_dag",
         trigger_dag_id=AIRFLOW_ELK_DAG_NAME,
+        logical_date=None,
         wait_for_completion=False,
         deferrable=False,
     )

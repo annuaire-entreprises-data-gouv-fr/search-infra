@@ -90,6 +90,7 @@ def index_elasticsearch():
         trigger_snapshot_dag = TriggerDagRunOperator(
             task_id="trigger_snapshot_dag",
             trigger_dag_id=AIRFLOW_SNAPSHOT_DAG_NAME,
+            logical_date=None,
             wait_for_completion=True,
             deferrable=False,
         )
@@ -112,6 +113,7 @@ def index_elasticsearch():
     trigger_radiations_export_dag = TriggerDagRunOperator(
         task_id="trigger_radiations_export_dag",
         trigger_dag_id=AIRFLOW_EXPORT_DAG_NAME,
+        logical_date=None,
         wait_for_completion=False,
     )
 
