@@ -9,12 +9,12 @@ from data_pipelines_annuaire.config import (
     EXPORT_DATA_DIR,
 )
 from data_pipelines_annuaire.helpers import Notification
-from data_pipelines_annuaire.workflows.data_pipelines.export.processor import (
+from data_pipelines_annuaire.workflows.data_pipelines.export_bodacc_radiations.processor import (
     ExportFile,
     export_file,
     get_latest_sirene_database,
 )
-from data_pipelines_annuaire.workflows.data_pipelines.export.queries import (
+from data_pipelines_annuaire.workflows.data_pipelines.export_bodacc_radiations.queries import (
     RADIATIONS_PM_QUERY,
     RADIATIONS_PP_QUERY,
 )
@@ -38,7 +38,7 @@ default_args = {
     on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
     on_success_callback=Notification(),
 )
-def export():
+def export_bodacc_radiations():
     @setup
     @task.bash
     def clean_previous_outputs():
@@ -75,4 +75,4 @@ def export():
     )
 
 
-export()
+export_bodacc_radiations()

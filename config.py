@@ -70,7 +70,7 @@ AIRFLOW_ELK_DAG_NAME = "index_elasticsearch"
 AIRFLOW_SNAPSHOT_DAG_NAME = "snapshot_index"
 AIRFLOW_SNAPSHOT_ROLLBACK_DAG_NAME = "snapshot_index_rollback"
 AIRFLOW_PUBLISH_DAG_NAME = "publish_data_gouv"
-AIRFLOW_EXPORT_DAG_NAME = "export"
+AIRFLOW_EXPORT_DAG_NAME = "export_bodacc_radiations"
 AIRFLOW_ETL_DATA_DIR = (
     AIRFLOW_DAG_TMP + AIRFLOW_DAG_FOLDER + AIRFLOW_ETL_DAG_NAME + "/data/"
 )
