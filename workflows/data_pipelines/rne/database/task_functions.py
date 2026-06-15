@@ -112,7 +112,7 @@ def create_db():
 
 
 @task
-def get_latest_db():
+def get_start_date_rne_database():
     """
     This function retrieves the RNE database file associated with the
     provided start date from an object storage server and saves it to a
@@ -120,30 +120,19 @@ def get_latest_db():
     """
     ti = get_current_context()["ti"]
     start_date = ti.xcom_pull(key="start_date", task_ids="get_start_date")
+    local_database_path = RNE_DB_TMP_FOLDER + f"rne_{start_date}.db"
     if start_date is not None:
         previous_latest_date = datetime.strptime(start_date, "%Y-%m-%d")
         previous_start_date = datetime.strftime(
             (previous_latest_date - timedelta(days=1)), "%Y-%m-%d"
         )
-        ObjectStorageClient().get_files(
-            list_files=[
-                {
-                    "source_path": RNE_OBJECT_STORAGE_DATA_PATH,
-                    "source_name": f"rne_{previous_start_date}.db.gz",
-                    "dest_path": RNE_DB_TMP_FOLDER,
-                    "dest_name": f"rne_{start_date}.db.gz",
-                }
-            ],
+        ObjectStorageClient().get_latest_database(
+            f"{RNE_OBJECT_STORAGE_DATA_PATH}rne_{previous_start_date}.db.gz",
+            local_database_path,
         )
-        # Unzip json file
-        db_path = f"{RNE_DB_TMP_FOLDER}rne_{start_date}.db"
-        with gzip.open(f"{db_path}.gz", "rb") as f_in:
-            with open(db_path, "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
-        os.remove(f"{db_path}.gz")
 
     count_ul, count_siege, count_pp, count_pm, count_immat = get_tables_count(
-        RNE_DB_TMP_FOLDER + f"rne_{start_date}.db"
+        local_database_path
     )
     logging.info(
         f"*****Count ul : {count_ul}, "

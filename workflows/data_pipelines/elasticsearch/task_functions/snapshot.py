@@ -7,13 +7,13 @@ from elasticsearch.dsl import connections
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DAG_NAME,
-    AIRFLOW_ENV,
     ELASTIC_PASSWORD,
     ELASTIC_SNAPSHOT_MAX_REVISIONS,
     ELASTIC_SNAPSHOT_OBJECT_STORAGE_STATE_PATH,
     ELASTIC_SNAPSHOT_REPOSITORY,
     ELASTIC_URL,
     ELASTIC_USER,
+    OBJECT_STORAGE_ENV_PATH,
 )
 from data_pipelines_annuaire.helpers.filesystem import (
     Filesystem,
@@ -21,7 +21,7 @@ from data_pipelines_annuaire.helpers.filesystem import (
 )
 
 filesystem = Filesystem(
-    f"ae/{AIRFLOW_ENV}/{ELASTIC_SNAPSHOT_OBJECT_STORAGE_STATE_PATH}/",
+    f"{OBJECT_STORAGE_ENV_PATH}{ELASTIC_SNAPSHOT_OBJECT_STORAGE_STATE_PATH}/",
     JsonSerializer(),
 )
 

@@ -118,7 +118,7 @@ def create_data_source_last_modified_file():
     # Fetch RNE metadata
     ti = get_current_context()["ti"]
     rne_last_modified_date = ti.xcom_pull(
-        key="rne_last_modified", task_ids="get_rne_database"
+        key="rne_last_modified", task_ids="get_latest_rne_database"
     )
 
     metadata_dict["rne"] = simplify_date(rne_last_modified_date)

@@ -1,5 +1,8 @@
+import gzip
 import logging
 import os
+import re
+import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import TypedDict
@@ -9,9 +12,9 @@ from botocore.exceptions import ClientError
 
 import data_pipelines_annuaire.helpers.filesystem as filesystem
 from data_pipelines_annuaire.config import (
-    AIRFLOW_ENV,
     OBJECT_STORAGE_ACCESS_KEY,
     OBJECT_STORAGE_BUCKET,
+    OBJECT_STORAGE_ENV_PATH,
     OBJECT_STORAGE_SECRET_KEY,
     OBJECT_STORAGE_URL,
 )
@@ -58,9 +61,6 @@ class ObjectStorageClient:
                 # Other errors (like access denied) should be raised
                 raise
 
-    def get_root_dirpath(self) -> str:
-        return f"ae/{AIRFLOW_ENV}"
-
     def send_files(
         self,
         list_files: list[File],
@@ -83,7 +83,9 @@ class ObjectStorageClient:
             )
             logging.info(f"Sending {file['source_name']}")
             if is_file:
-                object_key = f"ae/{AIRFLOW_ENV}/{file['dest_path']}{file['dest_name']}"
+                object_key = (
+                    f"{OBJECT_STORAGE_ENV_PATH}{file['dest_path']}{file['dest_name']}"
+                )
                 local_file_path = os.path.join(file["source_path"], file["source_name"])
 
                 extra_args = {}
@@ -112,7 +114,7 @@ class ObjectStorageClient:
         # Use list_objects_v2 which is the recommended method
         paginator = self.client.get_paginator("list_objects_v2")
         page_iterator = paginator.paginate(
-            Bucket=self.bucket, Prefix=f"ae/{AIRFLOW_ENV}/{prefix}"
+            Bucket=self.bucket, Prefix=f"{OBJECT_STORAGE_ENV_PATH}{prefix}"
         )
 
         for page in page_iterator:
@@ -122,7 +124,7 @@ class ObjectStorageClient:
                     if not object_name.endswith("/"):  # Exclude folders
                         logging.info(object_name)
                         list_objects.append(
-                            object_name.replace(f"ae/{AIRFLOW_ENV}/", "")
+                            object_name.replace(f"{OBJECT_STORAGE_ENV_PATH}", "")
                         )
         return list_objects
 
@@ -135,7 +137,9 @@ class ObjectStorageClient:
             `dest_path` and `dest_name` : local file destination ;
         """
         for file in list_files:
-            object_key = f"ae/{AIRFLOW_ENV}/{file['source_path']}{file['source_name']}"
+            object_key = (
+                f"{OBJECT_STORAGE_ENV_PATH}{file['source_path']}{file['source_name']}"
+            )
             local_path = f"{file['dest_path']}{file['dest_name']}"
 
             # Ensure destination directory exists
@@ -177,67 +181,67 @@ class ObjectStorageClient:
             file_path, self.bucket, object_storage_path, ExtraArgs=extra_args
         )
 
-    def get_latest_file(
+    def get_latest_database(
         self,
         object_storage_path: str,
         local_path: str,
-    ):
+    ) -> str:
         """
-        Download the latest .db.gz file from S3 to the local file system.
+        Download and decompress the latest .db.gz file from object storage
+        to the local file system.
 
         Args:
-            object_storage_path (str): The path within the S3 bucket where compressed .db
+            object_storage_path (str): The path within the bucket where compressed .db
             files are located.
-            local_path (str): The local directory where the downloaded file
+            local_path (str): The local path where the decompressed .db file
             will be saved.
+
         Note:
-            This function assumes that the .db files in S3 have filenames
+            This function assumes that the .db files in object storage have filenames
             in the format:
-            'filename_YYYY-MM-DD.db', where YYYY-MM-DD represents the date.
+            'filename_YYYY-MM-DD.db.gz', where YYYY-MM-DD represents the date.
+            Files that do not match this pattern are ignored.
         """
+        prefix = f"{OBJECT_STORAGE_ENV_PATH}{object_storage_path}"
 
         # Use list_objects_v2 which is the recommended method
         paginator = self.client.get_paginator("list_objects_v2")
-        page_iterator = paginator.paginate(
-            Bucket=self.bucket, Prefix=object_storage_path
-        )
+        page_iterator = paginator.paginate(Bucket=self.bucket, Prefix=prefix)
 
-        # Filter and sort .gz files based on their names and the date in the filename
-        db_files = []
+        # Keep only dated 'blabla_YYYY-MM-DD.db.gz' files, pairing each with its date
+        db_file_date_pattern = re.compile(r"_(\d{4}-\d{2}-\d{2})\.db\.gz$")
+        dated_db_files = []
         for page in page_iterator:
             if "Contents" in page:
                 for obj in page["Contents"]:
-                    if obj["Key"].endswith(".gz"):
-                        db_files.append(obj["Key"])
+                    match = db_file_date_pattern.search(obj["Key"])
+                    if match:
+                        dated_db_files.append((match.group(1), obj["Key"]))
 
-        sorted_db_files = sorted(
-            db_files,
-            key=lambda x: datetime.strptime(x.split("_")[-1].split(".")[0], "%Y-%m-%d"),
-            reverse=True,
+        if not dated_db_files:
+            raise Exception(f"No database file was found in: {prefix}")
+
+        latest_file_date_str, latest_db_file = max(dated_db_files)
+        logging.info(f"Latest database: {latest_db_file}")
+
+        latest_file_date = datetime.strptime(latest_file_date_str, "%Y-%m-%d").strftime(
+            "%Y-%m-%dT%H:%M:%S"
         )
+        logging.info(f"Date of latest file: {latest_file_date}")
 
-        if sorted_db_files:
-            latest_db_file = sorted_db_files[0]
-            logging.info(f"Latest dirigeants database: {latest_db_file}")
+        # Ensure destination directory exists
+        os.makedirs(os.path.dirname(local_path), exist_ok=True)
 
-            # Extract the date from the filename
-            latest_file_date_str = latest_db_file.split("_")[-1].split(".")[0]
-            latest_file_date = datetime.strptime(
-                latest_file_date_str, "%Y-%m-%d"
-            ).strftime("%Y-%m-%dT%H:%M:%S")
-            logging.info(f"Date of latest file: {latest_file_date}")
+        compressed_path = f"{local_path}.gz"
+        self.client.download_file(self.bucket, latest_db_file, compressed_path)
 
-            # Ensure destination directory exists
-            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+        # Decompress the downloaded database file
+        with gzip.open(compressed_path, "rb") as f_in:
+            with open(local_path, "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        os.remove(compressed_path)
 
-            self.client.download_file(
-                self.bucket,
-                latest_db_file,
-                local_path,
-            )
-            return latest_file_date
-        else:
-            logging.warning("No .gz files found in the specified path.")
+        return latest_file_date
 
     def delete_file(self, file_path: str):
         """!! USE WITH CAUTION !!"""
@@ -291,8 +295,8 @@ class ObjectStorageClient:
             raise AttributeError("A bucket has to be specified.")
 
         try:
-            file_1_key = f"ae/{AIRFLOW_ENV}/{file_path_1}{file_name_1}"
-            file_2_key = f"ae/{AIRFLOW_ENV}/{file_path_2}{file_name_2}"
+            file_1_key = f"{OBJECT_STORAGE_ENV_PATH}{file_path_1}{file_name_1}"
+            file_2_key = f"{OBJECT_STORAGE_ENV_PATH}{file_path_2}{file_name_2}"
 
             logging.info(file_1_key)
             logging.info(file_2_key)
@@ -315,14 +319,14 @@ class ObjectStorageClient:
 
     def rename_folder(self, old_folder_suffix: str, new_folder_suffix: str):
         """
-        Rename a folder in S3 under the default path 'ae/{env}/'.
+        Rename a folder in object storage under the default path.
 
         Args:
-            old_folder_suffix (str): The folder suffix to rename (after 'ae/{env}/').
-            new_folder_suffix (str): The new folder suffix (after 'ae/{env}/').
+            old_folder_suffix (str): The folder suffix to rename.
+            new_folder_suffix (str): The new folder suffix.
         """
-        old_folder = f"ae/{AIRFLOW_ENV}/{old_folder_suffix}"
-        new_folder = f"ae/{AIRFLOW_ENV}/{new_folder_suffix}"
+        old_folder = f"{OBJECT_STORAGE_ENV_PATH}{old_folder_suffix}"
+        new_folder = f"{OBJECT_STORAGE_ENV_PATH}{new_folder_suffix}"
 
         # Ensure folder suffixes end with '/'
         if not old_folder.endswith("/"):
@@ -366,7 +370,7 @@ class ObjectStorageClient:
         """
         try:
             stat = self.client.head_object(
-                Bucket=self.bucket, Key=f"ae/{AIRFLOW_ENV}/{file_path}"
+                Bucket=self.bucket, Key=f"{OBJECT_STORAGE_ENV_PATH}{file_path}"
             )
             # Format the datetime object to ISO 8601 format
             last_modified_str = stat["LastModified"].strftime("%Y-%m-%dT%H:%M:%S")
@@ -388,8 +392,8 @@ class ObjectStorageClient:
         """
         try:
             # Define the full S3 path with environment prefix
-            source_full_path = f"ae/{AIRFLOW_ENV}/{source_path}"
-            dest_full_path = f"ae/{AIRFLOW_ENV}/{dest_path}"
+            source_full_path = f"{OBJECT_STORAGE_ENV_PATH}{source_path}"
+            dest_full_path = f"{OBJECT_STORAGE_ENV_PATH}{dest_path}"
 
             # Copy object to the new location
             copy_source = {"Bucket": self.bucket, "Key": source_full_path}
@@ -439,7 +443,7 @@ class ObjectStorageFile:
             client = ObjectStorageClient()
             client.client.head_object(
                 Bucket=client.bucket,
-                Key=os.path.join(client.get_root_dirpath(), path),
+                Key=os.path.join(OBJECT_STORAGE_ENV_PATH, path),
             )
             return True
         except ClientError as _:
@@ -452,7 +456,7 @@ class ObjectStorageFile:
         if os.path.isdir(local_path):
             local_path = os.path.join(local_path, self.filename)
         self.client.get_object_object_storage(
-            os.path.join(self.client.get_root_dirpath(), self.filepath),
+            os.path.join(OBJECT_STORAGE_ENV_PATH, self.filepath),
             self.filename,
             local_path,
         )

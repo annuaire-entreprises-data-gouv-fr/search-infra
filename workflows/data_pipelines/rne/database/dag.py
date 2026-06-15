@@ -8,8 +8,8 @@ from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.workflows.data_pipelines.rne.database.task_functions import (
     check_db_count,
     create_db,
-    get_latest_db,
     get_start_date,
+    get_start_date_rne_database,
     process_flux_json_files,
     process_stock_json_files,
     remove_duplicates,
@@ -46,7 +46,7 @@ def fill_rne_database():
         clean_outputs()
         >> get_start_date()
         >> create_db()
-        >> get_latest_db()
+        >> get_start_date_rne_database()
         >> process_stock_json_files()
         >> process_flux_json_files()
         >> remove_duplicates()
