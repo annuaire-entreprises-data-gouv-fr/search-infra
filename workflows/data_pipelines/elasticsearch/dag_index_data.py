@@ -11,6 +11,7 @@ from data_pipelines_annuaire.config import (
     AIRFLOW_DAG_TMP,
     AIRFLOW_ELK_DAG_NAME,
     AIRFLOW_ELK_DATA_DIR,
+    AIRFLOW_EXPORT_DAG_NAME,
     AIRFLOW_SNAPSHOT_DAG_NAME,
     API_IS_REMOTE,
     EMAIL_LIST,
@@ -106,7 +107,15 @@ def index_elasticsearch():
             >> flush_redis_cache(REDIS_HOST, REDIS_PORT, REDIS_DB, REDIS_PASSWORD)
         )
 
-    return [sitemap_updated, tests_successful] >> clean_folder()
+    indexing_complete = [sitemap_updated, tests_successful] >> clean_folder()
+
+    trigger_radiations_export_dag = TriggerDagRunOperator(
+        task_id="trigger_radiations_export_dag",
+        trigger_dag_id=AIRFLOW_EXPORT_DAG_NAME,
+        wait_for_completion=False,
+    )
+
+    return indexing_complete >> trigger_radiations_export_dag
 
 
 index_elasticsearch()

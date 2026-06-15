@@ -2,6 +2,10 @@ import logging
 import os
 import sqlite3
 
+import pandas as pd
+
+from data_pipelines_annuaire.helpers.filesystem import LocalFile
+
 
 class SqliteClient:
     """
@@ -89,3 +93,12 @@ class SqliteClient:
     def get_table_count(self, table_name: str) -> int:
         result = self.execute(f"SELECT COUNT(*) FROM {table_name};")
         return result.fetchone()[0]
+
+    def to_csv(self, query: str, file_fullpath: str) -> LocalFile:
+        """Génère un fichier CSV à partir d'une requête SQL exécutée sur la base SQLite."""
+        df = pd.read_sql_query(query, self.db_conn)
+
+        df.to_csv(f"{file_fullpath}", index=False)
+        logging.info(f"File {file_fullpath} created with {len(df)} rows.")
+
+        return LocalFile(file_fullpath)
