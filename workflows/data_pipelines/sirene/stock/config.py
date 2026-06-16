@@ -33,6 +33,11 @@ STOCK_SIRENE_CONFIG = DataSourceConfig(
             "url": "https://www.data.gouv.fr/datasets/r/ba6a4e4c-aac6-4764-bbd2-f80ae345afc5",
             "destination": f"{DataSourceConfig.base_tmp_folder}/sirene/stock/etablissement_geo_stats_{CURRENT_MONTH}.zip",
         },
+        "liens_succession": {
+            "resource_id": "9c4d5d9c-4bbb-4b9c-837a-6155cb589e26",
+            "url": "https://www.data.gouv.fr/datasets/r/9c4d5d9c-4bbb-4b9c-837a-6155cb589e26",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/sirene/stock/StockLiensSuccession_{CURRENT_MONTH}.zip",
+        },
     },
     object_storage_path="insee/sirene_stock/",
     url_object_storage=f"{OBJECT_STORAGE_BASE_URL}insee/sirene_stock/",
