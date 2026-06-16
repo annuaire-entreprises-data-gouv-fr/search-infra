@@ -23,7 +23,7 @@ default_args = {
 @dag(
     tags=["tva intracommunautaire"],
     default_args=default_args,
-    schedule="0 16 * * *",
+    schedule="0 6 * * *",  # Daily at 6:00 AM
     start_date=datetime(2026, 1, 1),
     dagrun_timeout=timedelta(minutes=60),
     params={},
