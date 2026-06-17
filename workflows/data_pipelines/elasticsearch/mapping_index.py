@@ -114,6 +114,18 @@ class DirigeantPMMapping(InnerDoc):
     date_mise_a_jour = Date()
 
 
+class SuccessionEntryMapping(InnerDoc):
+    siret = Keyword()
+    date_lien_succession = Date()
+    transfert_siege = Boolean()
+    continuite_economique = Boolean()
+
+
+class SuccessionMapping(InnerDoc):
+    predecesseurs = Nested(SuccessionEntryMapping)
+    successeurs = Nested(SuccessionEntryMapping)
+
+
 class EtablissementMapping(InnerDoc):
     activite_principale = Keyword()
     activite_principale_naf25 = Keyword()
@@ -173,6 +185,7 @@ class EtablissementMapping(InnerDoc):
     type_voie = Text()
     x = Keyword()
     y = Keyword()
+    successions = Object(SuccessionMapping)
 
 
 class SiegeMapping(InnerDoc):
@@ -226,6 +239,7 @@ class SiegeMapping(InnerDoc):
     type_voie = Text()
     x = Keyword()
     y = Keyword()
+    successions = Object(SuccessionMapping)
 
 
 class EluMapping(InnerDoc):
