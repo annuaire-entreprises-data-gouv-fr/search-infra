@@ -6,6 +6,23 @@ import pandas as pd
 
 from data_pipelines_annuaire.helpers.filesystem import LocalFile
 
+# 32 GB container. The DB is rebuilt from scratch every day, so durability is not a concern.
+WRITE_CONFIG = [
+    "PRAGMA journal_mode = MEMORY;",
+    "PRAGMA synchronous = OFF;",
+    "PRAGMA temp_store = MEMORY;",
+    "PRAGMA cache_size = -8000000;",
+    "PRAGMA mmap_size = 17179869184;",
+]
+
+# Read-only indexing pass: maximise cached pages and map the whole DB.
+READ_CONFIG = [
+    "PRAGMA query_only = ON;",
+    "PRAGMA temp_store = MEMORY;",
+    "PRAGMA cache_size = -8000000;",
+    "PRAGMA mmap_size = 34359738368;",
+]
+
 
 class SqliteClient:
     """
@@ -41,7 +58,7 @@ class SqliteClient:
         ```
     """
 
-    def __init__(self, db_location, timeout=30) -> None:
+    def __init__(self, db_location, timeout=30, config=WRITE_CONFIG) -> None:
         self.db_location = db_location
 
         # SQLite creates the database if it does not exist but not the parent folders
@@ -54,6 +71,8 @@ class SqliteClient:
             f"*********** Connecting to database {self.db_location}! ***********"
         )
         self.db_cursor = self.db_conn.cursor()
+        for c in config or []:
+            self.db_cursor.execute(c)
 
     def __enter__(self) -> "SqliteClient":
         return self

@@ -16,7 +16,7 @@ from data_pipelines_annuaire.config import (
     ELASTIC_USER,
 )
 from data_pipelines_annuaire.helpers import Notification
-from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
+from data_pipelines_annuaire.helpers.sqlite_client import READ_CONFIG, SqliteClient
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.create_index import (
     ElasticCreateIndex,
 )
@@ -55,7 +55,7 @@ def create_elastic_index():
 def fill_elastic_siren_index():
     ti = get_current_context()["ti"]
     elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
-    sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db")
+    sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db", config=READ_CONFIG)
     sqlite_client.execute(select_fields_to_index_query)
 
     connections.create_connection(
