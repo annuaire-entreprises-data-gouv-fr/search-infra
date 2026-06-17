@@ -319,44 +319,53 @@ class DataGouvProcessor:
             f"{AIRFLOW_DATAGOUV_DATA_DIR}liste_administrations_{self.today_date}.csv"
         )
 
-        df = pd.read_csv(ul_csv_path, dtype=str)
-        admin_df = df[df["est_administration"] == "True"][
-            ["siren", "nom_complet", "nature_juridique"]
-        ]
+        should_insert_header = True
+        total_admin = 0
+        for chunk in pd.read_csv(ul_csv_path, dtype=str, chunksize=self.chunk_size):
+            admin_chunk = chunk[chunk["est_administration"] == "True"][
+                ["siren", "nom_complet", "nature_juridique"]
+            ]
 
-        admin_df["a_mission_service_public_administratif"] = admin_df.apply(
-            lambda row: has_mission_service_public_administratif(
-                nature_juridique=row["nature_juridique"], is_administration=True
-            ),
-            axis=1,
-        )
-        admin_df["est_administration_d_etat"] = admin_df.apply(
-            lambda row: is_administration_d_etat(
-                nature_juridique=row["nature_juridique"],
-                siren=row["siren"],
-                is_administration=True,
-            ),
-            axis=1,
-        )
-        admin_df["est_collectivite"] = admin_df.apply(
-            lambda row: is_collectivite(
-                nature_juridique=row["nature_juridique"], is_administration=True
-            ),
-            axis=1,
-        )
+            if admin_chunk.empty:
+                continue
 
-        admin_df["a_acces_espace_agent"] = admin_df.apply(
-            lambda row: has_access_espace_agent(
-                siren=row["siren"],
-                nature_juridique=row["nature_juridique"],
-                is_administration=True,
-            ),
-            axis=1,
-        )
+            admin_chunk["a_mission_service_public_administratif"] = admin_chunk.apply(
+                lambda row: has_mission_service_public_administratif(
+                    nature_juridique=row["nature_juridique"], is_administration=True
+                ),
+                axis=1,
+            )
+            admin_chunk["est_administration_d_etat"] = admin_chunk.apply(
+                lambda row: is_administration_d_etat(
+                    nature_juridique=row["nature_juridique"],
+                    siren=row["siren"],
+                    is_administration=True,
+                ),
+                axis=1,
+            )
+            admin_chunk["est_collectivite"] = admin_chunk.apply(
+                lambda row: is_collectivite(
+                    nature_juridique=row["nature_juridique"], is_administration=True
+                ),
+                axis=1,
+            )
+            admin_chunk["a_acces_espace_agent"] = admin_chunk.apply(
+                lambda row: has_access_espace_agent(
+                    siren=row["siren"],
+                    nature_juridique=row["nature_juridique"],
+                    is_administration=True,
+                ),
+                axis=1,
+            )
 
-        logging.info(f"******* Nombre d'administrations à publier : {len(admin_df)}")
-        admin_df = admin_df.astype(str)
-        admin_df.to_csv(admin_csv_path, index=False)
+            admin_chunk = admin_chunk.astype(str)
+            self._write_chunk_to_csv(
+                admin_chunk, admin_csv_path, should_insert_header, admin_chunk.columns
+            )
+            should_insert_header = False
+            total_admin += len(admin_chunk)
+
+        logging.info(f"******* Nombre d'administrations à publier : {total_admin}")
         return admin_csv_path
 
     def _write_chunk_to_csv(self, chunk, filepath, is_first_chunk, columns):
