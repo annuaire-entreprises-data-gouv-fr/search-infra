@@ -39,9 +39,6 @@ def create_table(query, table_name, index, sirene_file_type):
     sqlite_client = create_table_model(
         table_name=table_name,
         create_table_query=query,
-        create_index_func=create_unique_index,
-        index_name=index,
-        index_column="siren",
     )
     for df_unite_legale in preprocess_unite_legale_data(
         AIRFLOW_ETL_DATA_DIR, sirene_file_type
@@ -56,6 +53,8 @@ def create_table(query, table_name, index, sirene_file_type):
             )
 
     del df_unite_legale
+
+    sqlite_client.execute(create_unique_index(index, table_name, "siren"))
 
     for count_unite_legale in sqlite_client.execute(get_table_count(table_name)):
         logging.info(
@@ -134,9 +133,6 @@ def create_historique_unite_legale_table():
     sqlite_client = create_table_model(
         table_name=table_name,
         create_table_query=create_table_historique_unite_legale_query,
-        create_index_func=create_index,
-        index_name="index_historique_siren",
-        index_column="siren",
     )
 
     # Process stock periodes
@@ -154,6 +150,9 @@ def create_historique_unite_legale_table():
             )
 
     del df_hist_unite_legale
+
+    # Created after the heavy stock insert but before the flux delete/insert
+    sqlite_client.execute(create_index("index_historique_siren", table_name, "siren"))
 
     df_flux_periodes = preprocess_flux_periodes_unite_legale_data(AIRFLOW_ETL_DATA_DIR)
 
@@ -200,9 +199,9 @@ def create_date_fermeture_unite_legale_table():
     sqlite_client = create_table_model(
         table_name=table_name,
         create_table_query=create_table_date_fermeture_unite_legale_query,
-        create_index_func=create_unique_index,
-        index_name="index_date_fermeture_siren",
-        index_column="siren",
+    )
+    sqlite_client.execute(
+        create_unique_index("index_date_fermeture_siren", table_name, "siren")
     )
 
     for count_unite_legale in sqlite_client.execute(get_table_count(table_name)):

@@ -42,9 +42,6 @@ def create_etablissement_table():
     sqlite_client = create_table_model(
         table_name="etablissement",
         create_table_query=create_table_etablissement_query,
-        create_index_func=create_index,
-        index_name="index_etablissement",
-        index_column="siren",
     )
 
     for df_chunk in preprocess_etablissement_data(file_type="stock"):
@@ -57,6 +54,8 @@ def create_etablissement_table():
                 f"`établissements` table!"
             )
         del df_chunk
+
+    sqlite_client.execute(create_index("index_etablissement", "etablissement", "siren"))
 
     for count_etablissement in sqlite_client.execute(get_table_count("etablissement")):
         logging.info(
@@ -71,9 +70,6 @@ def create_flux_etablissement_table():
     sqlite_client = create_table_model(
         table_name="flux_etablissement",
         create_table_query=create_table_flux_etablissement_query,
-        create_index_func=create_index,
-        index_name="index_flux_etablissement",
-        index_column="siren",
     )
     for df_chunk in preprocess_etablissement_data(file_type="flux"):
         df_chunk.to_sql(
@@ -82,6 +78,9 @@ def create_flux_etablissement_table():
             if_exists="append",
             index=False,
         )
+    sqlite_client.execute(
+        create_index("index_flux_etablissement", "flux_etablissement", "siren")
+    )
     for row in sqlite_client.execute(get_table_count("flux_etablissement")):
         logging.info(
             f"************ {row} total records have been added to the "
@@ -102,12 +101,12 @@ def count_nombre_etablissement():
     sqlite_client = create_table_model(
         table_name="count_etablissement",
         create_table_query=create_table_count_etablissement_query,
-        create_index_func=create_unique_index,
-        index_name="index_count_siren",
-        index_column="siren",
     )
 
     sqlite_client.execute(count_nombre_etablissement_query)
+    sqlite_client.execute(
+        create_unique_index("index_count_siren", "count_etablissement", "siren")
+    )
     sqlite_client.commit_and_close_conn()
 
 
@@ -116,11 +115,13 @@ def count_nombre_etablissement_ouvert():
     sqlite_client = create_table_model(
         table_name="count_etablissement_ouvert",
         create_table_query=create_table_count_etablissement_ouvert_query,
-        create_index_func=create_unique_index,
-        index_name="index_count_ouvert_siren",
-        index_column="siren",
     )
     sqlite_client.execute(count_nombre_etablissement_ouvert_query)
+    sqlite_client.execute(
+        create_unique_index(
+            "index_count_ouvert_siren", "count_etablissement_ouvert", "siren"
+        )
+    )
     sqlite_client.commit_and_close_conn()
 
 
@@ -130,9 +131,6 @@ def create_historique_etablissement_table(ti):
     sqlite_client = create_table_model(
         table_name=table_name,
         create_table_query=create_table_historique_etablissement_query,
-        create_index_func=create_index,
-        index_name="index_historique_siret",
-        index_column="siret",
     )
 
     # Process stock periodes
@@ -147,6 +145,10 @@ def create_historique_etablissement_table(ti):
                 f"************ {row} total records have been added "
                 f"to the {table_name} table!"
             )
+
+    # Created after the heavy stock insert but before the flux delete/insert,
+    # which both filter on siret.
+    sqlite_client.execute(create_index("index_historique_siret", table_name, "siret"))
 
     df_flux_periodes = preprocess_flux_periodes_data(AIRFLOW_ETL_DATA_DIR)
 
@@ -195,9 +197,9 @@ def create_date_fermeture_etablissement_table(ti):
     sqlite_client = create_table_model(
         table_name=table_name,
         create_table_query=create_table_date_fermeture_etablissement_query,
-        create_index_func=create_unique_index,
-        index_name="index_date_fermeture_siret",
-        index_column="siret",
+    )
+    sqlite_client.execute(
+        create_unique_index("index_date_fermeture_siret", table_name, "siret")
     )
 
     for count_etablissement in sqlite_client.execute(get_table_count(table_name)):
@@ -214,9 +216,6 @@ def create_geo_stats_table():
     sqlite_client = create_table_model(
         table_name="geo_stats",
         create_table_query=create_table_geo_stats_query,
-        create_index_func=create_unique_index,
-        index_name="index_geo_stats_siret",
-        index_column="siret",
     )
 
     for df_chunk in preprocess_geo_stats_data(AIRFLOW_ETL_DATA_DIR):
@@ -228,6 +227,10 @@ def create_geo_stats_table():
                 f"************ {row} records have been added to the `geo_stats` table!"
             )
         del df_chunk
+
+    sqlite_client.execute(
+        create_unique_index("index_geo_stats_siret", "geo_stats", "siret")
+    )
 
     for count_geo_stats in sqlite_client.execute(get_table_count("geo_stats")):
         logging.info(

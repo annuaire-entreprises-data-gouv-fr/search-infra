@@ -30,14 +30,15 @@ def create_siege_table():
     sqlite_client = create_table_model(
         table_name=table_name,
         create_table_query=create_table_siege_query,
-        create_index_func=create_index,
-        index_name=f"index_{table_name}_siren",
-        index_column="siren",
+    )
+    sqlite_client.execute(populate_table_siege_query)
+    # Indexes are created after the populate but before the etablissement update
+    sqlite_client.execute(
+        create_index(f"index_{table_name}_siren", table_name, "siren")
     )
     sqlite_client.execute(
         create_index(f"index_{table_name}_siret", table_name, "siret")
     )
-    sqlite_client.execute(populate_table_siege_query)
     sqlite_client.execute(update_est_siege_in_etablissement)
     for row in sqlite_client.execute(get_table_count(table_name)):
         logging.info(
@@ -54,13 +55,14 @@ def create_ancien_siege_table():
     sqlite_client = create_table_model(
         table_name=table_name,
         create_table_query=create_table_ancien_siege_query,
-        create_index_func=create_index,
-        index_name=f"index_{table_name}_siret",
-        index_column="siret",
     )
     # Populate ancien_siege from historique_unite_legale (which was enriched with flux)
     # Only keep historical sieges (date_fin_periode IS NOT NULL)
     sqlite_client.execute(populate_ancien_siege_from_historique_query)
+    # Index created after the populate but before the delete
+    sqlite_client.execute(
+        create_index(f"index_{table_name}_siret", table_name, "siret")
+    )
     # And remove any ancien siege that may have become siege again since then
     sqlite_client.execute(delete_current_siege_from_ancien_siege_query)
 
