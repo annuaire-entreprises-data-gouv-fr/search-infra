@@ -58,7 +58,9 @@ class SqliteClient:
         ```
     """
 
-    def __init__(self, db_location, timeout=30, config=WRITE_CONFIG) -> None:
+    def __init__(
+        self, db_location, timeout=30, config=WRITE_CONFIG, check_same_thread=True
+    ) -> None:
         self.db_location = db_location
 
         # SQLite creates the database if it does not exist but not the parent folders
@@ -66,7 +68,9 @@ class SqliteClient:
         if not os.path.exists(self.db_folder):
             os.makedirs(self.db_folder)
 
-        self.db_conn = sqlite3.connect(self.db_location, timeout=timeout)
+        self.db_conn = sqlite3.connect(
+            self.db_location, timeout=timeout, check_same_thread=check_same_thread
+        )
         logging.info(
             f"*********** Connecting to database {self.db_location}! ***********"
         )

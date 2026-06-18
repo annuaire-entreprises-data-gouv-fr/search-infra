@@ -55,7 +55,15 @@ def create_elastic_index():
 def fill_elastic_siren_index():
     ti = get_current_context()["ti"]
     elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
-    sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db", config=READ_CONFIG)
+    # parallel_bulk drains the document generator (which reads from this SQLite
+    # cursor) inside a multiprocessing.pool worker thread, so the connection must
+    # allow cross-thread use. Access stays sequential (query here, generator drained
+    # by the pool, close here), so there is no concurrent access to guard against.
+    sqlite_client = SqliteClient(
+        AIRFLOW_ELK_DATA_DIR + "sirene.db",
+        config=READ_CONFIG,
+        check_same_thread=False,
+    )
     sqlite_client.execute(select_fields_to_index_query)
 
     connections.create_connection(
