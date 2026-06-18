@@ -296,7 +296,7 @@ def database_constructor():
         # Labels and others
         >> additional_data_enrichement()
         # The End
-        >> upload_db_to_object_storage()
+        >> upload_db_to_object_storage(SIRENE_DATABASE_LOCATION)
         >> create_data_source_last_modified_file()
         >> clean_current_tmp_folder()
         >> trigger_indexing_dag

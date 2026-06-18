@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import shutil
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import TypedDict
@@ -102,6 +103,74 @@ class ObjectStorageClient:
                 raise Exception(
                     f"file {file['source_path']}{file['source_name']} does not exist"
                 )
+
+    def upload_compressed_file(
+        self,
+        source_file_path: str,
+        object_storage_path: str,
+        dest_name: str,
+        is_public: bool = True,
+        content_type: str | None = None,
+        compress_level: int = 6,
+    ) -> None:
+        """
+        Compress a local file with pigz (multi-threaded gzip) and stream the gzip
+        output straight to Object Storage without writing the .gz to local disk.
+
+        Args:
+            source_file_path (str): local file to compress and upload.
+            object_storage_path (str): destination path within the bucket.
+            dest_name (str): destination object name (should end with .gz).
+            is_public (bool): whether the object should be public. Defaults to True.
+            content_type (str | None): content type of the object. Defaults to None.
+            compress_level (int): pigz level (1-9). Defaults to 6.
+        """
+        if not os.path.isfile(source_file_path):
+            raise Exception(f"File {source_file_path} does not exist")
+
+        if not dest_name.endswith(".gz"):
+            raise Exception(f"Destination filename {dest_name} does not end with .gz")
+
+        object_key = f"{OBJECT_STORAGE_ENV_PATH}{object_storage_path}{dest_name}"
+
+        extra_args = {"ContentEncoding": "gzip"}
+        if is_public:
+            extra_args["ACL"] = "public-read"
+        if content_type:
+            extra_args["ContentType"] = content_type
+
+        logging.info(
+            f"Compressing and sending {dest_name} to {object_key} with pigz level {compress_level}"
+        )
+        proc = subprocess.Popen(
+            ["pigz", "-c", f"-{compress_level}", source_file_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,  # note: change to DEVNULL if it causes deadlocks
+        )
+        try:
+            self.client.upload_fileobj(
+                proc.stdout, self.bucket, object_key, ExtraArgs=extra_args
+            )
+        except Exception:
+            # Kill the subprocess in case of exception
+            proc.kill()
+            raise
+        finally:
+            # Close pipes
+            if proc.stdout:
+                proc.stdout.close()
+            # Read stderr before closing it, otherwise the error message is lost
+            stderr_output = proc.stderr.read() if proc.stderr else b""
+            if proc.stderr:
+                proc.stderr.close()
+            proc.wait()
+
+        if proc.returncode != 0:
+            error_output = stderr_output.decode(errors="replace")
+            raise RuntimeError(
+                f"pigz failed (exit {proc.returncode}) for "
+                f"{source_file_path}: {error_output}"
+            )
 
     def get_files_from_prefix(self, prefix: str):
         """Retrieve only the list of files in a S3 pattern
