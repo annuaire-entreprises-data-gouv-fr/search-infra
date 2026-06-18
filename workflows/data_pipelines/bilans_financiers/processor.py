@@ -7,7 +7,7 @@ from data_pipelines_annuaire.helpers import (
     Notification,
     clean_sirent_column,
 )
-from data_pipelines_annuaire.helpers.utils import get_fiscal_year
+from data_pipelines_annuaire.helpers.utils import get_fiscal_year, read_parquet_batches
 from data_pipelines_annuaire.workflows.data_pipelines.bilans_financiers.config import (
     BILANS_FINANCIERS_CONFIG,
 )
@@ -18,18 +18,18 @@ class BilansFinanciersProcessor(DataProcessor):
         super().__init__(BILANS_FINANCIERS_CONFIG)
 
     def preprocess_data(self) -> None:
-        df_bilan = pd.read_csv(
-            self.config.files_to_download["bilans_financiers"]["destination"],
-            dtype=str,
-            sep=";",
-            usecols=[
-                "siren",
-                "Chiffre_d_affaires",
-                "Resultat_net",
-                "date_cloture_exercice",
-                "type_bilan",
-            ],
-            encoding="utf-8-sig",
+        df_bilan = pd.concat(
+            read_parquet_batches(
+                self.config.files_to_download["bilans_financiers"]["destination"],
+                columns=[
+                    "siren",
+                    "chiffre_d_affaires",
+                    "resultat_net",
+                    "date_cloture_exercice",
+                    "type_bilan",
+                ],
+            ),
+            ignore_index=True,
         )
 
         # Comptes consolidés (consolidated accounts) are published before the 15th of June
@@ -38,8 +38,7 @@ class BilansFinanciersProcessor(DataProcessor):
         df_bilan = (
             df_bilan.rename(
                 columns={
-                    "Chiffre_d_affaires": "ca",
-                    "Resultat_net": "resultat_net",
+                    "chiffre_d_affaires": "ca",
                 }
             )
             .assign(
@@ -93,9 +92,6 @@ class BilansFinanciersProcessor(DataProcessor):
                 ]
             )
         )
-
-        df_bilan["ca"] = df_bilan["ca"].astype(float)
-        df_bilan["resultat_net"] = df_bilan["resultat_net"].astype(float)
 
         # Clean siren column and remove invalid rows
         df_bilan = clean_sirent_column(df_bilan, column_type="siren")
