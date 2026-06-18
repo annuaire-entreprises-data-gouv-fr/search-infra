@@ -81,6 +81,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_
     create_ancien_siege_table,
     create_siege_table,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_succession_table import (
+    create_succession_table,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_unite_legale_tables import (
     add_rne_siren_data_to_unite_legale_table,
     create_date_fermeture_unite_legale_table,
@@ -278,6 +281,8 @@ def database_constructor():
         # Siege
         >> create_siege_table()
         >> create_ancien_siege_table()
+        # Liens de succession
+        >> create_succession_table()
         # RNE
         >> get_latest_rne_database()
         >> add_rne_siren_data_to_unite_legale_table()

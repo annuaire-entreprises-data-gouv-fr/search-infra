@@ -595,6 +595,15 @@ def format_etablissements_and_complements(
             etablissement["liste_finess_geographique"]
         )
         etablissement["liste_id_bio"] = str_to_list(etablissement["liste_id_bio"])
+
+        for entry in (etablissement["successions"]["predecesseurs"] or []) + (
+            etablissement["successions"]["successeurs"] or []
+        ):
+            entry["transfert_siege"] = str_to_bool(entry.get("transfert_siege"))
+            entry["continuite_economique"] = str_to_bool(
+                entry.get("continuite_economique")
+            )
+
         etablissements_processed.append(etablissement)
 
         # Get complements
@@ -643,6 +652,12 @@ def format_siege_unite_legale(siege, is_non_diffusible=False):
     siege["liste_uai"] = str_to_list(siege["liste_uai"])
     siege["liste_finess_geographique"] = str_to_list(siege["liste_finess_geographique"])
     siege["liste_id_bio"] = str_to_list(siege["liste_id_bio"])
+
+    for entry in (siege["successions"]["predecesseurs"] or []) + (
+        siege["successions"]["successeurs"] or []
+    ):
+        entry["transfert_siege"] = str_to_bool(entry.get("transfert_siege"))
+        entry["continuite_economique"] = str_to_bool(entry.get("continuite_economique"))
 
     return siege
 

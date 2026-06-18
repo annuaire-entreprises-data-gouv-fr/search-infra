@@ -141,7 +141,11 @@ select_fields_to_index_query = """SELECT
                         'date_mise_a_jour_insee',date_mise_a_jour_insee,
                         'type_voie',type_voie,
                         'x',x,
-                        'y',y
+                        'y',y,
+                        'successions',json_object(
+                            'predecesseurs',successions_predecesseurs,
+                            'successeurs',successions_successeurs
+                        )
                         )
                     ) FROM
                     (
@@ -208,7 +212,25 @@ select_fields_to_index_query = """SELECT
                         s.date_mise_a_jour_insee as date_mise_a_jour_insee,
                         s.type_voie as type_voie,
                         s.x as x,
-                        s.y as y
+                        s.y as y,
+                        (SELECT json_group_array(json_object(
+                            'siret', siret_predecesseur,
+                            'date_lien_succession', date_lien_succession,
+                            'transfert_siege', transfert_siege,
+                            'continuite_economique', continuite_economique
+                            ))
+                        FROM liens_succession
+                        WHERE siret_successeur = s.siret
+                        ) as successions_predecesseurs,
+                        (SELECT json_group_array(json_object(
+                            'siret', siret_successeur,
+                            'date_lien_succession', date_lien_succession,
+                            'transfert_siege', transfert_siege,
+                            'continuite_economique', continuite_economique
+                            ))
+                        FROM liens_succession
+                        WHERE siret_predecesseur = s.siret
+                        ) as successions_successeurs
                         FROM etablissement s
                         WHERE s.siren = ul.siren
                     )
@@ -265,7 +287,11 @@ select_fields_to_index_query = """SELECT
                         'date_mise_a_jour_insee',date_mise_a_jour_insee,
                         'date_mise_a_jour_rne',date_mise_a_jour_rne,
                         'x',x,
-                        'y',y
+                        'y',y,
+                        'successions',json_object(
+                            'predecesseurs',successions_predecesseurs,
+                            'successeurs',successions_successeurs
+                        )
                         )
                     FROM
                     (
@@ -323,7 +349,25 @@ select_fields_to_index_query = """SELECT
                         s.date_mise_a_jour_insee as date_mise_a_jour_insee,
                         s.date_mise_a_jour_rne as date_mise_a_jour_rne,
                         s.x as x,
-                        s.y as y
+                        s.y as y,
+                        (SELECT json_group_array(json_object(
+                            'siret', siret_predecesseur,
+                            'date_lien_succession', date_lien_succession,
+                            'transfert_siege', transfert_siege,
+                            'continuite_economique', continuite_economique
+                            ))
+                        FROM liens_succession
+                        WHERE siret_successeur = s.siret
+                        ) as successions_predecesseurs,
+                        (SELECT json_group_array(json_object(
+                            'siret', siret_successeur,
+                            'date_lien_succession', date_lien_succession,
+                            'transfert_siege', transfert_siege,
+                            'continuite_economique', continuite_economique
+                            ))
+                        FROM liens_succession
+                        WHERE siret_predecesseur = s.siret
+                        ) as successions_successeurs
                         FROM siege as s
                         WHERE s.siren = st.siren
                     )
