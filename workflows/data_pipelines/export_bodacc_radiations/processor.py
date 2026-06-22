@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 from airflow.sdk import task
 
@@ -38,10 +39,20 @@ def export_file(export_file: ExportFile) -> None:
         export_file.query, f"{EXPORT_DATA_DIR}{export_file.file_name}"
     )
 
-    csv_file.upload_to_object_storage(
-        object_storage_path=EXPORT_OBJECT_STORAGE_PATH,
-        content_type="text/csv",
-    )
+    base_name = export_file.file_name.removesuffix(".csv")
+    date_str = datetime.now().strftime("%Y-%m-%d")
+
+    # The latest file will be overwritten each run
+    # Removal of old files is handled in the object storage cleaning DAG
+    for object_storage_filename in (
+        f"{base_name}_{date_str}.csv",
+        f"{base_name}_latest.csv",
+    ):
+        csv_file.upload_to_object_storage(
+            object_storage_path=EXPORT_OBJECT_STORAGE_PATH,
+            object_storage_filename=object_storage_filename,
+            content_type="text/csv",
+        )
 
     DataProcessor.push_message(
         Notification.notification_xcom_key,
