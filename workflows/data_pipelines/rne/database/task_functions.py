@@ -342,31 +342,14 @@ def upload_db_to_object_storage():
     )
 
     database_file_path = os.path.join(RNE_DB_TMP_FOLDER, f"rne_{start_date}.db")
-    database_zip_file_path = os.path.join(RNE_DB_TMP_FOLDER, f"rne_{start_date}.db.gz")
-
-    # Zip database
-    with open(database_file_path, "rb") as f_in:
-        with gzip.open(database_zip_file_path, "wb") as f_out:
-            shutil.copyfileobj(f_in, f_out)
 
     logging.info(f"Sending database: rne_{start_date}.db.gz")
-    send_to_object_storage(
-        [
-            {
-                "source_path": RNE_DB_TMP_FOLDER,
-                "source_name": f"rne_{start_date}.db.gz",
-                "dest_path": RNE_OBJECT_STORAGE_DATA_PATH,
-                "dest_name": f"rne_{last_date_processed}.db.gz",
-            }
-        ]
+    ObjectStorageClient().upload_compressed_file(
+        source_file_path=database_file_path,
+        object_storage_path=RNE_OBJECT_STORAGE_DATA_PATH,
+        dest_name=f"rne_{last_date_processed}.db.gz",
+        content_type="application/vnd.sqlite3",
     )
-
-    # Delete local files after uploading to the object storage
-    os.remove(database_file_path)
-    if os.path.exists(database_zip_file_path):
-        os.remove(database_zip_file_path)
-    else:
-        logging.warning(f"Warning: Database file '{database_zip_file_path}' not found.")
 
 
 @task

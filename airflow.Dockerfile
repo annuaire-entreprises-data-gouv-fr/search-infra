@@ -13,7 +13,7 @@ USER root
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    git lftp zip wget p7zip-full gcc g++
+    git lftp zip wget p7zip-full pigz gcc g++
 
 USER airflow
 
