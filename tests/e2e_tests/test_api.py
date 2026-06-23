@@ -972,7 +972,7 @@ def test_bodacc(api_response_tester):
 
 
 def test_tva(api_response_tester):
-    path = "/search?q=979925039&include_admin=tva"
+    path = "/search?q=979925039"
     api_response_tester.assert_api_response_code_200(path)
     response = api_response_tester.get_api_response(path)
     results = response.json()["results"]
