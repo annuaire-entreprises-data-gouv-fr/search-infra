@@ -188,6 +188,45 @@ def test_upload_compressed_file_raises_when_pigz_fails(tmp_path):
                 dest_name="sirene_2024-03-15.db.gz",
             )
 
+    # The possibly-partial object must be deleted so it cannot be picked up later
+    boto_client.delete_object.assert_called_once_with(
+        Bucket="test-bucket",
+        Key=f"ae/{AIRFLOW_ENV}/sirene/database/sirene_2024-03-15.db.gz",
+    )
+
+
+def test_upload_compressed_file_deletes_object_when_upload_fails(tmp_path):
+    source = tmp_path / "sirene.db"
+    source.write_bytes(b"SQLite format 3\x00")
+
+    client = ObjectStorageClient.__new__(ObjectStorageClient)
+    client.bucket = "test-bucket"
+    boto_client = MagicMock()
+    boto_client.upload_fileobj.side_effect = RuntimeError("connection dropped")
+    client.client = boto_client
+
+    fake_proc = MagicMock()
+    fake_proc.stdout = io.BytesIO(b"")
+    fake_proc.stderr = io.BytesIO(b"")
+    fake_proc.returncode = 0
+
+    with patch(
+        "data_pipelines_annuaire.helpers.object_storage.subprocess.Popen",
+        return_value=fake_proc,
+    ):
+        with pytest.raises(RuntimeError, match="connection dropped"):
+            client.upload_compressed_file(
+                source_file_path=str(source),
+                object_storage_path="sirene/database/",
+                dest_name="sirene_2024-03-15.db.gz",
+            )
+
+    fake_proc.kill.assert_called_once()
+    boto_client.delete_object.assert_called_once_with(
+        Bucket="test-bucket",
+        Key=f"ae/{AIRFLOW_ENV}/sirene/database/sirene_2024-03-15.db.gz",
+    )
+
 
 def test_upload_compressed_file_raises_when_source_missing(tmp_path):
     client, _ = _make_upload_client()

@@ -152,8 +152,10 @@ class ObjectStorageClient:
                 proc.stdout, self.bucket, object_key, ExtraArgs=extra_args
             )
         except Exception:
-            # Kill the subprocess in case of exception
+            # Kill the subprocess in case of exception..
             proc.kill()
+            # ..and delete any residual file that may exist on object storage
+            self._delete_object_if_possible(object_key)
             raise
         finally:
             # Close pipes
@@ -166,11 +168,22 @@ class ObjectStorageClient:
             proc.wait()
 
         if proc.returncode != 0:
+            # When pigz fails while running boto3 will still have uploaded a valid but corrupted
+            # object. So the file has to be deleted so it can't be downloaded
+            self._delete_object_if_possible(object_key)
             error_output = stderr_output.decode(errors="replace")
             raise RuntimeError(
                 f"pigz failed (exit {proc.returncode}) for "
                 f"{source_file_path}: {error_output}"
             )
+
+    def _delete_object_if_possible(self, object_key: str) -> None:
+        """Delete an object while ignoring and logging errors. E.g. if the object does not exist."""
+        try:
+            self.client.delete_object(Bucket=self.bucket, Key=object_key)
+            logging.info(f"Delete object: {object_key}")
+        except ClientError as e:
+            logging.warning(f"Controlled failure to delete object: {object_key}\n{e}")
 
     def get_files_from_prefix(self, prefix: str):
         """Retrieve only the list of files in a S3 pattern
