@@ -40,7 +40,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.bilans_financiers.config i
     BILANS_FINANCIERS_CONFIG,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.config import (
-    BODACC_CONFIG,
+    PROCEDURES_COLLECTIVES_CONFIG,
+    RADIATIONS_CONFIG,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.colter.config import (
     COLTER_CONFIG,
@@ -218,7 +219,8 @@ def database_constructor():
             ALIM_CONFIANCE_CONFIG,
             BILAN_GES_CONFIG,
             AIDES_MINIMIS_CONFIG,
-            BODACC_CONFIG,
+            RADIATIONS_CONFIG,
+            PROCEDURES_COLLECTIVES_CONFIG,
             AIDES_ADEME_CONFIG,
             AVOCAT_CONFIG,
             TVA_CONFIG,
