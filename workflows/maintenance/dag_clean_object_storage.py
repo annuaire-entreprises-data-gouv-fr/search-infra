@@ -108,5 +108,11 @@ def delete_old_object_storage_file():
         retention_days=30,
     )
 
+    delete_old_files.override(task_id="export_bodacc_radiations")(
+        prefix=f"{OBJECT_STORAGE_ENV_PATH}export/",
+        keep_latest=10,
+        retention_days=14,
+    )
+
 
 delete_old_object_storage_file()
