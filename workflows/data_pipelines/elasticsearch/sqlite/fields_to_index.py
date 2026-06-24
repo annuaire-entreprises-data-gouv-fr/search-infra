@@ -472,15 +472,28 @@ select_fields_to_index_query = """SELECT
             ) as immatriculation,
             (
                 SELECT json_object(
-                    'radiation_est_radie', case when radiation_visibility then radiation_est_radie end,
-                    'radiation_id_annonce', case when radiation_visibility then radiation_id_annonce end,
-                    'radiation_date', case when radiation_visibility then radiation_date end,
-                    'procedure_collective_id_annonce', procedure_collective_id_annonce,
-                    'procedure_collective_statut', procedure_collective_statut,
-                    'procedure_collective_date', procedure_collective_date
+                    'radiation',
+                        (
+                            SELECT case when r.visibility then
+                                json_object(
+                                    'est_radie', r.est_radie,
+                                    'id_annonce', r.id_annonce,
+                                    'date', r.date
+                                ) end
+                            FROM bodacc_radiations AS r
+                            WHERE r.siren = ul.siren
+                        ),
+                    'procedure_collective',
+                        (
+                            SELECT json_object(
+                                'statut', pc.statut,
+                                'id_annonce', pc.id_annonce,
+                                'date', pc.date
+                            )
+                            FROM bodacc_procedures_collectives AS pc
+                            WHERE pc.siren = ul.siren
+                            )
                 )
-                FROM bodacc
-                WHERE siren = ul.siren
             ) as bodacc
             FROM
                 unite_legale ul

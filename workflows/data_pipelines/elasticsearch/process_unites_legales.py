@@ -9,6 +9,7 @@ from data_pipelines_annuaire.helpers.utils import (
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichment import (
     calculate_company_size_factor,
     create_list_names_elus,
+    format_bodacc,
     format_dirigeants_pm,
     format_etablissements_and_complements,
     format_nom_complet,
@@ -296,29 +297,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         # BODACC (procédures collectives et radiations)
-        bodacc = unite_legale.get("bodacc")
-        if bodacc:
-            bodacc_data = json.loads(bodacc)
-            est_radie = sqlite_str_to_bool(bodacc_data.get("radiation_est_radie", 0))
-            procedure_colletive_statut = bodacc_data.get("procedure_collective_statut")
-            unite_legale_processed["bodacc"] = {
-                "radiation": {
-                    "est_radie": est_radie,
-                    "id_annonce": bodacc_data.get("radiation_id_annonce"),
-                    "date": bodacc_data.get("radiation_date"),
-                }
-                if est_radie
-                else None,
-                "procedure_collective": {
-                    "statut": procedure_colletive_statut,
-                    "id_annonce": bodacc_data.get("procedure_collective_id_annonce"),
-                    "date": bodacc_data.get("procedure_collective_date"),
-                }
-                if procedure_colletive_statut
-                else None,
-            }
-        else:
-            unite_legale_processed["bodacc"] = {}
+        unite_legale_processed["bodacc"] = format_bodacc(unite_legale.get("bodacc"))
 
         # TVA
         unite_legale_processed["liste_tva"] = str_to_list(

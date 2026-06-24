@@ -3,18 +3,22 @@ import json
 import pandas as pd
 import pytest
 
+from data_pipelines_annuaire.workflows.data_pipelines.bodacc.procedures_collectives import (
+    _apply_procedure_collective_rules,
+    _is_cloture,
+    _load_procedure_collective_rules,
+    _parse_jugement_json,
+)
+from data_pipelines_annuaire.workflows.data_pipelines.bodacc.radiations import (
+    _parse_radiation_json,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
-    apply_procedure_collective_rules,
+    _extract_sirens_from_personne,
     extract_sirens_from_listepersonnes,
-    extract_sirens_from_personne,
     fix_mojibake,
     get_previous_ids_to_discard,
     get_processed_ids_to_discard,
-    is_cloture,
-    load_procedure_collective_rules,
     parse_date_bodacc,
-    parse_jugement_json,
-    parse_radiation_json,
     process_discarded_announcements,
 )
 
@@ -56,35 +60,35 @@ def test_parse_date_bodacc(input, expected):
     assert parse_date_bodacc(input) == expected
 
 
-# parse_radiation_json()
+# _parse_radiation_json()
 
 
 def test_parse_radiation_json_pp():
     assert (
-        parse_radiation_json('{"dateCessationActivitePP": "2022-01-27"}')
+        _parse_radiation_json('{"dateCessationActivitePP": "2022-01-27"}')
         == "2022-01-27"
     )
 
 
 def test_parse_radiation_json_pp_legacy():
     data = '{"radiationPP": {"dateCessationActivitePP": "2019-06-15"}}'
-    assert parse_radiation_json(data) == "2019-06-15"
+    assert _parse_radiation_json(data) == "2019-06-15"
 
 
 def test_parse_radiation_json_pm_no_date():
-    assert parse_radiation_json("{}") == ""
+    assert _parse_radiation_json("{}") == ""
 
 
 def test_parse_radiation_json_empty():
-    assert parse_radiation_json("") == ""
+    assert _parse_radiation_json("") == ""
 
 
-# parse_jugement_json()
+# _parse_jugement_json()
 
 
 def test_parse_jugement_json_full():
     data = '{"famille": "Ouverture", "nature": "Redressement judiciaire", "date": "2024-07-24"}'
-    assert parse_jugement_json(data) == {
+    assert _parse_jugement_json(data) == {
         "famille": "Ouverture",
         "nature": "Redressement judiciaire",
         "complementJugement": "",
@@ -94,12 +98,12 @@ def test_parse_jugement_json_full():
 
 def test_parse_jugement_json_date_converted():
     data = '{"famille": "Ouverture", "nature": "Redressement judiciaire", "date": "27/11/2008"}'
-    result = parse_jugement_json(data)
+    result = _parse_jugement_json(data)
     assert result["date"] == "2008-11-27"
 
 
 def test_parse_jugement_json_missing_keys():
-    assert parse_jugement_json("{}") == {
+    assert _parse_jugement_json("{}") == {
         "famille": "",
         "nature": "",
         "complementJugement": "",
@@ -108,7 +112,7 @@ def test_parse_jugement_json_missing_keys():
 
 
 def test_parse_jugement_json_invalid_json():
-    assert parse_jugement_json("not json") == {
+    assert _parse_jugement_json("not json") == {
         "famille": "",
         "nature": "",
         "complementJugement": "",
@@ -117,7 +121,7 @@ def test_parse_jugement_json_invalid_json():
 
 
 def test_parse_jugement_json_empty():
-    assert parse_jugement_json("") == {
+    assert _parse_jugement_json("") == {
         "famille": "",
         "nature": "",
         "complementJugement": "",
@@ -127,7 +131,7 @@ def test_parse_jugement_json_empty():
 
 def test_parse_jugement_json_fixes_mojibake():
     data = '{"famille": "Jugement de clÃ´ture", "nature": "Jugement de clÃ´ture pour insuffisance d\'actif", "date": "2024-01-15"}'
-    result = parse_jugement_json(data)
+    result = _parse_jugement_json(data)
     assert result["famille"] == "Jugement de clôture"
     assert result["nature"] == "Jugement de clôture pour insuffisance d'actif"
 
@@ -298,19 +302,13 @@ def test_filter_discarded_keeps_normal_rectificatif_with_radiationaurcs():
 
 
 def _apply_expiration_logic(df: pd.DataFrame) -> pd.DataFrame:
-    """Reproduit la logique d'expiration de _process_procedures_collectives."""
-    df["procedure_collective_date"] = pd.to_datetime(
-        df["procedure_collective_date"], errors="coerce", format="%Y-%m-%d"
-    )
-    df["is_cloture"] = df["procedure_collective_famille"].apply(is_cloture)
+    """Reproduit la logique d'expiration de process_procedures_collectives."""
+    df["date"] = pd.to_datetime(df["date"], errors="coerce", format="%Y-%m-%d")
+    df["is_cloture"] = df["procedure_collective_famille"].apply(_is_cloture)
     ten_years_ago = pd.Timestamp.now() - pd.DateOffset(years=10)
-    df["is_expired"] = df["procedure_collective_date"] < ten_years_ago
-    df["procedure_collective_nature"] = df.apply(
-        lambda row: (
-            ""
-            if row["is_cloture"] or row["is_expired"]
-            else row["procedure_collective_nature"]
-        ),
+    df["is_expired"] = df["date"] < ten_years_ago
+    df["nature"] = df.apply(
+        lambda row: "" if row["is_cloture"] or row["is_expired"] else row["nature"],
         axis=1,
     )
     return df
@@ -320,76 +318,76 @@ def test_procedure_older_than_10_years_has_no_nature():
     df = pd.DataFrame(
         {
             "procedure_collective_famille": ["Ouverture"],
-            "procedure_collective_nature": ["Redressement judiciaire"],
-            "procedure_collective_date": ["2010-01-01"],
+            "nature": ["Redressement judiciaire"],
+            "date": ["2010-01-01"],
         }
     )
     result = _apply_expiration_logic(df)
-    assert result["procedure_collective_nature"].iloc[0] == ""
+    assert result["nature"].iloc[0] == ""
 
 
 def test_recent_procedure_keeps_nature():
     df = pd.DataFrame(
         {
             "procedure_collective_famille": ["Ouverture"],
-            "procedure_collective_nature": ["Redressement judiciaire"],
-            "procedure_collective_date": ["2024-01-01"],
+            "nature": ["Redressement judiciaire"],
+            "date": ["2024-01-01"],
         }
     )
     result = _apply_expiration_logic(df)
-    assert result["procedure_collective_nature"].iloc[0] == "Redressement judiciaire"
+    assert result["nature"].iloc[0] == "Redressement judiciaire"
 
 
 def test_cloture_procedure_has_no_nature_regardless_of_age():
     df = pd.DataFrame(
         {
             "procedure_collective_famille": ["Jugement de clôture"],
-            "procedure_collective_nature": ["Liquidation judiciaire"],
-            "procedure_collective_date": ["2024-01-01"],
+            "nature": ["Liquidation judiciaire"],
+            "date": ["2024-01-01"],
         }
     )
     result = _apply_expiration_logic(df)
-    assert result["procedure_collective_nature"].iloc[0] == ""
+    assert result["nature"].iloc[0] == ""
 
 
-# apply_procedure_collective_rules()
+# _apply_procedure_collective_rules()
 
 
 @pytest.fixture
 def rules():
-    return load_procedure_collective_rules()
+    return _load_procedure_collective_rules()
 
 
 def test_rules_liquidation_judiciaire(rules):
-    statut = apply_procedure_collective_rules(
+    statut = _apply_procedure_collective_rules(
         "Jugement d'ouverture de liquidation judiciaire", "", rules
     )
     assert statut == "liquidation_judiciaire"
 
 
 def test_rules_redressement_judiciaire(rules):
-    statut = apply_procedure_collective_rules(
+    statut = _apply_procedure_collective_rules(
         "Jugement d'ouverture d'une procédure de redressement judiciaire", "", rules
     )
     assert statut == "redressement_judiciaire"
 
 
 def test_rules_sauvegarde(rules):
-    statut = apply_procedure_collective_rules(
+    statut = _apply_procedure_collective_rules(
         "Jugement d'ouverture d'une procédure de sauvegarde", "", rules
     )
     assert statut == "sauvegarde"
 
 
 def test_rules_cloture_returns_none(rules):
-    statut = apply_procedure_collective_rules(
+    statut = _apply_procedure_collective_rules(
         "Jugement de clôture pour insuffisance d'actif", "", rules
     )
     assert statut is None
 
 
 def test_rules_autre_jugement_with_complement(rules):
-    statut = apply_procedure_collective_rules(
+    statut = _apply_procedure_collective_rules(
         "Autre jugement prononçant",
         "la clôture de la procédure pour insuffisance d'actif",
         rules,
@@ -398,7 +396,7 @@ def test_rules_autre_jugement_with_complement(rules):
 
 
 def test_rules_autre_jugement_with_complement_liquidation(rules):
-    statut = apply_procedure_collective_rules(
+    statut = _apply_procedure_collective_rules(
         "Autre jugement prononçant",
         "l'ouverture d'une procédure de liquidation judiciaire",
         rules,
@@ -407,13 +405,13 @@ def test_rules_autre_jugement_with_complement_liquidation(rules):
 
 
 def test_rules_unknown_nature_returns_none(rules):
-    statut = apply_procedure_collective_rules("Nature inconnue", "", rules)
+    statut = _apply_procedure_collective_rules("Nature inconnue", "", rules)
     assert statut is None
 
 
 def test_rules_empty_nature():
-    rules = load_procedure_collective_rules()
-    assert apply_procedure_collective_rules("", "", rules) is None
+    rules = _load_procedure_collective_rules()
+    assert _apply_procedure_collective_rules("", "", rules) is None
 
 
 # extract_sirens_from_personne()
@@ -447,7 +445,7 @@ def test_extract_sirens_rcs_and_rm():
             ]
         }
     )
-    assert extract_sirens_from_personne(data) == [
+    assert _extract_sirens_from_personne(data) == [
         "481738821",
         "510784887",
         "424557189",
@@ -473,15 +471,15 @@ def test_extract_sirens_deduplicates():
             ]
         }
     )
-    assert extract_sirens_from_personne(data) == ["123456789"]
+    assert _extract_sirens_from_personne(data) == ["123456789"]
 
 
 def test_extract_sirens_empty_json():
-    assert extract_sirens_from_personne("{}") == []
+    assert _extract_sirens_from_personne("{}") == []
 
 
 def test_extract_sirens_invalid_json():
-    assert extract_sirens_from_personne("not json") == []
+    assert _extract_sirens_from_personne("not json") == []
 
 
 def test_extract_sirens_missing_identification():
@@ -492,7 +490,7 @@ def test_extract_sirens_missing_identification():
             ]
         }
     )
-    assert extract_sirens_from_personne(data) == []
+    assert _extract_sirens_from_personne(data) == []
 
 
 def test_extract_sirens_single_personne_not_list():
@@ -506,7 +504,7 @@ def test_extract_sirens_single_personne_not_list():
             }
         }
     )
-    assert extract_sirens_from_personne(data) == ["111222333"]
+    assert _extract_sirens_from_personne(data) == ["111222333"]
 
 
 # extract_sirens_from_listepersonnes()
