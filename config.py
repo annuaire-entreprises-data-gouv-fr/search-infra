@@ -21,6 +21,7 @@ class DataSourceConfig:
             - resource_id (str, None): Data.gouv resource ID.
             - dataset_id (str, None): Data.gouv dataset ID (the most recent resource will be downloaded).
             - destination (str, None): Local path where the downloaded file will be saved.
+            - huwise (bool, None): To set at true if the dataset is from Huwise.
         url_object_storage (str | None): Object storage URL where the processed file will be stored. Defaults to None.
         url_object_storage_metadata (str | None): Object storage URL whe_object_storage metadata file will be stored. Defaults to None.
         file_output (str | None): Local file path of the output file. Defaults to None.
@@ -36,7 +37,7 @@ class DataSourceConfig:
     tmp_folder: str
     object_storage_path: str
     file_name: str | None = None
-    files_to_download: dict[str, dict[str, str]] = field(default_factory=dict)
+    files_to_download: dict[str, dict[str, str | bool]] = field(default_factory=dict)
     url_object_storage: str | None = None
     url_object_storage_metadata: str | None = None
     file_output: str | None = None
