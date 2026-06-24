@@ -46,6 +46,10 @@ def data_processing_bodacc():
         return bodacc_processor.preprocess_procedures_collectives()
 
     @task
+    def preprocess_creations():
+        return bodacc_processor.preprocess_creations()
+
+    @task
     def save_date_last_modified():
         return bodacc_processor.save_date_last_modified()
 
@@ -60,7 +64,11 @@ def data_processing_bodacc():
     return (
         clean_previous_outputs()
         >> download_data()
-        >> [preprocess_radiations(), preprocess_procedures_collectives()]
+        >> [
+            preprocess_radiations(),
+            preprocess_procedures_collectives(),
+            preprocess_creations(),
+        ]
         >> save_date_last_modified()
         >> send_file_to_object_storage()
         >> compare_files_object_storage()

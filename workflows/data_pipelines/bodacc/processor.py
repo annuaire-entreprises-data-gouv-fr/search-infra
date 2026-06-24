@@ -6,8 +6,12 @@ from data_pipelines_annuaire.helpers import (
 )
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.config import (
     BODACC_CONFIG,
+    CREATIONS_CONFIG,
     PROCEDURES_COLLECTIVES_CONFIG,
     RADIATIONS_CONFIG,
+)
+from data_pipelines_annuaire.workflows.data_pipelines.bodacc.creations import (
+    process_creations,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.procedures_collectives import (
     process_procedures_collectives,
@@ -28,6 +32,7 @@ class BodaccProcessor(DataProcessor):
         self._sub_processors = [
             DataProcessor(RADIATIONS_CONFIG),
             DataProcessor(PROCEDURES_COLLECTIVES_CONFIG),
+            DataProcessor(CREATIONS_CONFIG),
         ]
 
     def preprocess_radiations(self):
@@ -59,6 +64,21 @@ class BodaccProcessor(DataProcessor):
         DataProcessor.push_message(
             Notification.notification_xcom_key,
             description=f"procédures collectives BODACC : {len(df)} SIREN",
+        )
+
+    def preprocess_creations(self):
+        logging.info("Processing BODACC creations...")
+        df = process_creations(
+            self.config.files_to_download["creations"]["destination"],
+            self.CHUNK_SIZE,
+        )
+        logging.info(f"Creations: {len(df)} rows")
+        df.to_csv(
+            f"{self.config.tmp_folder}/{CREATIONS_CONFIG.file_name}.csv", index=False
+        )
+        DataProcessor.push_message(
+            Notification.notification_xcom_key,
+            description=f"créations BODACC : {len(df)} annonces",
         )
 
     def send_file_to_object_storage(self):
