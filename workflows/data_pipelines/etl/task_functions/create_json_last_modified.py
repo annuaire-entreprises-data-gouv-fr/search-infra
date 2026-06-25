@@ -17,11 +17,26 @@ from data_pipelines_annuaire.workflows.data_pipelines.achats_responsables.config
 from data_pipelines_annuaire.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.aides_ademe.config import (
+    AIDES_ADEME_CONFIG,
+)
+from data_pipelines_annuaire.workflows.data_pipelines.aides_minimis.config import (
+    AIDES_MINIMIS_CONFIG,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.alim_confiance.config import (
     ALIM_CONFIANCE_CONFIG,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.avocat.config import (
+    AVOCAT_CONFIG,
+)
+from data_pipelines_annuaire.workflows.data_pipelines.bilan_ges.config import (
+    BILAN_GES_CONFIG,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.bilans_financiers.config import (
     BILANS_FINANCIERS_CONFIG,
+)
+from data_pipelines_annuaire.workflows.data_pipelines.bodacc.config import (
+    BODACC_CONFIG,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.colter.config import (
     COLTER_CONFIG,
@@ -58,6 +73,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.sirene.flux.config import 
 from data_pipelines_annuaire.workflows.data_pipelines.spectacle.config import (
     SPECTACLE_CONFIG,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.tva.config import (
+    TVA_CONFIG,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.uai.config import (
     UAI_CONFIG,
 )
@@ -86,6 +104,12 @@ def create_data_source_last_modified_file():
         ACHATS_RESPONSABLES_CONFIG.url_object_storage_metadata: "achats_responsables",
         PATRIMOINE_VIVANT_CONFIG.url_object_storage_metadata: "patrimoine_vivant",
         ALIM_CONFIANCE_CONFIG.url_object_storage_metadata: "alim_confiance",
+        AIDES_ADEME_CONFIG.url_object_storage_metadata: "aides_ademe",
+        AIDES_MINIMIS_CONFIG.url_object_storage_metadata: "aides_minimis",
+        AVOCAT_CONFIG.url_object_storage_metadata: "avocat",
+        BILAN_GES_CONFIG.url_object_storage_metadata: "bilan_ges",
+        BODACC_CONFIG.url_object_storage_metadata: "bodacc",
+        TVA_CONFIG.url_object_storage_metadata: "tva",
     }
 
     json_file_path = os.path.join(
