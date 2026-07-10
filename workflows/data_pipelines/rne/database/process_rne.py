@@ -107,14 +107,14 @@ def create_tables(cursor):
             date_mise_a_jour DATE,
             date_immatriculation DATE,
             date_radiation DATE,
-            indicateur_associe_unique TEXT,
+            indicateur_associe_unique INTEGER,
             capital_social REAL,
             date_cloture_exercice TEXT,
             duree_personne_morale INT,
             date_fin_existence DATE,
             nature_entreprise TEXT,
             date_debut_activite TEXT,
-            capital_variable TEXT,
+            capital_variable INTEGER,
             devise_capital TEXT,
             file_name TEXT
         )
