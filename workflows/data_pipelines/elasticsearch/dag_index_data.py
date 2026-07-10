@@ -28,6 +28,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functio
     check_elastic_index,
     create_elastic_index,
     delete_previous_elastic_indices,
+    fill_elastic_fondation_index,
     fill_elastic_siren_index,
     get_next_index_name,
     update_elastic_alias,
@@ -80,6 +81,7 @@ def index_elasticsearch():
         >> delete_previous_elastic_indices()
         >> create_elastic_index()
         >> fill_elastic_siren_index()
+        >> fill_elastic_fondation_index()
         >> check_elastic_index()
         >> update_elastic_alias()
     )

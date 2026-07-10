@@ -20,11 +20,17 @@ from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.create_index import (
     ElasticCreateIndex,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.indexing_fondation import (
+    index_fondations_by_chunk,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.indexing_unite_legale import (
     index_unites_legales_by_chunk,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.sqlite.fields_to_index import (
     select_fields_to_index_query,
+)
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.sqlite.fondations_to_index import (
+    select_fondations_to_index_query,
 )
 
 
@@ -77,9 +83,42 @@ def fill_elastic_siren_index():
 
 
 @task
+def fill_elastic_fondation_index():
+    """
+    Index the fondations that have no SIRET.
+    Those with a SIRET are already indexed with their unite_legale equivalent.
+    """
+    ti = get_current_context()["ti"]
+    elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
+    sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db")
+    sqlite_client.execute(select_fondations_to_index_query)
+
+    connections.create_connection(
+        hosts=[ELASTIC_URL],
+        basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        retry_on_timeout=True,
+    )
+    elastic_connection = connections.get_connection()
+
+    doc_count = index_fondations_by_chunk(
+        cursor=sqlite_client.db_cursor,
+        elastic_connection=elastic_connection,
+        elastic_bulk_thread_count=ELASTIC_BULK_THREAD_COUNT,
+        elastic_bulk_size=ELASTIC_BULK_SIZE,
+        elastic_index=elastic_index,
+    )
+    ti.xcom_push(key="fondation_doc_count", value=doc_count)
+    sqlite_client.commit_and_close_conn()
+
+
+@task
 def check_elastic_index():
     ti = get_current_context()["ti"]
     doc_count = ti.xcom_pull(key="doc_count", task_ids="fill_elastic_siren_index")
+    fondation_doc_count = ti.xcom_pull(
+        key="fondation_doc_count",
+        task_ids="fill_elastic_fondation_index",
+    )
 
     if int(doc_count) < ELASTIC_MIN_DOC_COUNT_EXPECTED:
         failure_message = (
@@ -90,7 +129,10 @@ def check_elastic_index():
         ti.xcom_push(key=Notification.notification_xcom_key, value=failure_message)
         raise ValueError(failure_message)
 
-    success_message = f"Nombre de documents indexés : {doc_count}"
+    success_message = (
+        f"Nombre de documents indexés : {doc_count}<br/>"
+        f"Fondations sans SIRET indexés en plus : {fondation_doc_count}"
+    )
     ti.xcom_push(key=Notification.notification_xcom_key, value=success_message)
     logging.info(success_message)
 

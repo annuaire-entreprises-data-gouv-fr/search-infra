@@ -288,6 +288,18 @@ class BodaccMapping(InnerDoc):
     procedure_collective = Object(BodaccProcedureCollectiveMapping)
 
 
+class FondationMapping(InnerDoc):
+    numero_rnf = Keyword(required=True)
+    titre = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
+    type_organisme = Keyword()
+    date_creation = Date()
+    siren = Keyword()
+    siret = Keyword()
+    adresse = Text(analyzer=annuaire_analyzer)
+    code_postal = Keyword()
+    ville = Text(analyzer=annuaire_analyzer)
+
+
 class UniteLegaleMapping(InnerDoc):
     """
 
@@ -346,6 +358,7 @@ class UniteLegaleMapping(InnerDoc):
     est_ess = Boolean()
     est_organisme_formation = Boolean()
     liste_id_organisme_formation = Keyword()
+    numero_rnf = Keyword()
     est_qualiopi = Boolean()
     est_l100_3 = Boolean()  # Deprecated
     est_patrimoine_vivant = Boolean()
@@ -389,9 +402,11 @@ class UniteLegaleMapping(InnerDoc):
 
 class StructureMapping(Document):
     identifiant = Keyword()
+    type_structure = Keyword()
     nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     adresse = Text(analyzer=annuaire_analyzer)
     unite_legale = Object(UniteLegaleMapping)
+    fondation = Object(FondationMapping)
 
     class Index:
         settings = {

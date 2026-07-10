@@ -428,6 +428,26 @@ select_fields_to_index_query = """SELECT
               as liste_tva,
             (
                 SELECT json_object(
+                    'numero_rnf', numero_rnf,
+                    'titre', titre,
+                    'type_organisme', type_organisme,
+                    'date_creation', date_creation,
+                    'siren', siren,
+                    'siret', siret,
+                    'adresse', adresse,
+                    'code_postal', code_postal,
+                    'ville', ville
+                )
+                FROM
+                (
+                    SELECT numero_rnf, titre, type_organisme, date_creation, siren,
+                    siret, adresse, code_postal, ville
+                    FROM fondation
+                    WHERE siren = ul.siren
+                )
+            ) as fondation,
+            (
+                SELECT json_object(
                     'date_immatriculation', date_immatriculation,
                     'date_radiation', date_radiation,
                     'indicateur_associe_unique', indicateur_associe_unique,

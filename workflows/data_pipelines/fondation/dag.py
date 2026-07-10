@@ -15,7 +15,7 @@ default_args = {
 
 
 @dag(
-    tags=["fondation"],
+    tags=["fondation", "organisme philanthropique"],
     default_args=default_args,
     schedule="0 16 * * *",
     start_date=datetime(2026, 1, 1),
