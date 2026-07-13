@@ -136,9 +136,9 @@ update_main_table_fields_with_rne_data_query = """
             UPDATE unite_legale
             SET from_rne = TRUE,
                 date_mise_a_jour_rne = (
-                    SELECT date_mise_a_jour
-                    FROM db_rne.unite_legale
-                    WHERE unite_legale.siren = db_rne.unite_legale.siren
+                    SELECT MAX(r.date_mise_a_jour)
+                    FROM db_rne.unite_legale r
+                    WHERE unite_legale.siren = r.siren
                     )
             WHERE siren IN (SELECT siren FROM db_rne.unite_legale)
         """
