@@ -1,3 +1,5 @@
+**Mise à jour du 13 mai 2026:** les champs latitude, longitude, x et y ont été supprimés. Nous vous invitons à utiliser ce jeu de données pour récupérer les coordonnées géographiques : [Géolocalisation des établissements du répertoire SIRENE](https://www.data.gouv.fr/datasets/geolocalisation-des-etablissements-du-repertoire-sirene-pour-les-etudes-statistiques).
+
 Ces jeux de données contiennent certaines informations sur les entreprises françaises disponibles dans [l'Annuaire des Entreprises](https://annuaire-entreprises.data.gouv.fr/) et dans son [API de Recherche](https://api.gouv.fr/les-api/api-recherche-entreprises).
 
 Les données proviennent de plusieurs [sources de données](https://annuaire-entreprises.data.gouv.fr/donnees/sources), soit à la maille de l'unité légale (siren) soit à la maille de l'établissement (siret).
