@@ -4,10 +4,12 @@ import zipfile
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from data_pipelines_annuaire.helpers.data_quality import (
     _clean_sirent_series,
     clean_sirent_column,
+    resolve_column_name,
     validate_file,
 )
 
@@ -629,3 +631,39 @@ def test_clean_siret_series():
     pd.testing.assert_series_equal(
         result_nan.reset_index(drop=True), expected_nan.reset_index(drop=True)
     )
+
+
+def _write_csv(header):
+    tmp = tempfile.NamedTemporaryFile(
+        mode="w", suffix=".csv", delete=False, encoding="utf-8"
+    )
+    tmp.write(header + "\n")
+    tmp.close()
+    return tmp.name
+
+
+def test_resolve_column_name_matches_any_year():
+    for year in ["2023", "2024", "2025", "2030"]:
+        path = _write_csv(f"Code Insee {year} Région;Code Siren Collectivité;Exercice")
+        assert resolve_column_name(path, r"Code Insee \d{4} Région") == (
+            f"Code Insee {year} Région"
+        )
+
+
+def test_resolve_column_name_separator():
+    path = _write_csv("Code Insee 2025 Département,Code Siren Collectivité;Exercice")
+    assert resolve_column_name(path, r"Code Insee \d{4} Département", ",") == (
+        "Code Insee 2025 Département"
+    )
+
+
+def test_resolve_column_name_raises_when_missing():
+    path = _write_csv("Code Insee Région;Exercice")
+    with pytest.raises(ValueError):
+        resolve_column_name(path, r"Code Insee \d{4} Région")
+
+
+def test_resolve_column_name_raises_when_more_than_one():
+    path = _write_csv("Code Insee 2021 Région;Code Insee 2022 Région;Exercice")
+    with pytest.raises(ValueError):
+        resolve_column_name(path, r"Code Insee \d{4} Région")

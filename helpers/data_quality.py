@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import tempfile
 import zipfile
 from typing import Literal
@@ -101,10 +102,12 @@ def _clean_sirent_series(
     # Add leading zeros if required
     if add_leading_zeros:
         clean_column = clean_column.apply(
-            lambda x: x.zfill(length)
-            # No Siren has more than 3 leading zeros
-            if pd.notna(x) and len(x) >= length - 3
-            else x
+            lambda x: (
+                x.zfill(length)
+                # No Siren has more than 3 leading zeros
+                if pd.notna(x) and len(x) >= length - 3
+                else x
+            )
         ).astype("string")
 
     # Keep only rows that are within the required length
@@ -199,3 +202,32 @@ def clean_sirent_column(
     )
 
     return cleaned_df
+
+
+def resolve_column_name(csv_path: str, pattern: str, sep: str = ";") -> str:
+    """
+    Find the actual column name of a CSV file matching a pattern.
+    Useful when a column name can change.
+    E.g. "Code INSEE 2024 Région" with the year increasing incrementally.
+    The pattern should return only one column name otherwise an exception is raised.
+
+    Args:
+        csv_path (str): local path to the CSV file.
+        pattern (str): regex pattern to match.
+        sep (str): CSV separator, defaults to ";".
+
+    Returns:
+        The actual column name.
+
+    Raises:
+        ValueError: if no column matches the pattern.
+
+    """
+    columns = pd.read_csv(csv_path, sep=sep, dtype="string", nrows=0).columns
+    matches = [col for col in columns if re.fullmatch(pattern, col)]
+    if len(matches) != 1:
+        raise ValueError(
+            f"No unique column matching '{pattern}' found in {csv_path}. "
+            f"Available columns: {list(columns)}"
+        )
+    return matches[0]

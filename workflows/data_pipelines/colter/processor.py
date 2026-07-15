@@ -3,7 +3,11 @@ import logging
 import numpy as np
 import pandas as pd
 
-from data_pipelines_annuaire.helpers import DataProcessor, clean_sirent_column
+from data_pipelines_annuaire.helpers import DataProcessor
+from data_pipelines_annuaire.helpers.data_quality import (
+    clean_sirent_column,
+    resolve_column_name,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.colter.config import (
     COLTER_CONFIG,
     ELUS_CONFIG,
@@ -39,13 +43,17 @@ class ColterProcessor(DataProcessor):
                 return "Région d'outre-mer"
             return "Région"
 
+        regions_path = self.config.files_to_download["colter_regions"]["destination"]
+        regions_code_insee_col = resolve_column_name(
+            regions_path, r"Code Insee \d{4} Région"
+        )
         df_colter = (
             pd.read_csv(
-                self.config.files_to_download["colter_regions"]["destination"],
+                regions_path,
                 dtype="string",
                 sep=";",
                 usecols=[
-                    "Code Insee 2024 Région",
+                    regions_code_insee_col,
                     "Code Siren Collectivité",
                     "Exercice",
                 ],
@@ -53,7 +61,7 @@ class ColterProcessor(DataProcessor):
             .loc[lambda df: df["Exercice"] == df["Exercice"].max()]
             .rename(
                 columns={
-                    "Code Insee 2024 Région": "colter_code_insee",
+                    regions_code_insee_col: "colter_code_insee",
                     "Code Siren Collectivité": "siren",
                 }
             )
@@ -101,13 +109,17 @@ class ColterProcessor(DataProcessor):
                 return None
             return colter_code_insee
 
+        deps_path = self.config.files_to_download["colter_deps"]["destination"]
+        deps_code_insee_col = resolve_column_name(
+            deps_path, r"Code Insee \d{4} Département"
+        )
         df_deps = (
             pd.read_csv(
-                self.config.files_to_download["colter_deps"]["destination"],
+                deps_path,
                 dtype="string",
                 sep=";",
                 usecols=[
-                    "Code Insee 2024 Département",
+                    deps_code_insee_col,
                     "Code Siren Collectivité",
                     "Exercice",
                 ],
@@ -115,7 +127,7 @@ class ColterProcessor(DataProcessor):
             .loc[lambda df: df["Exercice"] == df["Exercice"].max()]
             .rename(
                 columns={
-                    "Code Insee 2024 Département": "colter_code_insee",
+                    deps_code_insee_col: "colter_code_insee",
                     "Code Siren Collectivité": "siren",
                 }
             )
