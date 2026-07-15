@@ -334,6 +334,8 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             fondation["adresse"] = format_fondation_adresse(fondation)
             unite_legale_processed["numero_rnf"] = fondation["numero_rnf"]
             type_structure.append(StructureType.FONDATION)
+        else:
+            unite_legale_processed["numero_rnf"] = None
 
         # Create unité légale (structure) to be indexed
         unite_legale_to_index = {}
