@@ -25,6 +25,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichm
     label_section_from_activite,
     map_categorie_to_number,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.indexing_fondation import (
+    format_fondation_adresse,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.structure_type import (
     StructureType,
 )
@@ -328,6 +331,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         fondation = unite_legale_processed.pop("fondation")
         if fondation:
             fondation = json.loads(fondation)
+            fondation["adresse"] = format_fondation_adresse(fondation)
             unite_legale_processed["numero_rnf"] = fondation["numero_rnf"]
             type_structure.append(StructureType.FONDATION)
 

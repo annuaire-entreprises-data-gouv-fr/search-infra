@@ -7,7 +7,7 @@ Celles-ci auront donc l'objet `unite_legale` absent.
 select_fondations_to_index_query = """
     SELECT
         numero_rnf,
-        titre,
+        denomination,
         type_organisme,
         date_creation,
         adresse,

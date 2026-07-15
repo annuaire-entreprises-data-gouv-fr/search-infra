@@ -10,19 +10,19 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.structure_ty
 )
 
 
-def format_adresse(fondation):
+def format_fondation_adresse(fondation):
     parts = [fondation.get(field) for field in ["adresse", "code_postal", "ville"]]
     return " ".join(part.strip() for part in parts if part and part.strip())
 
 
 def doc_fondation_generator(fondations, elastic_index):
     for fondation in fondations:
+        fondation["adresse"] = format_fondation_adresse(fondation)
         yield StructureMapping(
             meta={"index": elastic_index, "id": fondation["numero_rnf"]},
             identifiant=fondation["numero_rnf"],
             type_structure=[StructureType.FONDATION],
-            nom_complet=fondation["titre"],
-            adresse=format_adresse(fondation),
+            nom_complet=fondation["denomination"],
             fondation=fondation,
         ).to_dict(include_meta=True)
 

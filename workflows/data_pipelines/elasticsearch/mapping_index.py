@@ -290,7 +290,7 @@ class BodaccMapping(InnerDoc):
 
 class FondationMapping(InnerDoc):
     numero_rnf = Keyword(required=True)
-    titre = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
+    denomination = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     type_organisme = Keyword()
     date_creation = Date()
     siren = Keyword()
@@ -358,7 +358,6 @@ class UniteLegaleMapping(InnerDoc):
     est_ess = Boolean()
     est_organisme_formation = Boolean()
     liste_id_organisme_formation = Keyword()
-    numero_rnf = Keyword()
     est_qualiopi = Boolean()
     est_l100_3 = Boolean()  # Deprecated
     est_patrimoine_vivant = Boolean()
@@ -384,6 +383,7 @@ class UniteLegaleMapping(InnerDoc):
     nom_raison_sociale = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     nombre_etablissements = Integer()  # NaN can't be stored in an integer array
     nombre_etablissements_ouverts = Integer()
+    numero_rnf = Keyword()
     prenom = Text(analyzer=annuaire_analyzer)
     section_activite_principale = Keyword()
     siege = Object(SiegeMapping)

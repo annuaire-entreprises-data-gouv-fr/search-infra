@@ -429,7 +429,7 @@ select_fields_to_index_query = """SELECT
             (
                 SELECT json_object(
                     'numero_rnf', numero_rnf,
-                    'titre', titre,
+                    'denomination', denomination,
                     'type_organisme', type_organisme,
                     'date_creation', date_creation,
                     'siren', siren,
@@ -440,7 +440,7 @@ select_fields_to_index_query = """SELECT
                 )
                 FROM
                 (
-                    SELECT numero_rnf, titre, type_organisme, date_creation, siren,
+                    SELECT numero_rnf, denomination, type_organisme, date_creation, siren,
                     siret, adresse, code_postal, ville
                     FROM fondation
                     WHERE siren = ul.siren
