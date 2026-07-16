@@ -220,7 +220,7 @@ def resolve_column_name(csv_path: str, pattern: str, sep: str = ";") -> str:
         The actual column name.
 
     Raises:
-        ValueError: if no column matches the pattern.
+        ValueError: if no unique column matches the pattern.
 
     """
     columns = pd.read_csv(csv_path, sep=sep, dtype="string", nrows=0).columns
@@ -230,4 +230,7 @@ def resolve_column_name(csv_path: str, pattern: str, sep: str = ";") -> str:
             f"No unique column matching '{pattern}' found in {csv_path}. "
             f"Available columns: {list(columns)}"
         )
+    logging.info(
+        f"The pattern '{pattern}' matches the actual column '{matches[0]}' in the file {csv_path}."
+    )
     return matches[0]
