@@ -288,6 +288,18 @@ class BodaccMapping(InnerDoc):
     procedure_collective = Object(BodaccProcedureCollectiveMapping)
 
 
+class FondationMapping(InnerDoc):
+    numero_rnf = Keyword(required=True)
+    denomination = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
+    type_organisme = Keyword()
+    date_creation = Date()
+    siren = Keyword()
+    siret = Keyword()
+    adresse = Text(analyzer=annuaire_analyzer)
+    code_postal = Keyword()
+    ville = Text(analyzer=annuaire_analyzer)
+
+
 class UniteLegaleMapping(InnerDoc):
     """
 
@@ -371,6 +383,7 @@ class UniteLegaleMapping(InnerDoc):
     nom_raison_sociale = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     nombre_etablissements = Integer()  # NaN can't be stored in an integer array
     nombre_etablissements_ouverts = Integer()
+    numero_rnf = Keyword()
     prenom = Text(analyzer=annuaire_analyzer)
     section_activite_principale = Keyword()
     siege = Object(SiegeMapping)
@@ -389,9 +402,11 @@ class UniteLegaleMapping(InnerDoc):
 
 class StructureMapping(Document):
     identifiant = Keyword()
+    type_structure = Keyword()
     nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     adresse = Text(analyzer=annuaire_analyzer)
     unite_legale = Object(UniteLegaleMapping)
+    fondation = Object(FondationMapping)
 
     class Index:
         settings = {

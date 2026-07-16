@@ -25,12 +25,19 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichm
     label_section_from_activite,
     map_categorie_to_number,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.indexing_fondation import (
+    format_fondation_adresse,
+)
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.structure_type import (
+    StructureType,
+)
 
 
 def process_unites_legales(chunk_unites_legales_sqlite):
     list_unites_legales_processed = []
     for unite_legale in chunk_unites_legales_sqlite:
         unite_legale_processed = {}
+        type_structure = [StructureType.UNITE_LEGALE]
         for field in unite_legale:
             if field in ["colter_elus"]:
                 unite_legale_processed[field] = json.loads(unite_legale[field])
@@ -318,11 +325,25 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["liste_tva"]
         )
 
+        # Fondations
+        # Only the fondations with a SIRET are indexed in the fondation object at this point
+        # See the fill_elastic_fondation_index() task for fondations without a SIRET
+        fondation = unite_legale_processed.pop("fondation")
+        if fondation:
+            fondation = json.loads(fondation)
+            fondation["adresse"] = format_fondation_adresse(fondation)
+            unite_legale_processed["numero_rnf"] = fondation["numero_rnf"]
+            type_structure.append(StructureType.FONDATION)
+        else:
+            unite_legale_processed["numero_rnf"] = None
+
         # Create unité légale (structure) to be indexed
         unite_legale_to_index = {}
         unite_legale_to_index["identifiant"] = unite_legale_processed["siren"]
+        unite_legale_to_index["type_structure"] = type_structure
         unite_legale_to_index["nom_complet"] = unite_legale_processed["nom_complet"]
         unite_legale_to_index["unite_legale"] = unite_legale_processed
+        unite_legale_to_index["fondation"] = fondation
 
         list_unites_legales_processed.append(unite_legale_to_index)
 
