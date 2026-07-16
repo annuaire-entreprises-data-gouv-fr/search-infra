@@ -8,42 +8,18 @@ from airflow.sdk import get_current_context
 from requests.exceptions import HTTPError
 
 from data_pipelines_annuaire.config import (
-    FILE_CC_DATE,
     METADATA_CC_OBJECT_STORAGE_PATH,
     METADATA_CC_TMP_FOLDER,
-    URL_CC_DARES,
-    URL_CC_KALI,
 )
 from data_pipelines_annuaire.helpers.notification import Notification
 from data_pipelines_annuaire.helpers.object_storage import File, ObjectStorageClient
-from data_pipelines_annuaire.helpers.utils import get_previous_months
+from data_pipelines_annuaire.helpers.utils import fetch_hyperlink_from_page
 
-
-def get_month_year_french():
-    # Mapping of month numbers to French month names in lowercase
-    month_mapping = {
-        1: "janvier",
-        2: "février",
-        3: "mars",
-        4: "avril",
-        5: "mai",
-        6: "juin",
-        7: "juillet",
-        8: "aout",
-        9: "septembre",
-        10: "octobre",
-        11: "novembre",
-        12: "décembre",
-    }
-
-    current_date = datetime.now()
-    month_number = current_date.month
-    month_name_french = month_mapping.get(month_number, "unknown").title()
-
-    year_last_two_digits = str(current_date.year)[-2:]
-    # Format the result as 'monthYear'
-    result = f"{month_name_french}{year_last_two_digits}"
-    return result
+# Datasets
+URL_CC_DARES = "https://travail-emploi.gouv.fr/conventions-collectives-nomenclatures"
+URL_CC_KALI = "https://www.data.gouv.fr/datasets/r/02b67492-5243-44e8-8dd1-0cb3f90f35ff"
+# Stable prefix of the DARES file name, used to find its download link on the page
+FILE_CC_DATE = "Dares_Suivi_Historique_convention_collective_"
 
 
 def is_metadata_not_updated() -> bool:
@@ -66,30 +42,34 @@ def is_metadata_not_updated() -> bool:
 
 
 def create_metadata_convention_collective_json():
-    current_cc_dares_file = f"{FILE_CC_DATE}{get_month_year_french()}.xlsx"
-    months = get_previous_months(lookback=3)
-    logging.info(months)
-    # We try to fetch the file from previous folder months because sometimes
-    # the file is not uploaded to the right folder
-    for month in months:
-        current_url_cc_dares = f"{URL_CC_DARES}/{month}/{current_cc_dares_file}"
-        logging.info(f"CC Dares URL: {current_url_cc_dares}")
-
+    # The file name and its remote folder change every few month and are not always
+    # consistent so we parse the downloadable link from the page instead of
+    # guessing the URL
+    file_downloaded = False
+    current_url_cc_dares = URL_CC_DARES
+    try:
+        current_url_cc_dares = fetch_hyperlink_from_page(
+            URL_CC_DARES, FILE_CC_DATE, match_on="href"
+        )
         r = requests.get(current_url_cc_dares, allow_redirects=True)
-        if r.ok:
-            break
+        # travail-emploi.gouv.fr sometimes answers 200 with an HTML page
+        # instead of the file, so r.ok is not enough: check the xlsx zip
+        # signature to be sure we actually downloaded a spreadsheet
+        file_downloaded = r.ok and r.content[:4] == b"PK\x03\x04"
+    except (ValueError, requests.exceptions.RequestException) as e:
+        logging.warning(f"Failed to fetch the CC Dares file: {e}")
 
-    if not r.ok:
-        # The file is often unavailable, this is expected but
+    if not file_downloaded:
+        # The file is sometimes unavailable, this is expected but
         # we need to be informed to act upon it if it has been too long
         last_run_date = ObjectStorageClient().get_date_last_modified(
             f"{METADATA_CC_OBJECT_STORAGE_PATH}cc_kali.json"
         )
         if last_run_date is not None:
             date_diff = datetime.now() - datetime.fromisoformat(last_run_date)
-            error_message = f"\u26a0\ufe0f {r.status_code}: Le fichier CC du DARES n'est pas disponible depuis {date_diff.days} jours."
+            error_message = f"\u26a0\ufe0f Le fichier CC du DARES n'est pas disponible depuis {date_diff.days} jours."
         else:
-            error_message = f"\u26a0\ufe0f {r.status_code}: Le fichier CC du DARES n'est pas disponible."
+            error_message = "\u26a0\ufe0f Le fichier CC du DARES n'est pas disponible."
         logging.warning(error_message)
         ti = get_current_context()["ti"]
         ti.xcom_push(key=Notification.notification_xcom_key, value=error_message)
@@ -100,11 +80,15 @@ def create_metadata_convention_collective_json():
             f.write(chunk)
     df_dares = pd.read_excel(
         METADATA_CC_TMP_FOLDER + "dares-download.xlsx",
+        sheet_name="Conventions de branche",
         dtype=str,
         header=0,
-        skiprows=3,
         engine="openpyxl",
     )
+    # DARES pads IDCC to 5 digits (e.g. 00176) while Kali doesn't (e.g. 176)
+    # We have to strip leading zeros so both dataframes can be merged
+    df_dares["IDCC"] = df_dares["IDCC"].str.lstrip("0")
+    df_dares = df_dares.rename(columns={"Libellé": "titre de la convention"})
     # Get Kali list
     r = requests.get(URL_CC_KALI, allow_redirects=True)
     with open(METADATA_CC_TMP_FOLDER + "kali-download.xlsx", "wb") as f:

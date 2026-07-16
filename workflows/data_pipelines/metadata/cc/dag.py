@@ -22,7 +22,7 @@ default_args = {
 @dag(
     default_args=default_args,
     start_date=datetime(2026, 1, 1),
-    schedule="0 11 2,3 * *",  # At 11:00 on the 2nd and 3rd day of every month
+    schedule="0 11 2,16 * *",  # At 11:00 on the 2nd and 16th day of every month
     catchup=False,
     max_active_runs=1,
     dagrun_timeout=timedelta(minutes=(60 * 100)),
