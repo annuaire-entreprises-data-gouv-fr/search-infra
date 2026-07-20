@@ -518,6 +518,15 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
     return dirigeants_pm_processed, list(set(list_all_dirigeants))
 
 
+def format_bodacc(bodacc_sqlite):
+    bodacc = json.loads(bodacc_sqlite) if bodacc_sqlite else {}
+    if bodacc.get("radiation"):
+        bodacc["radiation"]["est_radie"] = sqlite_str_to_bool(
+            bodacc["radiation"].get("est_radie", None)
+        )
+    return bodacc
+
+
 # Élus
 def create_list_names_elus(list_elus):
     list_elus_names = []

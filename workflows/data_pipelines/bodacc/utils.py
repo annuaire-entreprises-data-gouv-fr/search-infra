@@ -1,10 +1,7 @@
-import json
 import logging
 import re
-from pathlib import Path
 
 import pandas as pd
-import yaml
 
 from data_pipelines_annuaire.helpers.utils import keep_only_numbers, parse_json_safe
 
@@ -75,66 +72,7 @@ def parse_date_bodacc(date_str: str) -> str:
     return ""
 
 
-def parse_radiation_json(radiation_str: str) -> str:
-    """Extrait la date de cessation depuis le champ radiationaurcs."""
-    if pd.isna(radiation_str) or not radiation_str:
-        return ""
-    data = json.loads(radiation_str)
-    # Format acutel PP
-    if "dateCessationActivitePP" in data:
-        return parse_date_bodacc(data["dateCessationActivitePP"])
-    # Format obsolète PP
-    if "radiationPP" in data and isinstance(data["radiationPP"], dict):
-        return parse_date_bodacc(data["radiationPP"].get("dateCessationActivitePP", ""))
-    # Les PM n'ont pas de date de disponible
-    return ""
-
-
-def parse_jugement_json(jugement_str: str) -> dict:
-    """Parse le champ json jugement et en extraire famille, nature, complementJugement et date."""
-    if pd.isna(jugement_str) or not jugement_str:
-        return {"famille": "", "nature": "", "complementJugement": "", "date": ""}
-    try:
-        data = json.loads(jugement_str)
-        return {
-            "famille": fix_mojibake(data.get("famille", "")),
-            "nature": fix_mojibake(data.get("nature", "")),
-            "complementJugement": fix_mojibake(data.get("complementJugement", "")),
-            "date": parse_date_bodacc(data.get("date", "")),
-        }
-    except json.JSONDecodeError:
-        return {"famille": "", "nature": "", "complementJugement": "", "date": ""}
-
-
-def is_procedure_en_cours(nature: str) -> bool:
-    """Vérifie si la nature de jugement correspond à une procédure en cours."""
-    NATURES_CLOTURE = [
-        "clôture",
-        "cloture",
-        "clotûre",
-        "plan arrêté",
-        "plan arrete",
-        "arrêtant le plan",
-        "arretant le plan",
-    ]
-    if pd.isna(nature) or not nature:
-        return False
-    nature_lower = nature.lower()
-    return not any(kw in nature_lower for kw in NATURES_CLOTURE)
-
-
-def is_cloture(famille: str) -> bool:
-    """Vérifie si la famille correspond à une clôture de procédure."""
-    FAMILLES_CLOTURE = [
-        "jugement de clôture",
-    ]
-    if pd.isna(famille) or not famille:
-        return False
-    famille_lower = famille.lower()
-    return any(kw in famille_lower for kw in FAMILLES_CLOTURE)
-
-
-def is_retractation(famille: str) -> bool:
+def _is_jugement_retractation(famille: str) -> bool:
     """Vérifie si la famille correspond à une rétractation (équivalent annulation)."""
     # Familles équivalentes à une annulation
     FAMILLES_ANNULATION = [
@@ -147,7 +85,7 @@ def is_retractation(famille: str) -> bool:
     return any(kw in famille_lower for kw in FAMILLES_ANNULATION)
 
 
-def is_rapport_de_radiation_doffice(radiationaurcs_str: str) -> bool:
+def _is_radiationaurcs_radiation_doffice(radiationaurcs_str: str) -> bool:
     """
     Vérifie si le champ radiationaurcs indique un rapport de radiation d'office.
     Un rapport de radiation d'office correspond à l'annulation d'une radiation.
@@ -208,7 +146,7 @@ def get_previous_ids_to_discard(df: pd.DataFrame) -> set:
                 parse_json_safe(x).get("famille", "") if parse_json_safe(x) else ""
             )
         )
-        retractations = df[familles.apply(is_retractation)]
+        retractations = df[familles.apply(_is_jugement_retractation)]
         if not retractations.empty:
             ids_from_retractations = retractations["parutionavisprecedent"].apply(
                 extract_id_from_avis_precedent
@@ -234,7 +172,9 @@ def get_processed_ids_to_discard(df: pd.DataFrame) -> set:
     # Rectificatifs de type "radiation d'office" (équivalent annulation)
     if "radiationaurcs" in df.columns:
         is_rectificatif = df["typeavis"] == "rectificatif"
-        is_rad_doffice = df["radiationaurcs"].apply(is_rapport_de_radiation_doffice)
+        is_rad_doffice = df["radiationaurcs"].apply(
+            _is_radiationaurcs_radiation_doffice
+        )
         ids_to_discard.update(df.loc[is_rectificatif & is_rad_doffice, "id"].dropna())
 
     # Rétractations sur tierce opposition
@@ -245,7 +185,7 @@ def get_processed_ids_to_discard(df: pd.DataFrame) -> set:
                 parse_json_safe(x).get("famille", "") if parse_json_safe(x) else ""
             )
         )
-        retractations = df[familles.apply(is_retractation)]
+        retractations = df[familles.apply(_is_jugement_retractation)]
         ids_to_discard.update(retractations["id"].dropna())
 
     return ids_to_discard
@@ -272,7 +212,7 @@ def process_discarded_announcements(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def extract_sirens_from_personne(listepersonnes: str) -> list[str]:
+def _extract_sirens_from_personne(listepersonnes: str) -> list[str]:
     """
     Extract all unique siren from the listepersonnes field.
     If there is multiple entries, "listepersonnes" looks like:
@@ -331,43 +271,8 @@ def extract_sirens_from_listepersonnes(df: pd.DataFrame) -> pd.DataFrame:
     All columns keep the same values, only the siren one changes.
     """
     df = df.copy()
-    df["_sirens"] = df["listepersonnes"].apply(extract_sirens_from_personne)
+    df["_sirens"] = df["listepersonnes"].apply(_extract_sirens_from_personne)
     df = df[df["_sirens"].apply(len) > 0]
     df = df.explode("_sirens", ignore_index=True)
     df = df.rename(columns={"_sirens": "siren"})
     return df
-
-
-RULES_PATH = Path(__file__).parent / "rule.yml"
-
-
-def load_procedure_collective_rules() -> list[dict]:
-    with open(RULES_PATH, encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    return data["procedure_collective_rules"]
-
-
-def apply_procedure_collective_rules(
-    nature: str, complement_jugement: str, rules: list[dict]
-) -> str | None:
-    """
-    Applique les règles dans l'ordre. Retourne le statut de la première règle
-    qui matche, ou None si aucune règle ne correspond (avec un warning loggé).
-    """
-    if not nature:
-        return None
-
-    for rule in rules:
-        if rule["nature"] != nature:
-            continue
-        if "complement_contains" in rule:
-            if (
-                not complement_jugement
-                or rule["complement_contains"].lower()
-                not in complement_jugement.lower()
-            ):
-                continue
-        return rule.get("statut")
-
-    logging.warning(f"BODACC: nature non traitée dans rule.yml : '{nature}'")
-    return None
