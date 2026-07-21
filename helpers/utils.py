@@ -582,13 +582,19 @@ def load_file(file_name: str):
     return file_decoded
 
 
-def fetch_hyperlink_from_page(url: str, search_text: str) -> str:
+def fetch_hyperlink_from_page(
+    url: str, search_text: str, match_on: Literal["text", "href"] = "text"
+) -> str:
     """
     Fetches a URL from a web page that matches the given search text.
 
     Args:
         url (str): The URL of the web page to search.
-        search_text (str): The text to search for within the web page's HTML content.
+        search_text (str): The text to search for within the web page's HTML content:
+            either the exact content of a link or a substring of its href,
+            depending on match_on.
+        match_on (Literal["text", "href"]): Whether to match search_text against
+            the link's content or its href. Defaults to "text".
     Returns:
         str: The full URL found in the web page that matches the search text.
     Raises:
@@ -597,17 +603,18 @@ def fetch_hyperlink_from_page(url: str, search_text: str) -> str:
     """
 
     parsed_url = urlparse(url)
-    base_url = base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+    base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
 
     response = requests.get(url)
     response.raise_for_status()
     html_content = response.text
 
     logging.info(f"Looking for the URL behind: {search_text}")
-    match = re.search(
-        r'<a\s+[^>]*href="([^"]+)"[^>]*>' + re.escape(search_text) + r"</a>",
-        html_content,
-    )
+    if match_on == "href":
+        pattern = r'<a\s+[^>]*href="([^"]*' + re.escape(search_text) + r'[^"]*)"'
+    else:
+        pattern = r'<a\s+[^>]*href="([^"]+)"[^>]*>' + re.escape(search_text) + r"</a>"
+    match = re.search(pattern, html_content)
 
     if not match:
         raise ValueError(f"No URL found in the html source of: {url}")

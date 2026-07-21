@@ -1,8 +1,11 @@
 import logging
 import os
 import tempfile
+from unittest.mock import MagicMock, patch
 
 import pytest
+
+from data_pipelines_annuaire.helpers.utils import fetch_hyperlink_from_page
 
 
 def get_last_line(file_path):
@@ -86,3 +89,47 @@ def test_error_reading_last_line(temp_file_path):
     os.chmod(temp_file_path, 0o000)
     result = get_last_line(temp_file_path)
     assert result is None
+
+
+PAGE_HTML = """
+<a href="/documents/report.pdf" class="link">Annual report</a>
+<a href="/files/2026-06/Monthly_Data_Export_June2026.xlsx"
+   type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+   class="link link--download" download>     Monthly data
+   export <span class="link__detail">(XLSX - 188.18 Ko)</span>
+</a>
+"""
+
+
+@pytest.fixture
+def mock_page_response():
+    with patch("data_pipelines_annuaire.helpers.utils.requests.get") as mock_get:
+        mock_get.return_value = MagicMock(text=PAGE_HTML)
+        yield mock_get
+
+
+def test_fetch_hyperlink_matching_text(mock_page_response):
+    result = fetch_hyperlink_from_page("https://example.com/some-page", "Annual report")
+    assert result == "https://example.com/documents/report.pdf"
+
+
+def test_fetch_hyperlink_matching_href(mock_page_response):
+    # The anchor content is spread over several lines and contains a nested
+    # span, so only an href match can find it
+    result = fetch_hyperlink_from_page(
+        "https://example.com/some-page",
+        "Monthly_Data_Export_",
+        match_on="href",
+    )
+    assert (
+        result == "https://example.com/files/2026-06/Monthly_Data_Export_June2026.xlsx"
+    )
+
+
+def test_fetch_hyperlink_not_found(mock_page_response):
+    with pytest.raises(ValueError):
+        fetch_hyperlink_from_page(
+            "https://example.com/some-page",
+            "not_in_the_page",
+            match_on="href",
+        )
