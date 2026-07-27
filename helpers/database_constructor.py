@@ -47,8 +47,7 @@ class DatabaseTableConstructor:
                 sqlite_client.db_conn,
                 if_exists="append",
                 index=False,
-                method="multi",
-                chunksize=10000,
+                chunksize=200000,
             )
             row_count = sqlite_client.get_table_count(self.config.name)
 

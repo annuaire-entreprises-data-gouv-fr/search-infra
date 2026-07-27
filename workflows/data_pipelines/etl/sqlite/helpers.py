@@ -29,14 +29,10 @@ def get_table_count(name):
 def create_table_model(
     table_name,
     create_table_query,
-    create_index_func,
-    index_name,
-    index_column,
 ):
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(drop_table(table_name))
     sqlite_client.execute(create_table_query)
-    sqlite_client.execute(create_index_func(index_name, table_name, index_column))
     return sqlite_client
 
 

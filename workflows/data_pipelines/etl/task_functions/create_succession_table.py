@@ -21,9 +21,6 @@ def create_succession_table():
     sqlite_client = create_table_model(
         table_name=table_name,
         create_table_query=create_table_liens_succession_query,
-        create_index_func=create_index,
-        index_name="index_succession_siret_successeur",
-        index_column="siret_successeur",
     )
 
     for df_liens in preprocess_succession_df():
@@ -37,6 +34,11 @@ def create_succession_table():
                 f"to the {table_name} table!"
             )
 
+    sqlite_client.execute(
+        create_index(
+            "index_succession_siret_successeur", table_name, "siret_successeur"
+        )
+    )
     sqlite_client.execute(
         create_index(
             "index_succession_siret_predecesseur", table_name, "siret_predecesseur"
