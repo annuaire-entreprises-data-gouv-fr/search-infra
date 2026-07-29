@@ -64,7 +64,7 @@ def drop_duplicates_personnes_physiques(list_dict_personnes):
             personnes_by_nom_prenom[normalized_name] = [personne]
 
     list_personnes_unique = []
-    for key_personne, same_personnes in personnes_by_nom_prenom.items():
+    for same_personnes in personnes_by_nom_prenom.values():
         last_personne = same_personnes[-1]
         if len(same_personnes) == 1:
             list_personnes_unique.append(last_personne)
@@ -137,7 +137,7 @@ def drop_duplicates_dirigeants_pm(list_dict_dirigeants):
             dirigeants_by_siren[siren] = [dirigeant]
 
     list_dirigeants_unique = []
-    for key_dirigeant, same_dirigeants in dirigeants_by_siren.items():
+    for same_dirigeants in dirigeants_by_siren.values():
         last_dirigeant = same_dirigeants[-1]
         if len(same_dirigeants) == 1:
             list_dirigeants_unique.append(last_dirigeant)

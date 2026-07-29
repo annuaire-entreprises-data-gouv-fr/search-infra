@@ -110,7 +110,7 @@ def get_epsg_from_code(code_postal: str | None, code_commune: str | None) -> int
     for code in [code_postal, code_commune]:
         if code is None:
             continue
-        if code.startswith("97") or code.startswith("98") or code.startswith("99"):
+        if code.startswith(("97", "98", "99")):
             prefix = code[:3]
             if prefix in EPSG_BY_TERRITORY:
                 return EPSG_BY_TERRITORY[prefix]

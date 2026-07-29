@@ -39,7 +39,7 @@ class RgeProcessor(DataProcessor):
 
         except requests.exceptions.RequestException as e:
             logging.error(f"Error downloading data from {url}: {e}")
-            raise e
+            raise
 
     def preprocess_data(self):
         list_rge = self.download_data()

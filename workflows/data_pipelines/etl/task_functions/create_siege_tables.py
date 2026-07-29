@@ -97,4 +97,4 @@ def add_rne_data_to_siege_table():
     except Exception as error:
         # Handle other exceptions if needed
         logging.error(f"An unexpected error occurred: {error}")
-        raise error
+        raise

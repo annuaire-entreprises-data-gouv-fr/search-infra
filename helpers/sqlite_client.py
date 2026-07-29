@@ -3,6 +3,7 @@ import os
 import sqlite3
 
 import pandas as pd
+from typing_extensions import Self
 
 from data_pipelines_annuaire.helpers.filesystem import LocalFile
 
@@ -55,7 +56,7 @@ class SqliteClient:
         )
         self.db_cursor = self.db_conn.cursor()
 
-    def __enter__(self) -> "SqliteClient":
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:

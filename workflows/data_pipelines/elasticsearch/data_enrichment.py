@@ -146,10 +146,7 @@ def format_nom(
 
 # Entrepreneur individuel
 def is_entrepreneur_individuel(nature_juridique_unite_legale):
-    if nature_juridique_unite_legale in ["1", "10", "1000"]:
-        return True
-    else:
-        return False
+    return nature_juridique_unite_legale in ["1", "10", "1000"]
 
 
 def is_personne_morale_insee(nature_juridique_unite_legale):
@@ -271,20 +268,17 @@ def has_access_espace_agent(
 def is_association(nature_juridique_unite_legale, identifiant_association):
     if identifiant_association:
         return True
-    if nature_juridique_unite_legale and nature_juridique_unite_legale.startswith(
-        ("5195", "92")
-    ):
-        return True
-    return False
+    return bool(
+        nature_juridique_unite_legale
+        and nature_juridique_unite_legale.startswith(("5195", "92"))
+    )
 
 
 # Section activité principale
 def label_section_from_activite(activite_principale_unite_legale):
     if activite_principale_unite_legale is not None:
         code_naf = activite_principale_unite_legale[:2]
-        section_activite_principale = (
-            sections_NAF[code_naf] if code_naf in sections_NAF else None
-        )
+        section_activite_principale = sections_NAF.get(code_naf, None)
         return section_activite_principale
     else:
         return None
@@ -293,11 +287,7 @@ def label_section_from_activite(activite_principale_unite_legale):
 # Région
 def label_region_from_departement(departement):
     if departement is not None:
-        region = (
-            mapping_dep_to_reg[departement]
-            if departement in mapping_dep_to_reg
-            else None
-        )
+        region = mapping_dep_to_reg.get(departement, None)
         return region
     return None
 
@@ -423,7 +413,11 @@ def map_roles(codes):
 
 
 # Perosnnes physiques (dirigeants pp)
-def format_personnes_physiques(list_personnes_physiques_sqlite, list_all_personnes=[]):
+def format_personnes_physiques(
+    list_personnes_physiques_sqlite, list_all_personnes=None
+):
+    if list_all_personnes is None:
+        list_all_personnes = []
     personnes_physiques = json.loads(list_personnes_physiques_sqlite)
     personnes_physiques_processed = []
 
@@ -438,14 +432,14 @@ def format_personnes_physiques(list_personnes_physiques_sqlite, list_all_personn
         )
 
         personnes_physiques_processed.append(
-            dict(
-                nom=personne_physique["nom"],
-                prenoms=personne_physique["prenoms"],
-                date_de_naissance=personne_physique["date_de_naissance"],
-                nationalite=personne_physique["nationalite"],
-                role=personne_physique["role_description"],
-                date_mise_a_jour=personne_physique["date_mise_a_jour"],
-            )
+            {
+                "nom": personne_physique["nom"],
+                "prenoms": personne_physique["prenoms"],
+                "date_de_naissance": personne_physique["date_de_naissance"],
+                "nationalite": personne_physique["nationalite"],
+                "role": personne_physique["role_description"],
+                "date_mise_a_jour": personne_physique["date_mise_a_jour"],
+            }
         )
 
         # Liste personnes
@@ -485,7 +479,9 @@ def format_personnes_physiques(list_personnes_physiques_sqlite, list_all_personn
 
 
 # Dirigeants PM
-def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
+def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=None):
+    if list_all_dirigeants is None:
+        list_all_dirigeants = []
     dirigeants_pm = json.loads(list_dirigeants_pm_sqlite)
     dirigeants_pm_processed = []
     for dirigeant_pm in dirigeants_pm:
@@ -499,13 +495,13 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=[]):
             dirigeant_pm["role_description"]
         )
         dirigeants_pm_processed.append(
-            dict(
-                siren=dirigeant_pm["siren_dirigeant"],
-                denomination=dirigeant_pm["denomination"],
-                role=dirigeant_pm["role_description"],
-                forme_juridique=dirigeant_pm["forme_juridique"],
-                date_mise_a_jour=dirigeant_pm["date_mise_a_jour"],
-            )
+            {
+                "siren": dirigeant_pm["siren_dirigeant"],
+                "denomination": dirigeant_pm["denomination"],
+                "role": dirigeant_pm["role_description"],
+                "forme_juridique": dirigeant_pm["forme_juridique"],
+                "date_mise_a_jour": dirigeant_pm["date_mise_a_jour"],
+            }
         )
 
     if dirigeants_pm_processed:

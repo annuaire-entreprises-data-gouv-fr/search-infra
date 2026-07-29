@@ -360,13 +360,11 @@ def apply_procedure_collective_rules(
     for rule in rules:
         if rule["nature"] != nature:
             continue
-        if "complement_contains" in rule:
-            if (
-                not complement_jugement
-                or rule["complement_contains"].lower()
-                not in complement_jugement.lower()
-            ):
-                continue
+        if "complement_contains" in rule and (
+            not complement_jugement
+            or rule["complement_contains"].lower() not in complement_jugement.lower()
+        ):
+            continue
         return rule.get("statut")
 
     logging.warning(f"BODACC: nature non traitée dans rule.yml : '{nature}'")

@@ -56,7 +56,7 @@ class MarcheInclusionProcessor(DataProcessor):
             )
             .groupby("siren")["kind"]
             .agg(
-                lambda x: str(sorted(list(set(x)))),
+                lambda x: str(sorted(set(x))),
             )
             .reset_index()
             .rename(columns={"kind": "type_siae"})

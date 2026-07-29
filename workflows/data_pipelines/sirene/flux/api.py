@@ -63,7 +63,9 @@ class SireneApiClient(ApiClient):
             return pd.concat(dfs, ignore_index=True)
 
     def process_response_and_pagination(
-        self, response: dict[str, Any] = None, current_params: dict[str, Any] = None
+        self,
+        response: dict[str, Any] | None = None,
+        current_params: dict[str, Any] | None = None,
     ) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
         if current_params is None:
             initial_params = {"curseur": "*"}

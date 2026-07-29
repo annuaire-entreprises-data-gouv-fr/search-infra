@@ -120,12 +120,12 @@ def add_rne_siren_data_to_unite_legale_table():
         logging.error(f"IntegrityError: {e}")
         problematic_sirens = e.args[0].split(": ")[1].split(", ")
         logging.error(f"Problematic Sirens: {problematic_sirens}")
-        raise e
+        raise
 
     except Exception as e:
         # Handle other exceptions if needed
         logging.error(f"An unexpected error occurred: {e}")
-        raise e
+        raise
 
 
 @task

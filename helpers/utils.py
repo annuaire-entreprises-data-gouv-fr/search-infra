@@ -47,9 +47,7 @@ def sqlite_str_to_bool(string):
     SQlite tables (egapro, entrepreneur spectacle, qualiopi) only include siren
     numbers which have those labels otherwise it's empty hence this function to make
     sure it gets labeled False"""
-    if string == 1:
-        return True
-    return False
+    return string == 1
 
 
 def unique_list(lst):
@@ -348,12 +346,7 @@ def get_date_last_modified(response=None, url=None) -> str | None:
 
 def parse_date_string(
     date_string: str | None,
-    input_formats: str | list[str] = [
-        "%a, %d %b %Y %H:%M:%S %Z",
-        "%Y-%m-%d",
-        "%Y-%m-%dT%H:%M:%S",
-        "%Y-%m-%d %H:%M:%S",
-    ],
+    input_formats: str | list[str] | None = None,
     output_format: str = "%Y-%m-%d",
     default_value: str = "No date available",
 ) -> str:
@@ -382,6 +375,13 @@ def parse_date_string(
         >>> parse_date_string("2024-01-01 15:30:00", output_format="%Y-%m-%d")
         '2024-01-01'
     """
+    if input_formats is None:
+        input_formats = [
+            "%a, %d %b %Y %H:%M:%S %Z",
+            "%Y-%m-%d",
+            "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%d %H:%M:%S",
+        ]
     if not date_string:
         return default_value
 
