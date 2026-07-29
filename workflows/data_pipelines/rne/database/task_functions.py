@@ -28,6 +28,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.rne.database.process_rne i
     remove_duplicates_from_tables,
 )
 
+logger = logging.getLogger(__name__)
+
 
 @task
 def get_start_date():
@@ -55,7 +57,7 @@ def get_start_date():
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         if error_code in ["404", "NotFound"]:
-            logging.info(
+            logger.info(
                 f"The file {RNE_OBJECT_STORAGE_STOCK_DATA_PATH + RNE_LATEST_DATE_FILE} "
                 f"does not exist in the bucket {object_storage_client.bucket}."
             )
@@ -96,7 +98,7 @@ def create_db():
 
     rne_db_path = create_db_path(start_date)
     ti.xcom_push(key="rne_db_path", value=rne_db_path)
-    logging.info(f"***********RNE database path: {rne_db_path}")
+    logger.info(f"***********RNE database path: {rne_db_path}")
 
     if start_date:
         return
@@ -134,7 +136,7 @@ def get_start_date_rne_database():
     count_ul, count_siege, count_pp, count_pm, count_immat = get_tables_count(
         local_database_path
     )
-    logging.info(
+    logger.info(
         f"*****Count ul : {count_ul}, "
         f"*****Count siege : {count_siege}, "
         f"*****Count pp : {count_pp}, "
@@ -163,7 +165,7 @@ def process_stock_json_files():
         raise Exception("No RNE stock files found!!!")
 
     for file_path in json_stock_rne_files:
-        logging.info(f"*******Processing stock file: {file_path}...")
+        logger.info(f"*******Processing stock file: {file_path}...")
         object_storage_client.get_files(
             list_files=[
                 {
@@ -175,11 +177,11 @@ def process_stock_json_files():
             ],
         )
         inject_records_into_db(file_path, rne_db_path, file_type="stock")
-        logging.info(
+        logger.info(
             f"File {file_path} processed and stock records injected into the database."
         )
         os.remove(file_path)
-        logging.info(f"******Removed file: {file_path}")
+        logger.info(f"******Removed file: {file_path}")
 
 
 @task
@@ -210,7 +212,7 @@ def process_flux_json_files():
         if date_match:
             file_date = date_match.group(1)
             if file_date >= start_date:
-                logging.info(f"Processing file {file_path} with date {file_date}")
+                logger.info(f"Processing file {file_path} with date {file_date}")
                 object_storage_client.get_files(
                     list_files=[
                         {
@@ -234,7 +236,7 @@ def process_flux_json_files():
                 json_decode_error_count = inject_records_into_db(
                     json_path, rne_db_path, "flux"
                 )
-                logging.info(
+                logger.info(
                     f"File {json_path} processed and"
                     " records injected into the database."
                 )
@@ -246,7 +248,7 @@ def process_flux_json_files():
     )
     if dates:
         last_date_processed = dates[-1]
-        logging.info(f"***** Last date saved: {last_date_processed}")
+        logger.info(f"***** Last date saved: {last_date_processed}")
     else:
         last_date_processed = None
     ti.xcom_push(key="last_date_processed", value=last_date_processed)
@@ -273,7 +275,7 @@ def remove_duplicates():
     ]
     try:
         for table in tables:
-            logging.info(f"Cleaning table: {table}")
+            logger.info(f"Cleaning table: {table}")
             remove_duplicates_from_tables(cursor, table)
         connection.commit()
         # Vacuum the database to reclaim space
@@ -281,7 +283,7 @@ def remove_duplicates():
         connection.commit()
     except Exception as e:
         connection.rollback()
-        logging.warning(f"Error when removing duplicates: {e}")
+        logger.warning(f"Error when removing duplicates: {e}")
     finally:
         connection.close()
 
@@ -299,7 +301,7 @@ def check_db_count(
         count_ul, count_siege, count_pp, count_pm, count_immat = get_tables_count(
             rne_db_path
         )
-        logging.info(
+        logger.info(
             f"*****Count ul:: {count_ul}, "
             f"Count siege: {count_siege}, "
             f"Count pp : {count_pp}, "
@@ -343,7 +345,7 @@ def upload_db_to_object_storage():
 
     database_file_path = os.path.join(RNE_DB_TMP_FOLDER, f"rne_{start_date}.db")
 
-    logging.info(f"Sending database: rne_{start_date}.db.gz")
+    logger.info(f"Sending database: rne_{start_date}.db.gz")
     ObjectStorageClient().upload_compressed_file(
         source_file_path=database_file_path,
         object_storage_path=RNE_OBJECT_STORAGE_DATA_PATH,
@@ -381,7 +383,7 @@ def upload_latest_date_rne_object_storage():
     if os.path.exists(file_path):
         os.remove(file_path)
     else:
-        logging.warning(f"Warning: Database file '{file_path}' not found.")
+        logger.warning(f"Warning: Database file '{file_path}' not found.")
 
     ti.xcom_push(key="latest_date", value=latest_date)
 

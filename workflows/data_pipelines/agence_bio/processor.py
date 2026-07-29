@@ -17,6 +17,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class AgenceBioProcessor(DataProcessor):
     def __init__(self) -> None:
@@ -177,11 +179,11 @@ class AgenceBioProcessor(DataProcessor):
     def preprocess_data(self) -> None:
         client = BioApiClient()
 
-        logging.info(msg="Fetching all entries with a département from BIO API...")
+        logger.info(msg="Fetching all entries with a département from BIO API...")
         raw_data = client.call_api_bio()
-        logging.info(f"Fetched {len(raw_data)} records from BIO API")
+        logger.info(f"Fetched {len(raw_data)} records from BIO API")
 
-        logging.info("Processing BIO API data...")
+        logger.info("Processing BIO API data...")
         processed_data = self.process_agence_bio_data(raw_data)
 
         # Save to CSV
@@ -194,7 +196,7 @@ class AgenceBioProcessor(DataProcessor):
             )
             file_path = f"{self.config.tmp_folder}/agence_bio_{name}.csv"
             df.to_csv(file_path, index=False)
-            logging.info(f"Saved {name} data to {file_path}")
+            logger.info(f"Saved {name} data to {file_path}")
 
         DataProcessor.push_message(
             Notification.notification_xcom_key,

@@ -23,6 +23,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.queries.siege i
     update_siege_table_fields_with_rne_data_query,
 )
 
+logger = logging.getLogger(__name__)
+
 
 @task
 def create_siege_table():
@@ -40,7 +42,7 @@ def create_siege_table():
     sqlite_client.execute(populate_table_siege_query)
     sqlite_client.execute(update_est_siege_in_etablissement)
     for row in sqlite_client.execute(get_table_count(table_name)):
-        logging.info(
+        logger.info(
             f"************ {row} total records have been added "
             f"to the {table_name} table!"
         )
@@ -65,7 +67,7 @@ def create_ancien_siege_table():
     sqlite_client.execute(delete_current_siege_from_ancien_siege_query)
 
     for row in sqlite_client.execute(get_table_count(table_name)):
-        logging.info(
+        logger.info(
             f"************ {row} total records have been added "
             f"to the {table_name} table!"
         )
@@ -90,11 +92,11 @@ def add_rne_data_to_siege_table():
 
     except sqlite3.IntegrityError as e:
         # Log the error and problematic siren values
-        logging.error(f"IntegrityError: {e}")
+        logger.error(f"IntegrityError: {e}")
         problematic_sirens = e.args[0].split(": ")[1].split(", ")
-        logging.error(f"Problematic Sirens: {problematic_sirens}")
+        logger.error(f"Problematic Sirens: {problematic_sirens}")
 
     except Exception as error:
         # Handle other exceptions if needed
-        logging.error(f"An unexpected error occurred: {error}")
+        logger.error(f"An unexpected error occurred: {error}")
         raise

@@ -17,6 +17,8 @@ import requests
 from data_pipelines_annuaire.config import AIRFLOW_ENV
 from data_pipelines_annuaire.helpers.datagouv import fetch_last_modified_date
 
+logger = logging.getLogger(__name__)
+
 
 def check_if_prod():
     return AIRFLOW_ENV == "prod"
@@ -29,7 +31,7 @@ def str_to_list(string):
         li = literal_eval(string)
         return li
     except (ValueError, SyntaxError, TypeError):
-        logging.warning(f"***** str_to_list: Could not evaluate: {string!r}")
+        logger.warning(f"***** str_to_list: Could not evaluate: {string!r}")
         return None
 
 
@@ -92,7 +94,7 @@ def normalize_date(date_string):
         except ValueError:
             pass
 
-    logging.debug(f"Date is not in expected format: {date_string}")
+    logger.debug(f"Date is not in expected format: {date_string}")
 
 
 def parse_to_date(value: str | date | datetime | None) -> date | None:
@@ -166,14 +168,14 @@ def get_last_line(file_path):
                 while f.read(1) != b"\n":
                     f.seek(-2, os.SEEK_CUR)
             except OSError as error:
-                logging.error(f"{error}")
+                logger.error(f"{error}")
                 f.seek(0)
             last_line = f.readline().decode()
-            logging.info(f"Last line: {last_line}")
+            logger.info(f"Last line: {last_line}")
 
         return last_line if last_line else None
     except Exception as e:
-        logging.error(f"Error while reading last line: {e}")
+        logger.error(f"Error while reading last line: {e}")
         return None
 
 
@@ -192,7 +194,7 @@ def convert_date_format(original_date_string):
         return converted_date_string
     except Exception as e:
         # Handle invalid date string
-        logging.error(f"Error: {e}")
+        logger.error(f"Error: {e}")
         return None
 
 
@@ -292,7 +294,7 @@ def save_data_to_zipped_csv(df: pd.DataFrame, folder: str, filename: str):
     file_path: str = os.path.join(folder, filename)
     df.to_csv(file_path, index=False)
     zip_file(file_path)
-    logging.info(f"Saved {filename} with {df.shape[0]} records.")
+    logger.info(f"Saved {filename} with {df.shape[0]} records.")
 
 
 def flatten_object(obj, prop):
@@ -337,10 +339,10 @@ def get_date_last_modified(response=None, url=None) -> str | None:
         # Use parse_date_string to convert the Last-Modified date to ISO 8601 format
         return parse_date_string(last_modified_raw) if last_modified_raw else None
     except requests.RequestException as e:
-        logging.error(f"Error fetching last modified date: {e}")
+        logger.error(f"Error fetching last modified date: {e}")
         return "Error fetching date"
     except Exception as e:
-        logging.error(f"Error parsing date: {e}")
+        logger.error(f"Error parsing date: {e}")
         return "Error parsing date"
 
 
@@ -437,7 +439,7 @@ def fetch_latest_file_from_folder(
 
     # Return the latest file based on modification time
     latest_file = max(files, key=lambda f: f.stat().st_mtime)
-    logging.info(f"********Latest file found in folder: {latest_file}")
+    logger.info(f"********Latest file found in folder: {latest_file}")
     return latest_file
 
 
@@ -483,7 +485,7 @@ def fetch_and_store_last_modified_metadata(resource_id: str, file_path: str) -> 
             metadata_path, "last_modified", fetch_last_modified_date(resource_id)
         )
 
-        logging.info(f"Last modified date saved successfully to {metadata_path}")
+        logger.info(f"Last modified date saved successfully to {metadata_path}")
 
     except Exception as e:
         raise RuntimeError(f"Failed to save last modified metadata: {e}")
@@ -517,10 +519,10 @@ def fetch_last_modified_date_from_json(url: str) -> datetime | None:
         return None
 
     except requests.exceptions.RequestException as e:
-        logging.warning(f"Error fetching data: {e}")
+        logger.warning(f"Error fetching data: {e}")
         return None
     except ValueError as e:
-        logging.warning(f"Error parsing JSON or date: {e}")
+        logger.warning(f"Error parsing JSON or date: {e}")
         return None
 
 
@@ -531,7 +533,7 @@ def simplify_date(datetime_str: str) -> str:
 
 
 def download_file(download_url: str, destination_path: str) -> None:
-    logging.info(f"Downloading file from {download_url}..")
+    logger.info(f"Downloading file from {download_url}..")
 
     response = requests.get(download_url, stream=True)
     response.raise_for_status()
@@ -539,7 +541,7 @@ def download_file(download_url: str, destination_path: str) -> None:
     with open(destination_path, "wb") as file:
         file.writelines(response.iter_content(chunk_size=1024))
 
-    logging.info(f"..download successful! File located in {destination_path}.")
+    logger.info(f"..download successful! File located in {destination_path}.")
 
 
 def get_dates_since_start_of_month(
@@ -608,7 +610,7 @@ def fetch_hyperlink_from_page(
     response.raise_for_status()
     html_content = response.text
 
-    logging.info(f"Looking for the URL behind: {search_text}")
+    logger.info(f"Looking for the URL behind: {search_text}")
     if match_on == "href":
         pattern = r'<a\s+[^>]*href="([^"]*' + re.escape(search_text) + r'[^"]*)"'
     else:
@@ -622,7 +624,7 @@ def fetch_hyperlink_from_page(
     if parsed_url.netloc not in hyperlink:
         hyperlink = base_url + match.group(1)
 
-    logging.info(f"Likely found the hyperlink: {hyperlink}")
+    logger.info(f"Likely found the hyperlink: {hyperlink}")
 
     return hyperlink
 
@@ -641,7 +643,7 @@ def is_url_valid(url: str) -> bool:
         response = requests.head(url)
         return response.ok
     except requests.RequestException as e:
-        logging.warning(f"Error checking URL status: {e}")
+        logger.warning(f"Error checking URL status: {e}")
         return False
 
 

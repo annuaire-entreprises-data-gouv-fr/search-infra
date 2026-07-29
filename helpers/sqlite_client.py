@@ -7,6 +7,8 @@ from typing_extensions import Self
 
 from data_pipelines_annuaire.helpers.filesystem import LocalFile
 
+logger = logging.getLogger(__name__)
+
 
 class SqliteClient:
     """
@@ -51,7 +53,7 @@ class SqliteClient:
             os.makedirs(self.db_folder)
 
         self.db_conn = sqlite3.connect(self.db_location, timeout=timeout)
-        logging.info(
+        logger.info(
             f"*********** Connecting to database {self.db_location}! ***********"
         )
         self.db_cursor = self.db_conn.cursor()
@@ -100,6 +102,6 @@ class SqliteClient:
         df = pd.read_sql_query(query, self.db_conn)
 
         df.to_csv(f"{file_fullpath}", index=False)
-        logging.info(f"File {file_fullpath} created with {len(df)} rows.")
+        logger.info(f"File {file_fullpath} created with {len(df)} rows.")
 
         return LocalFile(file_fullpath)

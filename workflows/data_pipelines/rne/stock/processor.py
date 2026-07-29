@@ -10,6 +10,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.rne.stock.config import (
     RNE_STOCK_CONFIG,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class RneStockProcessor(DataProcessor):
     def __init__(self):
@@ -18,7 +20,7 @@ class RneStockProcessor(DataProcessor):
     def download_stock(self, ftp_url: str) -> None:
         """Downloads the stock file from FTP server"""
 
-        logging.info(f"+++++++++++++{ftp_url.split('@')[1]}")
+        logger.info(f"+++++++++++++{ftp_url.split('@')[1]}")
 
         script_path = os.path.join(
             AIRFLOW_DAG_HOME,
@@ -35,10 +37,10 @@ class RneStockProcessor(DataProcessor):
                 capture_output=True,
                 text=True,
             )
-            logging.info("Stock file downloaded successfully")
+            logger.info("Stock file downloaded successfully")
         except subprocess.CalledProcessError as e:
             error_msg = f"Failed to download stock file: {e.stderr}"
-            logging.error(error_msg)
+            logger.error(error_msg)
             raise RuntimeError(error_msg)
 
     def send_stock_to_object_storage(self) -> int:
@@ -51,7 +53,7 @@ class RneStockProcessor(DataProcessor):
                 # Extract each file one by one
                 z.extract(file_info, path=self.config.tmp_folder)
 
-                logging.info(
+                logger.info(
                     f"Saving file {file_info.filename} in the object storage....."
                 )
                 self.object_storage_client.send_files(

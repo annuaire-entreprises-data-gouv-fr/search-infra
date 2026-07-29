@@ -7,6 +7,8 @@ from typing import Literal
 
 import pandas as pd
 
+logger = logging.getLogger(__name__)
+
 
 def validate_file(file_path: str, min_rows: int = 2, csv_encoding="utf-8") -> None:
     """
@@ -67,7 +69,7 @@ def validate_file(file_path: str, min_rows: int = 2, csv_encoding="utf-8") -> No
                             ) from e
 
     else:
-        logging.warning(f"Unsupported file type for {file_path}")
+        logger.warning(f"Unsupported file type for {file_path}")
 
 
 def _clean_sirent_series(
@@ -178,7 +180,7 @@ def clean_sirent_column(
     if not removed_indices.empty:
         dirty_values = df.loc[removed_indices]
         if len(dirty_values) > 0:
-            logging.warning(
+            logger.warning(
                 f"Removed {len(removed_indices)} rows on column {column_name} with invalid {column_type} values. "
                 f"Removed values:\n{dirty_values.to_string()}"
             )
@@ -196,7 +198,7 @@ def clean_sirent_column(
             f"which exceeds the maximum allowed threshold of {max_removal_percentage}%"
         )
 
-    logging.info(
+    logger.info(
         f"Overall data cleaning: {removal_percentage:.2f}% of data removed "
         f"({removed_count} out of {original_row_count} rows)"
     )
@@ -230,7 +232,7 @@ def resolve_column_name(csv_path: str, pattern: str, sep: str = ";") -> str:
             f"No unique column matching '{pattern}' found in {csv_path}. "
             f"Available columns: {list(columns)}"
         )
-    logging.info(
+    logger.info(
         f"The pattern '{pattern}' matches the actual column '{matches[0]}' in the file {csv_path}."
     )
     return matches[0]

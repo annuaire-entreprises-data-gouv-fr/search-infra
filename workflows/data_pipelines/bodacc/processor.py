@@ -20,6 +20,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
     process_discarded_announcements,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def process_radiation_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
     """Traiter un chunk de données radiations."""
@@ -144,13 +146,13 @@ class BodaccProcessor(DataProcessor):
         super().__init__(BODACC_CONFIG)
 
     def preprocess_data(self):
-        logging.info("Processing BODACC data...")
+        logger.info("Processing BODACC data...")
 
         df_radiations = self._process_radiations()
-        logging.info(f"Radiations: {len(df_radiations)} unique SIRENs")
+        logger.info(f"Radiations: {len(df_radiations)} unique SIRENs")
 
         df_procedures = self._process_procedures_collectives()
-        logging.info(f"Procédures collectives: {len(df_procedures)} unique SIRENs")
+        logger.info(f"Procédures collectives: {len(df_procedures)} unique SIRENs")
 
         df = pd.merge(
             df_radiations,
@@ -158,7 +160,7 @@ class BodaccProcessor(DataProcessor):
             on="siren",
             how="outer",
         )
-        logging.info(f"After merge: {len(df)} unique SIRENs")
+        logger.info(f"After merge: {len(df)} unique SIRENs")
         df.to_csv(f"{self.config.tmp_folder}/{self.config.file_name}.csv", index=False)
 
         DataProcessor.push_message(
@@ -167,7 +169,7 @@ class BodaccProcessor(DataProcessor):
         )
 
     def _process_radiations(self) -> pd.DataFrame:
-        logging.info("Processing radiations...")
+        logger.info("Processing radiations...")
         chunks_processed = []
         total_rows = 0
 
@@ -179,11 +181,11 @@ class BodaccProcessor(DataProcessor):
             usecols=self.COLUMNS_RADIATIONS,
         )
         total_rows = len(df_full)
-        logging.info(f"Loaded {total_rows} radiation rows")
+        logger.info(f"Loaded {total_rows} radiation rows")
 
         # Filtrer les annulations
         df_full = process_discarded_announcements(df_full)
-        logging.info(f"After filtering cancellations: {len(df_full)} rows")
+        logger.info(f"After filtering cancellations: {len(df_full)} rows")
 
         # Traiter par chunks pour la mémoire
         for i in range(0, len(df_full), self.CHUNK_SIZE):
@@ -193,7 +195,7 @@ class BodaccProcessor(DataProcessor):
                 chunks_processed.append(processed)
 
         if not chunks_processed:
-            logging.warning("No radiations found")
+            logger.warning("No radiations found")
             return pd.DataFrame(
                 columns=[
                     "siren",
@@ -225,7 +227,7 @@ class BodaccProcessor(DataProcessor):
         n_duplicates = duplicated_mask.sum()
         if n_duplicates > 0:
             sample_sirens = df.loc[duplicated_mask, "siren"].head(5).tolist()
-            logging.info(
+            logger.info(
                 f"Radiations: {n_duplicates} duplicate Siren, sample:\n{sample_sirens}"
             )
         df = df.drop_duplicates(subset=["siren"], keep="first")
@@ -241,7 +243,7 @@ class BodaccProcessor(DataProcessor):
         ]
 
     def _process_procedures_collectives(self) -> pd.DataFrame:
-        logging.info("Processing procédures collectives...")
+        logger.info("Processing procédures collectives...")
         chunks_processed = []
         total_rows = 0
 
@@ -253,11 +255,11 @@ class BodaccProcessor(DataProcessor):
             usecols=self.COLUMNS_PROCEDURES,
         )
         total_rows = len(df_full)
-        logging.info(f"Loaded {total_rows} procedure rows")
+        logger.info(f"Loaded {total_rows} procedure rows")
 
         # Filtrer les annulations et rétractations
         df_full = process_discarded_announcements(df_full)
-        logging.info(f"After filtering cancellations: {len(df_full)} rows")
+        logger.info(f"After filtering cancellations: {len(df_full)} rows")
 
         # Traiter par chunks pour la mémoire
         for i in range(0, len(df_full), self.CHUNK_SIZE):
@@ -267,7 +269,7 @@ class BodaccProcessor(DataProcessor):
                 chunks_processed.append(processed)
 
         if not chunks_processed:
-            logging.warning("No procedures collectives found")
+            logger.warning("No procedures collectives found")
             return pd.DataFrame(
                 columns=[
                     "siren",
@@ -318,7 +320,7 @@ class BodaccProcessor(DataProcessor):
         n_duplicates = duplicated_mask.sum()
         if n_duplicates > 0:
             sample_sirens = df.loc[duplicated_mask, "siren"].head(5).tolist()
-            logging.info(
+            logger.info(
                 f"Procedures: {n_duplicates} duplicate Siren, sample:\n{sample_sirens}"
             )
         df = df.drop_duplicates(subset=["siren"], keep="first")
@@ -359,7 +361,7 @@ class BodaccProcessor(DataProcessor):
             axis=1,
         )
 
-        logging.info(
+        logger.info(
             f"Procedures: {len(df)} unique SIRENs, "
             f"{df['is_cloture'].sum()} clôturées, "
             f"{(~df['is_cloture'] & df['is_expired']).sum()} expirées (>10 ans), "

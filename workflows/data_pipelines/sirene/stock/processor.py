@@ -30,6 +30,7 @@ MONTH_MAPPING = {
     "novembre": "11",
     "decembre": "12",
 }
+logger = logging.getLogger(__name__)
 
 
 class SireneStockProcessor(DataProcessor):
@@ -74,10 +75,10 @@ class SireneStockProcessor(DataProcessor):
         input_csv = f"{self.config.tmp_folder}StockEtablissement_utf8.csv"
         output_csv = f"{self.config.tmp_folder}StockEtablissement_utf8_with_gps.csv"
 
-        logging.info(f"Extracting {zip_filename}...")
+        logger.info(f"Extracting {zip_filename}...")
         shutil.unpack_archive(zip_path, self.config.tmp_folder)
 
-        logging.info("Converting Lambert coordinates to GPS (processing by chunks)...")
+        logger.info("Converting Lambert coordinates to GPS (processing by chunks)...")
         chunk_size = 500_000
         first_chunk = True
 
@@ -96,11 +97,9 @@ class SireneStockProcessor(DataProcessor):
             else:
                 chunk.to_csv(output_csv, mode="a", header=False, index=False)
 
-            logging.info(f"Processed {chunk_size} rows...")
+            logger.info(f"Processed {chunk_size} rows...")
 
-        logging.info(
-            f"Compressing output file {output_csv} to {output_zip_filename}..."
-        )
+        logger.info(f"Compressing output file {output_csv} to {output_zip_filename}...")
         with zipfile.ZipFile(
             f"{self.config.tmp_folder}{output_zip_filename}", "w"
         ) as zipf:
@@ -108,7 +107,7 @@ class SireneStockProcessor(DataProcessor):
             # arcname allow to overwrite this
             zipf.write(output_csv, arcname="StockEtablissement_utf8_with_gps.csv")
 
-        logging.info("Stock etablissement coordinates conversion completed.")
+        logger.info("Stock etablissement coordinates conversion completed.")
 
     def send_stock_to_object_storage(self):
 

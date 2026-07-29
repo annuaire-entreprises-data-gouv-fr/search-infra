@@ -11,6 +11,8 @@ from data_pipelines_annuaire.config import (
 )
 from data_pipelines_annuaire.helpers.utils import html_to_text
 
+logger = logging.getLogger(__name__)
+
 
 def send_message(
     text: str,
@@ -48,5 +50,5 @@ def send_message(
         )
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
-        logging.error(f"Failed to send message: {e}")
+        logger.error(f"Failed to send message: {e}")
         raise Exception(f"Failed to send message: {e}")

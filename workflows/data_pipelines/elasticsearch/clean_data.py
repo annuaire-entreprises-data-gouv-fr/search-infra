@@ -2,6 +2,8 @@ import logging
 
 from data_pipelines_annuaire.helpers.utils import normalize_string
 
+logger = logging.getLogger(__name__)
+
 
 def unique_qualites(qualite_string):
     # Sometimes, `qualite` might contain the same string repeated with different
@@ -94,7 +96,7 @@ def drop_duplicates_personnes_physiques(list_dict_personnes):
                 }
             )
             if len(dates) > 1:
-                logging.debug(
+                logger.debug(
                     f"At least two personnes with same name, firstname but different "
                     f"date: {dates}, siren {unique_personne}"
                 )

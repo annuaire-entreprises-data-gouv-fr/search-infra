@@ -33,6 +33,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.sqlite.fonda
     select_fondations_to_index_query,
 )
 
+logger = logging.getLogger(__name__)
+
 
 @task
 def get_next_index_name():
@@ -46,7 +48,7 @@ def get_next_index_name():
 def create_elastic_index():
     ti = get_current_context()["ti"]
     elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
-    logging.info(f"******************** Index to create: {elastic_index}")
+    logger.info(f"******************** Index to create: {elastic_index}")
     create_index = ElasticCreateIndex(
         elastic_url=ELASTIC_URL,
         elastic_index=elastic_index,
@@ -134,7 +136,7 @@ def check_elastic_index():
         f"Fondations sans SIRET indexés en plus : {fondation_doc_count}"
     )
     ti.xcom_push(key=Notification.notification_xcom_key, value=success_message)
-    logging.info(success_message)
+    logger.info(success_message)
 
 
 @task
@@ -158,7 +160,7 @@ def delete_previous_elastic_indices():
     to_remove = indices[:-ELASTIC_MAX_LIVE_VERSIONS]
 
     for index in to_remove:
-        logging.info(f"Removing index {index['index']}")
+        logger.info(f"Removing index {index['index']}")
         elastic_connection.indices.delete(index=index["index"])
 
 
@@ -211,7 +213,7 @@ def update_elastic_alias():
 
     actions.append({"add": {"index": elastic_index, "alias": alias}})
 
-    logging.info(
+    logger.info(
         f"Updating alias siren-reader : add {elastic_index}, remove {', '.join(indices)}"
     )
 

@@ -18,6 +18,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.sirene.stock.config import
     STOCK_SIRENE_CONFIG,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def download_historique(data_dir):
     year_month = get_sirene_processing_month()
@@ -27,7 +29,7 @@ def download_historique(data_dir):
     filename = filename.replace(CURRENT_MONTH, year_month)
     url = STOCK_SIRENE_CONFIG.url_object_storage + filename
 
-    logging.info(f"Downloading and unpacking {url}..")
+    logger.info(f"Downloading and unpacking {url}..")
     r = requests.get(
         url,
         allow_redirects=True,
@@ -50,7 +52,7 @@ def download_stock(data_dir):
     filename = filename.replace(CURRENT_MONTH, year_month)
     url = STOCK_SIRENE_CONFIG.url_object_storage + filename
 
-    logging.info(f"Downloading and unpacking {url}..")
+    logger.info(f"Downloading and unpacking {url}..")
     r = requests.get(
         url,
         allow_redirects=True,
@@ -66,7 +68,7 @@ def download_stock(data_dir):
 def download_flux(data_dir):
     year_month = get_sirene_processing_month()
     try:
-        logging.info(f"Downloading flux for : {year_month}")
+        logger.info(f"Downloading flux for : {year_month}")
         ObjectStorageClient().get_files(
             list_files=[
                 File(
@@ -86,7 +88,7 @@ def download_flux(data_dir):
         )
         return df_iterator
     except ClientError as e:
-        logging.warning(f"No flux data has been found for: {year_month}")
+        logger.warning(f"No flux data has been found for: {year_month}")
         if e.response["Error"]["Code"] == "NoSuchKey":
             raise AirflowSkipException("Skipping this task")
 
@@ -220,7 +222,7 @@ def download_flux_periodes_unite_legale(data_dir):
         )
         return df_flux_periodes
     except ClientError as e:
-        logging.warning(
+        logger.warning(
             f"No flux periodes unite legale data has been found for: {year_month}"
         )
         if e.response["Error"]["Code"] == "NoSuchKey":

@@ -23,6 +23,8 @@ from data_pipelines_annuaire.helpers.utils import (
     save_to_metadata,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class DataProcessor(ABC):
     """Abstract base class for processing data.
@@ -79,7 +81,7 @@ class DataProcessor(ABC):
                     try:
                         file_url = fetch_hyperlink_from_page(url, search_text)
                     except ValueError as e:
-                        logging.info(
+                        logger.info(
                             "Failed to find the URL. Looking for fallback options.."
                         )
                         # First try did not succeed to find the URL

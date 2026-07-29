@@ -32,7 +32,7 @@ class SpectacleProcessor(DataProcessor):
                 siren=lambda x: x["siren_siret"].str[:9],
             )
             .loc[
-                lambda x: (x["siren"].notna() & x["siren"].str.isdigit()),
+                lambda x: x["siren"].notna() & x["siren"].str.isdigit(),
                 ["siren", "statut_recepisse", "est_entrepreneur_spectacle"],
             ]
             .groupby(["siren", "est_entrepreneur_spectacle"])

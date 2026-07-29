@@ -13,6 +13,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.sirene.stock.config import
     STOCK_SIRENE_CONFIG,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def download_succession():
     year_month = get_sirene_processing_month()
@@ -22,7 +24,7 @@ def download_succession():
     filename = filename_template.replace(CURRENT_MONTH, year_month)
     url = STOCK_SIRENE_CONFIG.url_object_storage + filename
 
-    logging.info(f"Downloading and unpacking {url}")
+    logger.info(f"Downloading and unpacking {url}")
     r = requests.get(url, allow_redirects=True)
     open(
         AIRFLOW_ETL_DATA_DIR + "StockEtablissementLiensSuccession_utf8.zip", "wb"

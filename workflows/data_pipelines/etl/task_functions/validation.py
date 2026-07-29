@@ -10,6 +10,8 @@ from data_pipelines_annuaire.helpers.filesystem import LocalFile
 from data_pipelines_annuaire.helpers.object_storage import ObjectStorageFile
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 
+logger = logging.getLogger(__name__)
+
 
 def validate_table(
     table_name: str, datatabase_location: str, validations: list, file_alias: str = ""
@@ -37,7 +39,7 @@ def validate_table(
         object_storage_stats_file = ObjectStorageFile(remote_path)
         local_stats_file = object_storage_stats_file.download_to(local_path=local_path)
     except FileNotFoundError as _:
-        logging.warning(
+        logger.warning(
             f"Validation file not found for table {table_name} in object storage: '{remote_path}'."
             " Creating it from scratch. Stats will be reset."
         )
@@ -60,7 +62,7 @@ def validate_table(
     local_stats_file.upload_to_object_storage(
         object_storage_path=os.path.dirname(remote_path) + "/"
     )
-    logging.info(f"Test passed for table {table_name} in {datatabase_location}")
+    logger.info(f"Test passed for table {table_name} in {datatabase_location}")
     local_stats_file.delete()
 
 

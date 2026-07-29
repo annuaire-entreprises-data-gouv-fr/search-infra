@@ -23,6 +23,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.data_fetch_clean.etabl
     combine_numero_voie,
 )
 
+logger = logging.getLogger(__name__)
+
 sections_NAF = load_file("sections_codes_naf.json")
 mapping_dep_to_reg = load_file("dep_to_reg.json")
 mapping_role_dirigeants = load_file("roles_dirigeants.json")
@@ -449,18 +451,18 @@ def format_personnes_physiques(
             )
         elif personne_physique["prenoms"] and not personne_physique["nom"]:
             list_all_personnes.append(personne_physique["prenoms"])
-            logging.debug(
+            logger.debug(
                 f"Missing personne_physique nom for ****** {personne_physique['siren']}"
                 f" ***** prenoms = {personne_physique['prenoms']}"
             )
         elif personne_physique["nom"] and not personne_physique["prenoms"]:
             list_all_personnes.append(personne_physique["nom"])
-            logging.debug(
+            logger.debug(
                 f"Missing personne_physique prenoms for ****** "
                 f"{personne_physique['siren']} ****** nom : {personne_physique['nom']}"
             )
         else:
-            logging.debug(
+            logger.debug(
                 f"Missing personne_physique names for **** {personne_physique['siren']}"
             )
 
@@ -488,7 +490,7 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=None):
         if dirigeant_pm["denomination"]:
             list_all_dirigeants.append(dirigeant_pm["denomination"])
         else:
-            logging.debug(
+            logger.debug(
                 f"Missing denomination dirigeant for ***** {dirigeant_pm['siren']}"
             )
         dirigeant_pm["role_description"] = unique_qualites(

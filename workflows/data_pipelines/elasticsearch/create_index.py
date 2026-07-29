@@ -6,6 +6,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.mapping_inde
     StructureMapping,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class ElasticCreateIndex:
     """
@@ -51,7 +53,7 @@ class ElasticCreateIndex:
         self.elastic_status = self.elastic_health["status"]
         self.elastic_mapping = self.elastic_connection.indices.get_mapping()
 
-        logging.info("Elasticsearch connection initiated!")
+        logger.info("Elasticsearch connection initiated!")
 
     def check_health(self):
         if self.elastic_status not in ("green", "yellow"):
@@ -59,7 +61,7 @@ class ElasticCreateIndex:
                 f"Cluster status is {self.elastic_status}, not green nor yellow!!"
             )
         else:
-            logging.info(f"Cluster status is functional: {self.elastic_status}")
+            logger.info(f"Cluster status is functional: {self.elastic_status}")
 
     def execute(self):
         self.check_health()
@@ -69,9 +71,9 @@ class ElasticCreateIndex:
 
         # if self.elastic_index_shards is not None:
         if Index(self.elastic_index).exists():
-            logging.info(f"Index  {self.elastic_index} already exists! Deleting...")
+            logger.info(f"Index  {self.elastic_index} already exists! Deleting...")
             Index(self.elastic_index).delete()
-            logging.info(f"Index {self.elastic_index} deleted!")
-        logging.info(f"Creating {self.elastic_index} index!")
+            logger.info(f"Index {self.elastic_index} deleted!")
+        logger.info(f"Creating {self.elastic_index} index!")
         # Create the mapping in elasticsearch
         StructureMapping.init(index=self.elastic_index)

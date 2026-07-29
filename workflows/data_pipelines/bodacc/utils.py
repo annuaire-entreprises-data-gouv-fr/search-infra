@@ -8,6 +8,8 @@ import yaml
 
 from data_pipelines_annuaire.helpers.utils import keep_only_numbers, parse_json_safe
 
+logger = logging.getLogger(__name__)
+
 
 def fix_mojibake(text: str) -> str:
     """Répare les chaînes UTF-8 mal décodées en Latin-1 (ex: 'clÃ´ture' -> 'clôture')."""
@@ -261,11 +263,11 @@ def process_discarded_announcements(df: pd.DataFrame) -> pd.DataFrame:
     Les rectificatifs sont conservés car ils portent la valeur à jour.
     """
 
-    logging.info("Supprime les annonces annulées ou remplacées")
+    logger.info("Supprime les annonces annulées ou remplacées")
     discarded_ids = get_previous_ids_to_discard(df)
     df = df[~df["id"].isin(discarded_ids)]
 
-    logging.info("Supprime les annonces qui annulent les annonces précédentes")
+    logger.info("Supprime les annonces qui annulent les annonces précédentes")
     ids_to_discard = get_processed_ids_to_discard(df)
     df = df[~df["id"].isin(ids_to_discard)]
 
@@ -367,5 +369,5 @@ def apply_procedure_collective_rules(
             continue
         return rule.get("statut")
 
-    logging.warning(f"BODACC: nature non traitée dans rule.yml : '{nature}'")
+    logger.warning(f"BODACC: nature non traitée dans rule.yml : '{nature}'")
     return None

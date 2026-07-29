@@ -13,6 +13,8 @@ from data_pipelines_annuaire.config import (
 from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 
+logger = logging.getLogger(__name__)
+
 
 @task
 def delete_old_files(
@@ -52,7 +54,7 @@ def delete_old_files(
             age = current_time - last_modified
             if i < keep_latest or age < timedelta(days=retention_days):
                 continue
-            logging.info(f"***** Deleting file: {file_name}")
+            logger.info(f"***** Deleting file: {file_name}")
             object_storage_client.delete_file(file_name)
 
 

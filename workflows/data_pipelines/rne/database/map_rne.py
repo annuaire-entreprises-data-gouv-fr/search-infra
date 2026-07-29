@@ -19,6 +19,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.rne.database.ul_model impo
     UniteLegale,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     unite_legale.siren = rne_company.siren
@@ -50,7 +52,7 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         )
         unite_legale.immatriculation.date_debut_activite = identite_entr.dateDebutActiv
     else:
-        logging.warning(f"Unite legale has no identite : {unite_legale.siren}")
+        logger.warning(f"Unite legale has no identite : {unite_legale.siren}")
 
     identite_descr = get_identite_description(rne_company)
     if identite_descr:
@@ -84,7 +86,7 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     if siege:
         unite_legale.siege = map_rne_siege_to_ul(siege)
     else:
-        logging.warning(f"Unite legale has no siege : {unite_legale.siren}")
+        logger.warning(f"Unite legale has no siege : {unite_legale.siren}")
 
     # Add mapping for etablissements
     etablissements = get_etablissements(rne_company)
@@ -208,7 +210,7 @@ def get_date_fin_existence(rne_company: RNECompany, identite_descr) -> date | No
     try:
         return add_years(date_creation, int(duree)) - timedelta(days=1)
     except ValueError as e:
-        logging.error(
+        logger.error(
             f"++++++++++Error computing date_fin_existence for siren {rne_company.siren} "
             f"(date_creation={date_creation}, duree={duree}): {e}"
         )
@@ -419,6 +421,6 @@ def map_rne_activites_to_ul(activites_rne):
 
             activites_ul.append(activite_ul)
         except Exception as e:
-            logging.error(f"Error mapping activite: {e}")
-            logging.error(f"Activite RNE data: {activite_rne}")
+            logger.error(f"Error mapping activite: {e}")
+            logger.error(f"Activite RNE data: {activite_rne}")
     return activites_ul
