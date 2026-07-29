@@ -95,5 +95,5 @@ class SireneApiClient(ApiClient):
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            logging.error(f"Error calling INSEE API: {str(e)}")
-            raise ValueError(f"Error calling INSEE API: {str(e)}") from e
+            logging.error(f"Error calling INSEE API: {e!s}")
+            raise ValueError(f"Error calling INSEE API: {e!s}") from e

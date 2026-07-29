@@ -63,7 +63,7 @@ def validate_file(file_path: str, min_rows: int = 2, csv_encoding="utf-8") -> No
                             validate_file(extract_path, min_rows)
                         except ValueError as e:
                             raise ValueError(
-                                f"ZIP file {file_path} contains invalid file {file_name}: {str(e)}"
+                                f"ZIP file {file_path} contains invalid file {file_name}: {e!s}"
                             ) from e
 
     else:

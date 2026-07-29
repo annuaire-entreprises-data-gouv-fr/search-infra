@@ -162,4 +162,3 @@ def create_data_source_last_modified_file():
             }
         ]
     )
-    return None

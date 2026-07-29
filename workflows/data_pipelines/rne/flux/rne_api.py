@@ -1,7 +1,6 @@
 import logging
 import random
 import time
-from typing import Union
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -36,7 +35,7 @@ class ApiRNEClient:
         session.mount("http://", adapter)
         return session
 
-    def get_new_token(self) -> Union[str, None]:
+    def get_new_token(self) -> str | None:
         """
         Gets a new access token from the RNE API.
 

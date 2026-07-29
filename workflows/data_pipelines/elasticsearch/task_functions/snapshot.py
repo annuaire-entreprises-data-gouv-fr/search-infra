@@ -207,8 +207,8 @@ def delete_old_snapshots():
         ignore_unavailable=True,
     )
 
-    snapshots = list(
-        sorted(snapshots["snapshots"], key=lambda snapshot: snapshot["start_time"])
+    snapshots = sorted(
+        snapshots["snapshots"], key=lambda snapshot: snapshot["start_time"]
     )
     snapshots_to_remove = snapshots[:-ELASTIC_SNAPSHOT_MAX_REVISIONS]
 

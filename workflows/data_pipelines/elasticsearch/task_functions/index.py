@@ -153,7 +153,7 @@ def delete_previous_elastic_indices():
         for index in indices
         if index["index"] not in ["siren-green", "siren-blue"]
     ]
-    indices = list(sorted(indices, key=lambda index: index["index"]))
+    indices = sorted(indices, key=lambda index: index["index"])
 
     to_remove = indices[:-ELASTIC_MAX_LIVE_VERSIONS]
 

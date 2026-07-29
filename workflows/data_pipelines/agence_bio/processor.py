@@ -23,7 +23,7 @@ class AgenceBioProcessor(DataProcessor):
         super().__init__(AGENCE_BIO_CONFIG)
 
     @staticmethod
-    def get_bio_status(status) -> Literal["valide"] | Literal["invalide"]:
+    def get_bio_status(status) -> Literal["valide", "invalide"]:
         if status:
             clean_status = [s for s in status if str(s) != "nan"]
             if "ENGAGEE" in clean_status:

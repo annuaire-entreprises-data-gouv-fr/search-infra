@@ -11,7 +11,6 @@ from typing import TypedDict
 import boto3
 from botocore.exceptions import ClientError
 
-import data_pipelines_annuaire.helpers.filesystem as filesystem
 from data_pipelines_annuaire.config import (
     OBJECT_STORAGE_ACCESS_KEY,
     OBJECT_STORAGE_BUCKET,
@@ -19,6 +18,7 @@ from data_pipelines_annuaire.config import (
     OBJECT_STORAGE_SECRET_KEY,
     OBJECT_STORAGE_URL,
 )
+from data_pipelines_annuaire.helpers import filesystem
 
 
 # Use and enrich ObjectStorageFile instead
@@ -93,7 +93,7 @@ class ObjectStorageClient:
                 if is_public:
                     extra_args["ACL"] = "public-read"
                 # Set extra args for content type if provided
-                if "content_type" in file and file["content_type"]:
+                if file.get("content_type"):
                     extra_args["ContentType"] = file["content_type"]
 
                 self.client.upload_file(

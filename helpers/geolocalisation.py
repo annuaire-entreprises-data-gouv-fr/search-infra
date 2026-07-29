@@ -1,4 +1,4 @@
-from functools import lru_cache
+from functools import cache
 
 import numpy as np
 import pandas as pd
@@ -65,7 +65,7 @@ TAAF_BOUNDING_BOXES: list[tuple[float, float, float, float]] = [
 
 
 # Cache for transformers
-@lru_cache(maxsize=None)
+@cache
 def get_transformer(epsg: int) -> pyproj.Transformer:
     crs_from = pyproj.CRS.from_epsg(epsg)
     crs_to = pyproj.CRS.from_epsg(GPS_EPSG)

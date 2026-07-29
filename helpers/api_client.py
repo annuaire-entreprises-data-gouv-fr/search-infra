@@ -1,7 +1,8 @@
 import functools
 import logging
 import time
-from typing import Any, Callable, ParamSpec, TypeVar
+from collections.abc import Callable
+from typing import Any, ParamSpec, TypeVar
 
 from airflow.sdk import Variable
 from requests import RequestException, Response, Session

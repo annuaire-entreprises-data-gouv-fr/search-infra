@@ -128,7 +128,7 @@ class DataProcessor(ABC):
                         csv_encoding=params.get("encoding", "utf-8"),
                     )
                 except ValueError as e:
-                    error_message = f"File validation failed for {name}: {str(e)}"
+                    error_message = f"File validation failed for {name}: {e!s}"
                     ti.xcom_push(
                         key=Notification.notification_xcom_key, value=error_message
                     )
@@ -147,7 +147,6 @@ class DataProcessor(ABC):
         """
         This method must be implemented by subclasses.
         """
-        pass
 
     @staticmethod
     def push_message(xcom_key, column=None, description: str = ""):

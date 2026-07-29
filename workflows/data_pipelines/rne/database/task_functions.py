@@ -99,7 +99,7 @@ def create_db():
     logging.info(f"***********RNE database path: {rne_db_path}")
 
     if start_date:
-        return None
+        return
 
     if os.path.exists(rne_db_path):
         os.remove(rne_db_path)
@@ -153,7 +153,7 @@ def process_stock_json_files():
 
     # Only process stock files if a date doesn't already exist
     if start_date is not None:
-        return None
+        return
 
     json_stock_rne_files = object_storage_client.get_files_from_prefix(
         prefix=RNE_OBJECT_STORAGE_STOCK_DATA_PATH,
@@ -195,7 +195,7 @@ def process_flux_json_files():
     )
 
     if not json_daily_flux_files:
-        return None
+        return
 
     if start_date is None:
         start_date = "0000-00-00"

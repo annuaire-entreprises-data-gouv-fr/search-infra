@@ -28,7 +28,7 @@ def send_message(
         room_id (str, optional): the full Tchap room ID
     """
     if AIRFLOW_ENV != "prod":
-        return None
+        return
     room_url = f"{TCHAP_ENDPOINT}/{room_id}/send/m.room.message"
     data = {
         "format": "org.matrix.custom.html",

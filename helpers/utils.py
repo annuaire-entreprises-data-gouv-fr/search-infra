@@ -537,8 +537,7 @@ def download_file(download_url: str, destination_path: str) -> None:
     response.raise_for_status()
 
     with open(destination_path, "wb") as file:
-        for chunk in response.iter_content(chunk_size=1024):
-            file.write(chunk)
+        file.writelines(response.iter_content(chunk_size=1024))
 
     logging.info(f"..download successful! File located in {destination_path}.")
 

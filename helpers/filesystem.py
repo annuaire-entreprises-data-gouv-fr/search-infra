@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 from typing import Literal
 
-import data_pipelines_annuaire.helpers.object_storage as object_storage
+from data_pipelines_annuaire.helpers import object_storage
 
 
 class LocalFile:

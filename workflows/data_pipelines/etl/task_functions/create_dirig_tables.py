@@ -40,7 +40,7 @@ def get_latest_rne_database():
 def create_dirig_pp_table():
     sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
     sqlite_client_dirig = SqliteClient(RNE_DATABASE_LOCATION)
-    chunk_size = int(100000)
+    chunk_size = 100000
     for row in sqlite_client_dirig.execute(
         get_distinct_column_count("dirigeant_pp", "siren")
     ):
@@ -71,7 +71,7 @@ def create_dirig_pm_table():
     sqlite_client_siren = SqliteClient(SIRENE_DATABASE_LOCATION)
     sqlite_client_dirig = SqliteClient(RNE_DATABASE_LOCATION)
 
-    chunk_size = int(100000)
+    chunk_size = 100000
     for row in sqlite_client_dirig.execute(
         get_distinct_column_count("dirigeant_pm", "siren")
     ):

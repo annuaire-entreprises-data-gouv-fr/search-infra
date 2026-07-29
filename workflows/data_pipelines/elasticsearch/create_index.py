@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from elasticsearch.dsl import Index, connections
 
@@ -26,11 +25,11 @@ class ElasticCreateIndex:
     def __init__(
         self,
         *,
-        elastic_url: Optional[str] = None,
-        elastic_index: Optional[str] = None,
-        elastic_user: Optional[str] = None,
-        elastic_password: Optional[str] = None,
-        elastic_bulk_size: Optional[int] = 1500,
+        elastic_url: str | None = None,
+        elastic_index: str | None = None,
+        elastic_user: str | None = None,
+        elastic_password: str | None = None,
+        elastic_bulk_size: int | None = 1500,
         **kwargs,
     ) -> None:
         self.elastic_url = elastic_url

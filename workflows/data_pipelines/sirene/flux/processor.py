@@ -420,12 +420,12 @@ class SireneFluxProcessor(DataProcessor):
                 time.sleep(300)  # 5 minutes in seconds
 
             except ValueError as e:
-                error_msg = f"Error processing API response: {str(e)}"
+                error_msg = f"Error processing API response: {e!s}"
                 logging.error(error_msg)
                 raise ValueError(error_msg) from e
             except Exception as e:
                 # Handle any other exceptions from API calls
-                error_msg = f"Unexpected error checking API availability: {str(e)}"
+                error_msg = f"Unexpected error checking API availability: {e!s}"
                 logging.error(error_msg)
                 raise ValueError(error_msg) from e
 

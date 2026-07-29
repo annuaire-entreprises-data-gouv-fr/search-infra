@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Optional, Tuple, TypedDict
+from typing import TypedDict
 
 import requests
 
@@ -39,8 +39,7 @@ def get_resource(
         with open(
             f"{file_to_store['dest_path']}{file_to_store['dest_name']}", "wb"
         ) as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
+            f.writelines(r.iter_content(chunk_size=8192))
 
 
 def get_dataset_or_resource_metadata(
@@ -83,8 +82,8 @@ def get_resource_metadata(resource_id: str):
 def post_resource(
     file_to_upload: File,
     dataset_id: str,
-    resource_id: Optional[str] = None,
-    resource_payload: Optional[dict] = None,
+    resource_id: str | None = None,
+    resource_payload: dict | None = None,
 ):
     """Upload a resource in data.gouv.fr
 
@@ -175,7 +174,7 @@ def fetch_last_modified_date(resource_id: str) -> str:
 
 def fetch_last_resource_from_dataset(
     dataset_url: str, resource_extension: str = "csv"
-) -> Tuple[str, str]:
+) -> tuple[str, str]:
     """
     Fetch the last resource URL of a dataset with a specific extension.
 

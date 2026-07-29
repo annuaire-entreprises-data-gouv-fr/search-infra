@@ -76,8 +76,7 @@ def create_metadata_convention_collective_json():
         raise HTTPError(f"{error_message}: {current_url_cc_dares}")
 
     with open(METADATA_CC_TMP_FOLDER + "dares-download.xlsx", "wb") as f:
-        for chunk in r.iter_content(1024):
-            f.write(chunk)
+        f.writelines(r.iter_content(1024))
     df_dares = pd.read_excel(
         METADATA_CC_TMP_FOLDER + "dares-download.xlsx",
         sheet_name="Conventions de branche",
@@ -92,8 +91,7 @@ def create_metadata_convention_collective_json():
     # Get Kali list
     r = requests.get(URL_CC_KALI, allow_redirects=True)
     with open(METADATA_CC_TMP_FOLDER + "kali-download.xlsx", "wb") as f:
-        for chunk in r.iter_content(1024):
-            f.write(chunk)
+        f.writelines(r.iter_content(1024))
     df_kali = pd.read_excel(
         METADATA_CC_TMP_FOLDER + "kali-download.xlsx",
         header=0,
