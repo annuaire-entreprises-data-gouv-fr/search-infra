@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 
 from airflow.sdk import task
 
@@ -40,7 +40,7 @@ def export_file(export_file: ExportFile) -> None:
     )
 
     base_name = export_file.file_name.removesuffix(".csv")
-    date_str = datetime.now().strftime("%Y-%m-%d")
+    date_str = datetime.now(tz=UTC).strftime("%Y-%m-%d")
 
     # The latest file will be overwritten each run
     # Removal of old files is handled in the object storage cleaning DAG

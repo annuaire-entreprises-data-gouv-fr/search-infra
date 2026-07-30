@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -34,7 +34,7 @@ class BilansFinanciersProcessor(DataProcessor):
 
         # Comptes consolidés (consolidated accounts) are published before the 15th of June
         # So we are waiting July before processing the bilans of the current year
-        current_fiscal_year = get_fiscal_year(datetime.now())
+        current_fiscal_year = get_fiscal_year(datetime.now(tz=UTC))
         df_bilan = (
             df_bilan.rename(
                 columns={

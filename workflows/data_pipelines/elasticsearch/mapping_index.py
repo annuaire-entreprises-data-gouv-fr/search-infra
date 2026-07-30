@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from elasticsearch.dsl import (
     Boolean,
     Date,
@@ -409,7 +411,7 @@ class StructureMapping(Document):
     fondation = Object(FondationMapping)
 
     class Index:
-        settings = {
+        settings: ClassVar[dict] = {
             "number_of_shards": ELASTIC_SHARDS,
             "number_of_replicas": ELASTIC_REPLICAS,
             "index.mapping.ignore_malformed": True,

@@ -4,14 +4,13 @@ import os
 import re
 import shutil
 import subprocess
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TypedDict
 
 import boto3
 from botocore.exceptions import ClientError
 
-import data_pipelines_annuaire.helpers.filesystem as filesystem
 from data_pipelines_annuaire.config import (
     OBJECT_STORAGE_ACCESS_KEY,
     OBJECT_STORAGE_BUCKET,
@@ -19,6 +18,9 @@ from data_pipelines_annuaire.config import (
     OBJECT_STORAGE_SECRET_KEY,
     OBJECT_STORAGE_URL,
 )
+from data_pipelines_annuaire.helpers import filesystem
+
+logger = logging.getLogger(__name__)
 
 
 # Use and enrich ObjectStorageFile instead
@@ -82,7 +84,7 @@ class ObjectStorageClient:
             is_file = os.path.isfile(
                 os.path.join(file["source_path"], file["source_name"])
             )
-            logging.info(f"Sending {file['source_name']}")
+            logger.info(f"Sending {file['source_name']}")
             if is_file:
                 object_key = (
                     f"{OBJECT_STORAGE_ENV_PATH}{file['dest_path']}{file['dest_name']}"
@@ -93,7 +95,7 @@ class ObjectStorageClient:
                 if is_public:
                     extra_args["ACL"] = "public-read"
                 # Set extra args for content type if provided
-                if "content_type" in file and file["content_type"]:
+                if file.get("content_type"):
                     extra_args["ContentType"] = file["content_type"]
 
                 self.client.upload_file(
@@ -139,7 +141,7 @@ class ObjectStorageClient:
         if content_type:
             extra_args["ContentType"] = content_type
 
-        logging.info(
+        logger.info(
             f"Compressing and sending {dest_name} to {object_key} with pigz level {compress_level}"
         )
         proc = subprocess.Popen(
@@ -181,9 +183,9 @@ class ObjectStorageClient:
         """Delete an object while ignoring and logging errors. E.g. if the object does not exist."""
         try:
             self.client.delete_object(Bucket=self.bucket, Key=object_key)
-            logging.info(f"Delete object: {object_key}")
+            logger.info(f"Delete object: {object_key}")
         except ClientError as e:
-            logging.warning(f"Controlled failure to delete object: {object_key}\n{e}")
+            logger.warning(f"Controlled failure to delete object: {object_key}\n{e}")
 
     def get_files_from_prefix(self, prefix: str):
         """Retrieve only the list of files in a S3 pattern
@@ -204,7 +206,7 @@ class ObjectStorageClient:
                 for obj in page["Contents"]:
                     object_name = obj["Key"]
                     if not object_name.endswith("/"):  # Exclude folders
-                        logging.info(object_name)
+                        logger.info(object_name)
                         list_objects.append(
                             object_name.replace(f"{OBJECT_STORAGE_ENV_PATH}", "")
                         )
@@ -304,12 +306,14 @@ class ObjectStorageClient:
             raise Exception(f"No database file was found in: {prefix}")
 
         latest_file_date_str, latest_db_file = max(dated_db_files)
-        logging.info(f"Latest database: {latest_db_file}")
+        logger.info(f"Latest database: {latest_db_file}")
 
-        latest_file_date = datetime.strptime(latest_file_date_str, "%Y-%m-%d").strftime(
-            "%Y-%m-%dT%H:%M:%S"
+        latest_file_date = (
+            datetime.strptime(latest_file_date_str, "%Y-%m-%d")
+            .replace(tzinfo=UTC)
+            .strftime("%Y-%m-%dT%H:%M:%S")
         )
-        logging.info(f"Date of latest file: {latest_file_date}")
+        logger.info(f"Date of latest file: {latest_file_date}")
 
         # Ensure destination directory exists
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
@@ -318,9 +322,8 @@ class ObjectStorageClient:
         self.client.download_file(self.bucket, latest_db_file, compressed_path)
 
         # Decompress the downloaded database file
-        with gzip.open(compressed_path, "rb") as f_in:
-            with open(local_path, "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
+        with gzip.open(compressed_path, "rb") as f_in, open(local_path, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
         os.remove(compressed_path)
 
         return latest_file_date
@@ -331,9 +334,9 @@ class ObjectStorageClient:
             # Check if file exists first
             self.client.head_object(Bucket=self.bucket, Key=file_path)
             self.client.delete_object(Bucket=self.bucket, Key=file_path)
-            logging.info(f"File '{file_path}' deleted successfully.")
+            logger.info(f"File '{file_path}' deleted successfully.")
         except ClientError as e:
-            logging.error(e)
+            logger.error(e)
 
     def get_files_and_last_modified(self, prefix: str):
         """
@@ -357,7 +360,7 @@ class ObjectStorageClient:
                     file_name = obj["Key"]
                     last_modified = obj["LastModified"]
                     file_info_list.append((file_name, last_modified))
-        logging.info(f"*****List of files: {file_info_list}")
+        logger.info(f"*****List of files: {file_info_list}")
         return file_info_list
 
     def compare_files(
@@ -380,8 +383,8 @@ class ObjectStorageClient:
             file_1_key = f"{OBJECT_STORAGE_ENV_PATH}{file_path_1}{file_name_1}"
             file_2_key = f"{OBJECT_STORAGE_ENV_PATH}{file_path_2}{file_name_2}"
 
-            logging.info(file_1_key)
-            logging.info(file_2_key)
+            logger.info(file_1_key)
+            logger.info(file_2_key)
 
             file_1_stat = self.client.head_object(Bucket=self.bucket, Key=file_1_key)
             file_2_stat = self.client.head_object(Bucket=self.bucket, Key=file_2_key)
@@ -389,14 +392,14 @@ class ObjectStorageClient:
             file_1_etag = file_1_stat["ETag"]
             file_2_etag = file_2_stat["ETag"]
 
-            logging.info(f"Hash file 1 : {file_1_etag}")
-            logging.info(f"Hash file 2 : {file_2_etag}")
-            logging.info(bool(file_1_etag == file_2_etag))
+            logger.info(f"Hash file 1 : {file_1_etag}")
+            logger.info(f"Hash file 2 : {file_2_etag}")
+            logger.info(bool(file_1_etag == file_2_etag))
 
             return bool(file_1_etag == file_2_etag)
 
         except ClientError as e:
-            logging.error(f"Error loading files: {e}")
+            logger.error(f"Error loading files: {e}")
             return None
 
     def rename_folder(self, old_folder_suffix: str, new_folder_suffix: str):
@@ -431,13 +434,13 @@ class ObjectStorageClient:
                     self.client.copy_object(
                         Bucket=self.bucket, Key=new_object_name, CopySource=copy_source
                     )
-                    logging.info(f"Copied {old_object_name} to {new_object_name}")
+                    logger.info(f"Copied {old_object_name} to {new_object_name}")
 
                     # Delete the old object
                     self.client.delete_object(Bucket=self.bucket, Key=old_object_name)
-                    logging.info(f"Deleted {old_object_name}")
+                    logger.info(f"Deleted {old_object_name}")
 
-        logging.info(f"Folder '{old_folder}' renamed to '{new_folder}'")
+        logger.info(f"Folder '{old_folder}' renamed to '{new_folder}'")
 
     def get_date_last_modified(self, file_path: str) -> str | None:
         """
@@ -456,10 +459,10 @@ class ObjectStorageClient:
             )
             # Format the datetime object to ISO 8601 format
             last_modified_str = stat["LastModified"].strftime("%Y-%m-%dT%H:%M:%S")
-            logging.info(f"Last modified date of '{file_path}': {last_modified_str}")
+            logger.info(f"Last modified date of '{file_path}': {last_modified_str}")
             return last_modified_str
         except ClientError as e:
-            logging.error(f"Error retrieving file metadata for {file_path}: {e}")
+            logger.error(f"Error retrieving file metadata for {file_path}: {e}")
             return None
 
     def copy_file(self, source_path: str, dest_path: str, is_public: bool = True):
@@ -488,9 +491,9 @@ class ObjectStorageClient:
                 CopySource=copy_source,
                 **extra_args,
             )
-            logging.info(f"Copied {source_full_path} to {dest_full_path}")
+            logger.info(f"Copied {source_full_path} to {dest_full_path}")
         except ClientError as e:
-            logging.error(f"Error copying file from {source_path} to {dest_path}: {e}")
+            logger.error(f"Error copying file from {source_path} to {dest_path}: {e}")
 
 
 class ObjectStorageFile:

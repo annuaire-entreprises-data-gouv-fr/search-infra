@@ -1,6 +1,6 @@
 import logging
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 
 from airflow.sdk import get_current_context, task
 from elasticsearch.dsl import connections
@@ -24,6 +24,7 @@ filesystem = Filesystem(
     f"{OBJECT_STORAGE_ENV_PATH}{ELASTIC_SNAPSHOT_OBJECT_STORAGE_STATE_PATH}/",
     JsonSerializer(),
 )
+logger = logging.getLogger(__name__)
 
 
 @task
@@ -52,7 +53,7 @@ def update_object_storage_current_index_version():
         5. Any downstream server : read the current.json file and import the indicated current['index'] using the indicated['snapshot']
     """
 
-    current_date = datetime.today().strftime("%Y%m%d%H%M%S")
+    current_date = datetime.now(tz=UTC).strftime("%Y%m%d%H%M%S")
     content = filesystem.read("current.json")
 
     if content is None:
@@ -106,7 +107,7 @@ def rollback_object_storage_current_index_version():
             f"The snapshot {previous['current']['snapshot']} no longer exists on Elasticsearch"
         )
 
-    logging.info(f"Rolling back to {content['current']['file']}")
+    logger.info(f"Rolling back to {content['current']['file']}")
     filesystem.write("current.json", previous)
 
     ti = get_current_context()["ti"]
@@ -137,16 +138,16 @@ def snapshot_elastic_index():
 
     ti.xcom_push(key="elastic_index", value=elastic_index)
 
-    logging.info(
+    logger.info(
         "elastic_index has to be a string"
         f"\nprevious_elastic_index type: {type(previous_elastic_index)}, value: {previous_elastic_index}"
         f"\nelastic_index type: {type(elastic_index)}, value: {elastic_index}"
     )
 
-    current_date = datetime.today().strftime("%Y%m%d%H%M%S")
+    current_date = datetime.now(tz=UTC).strftime("%Y%m%d%H%M%S")
     snapshot_name = f"siren-{current_date}"
 
-    logging.info(
+    logger.info(
         f"Snapshot {elastic_index} into {ELASTIC_SNAPSHOT_REPOSITORY}/{snapshot_name}"
     )
 
@@ -207,13 +208,13 @@ def delete_old_snapshots():
         ignore_unavailable=True,
     )
 
-    snapshots = list(
-        sorted(snapshots["snapshots"], key=lambda snapshot: snapshot["start_time"])
+    snapshots = sorted(
+        snapshots["snapshots"], key=lambda snapshot: snapshot["start_time"]
     )
     snapshots_to_remove = snapshots[:-ELASTIC_SNAPSHOT_MAX_REVISIONS]
 
     for snapshot in snapshots_to_remove:
-        logging.info(
+        logger.info(
             f"Deleting snapshot {snapshot['snapshot']} from {ELASTIC_SNAPSHOT_REPOSITORY}"
         )
 
@@ -222,4 +223,4 @@ def delete_old_snapshots():
                 repository=ELASTIC_SNAPSHOT_REPOSITORY, snapshot=snapshot["snapshot"]
             )
         except Exception as e:
-            logging.error(f"Failed to delete the snapshot {snapshot['snapshot']}: {e}")
+            logger.error(f"Failed to delete the snapshot {snapshot['snapshot']}: {e}")

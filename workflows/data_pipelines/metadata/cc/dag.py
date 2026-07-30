@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.providers.standard.operators.python import ShortCircuitOperator
@@ -21,7 +21,7 @@ default_args = {
 
 @dag(
     default_args=default_args,
-    start_date=datetime(2026, 1, 1),
+    start_date=datetime(2026, 1, 1, tzinfo=UTC),
     schedule="0 11 2,16 * *",  # At 11:00 on the 2nd and 16th day of every month
     catchup=False,
     max_active_runs=1,

@@ -12,6 +12,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch\
     .process_unites_legales import process_unites_legales
 
 # fmt: on
+logger = logging.getLogger(__name__)
 
 
 def doc_unite_legale_generator(data, elastic_index):
@@ -68,7 +69,7 @@ def index_unites_legales_by_chunk(
         index=elastic_index, body={"index.refresh_interval": -1}
     )
 
-    logger = 0
+    log_counter = 0
     doc_count = 0
     chunk_unites_legales_sqlite = cursor.fetchmany(elastic_bulk_size)
     while chunk_unites_legales_sqlite:
@@ -90,9 +91,9 @@ def index_unites_legales_by_chunk(
         chunk_unites_legales_processed = process_unites_legales(
             liste_unites_legales_sqlite
         )
-        logger += 1
-        if logger % 100000 == 0:
-            logging.info(f"logger={logger}")
+        log_counter += 1
+        if log_counter % 100000 == 0:
+            logger.info(f"log_counter={log_counter}")
         try:
             chunk_doc_generator = doc_unite_legale_generator(
                 chunk_unites_legales_processed, elastic_index
@@ -112,8 +113,8 @@ def index_unites_legales_by_chunk(
                 else:
                     doc_count += 1
         except Exception as e:
-            logging.error(f"Failed to send to Elasticsearch: {e}")
-        logging.info(f"Number of documents indexed: {doc_count}")
+            logger.error(f"Failed to send to Elasticsearch: {e}")
+        logger.info(f"Number of documents indexed: {doc_count}")
 
         chunk_unites_legales_sqlite = cursor.fetchmany(elastic_bulk_size)
 
@@ -147,11 +148,11 @@ def index_unites_legales_by_chunk(
             break
 
         if attempt < max_retries - 1:
-            logging.warning(
+            logger.warning(
                 f"Document count is zero. Retrying in {retry_interval} seconds..."
             )
             time.sleep(retry_interval)
         else:
-            logging.error("Max retries reached. Document count is still zero.")
+            logger.error("Max retries reached. Document count is still zero.")
 
     return doc_count

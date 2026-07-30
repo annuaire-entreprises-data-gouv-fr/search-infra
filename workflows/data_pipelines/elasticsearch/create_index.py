@@ -1,11 +1,12 @@
 import logging
-from typing import Optional
 
 from elasticsearch.dsl import Index, connections
 
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.mapping_index import (
     StructureMapping,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class ElasticCreateIndex:
@@ -26,11 +27,11 @@ class ElasticCreateIndex:
     def __init__(
         self,
         *,
-        elastic_url: Optional[str] = None,
-        elastic_index: Optional[str] = None,
-        elastic_user: Optional[str] = None,
-        elastic_password: Optional[str] = None,
-        elastic_bulk_size: Optional[int] = 1500,
+        elastic_url: str | None = None,
+        elastic_index: str | None = None,
+        elastic_user: str | None = None,
+        elastic_password: str | None = None,
+        elastic_bulk_size: int | None = 1500,
         **kwargs,
     ) -> None:
         self.elastic_url = elastic_url
@@ -52,7 +53,7 @@ class ElasticCreateIndex:
         self.elastic_status = self.elastic_health["status"]
         self.elastic_mapping = self.elastic_connection.indices.get_mapping()
 
-        logging.info("Elasticsearch connection initiated!")
+        logger.info("Elasticsearch connection initiated!")
 
     def check_health(self):
         if self.elastic_status not in ("green", "yellow"):
@@ -60,7 +61,7 @@ class ElasticCreateIndex:
                 f"Cluster status is {self.elastic_status}, not green nor yellow!!"
             )
         else:
-            logging.info(f"Cluster status is functional: {self.elastic_status}")
+            logger.info(f"Cluster status is functional: {self.elastic_status}")
 
     def execute(self):
         self.check_health()
@@ -70,9 +71,9 @@ class ElasticCreateIndex:
 
         # if self.elastic_index_shards is not None:
         if Index(self.elastic_index).exists():
-            logging.info(f"Index  {self.elastic_index} already exists! Deleting...")
+            logger.info(f"Index  {self.elastic_index} already exists! Deleting...")
             Index(self.elastic_index).delete()
-            logging.info(f"Index {self.elastic_index} deleted!")
-        logging.info(f"Creating {self.elastic_index} index!")
+            logger.info(f"Index {self.elastic_index} deleted!")
+        logger.info(f"Creating {self.elastic_index} index!")
         # Create the mapping in elasticsearch
         StructureMapping.init(index=self.elastic_index)

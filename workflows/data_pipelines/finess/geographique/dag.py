@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, task
+
 from data_pipelines_annuaire.config import EMAIL_LIST
 from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.workflows.data_pipelines.finess.geographique.config import (
@@ -21,7 +22,7 @@ default_args = {
     tags=["finess", "domaine sanitaire et social"],
     default_args=default_args,
     schedule="0 16 * * *",
-    start_date=datetime(2026, 1, 1),
+    start_date=datetime(2026, 1, 1, tzinfo=UTC),
     dagrun_timeout=timedelta(minutes=60),
     params={},
     catchup=False,

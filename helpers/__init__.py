@@ -7,12 +7,12 @@ from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 
 __all__ = [
-    "DataProcessor",
-    "Notification",
-    "SqliteClient",
-    "ObjectStorageClient",
-    "clean_sirent_column",
     "AirflowApiClient",
     "ApiClient",
+    "DataProcessor",
     "LocalFile",
+    "Notification",
+    "ObjectStorageClient",
+    "SqliteClient",
+    "clean_sirent_column",
 ]

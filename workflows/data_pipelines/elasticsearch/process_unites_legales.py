@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 
 from data_pipelines_annuaire.helpers.utils import (
     convert_date_format,
@@ -44,9 +44,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             else:
                 unite_legale_processed[field] = unite_legale[field]
         # Statut de diffusion
-        is_non_diffusible = (
-            True if unite_legale["statut_diffusion_unite_legale"] != "O" else False
-        )
+        is_non_diffusible = unite_legale["statut_diffusion_unite_legale"] != "O"
 
         # Nom complet
         unite_legale_processed["nom_complet"] = format_nom_complet(
@@ -219,8 +217,8 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         unite_legale_processed["liste_id_organisme_formation"] = str_to_list(
             unite_legale_processed["liste_id_organisme_formation"]
         )
-        unite_legale_processed["est_organisme_formation"] = (
-            True if unite_legale_processed["liste_id_organisme_formation"] else False
+        unite_legale_processed["est_organisme_formation"] = bool(
+            unite_legale_processed["liste_id_organisme_formation"]
         )
         unite_legale_processed["est_qualiopi"] = sqlite_str_to_bool(
             unite_legale_processed["est_qualiopi"]
@@ -229,8 +227,8 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         # Finess
         # liste_finess_juridique is enough to calculate est_finess since
         # an Document can't have a finess géographique without a finess juridique
-        unite_legale_processed["est_finess"] = (
-            True if unite_legale_processed["liste_finess_juridique"] else False
+        unite_legale_processed["est_finess"] = bool(
+            unite_legale_processed["liste_finess_juridique"]
         )
         unite_legale_processed["liste_finess_juridique"] = str_to_list(
             unite_legale_processed["liste_finess_juridique"]
@@ -265,7 +263,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         # Get the current date and time
-        unite_legale_processed["date_mise_a_jour"] = datetime.now().strftime(
+        unite_legale_processed["date_mise_a_jour"] = datetime.now(tz=UTC).strftime(
             "%Y-%m-%dT%H:%M:%S"
         )
         unite_legale_processed["date_mise_a_jour_rne"] = convert_date_format(

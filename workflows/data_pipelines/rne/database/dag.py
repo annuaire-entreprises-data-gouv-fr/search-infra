@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, task
@@ -29,7 +29,7 @@ default_args = {
     tags=["rne", "database"],
     default_args=default_args,
     schedule="0 2 * * *",  # Run daily at 2 am
-    start_date=datetime(2026, 1, 1),
+    start_date=datetime(2026, 1, 1, tzinfo=UTC),
     on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
     on_success_callback=Notification(),
     max_active_runs=1,

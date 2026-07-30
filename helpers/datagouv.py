@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Optional, Tuple, TypedDict
+from typing import TypedDict
 
 import requests
 
@@ -12,6 +12,7 @@ from data_pipelines_annuaire.config import (
 
 datagouv_session = requests.Session()
 datagouv_session.headers.update({"X-API-KEY": DATAGOUV_SECRET_API_KEY})
+logger = logging.getLogger(__name__)
 
 
 class File(TypedDict):
@@ -39,8 +40,7 @@ def get_resource(
         with open(
             f"{file_to_store['dest_path']}{file_to_store['dest_name']}", "wb"
         ) as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
+            f.writelines(r.iter_content(chunk_size=8192))
 
 
 def get_dataset_or_resource_metadata(
@@ -83,8 +83,8 @@ def get_resource_metadata(resource_id: str):
 def post_resource(
     file_to_upload: File,
     dataset_id: str,
-    resource_id: Optional[str] = None,
-    resource_payload: Optional[dict] = None,
+    resource_id: str | None = None,
+    resource_payload: dict | None = None,
 ):
     """Upload a resource in data.gouv.fr
 
@@ -104,12 +104,9 @@ def post_resource(
     """
     if not file_to_upload["dest_path"].endswith("/"):
         file_to_upload["dest_path"] += "/"
-    files = {
-        "file": open(
-            f"{file_to_upload['dest_path']}{file_to_upload['dest_name']}",
-            "rb",
-        )
-    }
+
+    file_path = f"{file_to_upload['dest_path']}{file_to_upload['dest_name']}"
+
     if resource_id:
         url = (
             f"{DATAGOUV_URL}/api/1/datasets/{dataset_id}/resources/{resource_id}/"
@@ -117,18 +114,25 @@ def post_resource(
         )
     else:
         url = f"{DATAGOUV_URL}/api/1/datasets/{dataset_id}/upload/"
-    r = datagouv_session.post(url, files=files)
+
+    with open(file_path, "rb") as file:
+        files = {"file": file}
+        r = datagouv_session.post(url, files=files)
+
     r.raise_for_status()
+
     if not resource_id:
         resource_id = r.json()["id"]
-        logging.info("Resource was given this id:", resource_id)
+        logger.info("Resource was given this id: %s", resource_id)
         url = (
             f"{DATAGOUV_URL}/api/1/datasets/{dataset_id}/resources/{resource_id}/"
             "upload/"
         )
+
     if resource_id and resource_payload:
         r_put = datagouv_session.put(url.replace("upload/", ""), json=resource_payload)
         r_put.raise_for_status()
+
     return r
 
 
@@ -143,7 +147,7 @@ def update_dataset_description(dataset_id: str, dest_path: str, dest_name: str):
     with open(os.path.join(dest_path, dest_name), "r", encoding="utf-8") as f:
         description = f.read()
     update_dataset_metadata(dataset_id, {"description": description})
-    logging.info(f"Updated description for dataset {dataset_id}")
+    logger.info(f"Updated description for dataset {dataset_id}")
 
 
 def fetch_last_modified_date(resource_id: str) -> str:
@@ -175,7 +179,7 @@ def fetch_last_modified_date(resource_id: str) -> str:
 
 def fetch_last_resource_from_dataset(
     dataset_url: str, resource_extension: str = "csv"
-) -> Tuple[str, str]:
+) -> tuple[str, str]:
     """
     Fetch the last resource URL of a dataset with a specific extension.
 
@@ -188,23 +192,23 @@ def fetch_last_resource_from_dataset(
             - first element is the resource id
             - second element is the resource url
     """
-    logging.info(
+    logger.info(
         f"Fetching dataset metadata from {dataset_url} (extension: {resource_extension})"
     )
 
     response = requests.get(dataset_url)
     if response.ok:
         dataset_metadata = response.json()
-        logging.info(f"Successfully fetched dataset metadata from {dataset_url}")
+        logger.info(f"Successfully fetched dataset metadata from {dataset_url}")
     else:
-        logging.error(f"Error fetching dataset metadata from {dataset_url}")
+        logger.error(f"Error fetching dataset metadata from {dataset_url}")
         response.raise_for_status()
 
     resources = dataset_metadata.get("resources", [])
-    logging.info(f"Found {len(resources)} total resources in dataset")
+    logger.info(f"Found {len(resources)} total resources in dataset")
 
     matching_resources = [r for r in resources if r["format"] == resource_extension]
-    logging.info(
+    logger.info(
         f"Found {len(matching_resources)} resources with extension '{resource_extension}'"
     )
 
@@ -219,7 +223,7 @@ def fetch_last_resource_from_dataset(
 
     if resource_id:
         resource_url = f"{DATA_GOUV_BASE_URL}{resource_id}"
-        logging.info(
+        logger.info(
             f"Found most recent {resource_extension} resource: id={resource_id}, url={resource_url}"
         )
         return resource_id, resource_url

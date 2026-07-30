@@ -1,6 +1,7 @@
 import zipfile
 
 import pandas as pd
+
 from data_pipelines_annuaire.helpers import DataProcessor, Notification
 from data_pipelines_annuaire.workflows.data_pipelines.fondation.config import (
     FONDATION_CONFIG,

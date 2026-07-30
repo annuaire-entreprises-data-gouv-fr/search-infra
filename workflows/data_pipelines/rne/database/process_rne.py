@@ -17,6 +17,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.rne.database.ul_model impo
     UniteLegale,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def create_tables(cursor):
     cursor.execute(
@@ -205,7 +207,7 @@ def inject_records_into_db(
     json_decode_error_count = 0
 
     with open(file_path, "r") as file:
-        logging.info(f"Injecting records from file: {file_path}")
+        logger.info(f"Injecting records from file: {file_path}")
         file_content = []
         try:
             if file_type == "stock":
@@ -219,11 +221,11 @@ def inject_records_into_db(
                         file_content.append(file_content_record)
                     except json.JSONDecodeError as e:
                         if json_decode_error_count < 3:
-                            logging.error(
+                            logger.error(
                                 f"JSONDecodeError: {e} in file {file_path} at line {line}"
                             )
                         else:
-                            logging.error(
+                            logger.error(
                                 "More JSONDecodeErrors occurred but logging is limited."
                             )
                         # Skip the problematic line and continue with the next line
@@ -238,7 +240,7 @@ def inject_records_into_db(
                     # Check if it's a known problematic SIREN
                     siren = company.get("formality", {}).get("siren")
                     if siren in SIRENE_WITH_KNOWN_ISSUES:
-                        logging.warning(
+                        logger.warning(
                             "*********⚠️ Skipping RNE mapping for SIREN "
                             f"{siren}. It is a SIREN with a known issue."
                         )
@@ -633,7 +635,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
     cursor.execute("SELECT COUNT(*) FROM activite")
     count_activite = cursor.fetchone()[0]
 
-    logging.info(
+    logger.info(
         f"************Count UL: {count_ul}, Count siege: {count_siege}, "
         f"Count pp: {count_pp}, Count pm: {count_pm}, "
         f"Count immat: {count_immat}, "

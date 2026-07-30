@@ -34,6 +34,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.queries.unite_l
     update_main_table_fields_with_rne_data_query,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def create_table(query, table_name, index, sirene_file_type):
     sqlite_client = create_table_model(
@@ -50,7 +52,7 @@ def create_table(query, table_name, index, sirene_file_type):
             table_name, sqlite_client.db_conn, if_exists="append", index=False
         )
         for row in sqlite_client.execute(get_table_count(table_name)):
-            logging.debug(
+            logger.debug(
                 f"************ {row} total records have been added "
                 f"to the {table_name} table!"
             )
@@ -58,7 +60,7 @@ def create_table(query, table_name, index, sirene_file_type):
     del df_unite_legale
 
     for count_unite_legale in sqlite_client.execute(get_table_count(table_name)):
-        logging.info(
+        logger.info(
             f"************ {count_unite_legale} total records have been added to the "
             f"{table_name} table!"
         )
@@ -117,15 +119,15 @@ def add_rne_siren_data_to_unite_legale_table():
 
     except sqlite3.IntegrityError as e:
         # Log the error and problematic siren values
-        logging.error(f"IntegrityError: {e}")
+        logger.error(f"IntegrityError: {e}")
         problematic_sirens = e.args[0].split(": ")[1].split(", ")
-        logging.error(f"Problematic Sirens: {problematic_sirens}")
-        raise e
+        logger.error(f"Problematic Sirens: {problematic_sirens}")
+        raise
 
     except Exception as e:
         # Handle other exceptions if needed
-        logging.error(f"An unexpected error occurred: {e}")
-        raise e
+        logger.error(f"An unexpected error occurred: {e}")
+        raise
 
 
 @task
@@ -148,7 +150,7 @@ def create_historique_unite_legale_table():
         )
 
         for row in sqlite_client.execute(get_table_count(table_name)):
-            logging.debug(
+            logger.debug(
                 f"************ {row} total records have been added "
                 f"to the {table_name} table!"
             )
@@ -172,7 +174,7 @@ def create_historique_unite_legale_table():
                     f"DELETE FROM {table_name} WHERE siren IN ({placeholders})"
                 )
                 sqlite_client.execute(delete_query, batch)
-            logging.info(
+            logger.info(
                 f"Deleted stock periodes for {len(flux_sirens)} sirens present in flux"
             )
 
@@ -180,12 +182,12 @@ def create_historique_unite_legale_table():
         df_flux_periodes.to_sql(
             table_name, sqlite_client.db_conn, if_exists="append", index=False
         )
-        logging.info(
+        logger.info(
             f"Added {len(df_flux_periodes)} flux periodes to {table_name} table"
         )
 
     for count_unite_legale in sqlite_client.execute(get_table_count(table_name)):
-        logging.info(
+        logger.info(
             f"************ {count_unite_legale} total records have been added to the "
             f"{table_name} table!"
         )
@@ -206,7 +208,7 @@ def create_date_fermeture_unite_legale_table():
     )
 
     for count_unite_legale in sqlite_client.execute(get_table_count(table_name)):
-        logging.info(
+        logger.info(
             f"************ {count_unite_legale} total records have been added to the "
             f"{table_name} table!"
         )
@@ -233,6 +235,6 @@ def enrich_unite_legale_with_etablissement_data():
     for row in sqlite_client.execute(
         "SELECT en_sommeil, COUNT(*) AS n_siren FROM unite_legale GROUP BY 1"
     ):
-        logging.info(f"En sommeil summary: en_sommeil={row[0]}, n_siren={row[1]}")
+        logger.info(f"En sommeil summary: en_sommeil={row[0]}, n_siren={row[1]}")
 
     sqlite_client.commit_and_close_conn()

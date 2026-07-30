@@ -13,6 +13,8 @@ from data_pipelines_annuaire.config import (
     ELASTIC_DOWNSTREAM_USER,
 )
 
+logger = logging.getLogger(__name__)
+
 
 @task
 def wait_for_downstream_import():
@@ -42,7 +44,7 @@ def wait_for_downstream_index_import(elastic_index):
     if len(downstream_urls) == 0:
         return
 
-    logging.info(f"Waiting for {elastic_index} to be imported on {downstream_urls}")
+    logger.info(f"Waiting for {elastic_index} to be imported on {downstream_urls}")
 
     pending = downstream_urls
     completed = []
@@ -63,7 +65,7 @@ def wait_for_downstream_index_import(elastic_index):
             indices = list(response.json().keys())
 
             if elastic_index in indices:
-                logging.info(f"Index available on {url}")
+                logger.info(f"Index available on {url}")
                 completed.append(url)
 
         pending = [url for url in downstream_urls if url not in completed]
@@ -73,7 +75,7 @@ def wait_for_downstream_index_import(elastic_index):
             waited_for += 5
 
     if len(pending) > 0:
-        raise Exception("Downstream import is taking too long")
+        logger.error("Downstream import is taking too long")
 
 
 @task
@@ -87,7 +89,7 @@ def update_downstream_alias():
     )
 
     for url in urls:
-        logging.info(f"Connecting to downstream cluster {url}")
+        logger.info(f"Connecting to downstream cluster {url}")
         es = Elasticsearch(
             hosts=[url],
             basic_auth=(ELASTIC_DOWNSTREAM_USER, ELASTIC_DOWNSTREAM_PASSWORD),
@@ -110,10 +112,10 @@ def update_downstream_alias():
         for alias in aliases:
             actions.append({"add": {"index": elastic_index, "alias": alias}})
 
-        logging.info(
+        logger.info(
             f"[{url}] Updating aliases {aliases}: add {elastic_index}, remove from old indexes"
         )
-        logging.info(f"Actions : {actions}")
+        logger.info(f"Actions : {actions}")
 
         # Envoi de la requête
         if actions:

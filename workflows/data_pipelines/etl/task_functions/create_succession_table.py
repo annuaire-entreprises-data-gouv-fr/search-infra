@@ -14,6 +14,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.queries.success
     create_table_liens_succession_query,
 )
 
+logger = logging.getLogger(__name__)
+
 
 @task
 def create_succession_table():
@@ -32,7 +34,7 @@ def create_succession_table():
         )
 
         for row in sqlite_client.execute(get_table_count(table_name)):
-            logging.debug(
+            logger.debug(
                 f"************ {row} total records have been added "
                 f"to the {table_name} table!"
             )

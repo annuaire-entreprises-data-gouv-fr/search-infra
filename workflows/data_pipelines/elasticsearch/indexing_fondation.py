@@ -9,6 +9,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.structure_ty
     StructureType,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def format_fondation_adresse(fondation):
     parts = [fondation.get(field) for field in ["adresse", "code_postal", "ville"]]
@@ -56,5 +58,5 @@ def index_fondations_by_chunk(
 
         chunk_fondations_sqlite = cursor.fetchmany(elastic_bulk_size)
 
-    logging.info(f"Number of fondations indexed: {doc_count}")
+    logger.info(f"Number of fondations indexed: {doc_count}")
     return doc_count

@@ -6,7 +6,6 @@ __pycache__/
 .DS_Store
 .docker
 
-pyproject.toml
 poetry.lock
 .env
 .venv

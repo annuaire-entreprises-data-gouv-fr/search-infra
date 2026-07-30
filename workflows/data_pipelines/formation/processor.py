@@ -11,6 +11,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.formation.config import (
     FORMATION_CONFIG,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class FormationProcessor(DataProcessor):
     def __init__(self):
@@ -45,7 +47,7 @@ class FormationProcessor(DataProcessor):
         )
 
         df_organisme_formation.to_csv(self.config.file_output, index=False)
-        logging.info(f"Formation dataset saved in {self.config.file_output}")
+        logger.info(f"Formation dataset saved in {self.config.file_output}")
 
         DataProcessor.push_message(
             Notification.notification_xcom_key,

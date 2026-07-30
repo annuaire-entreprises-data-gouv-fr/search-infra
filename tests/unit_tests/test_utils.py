@@ -7,6 +7,8 @@ import pytest
 
 from data_pipelines_annuaire.helpers.utils import fetch_hyperlink_from_page
 
+logger = logging.getLogger(__name__)
+
 
 def get_last_line(file_path):
     """
@@ -25,24 +27,25 @@ def get_last_line(file_path):
                 while f.read(1) != b"\n":
                     f.seek(-2, os.SEEK_CUR)
             except OSError as error:
-                logging.error(f"{error}")
+                logger.error(f"{error}")
                 f.seek(0)
             last_line = f.readline().decode()
-            logging.info(f"Last line: {last_line}")
+            logger.info(f"Last line: {last_line}")
 
         return last_line if last_line else None
     except Exception as e:
-        logging.error(f"Error while reading last line: {e}")
+        logger.error(f"Error while reading last line: {e}")
         return None
 
 
 @pytest.fixture
 def temp_file_path():
     # Create a temporary file for testing
-    temp_file = tempfile.NamedTemporaryFile(delete=False)
-    temp_file_path = temp_file.name
-    temp_file.close()
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        temp_file_path = temp_file.name
+
     yield temp_file_path
+
     # Remove the temporary file after the test
     os.remove(temp_file_path)
 

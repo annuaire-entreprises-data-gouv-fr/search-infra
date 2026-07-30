@@ -1,0 +1,9 @@
+[tool.ruff]
+src = ["data_pipelines_annuaire"]
+
+[tool.ruff.lint]
+ignore = ["TRY002", "BLE001", "RUF012"]
+extend-select = ["I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["data_pipelines_annuaire"]

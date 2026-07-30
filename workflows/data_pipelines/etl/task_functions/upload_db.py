@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from airflow.sdk import task
 
@@ -10,7 +10,7 @@ from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 
 @task
 def upload_db_to_object_storage(database_file_path: str) -> None:
-    current_date = datetime.now().date()
+    current_date = datetime.now(tz=UTC).date()
     ObjectStorageClient().upload_compressed_file(
         source_file_path=database_file_path,
         object_storage_path=SIRENE_OBJECT_STORAGE_DATA_PATH,

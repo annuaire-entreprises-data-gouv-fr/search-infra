@@ -22,6 +22,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.sirene.stock.config import
     STOCK_SIRENE_CONFIG,
 )
 
+logger = logging.getLogger(__name__)
+
 STOCK_ETABLISSEMENT_COLUMNS = [
     "siren",
     "siret",
@@ -65,10 +67,10 @@ STOCK_ETABLISSEMENT_COLUMNS = [
 
 def download_stock_iterator(chunksize: int = 500_000) -> pd.DataFrame:
     year_month = get_sirene_processing_month()
-    logging.info(f"Downloading stock etablissement for: {year_month}")
+    logger.info(f"Downloading stock etablissement for: {year_month}")
 
     url = f"{STOCK_SIRENE_CONFIG.url_object_storage}StockEtablissement_{year_month}_with_gps.zip"
-    logging.info(f"Stock file url: {url}")
+    logger.info(f"Stock file url: {url}")
 
     return pd.read_csv(
         url,
@@ -122,10 +124,10 @@ FLUX_ETABLISSEMENT_COLUMNS = [
 
 def download_flux_iterator(chunksize: int = 500_000) -> pd.DataFrame:
     year_month = get_sirene_processing_month()
-    logging.info(f"Downloading flux for : {year_month}")
+    logger.info(f"Downloading flux for : {year_month}")
     try:
         url = f"{FLUX_SIRENE_CONFIG.url_object_storage}flux_etablissement_{year_month}.csv.gz"
-        logging.info(f"Flux file url: {url}")
+        logger.info(f"Flux file url: {url}")
         return pd.read_csv(
             url,
             dtype=str,
@@ -139,30 +141,41 @@ def download_flux_iterator(chunksize: int = 500_000) -> pd.DataFrame:
     # This exception handling ensures that we skip downloading the flux data
     # if it hasn't been uploaded to object storage yet.
     except ClientError as e:
-        logging.warning(f"No flux data has been found for: {year_month}")
+        logger.warning(f"No flux data has been found for: {year_month}")
         if e.response["Error"]["Code"] == "NoSuchKey":
             raise AirflowSkipException("Skipping this task")
 
 
 def download_historique(data_dir):
     year_month = get_sirene_processing_month()
+
     filename = STOCK_SIRENE_CONFIG.files_to_download["historique_etablissement"][
         "destination"
     ].split("/")[-1]
     filename = filename.replace(CURRENT_MONTH, year_month)
+
     url = STOCK_SIRENE_CONFIG.url_object_storage + filename
 
-    r = requests.get(
-        url,
-        allow_redirects=True,
-    )
-    open(data_dir + "StockEtablissementHistorique_utf8.zip", "wb").write(r.content)
-    shutil.unpack_archive(data_dir + "StockEtablissementHistorique_utf8.zip", data_dir)
+    zip_path = data_dir + "StockEtablissementHistorique_utf8.zip"
+
+    logger.info(f"Downloading historical data from: {url}")
+
+    with requests.get(url, allow_redirects=True, stream=True) as r:
+        r.raise_for_status()
+
+        with open(zip_path, "wb") as f_out:
+            for chunk in r.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    f_out.write(chunk)
+
+    shutil.unpack_archive(zip_path, data_dir)
+
     df_iterator = pd.read_csv(
         f"{data_dir}StockEtablissementHistorique_utf8.csv",
         chunksize=100000,
         dtype=str,
     )
+
     return df_iterator
 
 
@@ -282,7 +295,7 @@ def download_flux_periodes(data_dir):
         )
         return df_flux_periodes
     except ClientError as e:
-        logging.warning(f"No flux periodes data has been found for: {year_month}")
+        logger.warning(f"No flux periodes data has been found for: {year_month}")
         if e.response["Error"]["Code"] == "NoSuchKey":
             raise AirflowSkipException("Skipping flux periodes - no data available")
         raise
@@ -322,28 +335,38 @@ def download_geo_stats_iterator(data_dir: str, chunksize: int = 500_000):
     )[-1]
     url = STOCK_SIRENE_CONFIG.url_object_storage + filename
 
-    logging.info(f"Downloading and unpacking {url}..")
+    logger.info(f"Downloading and unpacking {url}..")
     try:
-        r = requests.get(
+        with requests.get(
             url,
             allow_redirects=True,
-        )
-        # Check if the response indicates a NoSuchKey error
-        if r.status_code == 404:
-            # Try with previous month's file
-            filename_prev = filename.replace(CURRENT_MONTH, PREVIOUS_MONTH)
-            url_prev = STOCK_SIRENE_CONFIG.url_object_storage + filename_prev
-            logging.warning(
-                f"File not found at {url}, trying previous month: {url_prev}"
-            )
-            r = requests.get(
-                url_prev,
-                allow_redirects=True,
-            )
-            filename = filename_prev
+            stream=True,
+        ) as r:
+            # Check if the response indicates a NoSuchKey error
+            if r.status_code == 404:
+                # Try with previous month's file
+                filename_prev = filename.replace(CURRENT_MONTH, PREVIOUS_MONTH)
+                url_prev = STOCK_SIRENE_CONFIG.url_object_storage + filename_prev
+                logger.warning(
+                    f"File not found at {url}, trying previous month: {url_prev}"
+                )
+                r = requests.get(
+                    url_prev,
+                    allow_redirects=True,
+                    stream=True,
+                )
+                filename = filename_prev
 
-        open(data_dir + filename, "wb").write(r.content)
-        shutil.unpack_archive(data_dir + filename, data_dir)
+            r.raise_for_status()
+
+            file_path = data_dir + filename
+
+            with open(file_path, "wb") as f_out:
+                for chunk in r.iter_content(chunk_size=1024 * 1024):
+                    if chunk:
+                        f_out.write(chunk)
+
+        shutil.unpack_archive(file_path, data_dir)
 
         return pd.read_csv(
             f"{data_dir}GeolocalisationEtablissement_Sirene_pour_etudes_statistiques_utf8.csv",
@@ -353,7 +376,7 @@ def download_geo_stats_iterator(data_dir: str, chunksize: int = 500_000):
             chunksize=chunksize,
         )
     except Exception as e:
-        logging.error(f"Failed to download geo stats: {e}")
+        logger.error(f"Failed to download geo stats: {e}")
         raise
 
 

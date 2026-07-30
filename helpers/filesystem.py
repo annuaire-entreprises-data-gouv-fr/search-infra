@@ -7,7 +7,9 @@ import time
 from pathlib import Path
 from typing import Literal
 
-import data_pipelines_annuaire.helpers.object_storage as object_storage
+from data_pipelines_annuaire.helpers import object_storage
+
+logger = logging.getLogger(__name__)
 
 
 class LocalFile:
@@ -34,7 +36,7 @@ class LocalFile:
 
         if not self.path.exists() and default_value_if_not_exists:
             self.path.write_text(default_value_if_not_exists)
-            logging.info(f"Created file {self.path.absolute()} with default content.")
+            logger.info(f"Created file {self.path.absolute()} with default content.")
 
         self.assert_exists()
 
@@ -84,7 +86,7 @@ class LocalFile:
             object_storage_filename = self.filename
 
         if not object_storage_path.endswith("/"):
-            logging.warning(
+            logger.warning(
                 f"object_storage_path should end with a '/', adding one to {object_storage_path}"
             )
             object_storage_path += "/"
@@ -100,9 +102,7 @@ class LocalFile:
                 )
             ]
         )
-        logging.info(
-            f"File {object_storage_filename} uploaded to {object_storage_path}"
-        )
+        logger.info(f"File {object_storage_filename} uploaded to {object_storage_path}")
 
         # Wait for the file to be uploaded before creating object storage file
         time.sleep(15)
@@ -143,7 +143,7 @@ class Filesystem:
         try:
             self.client.get_object_object_storage(self.dirpath, filename, local_path)
         except Exception as e:
-            logging.error(e)
+            logger.error(e)
             return None
 
         content = None

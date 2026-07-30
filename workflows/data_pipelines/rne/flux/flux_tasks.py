@@ -4,7 +4,7 @@ import logging
 import os
 import re
 import shutil
-from datetime import datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from airflow.sdk import get_current_context, task
 
@@ -19,6 +19,8 @@ from data_pipelines_annuaire.helpers.utils import get_last_line
 from data_pipelines_annuaire.workflows.data_pipelines.rne.flux.rne_api import (
     ApiRNEClient,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def get_last_json_file_date():
@@ -36,7 +38,7 @@ def get_last_json_file_date():
 
     if dates:
         last_date = dates[-1]
-        logging.info(f"***** Last date saved: {last_date}")
+        logger.info(f"***** Last date saved: {last_date}")
         return last_date
     else:
         return None
@@ -50,12 +52,14 @@ def get_latest_json_file(ti):
         f"rne_flux_{start_date}.json.gz",
         f"{last_json_file_path}.gz",
     )
-    logging.info(f"Got zip file : rne_flux_{start_date}.json.gz")
+    logger.info(f"Got zip file : rne_flux_{start_date}.json.gz")
 
     # Unzip json file
-    with gzip.open(f"{last_json_file_path}.gz", "rb") as f_in:
-        with open(last_json_file_path, "wb") as f_out:
-            shutil.copyfileobj(f_in, f_out)
+    with (
+        gzip.open(f"{last_json_file_path}.gz", "rb") as f_in,
+        open(last_json_file_path, "wb") as f_out,
+    ):
+        shutil.copyfileobj(f_in, f_out)
 
     ti.xcom_push(key="last_json_file_path", value=last_json_file_path)
 
@@ -90,14 +94,14 @@ def get_last_siren(ti):
                 latest_company = latest_dict["company"]
                 last_siren = latest_company.get("siren")
                 if last_siren is not None:
-                    logging.info(
+                    logger.info(
                         f"****Last siren in saved file "
                         f"{last_json_file_path}: {last_siren}"
                     )
                 else:
-                    logging.info("No 'siren' key found in the decoded JSON.")
+                    logger.info("No 'siren' key found in the decoded JSON.")
         except json.JSONDecodeError:
-            logging.error("Error decoding JSON. Removing last line and trying again.")
+            logger.error("Error decoding JSON. Removing last line and trying again.")
 
         return last_siren
     except Exception:
@@ -108,9 +112,9 @@ def compute_start_date():
     last_json_date = get_last_json_file_date()
 
     if last_json_date:
-        last_date_obj = datetime.strptime(last_json_date, "%Y-%m-%d")
+        last_date_obj = date.fromisoformat(last_json_date)
         start_date = last_date_obj.strftime("%Y-%m-%d")
-        logging.info(f"++++++++Start date: {start_date}")
+        logger.info(f"++++++++Start date: {start_date}")
     else:
         start_date = RNE_DEFAULT_START_DATE
 
@@ -140,12 +144,12 @@ def get_and_save_daily_flux_rne(
     object_storage_client = ObjectStorageClient()
 
     if not os.path.exists(RNE_FLUX_DATADIR):
-        logging.info(f"********** Creating {RNE_FLUX_DATADIR}")
+        logger.info(f"********** Creating {RNE_FLUX_DATADIR}")
         os.makedirs(RNE_FLUX_DATADIR)
 
     if first_exec:
         last_siren = get_last_siren(ti)
-        logging.info(f"********* Last siren: {last_siren}")
+        logger.info(f"********* Last siren: {last_siren}")
     else:
         last_siren = None  # Initialize last_siren
     page_data = True
@@ -153,7 +157,7 @@ def get_and_save_daily_flux_rne(
     rne_client = ApiRNEClient()
 
     with open(json_file_path, "a") as json_file:
-        logging.info(f"****** Opening file: {json_file_path}")
+        logger.info(f"****** Opening file: {json_file_path}")
         while page_data:
             try:
                 page_data, last_siren = rne_client.make_api_request(
@@ -167,9 +171,11 @@ def get_and_save_daily_flux_rne(
                 # If exception accures, save uncompleted file
                 if os.path.exists(json_file_path):
                     # Zip file
-                    with open(json_file_path, "rb") as f_in:
-                        with gzip.open(f"{json_file_path}.gz", "wb") as f_out:
-                            shutil.copyfileobj(f_in, f_out)
+                    with (
+                        open(json_file_path, "rb") as f_in,
+                        gzip.open(f"{json_file_path}.gz", "wb") as f_out,
+                    ):
+                        shutil.copyfileobj(f_in, f_out)
                     object_storage_client.send_files(
                         list_files=[
                             {
@@ -182,16 +188,18 @@ def get_and_save_daily_flux_rne(
                     )
                 # If the API request failed, delete the current
                 # JSON file and break the loop
-                logging.info(f"****** Deleting file: {json_file_path}")
+                logger.info(f"****** Deleting file: {json_file_path}")
                 os.remove(json_file_path)
                 os.remove(f"{json_file_path}.gz")
                 raise Exception(f"Error occurred during the API request: {e}")
 
     if os.path.exists(json_file_path):
         # Zip file
-        with open(json_file_path, "rb") as f_in:
-            with gzip.open(f"{json_file_path}.gz", "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
+        with (
+            open(json_file_path, "rb") as f_in,
+            gzip.open(f"{json_file_path}.gz", "wb") as f_out,
+        ):
+            shutil.copyfileobj(f_in, f_out)
 
         object_storage_client.send_files(
             list_files=[
@@ -203,8 +211,8 @@ def get_and_save_daily_flux_rne(
                 },
             ],
         )
-        logging.info(f"****** Sent file to the object storage: {json_file_name}.gz")
-        logging.info(f"****** Deleting file: {json_file_path}")
+        logger.info(f"****** Sent file to the object storage: {json_file_name}.gz")
+        logger.info(f"****** Deleting file: {json_file_path}")
         os.remove(json_file_path)
         os.remove(f"{json_file_path}.gz")
 
@@ -219,12 +227,12 @@ def get_every_day_flux():
     ti = get_current_context()["ti"]
     # Get the start and end date
     start_date = compute_start_date()
-    end_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-    logging.info(f"********* Start date: {start_date}")
-    logging.info(f"********* End date: {end_date}")
+    end_date = (datetime.now(UTC) - timedelta(days=1)).strftime("%Y-%m-%d")
+    logger.info(f"********* Start date: {start_date}")
+    logger.info(f"********* End date: {end_date}")
 
-    current_date = datetime.strptime(start_date, "%Y-%m-%d")
-    end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
+    current_date = datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=UTC)
+    end_date_dt = datetime.strptime(end_date, "%Y-%m-%d").replace(tzinfo=UTC)
     first_exec = True
     while current_date <= end_date_dt:
         start_date_formatted = current_date.strftime("%Y-%m-%d")

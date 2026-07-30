@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, setup, task, teardown
@@ -28,7 +28,7 @@ default_args = {
     tags=["publication", "data.gouv"],
     default_args=default_args,
     schedule="0 17 * * *",  # Executes daily at 5 PM
-    start_date=datetime(2026, 1, 1),
+    start_date=datetime(2026, 1, 1, tzinfo=UTC),
     dagrun_timeout=timedelta(minutes=60 * 3),
     params={},
     catchup=False,
