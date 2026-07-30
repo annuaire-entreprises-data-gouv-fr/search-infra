@@ -5,6 +5,8 @@ import pandas as pd
 from data_pipelines_annuaire.config import DataSourceConfig
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 
+logger = logging.getLogger(__name__)
+
 
 class DatabaseTableConstructor:
     """
@@ -39,7 +41,7 @@ class DatabaseTableConstructor:
         df_table = self.etl_get_preprocessed_data()
 
         with SqliteClient(db_location) as sqlite_client:
-            logging.info(f"Creating {self.config.name} table..")
+            logger.info(f"Creating {self.config.name} table..")
             sqlite_client.drop_table(self.config.name)
             sqlite_client.execute_script(self.config.table_ddl)
             df_table.to_sql(
@@ -52,7 +54,7 @@ class DatabaseTableConstructor:
             )
             row_count = sqlite_client.get_table_count(self.config.name)
 
-        logging.info(
+        logger.info(
             f"************ {row_count} total records have been added to the "
             f"{self.config.name} table!"
         )
@@ -84,14 +86,14 @@ class DatabaseTableConstructor:
             queries = [queries]
 
         with SqliteClient(db_location) as sqlite_client:
-            logging.info(
+            logger.info(
                 f"Execution post-processing queries on {self.config.name} table.."
             )
             previous_total = 0
             for i, query in enumerate(queries):
                 sqlite_client.execute(query)
                 current_total = sqlite_client.db_conn.total_changes
-                logging.info(
+                logger.info(
                     f"post-processing query {i + 1}: {current_total - previous_total} rows updated"
                 )
                 previous_total = current_total

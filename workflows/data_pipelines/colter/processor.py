@@ -13,6 +13,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.colter.config import (
     ELUS_CONFIG,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class ColterProcessor(DataProcessor):
     def __init__(self):
@@ -224,7 +226,7 @@ class ColterProcessor(DataProcessor):
         for niveau, threshold in niveau_thresholds.items():
             count = df_colter[df_colter["colter_niveau"] == niveau].shape[0]
             validations[niveau] = count >= threshold
-            logging.info(
+            logger.info(
                 f"Valid? {validations[niveau]}: {niveau}: {count} entries, Threshold: {threshold}"
             )
 
@@ -244,7 +246,7 @@ class ColterProcessor(DataProcessor):
                 df_colter[df_colter["colter_niveau"] == niveau]["colter_code"].unique()
             )
             validations[niveau] = set(expected_codes).issubset(set(actual_codes))
-            logging.info(
+            logger.info(
                 f"Valid? {validations[niveau]}: {niveau}: Expected {expected_codes}, Found {actual_codes}"
             )
 
@@ -255,13 +257,13 @@ class ColterProcessor(DataProcessor):
                 df_colter[column][df_colter[column].dropna().duplicated(keep=False)]
             )
             validations[column] = duplicates == []
-            logging.info(
+            logger.info(
                 f"Valid? {duplicates == []}: {column} has {duplicates} duplicated elements."
             )
 
         # Overall validation result
         overall_validation = all(validations.values())
-        logging.info(f"Overall validation? {overall_validation}")
+        logger.info(f"Overall validation? {overall_validation}")
         if not overall_validation:
             raise ValueError("Data validation failed.")
 
@@ -345,7 +347,7 @@ class ElusProcessor(DataProcessor):
             if len(df_elus.columns) == 1:
                 raise ValueError("Only one column found, wrong separator")
         except (pd.errors.ParserError, ValueError):
-            logging.warning(
+            logger.warning(
                 f"***** Separator might be different than semicolon for {url}"
             )
             df_elus = pd.read_csv(url, dtype=str, sep=",")

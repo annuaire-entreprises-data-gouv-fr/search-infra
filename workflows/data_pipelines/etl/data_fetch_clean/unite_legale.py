@@ -1,5 +1,6 @@
 import logging
 import shutil
+from pathlib import Path
 
 import pandas as pd
 import requests
@@ -18,55 +19,85 @@ from data_pipelines_annuaire.workflows.data_pipelines.sirene.stock.config import
     STOCK_SIRENE_CONFIG,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def download_historique(data_dir):
     year_month = get_sirene_processing_month()
+
     filename = STOCK_SIRENE_CONFIG.files_to_download["historique_unite_legale"][
         "destination"
     ].split("/")[-1]
     filename = filename.replace(CURRENT_MONTH, year_month)
+
     url = STOCK_SIRENE_CONFIG.url_object_storage + filename
 
-    logging.info(f"Downloading and unpacking {url}..")
-    r = requests.get(
-        url,
-        allow_redirects=True,
-    )
-    open(data_dir + "StockUniteLegaleHistorique_utf8.zip", "wb").write(r.content)
-    shutil.unpack_archive(data_dir + "StockUniteLegaleHistorique_utf8.zip", data_dir)
+    data_path = Path(data_dir)
+    zip_path = data_path / "StockUniteLegaleHistorique_utf8.zip"
+
+    logger.info(f"Downloading and unpacking {url}..")
+
+    with requests.get(url, allow_redirects=True, stream=True) as r:
+        r.raise_for_status()
+
+        with open(zip_path, "wb") as f_out:
+            for chunk in r.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    f_out.write(chunk)
+
+    shutil.unpack_archive(zip_path, data_path)
+
+    csv_path = data_path / "StockUniteLegaleHistorique_utf8.csv"
+
     df_iterator = pd.read_csv(
-        f"{data_dir}StockUniteLegaleHistorique_utf8.csv",
+        csv_path,
         chunksize=100000,
         dtype=str,
     )
+
     return df_iterator
 
 
 def download_stock(data_dir):
     year_month = get_sirene_processing_month()
+
     filename = STOCK_SIRENE_CONFIG.files_to_download["stock_unite_legale"][
         "destination"
     ].split("/")[-1]
     filename = filename.replace(CURRENT_MONTH, year_month)
+
     url = STOCK_SIRENE_CONFIG.url_object_storage + filename
 
-    logging.info(f"Downloading and unpacking {url}..")
-    r = requests.get(
-        url,
-        allow_redirects=True,
-    )
-    open(data_dir + "StockUniteLegale_utf8.zip", "wb").write(r.content)
-    shutil.unpack_archive(data_dir + "StockUniteLegale_utf8.zip", data_dir)
+    data_path = Path(data_dir)
+    zip_path = data_path / "StockUniteLegale_utf8.zip"
+
+    logger.info(f"Downloading and unpacking {url}..")
+
+    with requests.get(url, allow_redirects=True, stream=True) as r:
+        r.raise_for_status()
+
+        with open(zip_path, "wb") as f_out:
+            for chunk in r.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    f_out.write(chunk)
+
+    shutil.unpack_archive(zip_path, data_path)
+
+    csv_path = data_path / "StockUniteLegale_utf8.csv"
+
     df_iterator = pd.read_csv(
-        f"{data_dir}StockUniteLegale_utf8.csv", chunksize=100000, dtype=str
+        csv_path,
+        chunksize=100000,
+        dtype=str,
     )
+
     return df_iterator
 
 
 def download_flux(data_dir):
     year_month = get_sirene_processing_month()
     try:
-        logging.info(f"Downloading flux for : {year_month}")
+        logger.info(f"Downloading flux for : {year_month}")
         ObjectStorageClient().get_files(
             list_files=[
                 File(
@@ -86,7 +117,7 @@ def download_flux(data_dir):
         )
         return df_iterator
     except ClientError as e:
-        logging.warning(f"No flux data has been found for: {year_month}")
+        logger.warning(f"No flux data has been found for: {year_month}")
         if e.response["Error"]["Code"] == "NoSuchKey":
             raise AirflowSkipException("Skipping this task")
 
@@ -220,7 +251,7 @@ def download_flux_periodes_unite_legale(data_dir):
         )
         return df_flux_periodes
     except ClientError as e:
-        logging.warning(
+        logger.warning(
             f"No flux periodes unite legale data has been found for: {year_month}"
         )
         if e.response["Error"]["Code"] == "NoSuchKey":

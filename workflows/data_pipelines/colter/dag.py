@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import Asset, dag, task
@@ -26,7 +26,7 @@ dataset_colter = Asset(COLTER_CONFIG.name)
     tags=["collectivités", "communes", "régions", "départements"],
     default_args=default_args,
     schedule="0 16 * * *",
-    start_date=datetime(2026, 1, 1),
+    start_date=datetime(2026, 1, 1, tzinfo=UTC),
     dagrun_timeout=timedelta(minutes=60),
     on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
     on_success_callback=Notification(),
@@ -82,7 +82,7 @@ def data_processing_collectivite_territoriale():
     tags=["collectivités", "élus", "conseillers", "epci"],
     default_args=default_args,
     schedule=[dataset_colter],
-    start_date=datetime(2026, 1, 1),
+    start_date=datetime(2026, 1, 1, tzinfo=UTC),
     dagrun_timeout=timedelta(minutes=60),
     on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
     on_success_callback=Notification(),

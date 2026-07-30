@@ -18,4 +18,4 @@ select_sitemap_fields_query = """SELECT
             unite_legale ul
         JOIN
             siege st
-        ON st.siren = ul.siren;"""  # noqa
+        ON st.siren = ul.siren;"""

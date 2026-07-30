@@ -13,6 +13,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.sirene.stock.config import
     STOCK_SIRENE_CONFIG,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def get_datasets_urls(month_period: Literal["current", "previous"]) -> list[str]:
     if month_period == "current":
@@ -43,7 +45,7 @@ def get_datasets_urls(month_period: Literal["current", "previous"]) -> list[str]
         + ".zip",
     ]
 
-    logging.info(f"URLs to check for {month_period} month: {urls}")
+    logger.info(f"URLs to check for {month_period} month: {urls}")
 
     return urls
 
@@ -57,10 +59,10 @@ def check_sirene_datasets_availability(
     urls_status = {url: is_url_valid(url) for url in get_datasets_urls(month_period)}
     are_urls_ok = all(urls_status.values())
     if not are_urls_ok:
-        logging.info(f"Some of {month_period} month's Sirene data are unavailable:")
+        logger.info(f"Some of {month_period} month's Sirene data are unavailable:")
         for url, is_ok in urls_status.items():
             if not is_ok:
-                logging.info(f"\t{url}")
+                logger.info(f"\t{url}")
         return False
     return True
 
@@ -77,10 +79,10 @@ def determine_sirene_date() -> bool:
 
     sirene_processing_month: str = ""
     if check_sirene_datasets_availability("current"):
-        logging.info("Using current month Sirene data.")
+        logger.info("Using current month Sirene data.")
         sirene_processing_month = CURRENT_MONTH
     elif check_sirene_datasets_availability("previous"):
-        logging.warning("Using previous month Sirene data.")
+        logger.warning("Using previous month Sirene data.")
         sirene_processing_month = PREVIOUS_MONTH
         ti.xcom_push(
             key=Notification.notification_xcom_key,

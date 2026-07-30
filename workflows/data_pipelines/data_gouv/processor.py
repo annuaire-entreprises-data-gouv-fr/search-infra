@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import shutil
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 import pyarrow as pa
@@ -42,6 +42,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichm
     is_personne_morale_insee,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class DataGouvProcessor:
     DESCRIPTIONS_DIR = os.path.dirname(__file__)
@@ -52,7 +54,7 @@ class DataGouvProcessor:
     RESOURCE_ID_DOC_ETAB = "e8a88fe5-d1f5-4700-9cdf-af2c96eb7ef6"
 
     def __init__(self):
-        self.today_date = datetime.today().strftime("%Y-%m-%d")
+        self.today_date = datetime.now(tz=UTC).strftime("%Y-%m-%d")
         self.chunk_size = 100000
         self.ul_columns = [
             "siren",
@@ -277,7 +279,7 @@ class DataGouvProcessor:
             first_chunk = False
 
         sqlite_client.commit_and_close_conn()
-        logging.info(f"******* Nombre des unites_legales : {total_siren}")
+        logger.info(f"******* Nombre des unites_legales : {total_siren}")
         return ul_csv_path
 
     def convert_ul_to_parquet(self):
@@ -304,7 +306,7 @@ class DataGouvProcessor:
             first_chunk = False
 
         sqlite_client.commit_and_close_conn()
-        logging.info(f"******* Nombre des etablissements : {total_siret}")
+        logger.info(f"******* Nombre des etablissements : {total_siret}")
         return etab_csv_path
 
     def convert_etab_to_parquet(self):
@@ -365,7 +367,7 @@ class DataGouvProcessor:
             should_insert_header = False
             total_admin += len(admin_chunk)
 
-        logging.info(f"******* Nombre d'administrations à publier : {total_admin}")
+        logger.info(f"******* Nombre d'administrations à publier : {total_admin}")
         return admin_csv_path
 
     def _write_chunk_to_csv(self, chunk, filepath, is_first_chunk, columns):
@@ -434,9 +436,8 @@ class DataGouvProcessor:
                 writer.close()
 
     def compress_and_upload_file(self, filepath):
-        with open(filepath, "rb") as f_in:
-            with gzip.open(f"{filepath}.gz", "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
+        with open(filepath, "rb") as f_in, gzip.open(f"{filepath}.gz", "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
 
     def send_to_object_storage(self, list_files):
         """Send files to the object storage"""
@@ -533,4 +534,4 @@ class DataGouvProcessor:
                 dataset_id=file_info["dataset_id"],
                 resource_id=file_info["resource_id"],
             )
-            logging.info(f"Publishing {file_info['file']}: {response}")
+            logger.info(f"Publishing {file_info['file']}: {response}")

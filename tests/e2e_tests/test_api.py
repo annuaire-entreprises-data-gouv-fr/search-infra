@@ -779,7 +779,7 @@ def test_nd_personne_physique(api_response_tester):
     siege = ul.get("siege", {})
     if "nom_commercial" in siege:
         assert siege["nom_commercial"] == "[NON-DIFFUSIBLE]"
-    if "liste_enseignes" in siege and siege["liste_enseignes"]:
+    if siege.get("liste_enseignes"):
         assert all(v == "[NON-DIFFUSIBLE]" for v in siege["liste_enseignes"])
 
 
@@ -798,7 +798,7 @@ def test_nd_non_dote_pm(api_response_tester):
     siege = ul.get("siege", {})
     if "nom_commercial" in siege:
         assert siege["nom_commercial"] == "[NON-DIFFUSIBLE]"
-    if "liste_enseignes" in siege and siege["liste_enseignes"]:
+    if siege.get("liste_enseignes"):
         assert all(v == "[NON-DIFFUSIBLE]" for v in siege["liste_enseignes"])
 
 

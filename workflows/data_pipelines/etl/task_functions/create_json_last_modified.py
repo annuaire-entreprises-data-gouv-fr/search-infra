@@ -80,6 +80,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.uai.config import (
     UAI_CONFIG,
 )
 
+logger = logging.getLogger(__name__)
+
 
 @task
 def create_data_source_last_modified_file():
@@ -131,12 +133,12 @@ def create_data_source_last_modified_file():
 
         except requests.exceptions.HTTPError as e:
             # Handle the case where the URL is not reachable (e.g., 404, 403 errors)
-            logging.error(f"HTTP error for {url}: {e}")
+            logger.error(f"HTTP error for {url}: {e}")
             metadata_dict[datasource] = None  # Assign None if the URL doesn't exist
 
         except requests.RequestException as e:
             # Handle other network-related errors
-            logging.error(f"Error fetching data from {url}: {e}")
+            logger.error(f"Error fetching data from {url}: {e}")
             metadata_dict[datasource] = None  # Assign None if any request error occurs
 
     # Fetch RNE metadata
@@ -162,4 +164,3 @@ def create_data_source_last_modified_file():
             }
         ]
     )
-    return None

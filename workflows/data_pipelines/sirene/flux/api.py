@@ -8,6 +8,8 @@ from data_pipelines_annuaire.helpers.utils import (
     flatten_dict,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class SireneApiClient(ApiClient):
     def __init__(self, api_endpoint: str, bearer_token: str):
@@ -30,7 +32,7 @@ class SireneApiClient(ApiClient):
         data = self.call_insee_api(endpoint, data_property)
         # Process data in big chunks to avoid out of memory errors while being efficient
         chunk_size = 1_000_000
-        logging.info("Download finished. Flattening the content..")
+        logger.info("Download finished. Flattening the content..")
 
         if data_property == "unitesLegales":
             flux = [
@@ -39,7 +41,7 @@ class SireneApiClient(ApiClient):
             ]
             return pd.DataFrame(flux)
         elif data_property == "etablissements":
-            logging.info(
+            logger.info(
                 f"Processing {len(data)} etablissements in chunks of {chunk_size}"
             )
             dfs = []
@@ -54,16 +56,18 @@ class SireneApiClient(ApiClient):
                     ]
                 )
                 dfs.append(chunk_df)
-                logging.info(
+                logger.info(
                     f"Processed chunk {i // chunk_size + 1} of {(len(data) - 1) // chunk_size + 1}"
                 )
-            logging.info("Data has been flatten. Concatenating the chunks..")
+            logger.info("Data has been flatten. Concatenating the chunks..")
 
             # Concatenate all chunks
             return pd.concat(dfs, ignore_index=True)
 
     def process_response_and_pagination(
-        self, response: dict[str, Any] = None, current_params: dict[str, Any] = None
+        self,
+        response: dict[str, Any] | None = None,
+        current_params: dict[str, Any] | None = None,
     ) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
         if current_params is None:
             initial_params = {"curseur": "*"}
@@ -95,5 +99,5 @@ class SireneApiClient(ApiClient):
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            logging.error(f"Error calling INSEE API: {str(e)}")
-            raise ValueError(f"Error calling INSEE API: {str(e)}") from e
+            logger.error(f"Error calling INSEE API: {e!s}")
+            raise ValueError(f"Error calling INSEE API: {e!s}") from e

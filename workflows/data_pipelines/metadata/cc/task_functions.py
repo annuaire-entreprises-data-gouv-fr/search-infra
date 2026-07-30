@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 import requests
@@ -20,6 +20,7 @@ URL_CC_DARES = "https://travail-emploi.gouv.fr/conventions-collectives-nomenclat
 URL_CC_KALI = "https://www.data.gouv.fr/datasets/r/02b67492-5243-44e8-8dd1-0cb3f90f35ff"
 # Stable prefix of the DARES file name, used to find its download link on the page
 FILE_CC_DATE = "Dares_Suivi_Historique_convention_collective_"
+logger = logging.getLogger(__name__)
 
 
 def is_metadata_not_updated() -> bool:
@@ -29,13 +30,13 @@ def is_metadata_not_updated() -> bool:
     if last_run_date is not None:
         last_run_date = datetime.fromisoformat(last_run_date)
         if (
-            last_run_date.month == datetime.now().month
-            and last_run_date.year == datetime.now().year
+            last_run_date.month == datetime.now(tz=UTC).month
+            and last_run_date.year == datetime.now(tz=UTC).year
         ):
-            logging.info("Metadata was already updated for the current month.")
+            logger.info("Metadata was already updated for the current month.")
             return False
         else:
-            logging.info("Metadata needs to be updated for the current month.")
+            logger.info("Metadata needs to be updated for the current month.")
             return True
 
     return True
@@ -57,7 +58,7 @@ def create_metadata_convention_collective_json():
         # signature to be sure we actually downloaded a spreadsheet
         file_downloaded = r.ok and r.content[:4] == b"PK\x03\x04"
     except (ValueError, requests.exceptions.RequestException) as e:
-        logging.warning(f"Failed to fetch the CC Dares file: {e}")
+        logger.warning(f"Failed to fetch the CC Dares file: {e}")
 
     if not file_downloaded:
         # The file is sometimes unavailable, this is expected but
@@ -66,18 +67,17 @@ def create_metadata_convention_collective_json():
             f"{METADATA_CC_OBJECT_STORAGE_PATH}cc_kali.json"
         )
         if last_run_date is not None:
-            date_diff = datetime.now() - datetime.fromisoformat(last_run_date)
+            date_diff = datetime.now(tz=UTC) - datetime.fromisoformat(last_run_date)
             error_message = f"\u26a0\ufe0f Le fichier CC du DARES n'est pas disponible depuis {date_diff.days} jours."
         else:
             error_message = "\u26a0\ufe0f Le fichier CC du DARES n'est pas disponible."
-        logging.warning(error_message)
+        logger.warning(error_message)
         ti = get_current_context()["ti"]
         ti.xcom_push(key=Notification.notification_xcom_key, value=error_message)
         raise HTTPError(f"{error_message}: {current_url_cc_dares}")
 
     with open(METADATA_CC_TMP_FOLDER + "dares-download.xlsx", "wb") as f:
-        for chunk in r.iter_content(1024):
-            f.write(chunk)
+        f.writelines(r.iter_content(1024))
     df_dares = pd.read_excel(
         METADATA_CC_TMP_FOLDER + "dares-download.xlsx",
         sheet_name="Conventions de branche",
@@ -92,8 +92,7 @@ def create_metadata_convention_collective_json():
     # Get Kali list
     r = requests.get(URL_CC_KALI, allow_redirects=True)
     with open(METADATA_CC_TMP_FOLDER + "kali-download.xlsx", "wb") as f:
-        for chunk in r.iter_content(1024):
-            f.write(chunk)
+        f.writelines(r.iter_content(1024))
     df_kali = pd.read_excel(
         METADATA_CC_TMP_FOLDER + "kali-download.xlsx",
         header=0,

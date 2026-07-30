@@ -1,13 +1,14 @@
 import logging
 import random
 import time
-from typing import Union
 
 import requests
 from requests.adapters import HTTPAdapter
 from requests.exceptions import SSLError
 
 from data_pipelines_annuaire.config import RNE_API_DIFF_URL, RNE_API_TOKEN_URL, RNE_AUTH
+
+logger = logging.getLogger(__name__)
 
 
 class ApiRNEClient:
@@ -36,7 +37,7 @@ class ApiRNEClient:
         session.mount("http://", adapter)
         return session
 
-    def get_new_token(self) -> Union[str, None]:
+    def get_new_token(self) -> str | None:
         """
         Gets a new access token from the RNE API.
 
@@ -45,17 +46,17 @@ class ApiRNEClient:
         """
         try:
             selected_auth = random.choice(self.auth)
-            logging.info(f"Authentification account used: {selected_auth['username']}")
+            logger.info(f"Authentification account used: {selected_auth['username']}")
             response = self.session.post(RNE_API_TOKEN_URL, json=selected_auth)
             response.raise_for_status()
             token = response.json()["token"]
-            logging.info("New token received...")
+            logger.info("New token received...")
             return token
         except SSLError as err:
-            logging.warning(f"Unexpected EOF occurred in violation of protocol: {err}")
+            logger.warning(f"Unexpected EOF occurred in violation of protocol: {err}")
             time.sleep(600)
         except Exception as err:
-            logging.error(f"An error occurred when trying to get a new token: {err}")
+            logger.error(f"An error occurred when trying to get a new token: {err}")
         return None
 
     def get_last_siren_in_page(self, page_data):
@@ -84,34 +85,34 @@ class ApiRNEClient:
 
         for attempt in range(self.max_retries + 1):
             if attempt > 0:
-                logging.info(f"Making API call try : {attempt}")
+                logger.info(f"Making API call try : {attempt}")
             try:
                 if not self.token:
-                    logging.info("Getting new token...")
+                    logger.info("Getting new token...")
                     self.token = self.get_new_token()
                 headers = {"Authorization": f"Bearer {self.token}"}
                 response = self.session.get(url, headers=headers)
                 response.raise_for_status()
                 response = response.json()
                 last_siren = self.get_last_siren_in_page(response)
-                logging.info(f"%%%%%%% LAST SIREN : {last_siren}")
+                logger.info(f"%%%%%%% LAST SIREN : {last_siren}")
                 return response, last_siren
 
             except Exception as e:
                 if hasattr(e, "response") and e.response.status_code in [401, 403, 429]:
                     self.token = self.get_new_token()
-                    logging.info("Got a new access token and retrying...")
+                    logger.info("Got a new access token and retrying...")
                 elif hasattr(e, "response") and e.response.status_code == 500:
                     if "Allowed memory size of" in str(e.response.content):
                         url = url.replace("pageSize=100", "pageSize=1")
-                        logging.info(f"***Memory Error changing page size to 1 : {url}")
+                        logger.info(f"***Memory Error changing page size to 1 : {url}")
                     else:
-                        logging.info(f"***Error HTTP: {e}")
+                        logger.info(f"***Error HTTP: {e}")
                         url = url.replace("pageSize=100", "pageSize=5")
-                        logging.info(f"***Changing page size to 5: {url}")
+                        logger.info(f"***Changing page size to 5: {url}")
                         time.sleep(60)
                 else:
-                    logging.error(f"Error occurred while making API request: {e}")
+                    logger.error(f"Error occurred while making API request: {e}")
                     if attempt < self.max_retries:
                         time.sleep(60)
                     else:

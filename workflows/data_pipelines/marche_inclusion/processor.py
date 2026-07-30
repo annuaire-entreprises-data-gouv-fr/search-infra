@@ -12,6 +12,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.marche_inclusion.config im
     MARCHE_INCLUSION_CONFIG,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class MarcheInclusionProcessor(DataProcessor):
     def __init__(self) -> None:
@@ -41,7 +43,7 @@ class MarcheInclusionProcessor(DataProcessor):
             params=api_params,
         ).json()
         actual_number_of_structures = response_data.get("count", 0)
-        logging.info(f"Number of structures: {actual_number_of_structures}")
+        logger.info(f"Number of structures: {actual_number_of_structures}")
 
         if actual_number_of_structures > number_of_structures:
             response_data = api_client.get(
@@ -56,7 +58,7 @@ class MarcheInclusionProcessor(DataProcessor):
             )
             .groupby("siren")["kind"]
             .agg(
-                lambda x: str(sorted(list(set(x)))),
+                lambda x: str(sorted(set(x))),
             )
             .reset_index()
             .rename(columns={"kind": "type_siae"})

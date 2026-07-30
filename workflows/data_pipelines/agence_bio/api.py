@@ -12,9 +12,11 @@ class BioApiClient(ApiClient):
 
     def process_response_and_pagination(
         self,
-        response: dict[str, Any] = {},
+        response: dict[str, Any] | None = None,
         current_params: dict[str, Any] | None = None,
     ) -> tuple[list[dict[str, Any]] | None, dict[str, Any] | None]:
+        if response is None:
+            response = {}
         if current_params is None:
             initial_params = {
                 "nb": f"{self.BATCH_SIZE}",

@@ -10,6 +10,8 @@ from data_pipelines_annuaire.helpers import (
 )
 from data_pipelines_annuaire.workflows.data_pipelines.rge.config import RGE_CONFIG
 
+logger = logging.getLogger(__name__)
+
 
 class RgeProcessor(DataProcessor):
     def __init__(self):
@@ -29,17 +31,17 @@ class RgeProcessor(DataProcessor):
                 r.raise_for_status()
                 data = r.json()
                 list_rge.extend(data["results"])
-                logging.info("Fetched additional page data.")
+                logger.info("Fetched additional page data.")
 
-            logging.info(
+            logger.info(
                 f"Data downloaded successfully from {url}."
                 "Total records: {len(list_rge)}."
             )
             return list_rge
 
         except requests.exceptions.RequestException as e:
-            logging.error(f"Error downloading data from {url}: {e}")
-            raise e
+            logger.error(f"Error downloading data from {url}: {e}")
+            raise
 
     def preprocess_data(self):
         list_rge = self.download_data()

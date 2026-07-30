@@ -177,16 +177,18 @@ def test_upload_compressed_file_raises_when_pigz_fails(tmp_path):
     fake_proc.stderr = io.BytesIO(b"pigz: abort: out of memory")
     fake_proc.returncode = 1
 
-    with patch(
-        "data_pipelines_annuaire.helpers.object_storage.subprocess.Popen",
-        return_value=fake_proc,
+    with (
+        patch(
+            "data_pipelines_annuaire.helpers.object_storage.subprocess.Popen",
+            return_value=fake_proc,
+        ),
+        pytest.raises(RuntimeError, match="pigz failed"),
     ):
-        with pytest.raises(RuntimeError, match="pigz failed"):
-            client.upload_compressed_file(
-                source_file_path=str(source),
-                object_storage_path="sirene/database/",
-                dest_name="sirene_2024-03-15.db.gz",
-            )
+        client.upload_compressed_file(
+            source_file_path=str(source),
+            object_storage_path="sirene/database/",
+            dest_name="sirene_2024-03-15.db.gz",
+        )
 
     # The possibly-partial object must be deleted so it cannot be picked up later
     boto_client.delete_object.assert_called_once_with(
@@ -210,16 +212,18 @@ def test_upload_compressed_file_deletes_object_when_upload_fails(tmp_path):
     fake_proc.stderr = io.BytesIO(b"")
     fake_proc.returncode = 0
 
-    with patch(
-        "data_pipelines_annuaire.helpers.object_storage.subprocess.Popen",
-        return_value=fake_proc,
+    with (
+        patch(
+            "data_pipelines_annuaire.helpers.object_storage.subprocess.Popen",
+            return_value=fake_proc,
+        ),
+        pytest.raises(RuntimeError, match="connection dropped"),
     ):
-        with pytest.raises(RuntimeError, match="connection dropped"):
-            client.upload_compressed_file(
-                source_file_path=str(source),
-                object_storage_path="sirene/database/",
-                dest_name="sirene_2024-03-15.db.gz",
-            )
+        client.upload_compressed_file(
+            source_file_path=str(source),
+            object_storage_path="sirene/database/",
+            dest_name="sirene_2024-03-15.db.gz",
+        )
 
     fake_proc.kill.assert_called_once()
     boto_client.delete_object.assert_called_once_with(

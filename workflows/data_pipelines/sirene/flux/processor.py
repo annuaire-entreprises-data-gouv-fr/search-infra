@@ -1,6 +1,6 @@
 import logging
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -20,6 +20,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.sirene.flux.api import (
 from data_pipelines_annuaire.workflows.data_pipelines.sirene.flux.config import (
     FLUX_SIRENE_CONFIG,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class SireneFluxProcessor(DataProcessor):
@@ -124,7 +126,7 @@ class SireneFluxProcessor(DataProcessor):
             raise ValueError("Sirene API flux token is missing!")
 
         self.client = SireneApiClient(self.config.url_api, self.config.auth_api)
-        self.current_month = datetime.today().strftime("%Y-%m")
+        self.current_month = datetime.now(UTC).strftime("%Y-%m")
         # Descending order so we start by the most recent day
         # Higher priority to the latest SIRENE flux updates
         self.current_dates = get_dates_since_start_of_month(
@@ -140,7 +142,7 @@ class SireneFluxProcessor(DataProcessor):
         headers = fields.split(",")
         empty_df = pd.DataFrame(columns=headers)
         empty_df.to_csv(output_path, mode="w", header=True, index=False)
-        logging.info(f"Created empty CSV with headers at {output_path}")
+        logger.info(f"Created empty CSV with headers at {output_path}")
 
     def get_current_flux_unite_legale(self):
         output_path = (
@@ -148,8 +150,8 @@ class SireneFluxProcessor(DataProcessor):
         )
         periodes_output_path = f"{self.config.tmp_folder}flux_unite_legale_periodes_{self.current_month}.csv"
 
-        if datetime.today().day == 1:
-            logging.info(
+        if datetime.now(UTC).day == 1:
+            logger.info(
                 "First of the month, the flux API won't return any output. A headers only CSV is created instead."
             )
             self._create_empty_csv_with_headers(
@@ -170,9 +172,9 @@ class SireneFluxProcessor(DataProcessor):
 
         siren_processed = pd.Series(dtype="string")
 
-        logging.info(f"Processing the following dates: {self.current_dates}")
+        logger.info(f"Processing the following dates: {self.current_dates}")
         for i_date, processing_date in enumerate(self.current_dates):
-            logging.info(f"{processing_date} -- processing..")
+            logger.info(f"{processing_date} -- processing..")
             endpoint = self._construct_endpoint(
                 self.BASE_UNITE_LEGALE_ENDPOINT,
                 processing_date,
@@ -198,17 +200,17 @@ class SireneFluxProcessor(DataProcessor):
                     periodes_output_path, mode="a", header=False, index=False
                 )
 
-            logging.info(
+            logger.info(
                 f"{processing_date} -- processed: {df['siren'].nunique()} siren"
             )
             del df
             del periodes_df
 
         n_siren_processed = len(siren_processed)
-        logging.info(f"CSV outputs ready with {n_siren_processed} siren")
+        logger.info(f"CSV outputs ready with {n_siren_processed} siren")
         zip_file(output_path)
         zip_file(periodes_output_path)
-        logging.info("Files zipped. Done!")
+        logger.info("Files zipped. Done!")
 
         DataProcessor.push_message(
             Notification.notification_xcom_key,
@@ -266,8 +268,8 @@ class SireneFluxProcessor(DataProcessor):
         )
         periodes_output_path = f"{self.config.tmp_folder}flux_etablissement_periodes_{self.current_month}.csv"
 
-        if datetime.today().day == 1:
-            logging.info(
+        if datetime.now(UTC).day == 1:
+            logger.info(
                 "First day of the month, the flux API won't return any output. A headers only CSV is created instead."
             )
             self._create_empty_csv_with_headers(
@@ -288,9 +290,9 @@ class SireneFluxProcessor(DataProcessor):
 
         siret_processed = pd.Series(dtype="string")
 
-        logging.info(f"Processing the following dates: {self.current_dates}")
+        logger.info(f"Processing the following dates: {self.current_dates}")
         for i_date, processing_date in enumerate(self.current_dates):
-            logging.info(f"{processing_date} -- processing..")
+            logger.info(f"{processing_date} -- processing..")
             endpoint = self._construct_endpoint(
                 self.BASE_ETABLISSEMENT_ENDPOINT,
                 processing_date,
@@ -331,17 +333,17 @@ class SireneFluxProcessor(DataProcessor):
                     periodes_output_path, mode="a", header=False, index=False
                 )
 
-            logging.info(
+            logger.info(
                 f"{processing_date} -- processed: {df['siret'].nunique()} siret"
             )
             del df
             del periodes_df
 
         n_siret_processed = len(siret_processed)
-        logging.info(f"CSV outputs ready with {n_siret_processed} siret")
+        logger.info(f"CSV outputs ready with {n_siret_processed} siret")
         zip_file(output_path)
         zip_file(periodes_output_path)
-        logging.info("Files zipped. Done!")
+        logger.info("Files zipped. Done!")
 
         DataProcessor.push_message(
             Notification.notification_xcom_key,
@@ -370,7 +372,7 @@ class SireneFluxProcessor(DataProcessor):
 
                 # Check if we've reached 9 AM before making the API call (in Paris time)
                 if current_time >= max_wait_time:
-                    logging.info(
+                    logger.info(
                         f"It's 9 AM or later. Continuing DAG without waiting for today's update ({today})."
                     )
                     return f"************Continuing at 9 AM without waiting for update ({today})."
@@ -388,7 +390,7 @@ class SireneFluxProcessor(DataProcessor):
                     )
 
                 # Check and log all dates
-                logging.info(
+                logger.info(
                     f"Checking API availability for today ({today}). Found {len(dates_dernieres_mises_a_jour)} collections:"
                 )
                 all_today = True
@@ -399,14 +401,14 @@ class SireneFluxProcessor(DataProcessor):
                         date_obj = datetime.fromisoformat(date_str).date()
                         is_today = date_obj == today
                         status = "✓" if is_today else "✗"
-                        logging.info(
+                        logger.info(
                             f"  {status} dateDerniereMiseADisposition = {date_str} "
                             f"(parsed: {date_obj}, is_today: {is_today})"
                         )
                         if not is_today:
                             all_today = False
                     else:
-                        logging.warning(" ⚠⚠⚠⚠⚠ No dateDerniereMiseADisposition found")
+                        logger.warning(" ⚠⚠⚠⚠⚠ No dateDerniereMiseADisposition found")
                         all_today = False
 
                 if all_today:
@@ -414,19 +416,19 @@ class SireneFluxProcessor(DataProcessor):
                     return f"All collections have today's date ({today}). API is ready."
 
                 # Wait 5 minutes before retrying
-                logging.info(
+                logger.info(
                     f"Data not yet available for today ({today}). Waiting 5 minutes before retry..."
                 )
                 time.sleep(300)  # 5 minutes in seconds
 
             except ValueError as e:
-                error_msg = f"Error processing API response: {str(e)}"
-                logging.error(error_msg)
+                error_msg = f"Error processing API response: {e!s}"
+                logger.error(error_msg)
                 raise ValueError(error_msg) from e
             except Exception as e:
                 # Handle any other exceptions from API calls
-                error_msg = f"Unexpected error checking API availability: {str(e)}"
-                logging.error(error_msg)
+                error_msg = f"Unexpected error checking API availability: {e!s}"
+                logger.error(error_msg)
                 raise ValueError(error_msg) from e
 
     def send_flux_to_object_storage(self):

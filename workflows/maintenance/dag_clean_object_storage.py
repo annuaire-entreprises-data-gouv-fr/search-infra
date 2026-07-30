@@ -1,7 +1,7 @@
 import logging
 import re
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, task
@@ -12,6 +12,8 @@ from data_pipelines_annuaire.config import (
 )
 from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
+
+logger = logging.getLogger(__name__)
 
 
 @task
@@ -52,7 +54,7 @@ def delete_old_files(
             age = current_time - last_modified
             if i < keep_latest or age < timedelta(days=retention_days):
                 continue
-            logging.info(f"***** Deleting file: {file_name}")
+            logger.info(f"***** Deleting file: {file_name}")
             object_storage_client.delete_file(file_name)
 
 
@@ -70,7 +72,7 @@ default_args = {
     description="Delete old object storage files",
     default_args=default_args,
     schedule="0 12 * * *",  # run every day at 12:00 PM (UTC)
-    start_date=datetime(2026, 1, 1),
+    start_date=datetime(2026, 1, 1, tzinfo=UTC),
     dagrun_timeout=timedelta(minutes=30),
     catchup=False,
     on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],

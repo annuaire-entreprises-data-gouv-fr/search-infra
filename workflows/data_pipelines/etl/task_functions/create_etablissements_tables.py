@@ -36,6 +36,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.queries.etablis
     update_etablissement_coordinates_from_geo_stats_query,
 )
 
+logger = logging.getLogger(__name__)
+
 
 @task
 def create_etablissement_table():
@@ -52,14 +54,14 @@ def create_etablissement_table():
             "etablissement", sqlite_client.db_conn, if_exists="append", index=False
         )
         for row in sqlite_client.execute(get_table_count("etablissement")):
-            logging.debug(
+            logger.debug(
                 f"************ {row} records have been added to the "
                 f"`établissements` table!"
             )
         del df_chunk
 
     for count_etablissement in sqlite_client.execute(get_table_count("etablissement")):
-        logging.info(
+        logger.info(
             f"************ {count_etablissement} total records have been added to the "
             f"siret table!"
         )
@@ -83,7 +85,7 @@ def create_flux_etablissement_table():
             index=False,
         )
     for row in sqlite_client.execute(get_table_count("flux_etablissement")):
-        logging.info(
+        logger.info(
             f"************ {row} total records have been added to the "
             f"`flux établissements` table!"
         )
@@ -143,7 +145,7 @@ def create_historique_etablissement_table(ti):
             table_name, sqlite_client.db_conn, if_exists="append", index=False
         )
         for row in sqlite_client.execute(get_table_count(table_name)):
-            logging.debug(
+            logger.debug(
                 f"************ {row} total records have been added "
                 f"to the {table_name} table!"
             )
@@ -166,7 +168,7 @@ def create_historique_etablissement_table(ti):
                 )
 
                 sqlite_client.execute(delete_query, batch)
-            logging.info(
+            logger.info(
                 f"Deleted stock periodes for {len(flux_sirets)} sirets present in flux"
             )
 
@@ -174,14 +176,14 @@ def create_historique_etablissement_table(ti):
         df_flux_periodes.to_sql(
             table_name, sqlite_client.db_conn, if_exists="append", index=False
         )
-        logging.info(
+        logger.info(
             f"Added {len(df_flux_periodes)} flux periodes to {table_name} table"
         )
 
     del df_hist_etablissement
 
     for count_etablissement in sqlite_client.execute(get_table_count(table_name)):
-        logging.info(
+        logger.info(
             f"************ {count_etablissement} total records have been added to the "
             f"{table_name} table!"
         )
@@ -201,7 +203,7 @@ def create_date_fermeture_etablissement_table(ti):
     )
 
     for count_etablissement in sqlite_client.execute(get_table_count(table_name)):
-        logging.info(
+        logger.info(
             f"************ {count_etablissement} total records have been added to the "
             f"{table_name} table!"
         )
@@ -224,13 +226,13 @@ def create_geo_stats_table():
             "geo_stats", sqlite_client.db_conn, if_exists="append", index=False
         )
         for row in sqlite_client.execute(get_table_count("geo_stats")):
-            logging.debug(
+            logger.debug(
                 f"************ {row} records have been added to the `geo_stats` table!"
             )
         del df_chunk
 
     for count_geo_stats in sqlite_client.execute(get_table_count("geo_stats")):
-        logging.info(
+        logger.info(
             f"************ {count_geo_stats} total records have been added to the "
             f"geo_stats table!"
         )
@@ -266,7 +268,7 @@ def apply_geo_stats_coordinates():
     """
     sqlite_client = SqliteClient(SIRENE_DATABASE_LOCATION)
     sqlite_client.execute(update_etablissement_coordinates_from_geo_stats_query)
-    logging.info("Applied geo_stats coordinates to etablissement table")
+    logger.info("Applied geo_stats coordinates to etablissement table")
 
     stats_query = """
     SELECT
@@ -291,6 +293,6 @@ def apply_geo_stats_coordinates():
         f"<li>stock: {stock:.2f}%</li>"
         f"<li>sans coordonnées: {no_coords:.2f}%</li>"
     )
-    logging.info(message)
+    logger.info(message)
     ti = get_current_context()["ti"]
     ti.xcom_push(key=Notification.notification_xcom_key, value=message)
