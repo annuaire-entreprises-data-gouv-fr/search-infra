@@ -2,6 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, task
+
 from data_pipelines_annuaire.config import EMAIL_LIST
 from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.workflows.data_pipelines.finess.geographique.config import (

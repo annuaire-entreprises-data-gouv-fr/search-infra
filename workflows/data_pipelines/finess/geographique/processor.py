@@ -1,4 +1,5 @@
 import pandas as pd
+
 from data_pipelines_annuaire.helpers import (
     DataProcessor,
     Notification,
