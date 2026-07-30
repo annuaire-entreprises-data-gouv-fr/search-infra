@@ -4,7 +4,7 @@ import os
 import re
 import shutil
 import subprocess
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TypedDict
 
@@ -308,8 +308,10 @@ class ObjectStorageClient:
         latest_file_date_str, latest_db_file = max(dated_db_files)
         logger.info(f"Latest database: {latest_db_file}")
 
-        latest_file_date = datetime.strptime(latest_file_date_str, "%Y-%m-%d").strftime(
-            "%Y-%m-%dT%H:%M:%S"
+        latest_file_date = (
+            datetime.strptime(latest_file_date_str, "%Y-%m-%d")
+            .replace(tzinfo=UTC)
+            .strftime("%Y-%m-%dT%H:%M:%S")
         )
         logger.info(f"Date of latest file: {latest_file_date}")
 
@@ -320,9 +322,8 @@ class ObjectStorageClient:
         self.client.download_file(self.bucket, latest_db_file, compressed_path)
 
         # Decompress the downloaded database file
-        with gzip.open(compressed_path, "rb") as f_in:
-            with open(local_path, "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
+        with gzip.open(compressed_path, "rb") as f_in, open(local_path, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
         os.remove(compressed_path)
 
         return latest_file_date

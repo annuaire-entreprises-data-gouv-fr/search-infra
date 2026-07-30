@@ -364,9 +364,7 @@ def format_adresse_complete(
         if column:
             adresse = adresse + " " + column
     if cedex is None:
-        if code_postal is None:
-            adresse = adresse
-        else:
+        if code_postal is not None:
             adresse = (
                 adresse
                 + " "

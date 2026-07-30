@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 
 from airflow.sdk import get_current_context, task
 from elasticsearch import NotFoundError
@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 @task
 def get_next_index_name():
-    current_date = datetime.today().strftime("%Y%m%d%H%M%S")
+    current_date = datetime.now(tz=UTC).strftime("%Y%m%d%H%M%S")
     elastic_index = f"siren-{current_date}"
     ti = get_current_context()["ti"]
     ti.xcom_push(key="elastic_index", value=elastic_index)

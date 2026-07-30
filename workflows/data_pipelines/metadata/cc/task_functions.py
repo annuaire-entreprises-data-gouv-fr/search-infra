@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 import requests
@@ -30,8 +30,8 @@ def is_metadata_not_updated() -> bool:
     if last_run_date is not None:
         last_run_date = datetime.fromisoformat(last_run_date)
         if (
-            last_run_date.month == datetime.now().month
-            and last_run_date.year == datetime.now().year
+            last_run_date.month == datetime.now(tz=UTC).month
+            and last_run_date.year == datetime.now(tz=UTC).year
         ):
             logger.info("Metadata was already updated for the current month.")
             return False
@@ -67,7 +67,7 @@ def create_metadata_convention_collective_json():
             f"{METADATA_CC_OBJECT_STORAGE_PATH}cc_kali.json"
         )
         if last_run_date is not None:
-            date_diff = datetime.now() - datetime.fromisoformat(last_run_date)
+            date_diff = datetime.now(tz=UTC) - datetime.fromisoformat(last_run_date)
             error_message = f"\u26a0\ufe0f Le fichier CC du DARES n'est pas disponible depuis {date_diff.days} jours."
         else:
             error_message = "\u26a0\ufe0f Le fichier CC du DARES n'est pas disponible."

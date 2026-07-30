@@ -148,24 +148,34 @@ def download_flux_iterator(chunksize: int = 500_000) -> pd.DataFrame:
 
 def download_historique(data_dir):
     year_month = get_sirene_processing_month()
+
     filename = STOCK_SIRENE_CONFIG.files_to_download["historique_etablissement"][
         "destination"
     ].split("/")[-1]
     filename = filename.replace(CURRENT_MONTH, year_month)
+
     url = STOCK_SIRENE_CONFIG.url_object_storage + filename
 
-    r = requests.get(
-        url,
-        allow_redirects=True,
-    )
+    zip_path = data_dir + "StockEtablissementHistorique_utf8.zip"
+
     logger.info(f"Downloading historical data from: {url}")
-    open(data_dir + "StockEtablissementHistorique_utf8.zip", "wb").write(r.content)
-    shutil.unpack_archive(data_dir + "StockEtablissementHistorique_utf8.zip", data_dir)
+
+    with requests.get(url, allow_redirects=True, stream=True) as r:
+        r.raise_for_status()
+
+        with open(zip_path, "wb") as f_out:
+            for chunk in r.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    f_out.write(chunk)
+
+    shutil.unpack_archive(zip_path, data_dir)
+
     df_iterator = pd.read_csv(
         f"{data_dir}StockEtablissementHistorique_utf8.csv",
         chunksize=100000,
         dtype=str,
     )
+
     return df_iterator
 
 
@@ -327,26 +337,36 @@ def download_geo_stats_iterator(data_dir: str, chunksize: int = 500_000):
 
     logger.info(f"Downloading and unpacking {url}..")
     try:
-        r = requests.get(
+        with requests.get(
             url,
             allow_redirects=True,
-        )
-        # Check if the response indicates a NoSuchKey error
-        if r.status_code == 404:
-            # Try with previous month's file
-            filename_prev = filename.replace(CURRENT_MONTH, PREVIOUS_MONTH)
-            url_prev = STOCK_SIRENE_CONFIG.url_object_storage + filename_prev
-            logger.warning(
-                f"File not found at {url}, trying previous month: {url_prev}"
-            )
-            r = requests.get(
-                url_prev,
-                allow_redirects=True,
-            )
-            filename = filename_prev
+            stream=True,
+        ) as r:
+            # Check if the response indicates a NoSuchKey error
+            if r.status_code == 404:
+                # Try with previous month's file
+                filename_prev = filename.replace(CURRENT_MONTH, PREVIOUS_MONTH)
+                url_prev = STOCK_SIRENE_CONFIG.url_object_storage + filename_prev
+                logger.warning(
+                    f"File not found at {url}, trying previous month: {url_prev}"
+                )
+                r = requests.get(
+                    url_prev,
+                    allow_redirects=True,
+                    stream=True,
+                )
+                filename = filename_prev
 
-        open(data_dir + filename, "wb").write(r.content)
-        shutil.unpack_archive(data_dir + filename, data_dir)
+            r.raise_for_status()
+
+            file_path = data_dir + filename
+
+            with open(file_path, "wb") as f_out:
+                for chunk in r.iter_content(chunk_size=1024 * 1024):
+                    if chunk:
+                        f_out.write(chunk)
+
+        shutil.unpack_archive(file_path, data_dir)
 
         return pd.read_csv(
             f"{data_dir}GeolocalisationEtablissement_Sirene_pour_etudes_statistiques_utf8.csv",

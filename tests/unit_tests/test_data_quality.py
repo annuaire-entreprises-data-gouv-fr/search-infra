@@ -634,12 +634,11 @@ def test_clean_siret_series():
 
 
 def _write_csv(header):
-    tmp = tempfile.NamedTemporaryFile(
+    with tempfile.NamedTemporaryFile(
         mode="w", suffix=".csv", delete=False, encoding="utf-8"
-    )
-    tmp.write(header + "\n")
-    tmp.close()
-    return tmp.name
+    ) as tmp:
+        tmp.write(header + "\n")
+        return tmp.name
 
 
 def test_resolve_column_name_matches_any_year():

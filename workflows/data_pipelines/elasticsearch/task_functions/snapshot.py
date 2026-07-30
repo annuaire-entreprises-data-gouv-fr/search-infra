@@ -1,6 +1,6 @@
 import logging
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 
 from airflow.sdk import get_current_context, task
 from elasticsearch.dsl import connections
@@ -53,7 +53,7 @@ def update_object_storage_current_index_version():
         5. Any downstream server : read the current.json file and import the indicated current['index'] using the indicated['snapshot']
     """
 
-    current_date = datetime.today().strftime("%Y%m%d%H%M%S")
+    current_date = datetime.now(tz=UTC).strftime("%Y%m%d%H%M%S")
     content = filesystem.read("current.json")
 
     if content is None:
@@ -144,7 +144,7 @@ def snapshot_elastic_index():
         f"\nelastic_index type: {type(elastic_index)}, value: {elastic_index}"
     )
 
-    current_date = datetime.today().strftime("%Y%m%d%H%M%S")
+    current_date = datetime.now(tz=UTC).strftime("%Y%m%d%H%M%S")
     snapshot_name = f"siren-{current_date}"
 
     logger.info(

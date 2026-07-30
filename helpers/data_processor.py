@@ -1,7 +1,7 @@
 import logging
 import os
 from abc import ABC
-from datetime import datetime
+from datetime import UTC, datetime
 
 import requests
 from airflow.sdk import get_current_context
@@ -63,15 +63,19 @@ class DataProcessor(ABC):
                     # For placeholders with fallback logic, this will be handled only if the first option
                     # returns no result.
                     placeholders = {
-                        "%%current_year%%": str(datetime.now().year),
-                        "%%current_month%%": str(datetime.now().strftime("%Y-%m")),
-                        "%%current_day%%": str(datetime.now().strftime("%Y-%m-%d")),
-                        "%%current_or_previous_year%%": str(datetime.now().year),
+                        "%%current_year%%": str(datetime.now(tz=UTC).year),
+                        "%%current_month%%": str(
+                            datetime.now(tz=UTC).strftime("%Y-%m")
+                        ),
+                        "%%current_day%%": str(
+                            datetime.now(tz=UTC).strftime("%Y-%m-%d")
+                        ),
+                        "%%current_or_previous_year%%": str(datetime.now(tz=UTC).year),
                         "%%current_or_previous_month%%": str(
-                            datetime.now().strftime("%Y-%m")
+                            datetime.now(tz=UTC).strftime("%Y-%m")
                         ),
                         "%%current_or_previous_day%%": str(
-                            datetime.now().strftime("%Y-%m-%d")
+                            datetime.now(tz=UTC).strftime("%Y-%m-%d")
                         ),
                     }
                     search_text = params["pattern"]
@@ -89,17 +93,17 @@ class DataProcessor(ABC):
                         placeholders.update(
                             {
                                 "%%current_or_previous_year%%": str(
-                                    datetime.now().year - 1
+                                    datetime.now(tz=UTC).year - 1
                                 ),
                                 "%%current_or_previous_month%%": str(
-                                    (datetime.now() - relativedelta(months=1)).strftime(
-                                        "%Y-%m"
-                                    )
+                                    (
+                                        datetime.now(tz=UTC) - relativedelta(months=1)
+                                    ).strftime("%Y-%m")
                                 ),
                                 "%%current_or_previous_day%%": str(
-                                    (datetime.now() - relativedelta(days=1)).strftime(
-                                        "%Y-%m-%d"
-                                    )
+                                    (
+                                        datetime.now(tz=UTC) - relativedelta(days=1)
+                                    ).strftime("%Y-%m-%d")
                                 ),
                             }
                         )
@@ -134,7 +138,7 @@ class DataProcessor(ABC):
                     ti.xcom_push(
                         key=Notification.notification_xcom_key, value=error_message
                     )
-                    logging.error(error_message)
+                    logger.error(error_message)
                     raise
 
             except requests.exceptions.RequestException:
@@ -142,7 +146,7 @@ class DataProcessor(ABC):
                 ti.xcom_push(
                     key=Notification.notification_xcom_key, value=error_message
                 )
-                logging.error(error_message)
+                logger.error(error_message)
                 raise
 
     def preprocess_data(self):
@@ -177,7 +181,7 @@ class DataProcessor(ABC):
 
         ti = get_current_context()["ti"]
         ti.xcom_push(key=xcom_key, value=description)
-        logging.info(f"Pushed notification: {description}")
+        logger.info(f"Pushed notification: {description}")
 
     def save_date_last_modified(self) -> None:
         """Saves the last modified date for a resource or URL to a metadata file.
@@ -220,11 +224,11 @@ class DataProcessor(ABC):
                     if url_date:
                         date_list.append(url_date)
                 else:
-                    logging.warning(
+                    logger.warning(
                         f"Resource type not handled in {self.__class__.__name__}.save_date_last_modified():\n{name}:\n{params}"
                     )
 
-        logging.info(f"Available metadata dates: {date_list}")
+        logger.info(f"Available metadata dates: {date_list}")
 
         if date_list:
             # Convert date strings to datetime objects and keep the most recent (Remove timezone offset)
@@ -238,16 +242,16 @@ class DataProcessor(ABC):
                 ti.xcom_push(
                     key=Notification.notification_xcom_key, value=error_message
                 )
-                logging.warning(f"{error_message}\n{e}")
+                logger.warning(f"{error_message}\n{e}")
             date_last_modified = max(date_list_dt).strftime("%Y-%m-%dT%H:%M:%S.%f")
         else:
-            date_last_modified = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
-            logging.info(
+            date_last_modified = datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%S.%f")
+            logger.info(
                 "No resource_id nor URL provided in the configuration: last modified date defaults to now."
             )
 
         save_to_metadata(metadata_path, "last_modified", date_last_modified)
-        logging.info(
+        logger.info(
             f"Last modified date ({date_last_modified}) saved successfully to {metadata_path}"
         )
 

@@ -5,7 +5,7 @@ import logging
 import os
 import re
 from ast import literal_eval
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Literal
 from unicodedata import normalize
@@ -90,7 +90,11 @@ def normalize_date(date_string):
     date_patterns = ["%d-%m-%Y", "%Y-%m-%d", "%Y%m%d", "%d/%m/%Y"]
     for pattern in date_patterns:
         try:
-            return datetime.strptime(date_string, pattern).strftime("%Y-%m-%d")
+            return (
+                datetime.strptime(date_string, pattern)
+                .replace(tzinfo=UTC)
+                .strftime("%Y-%m-%d")
+            )
         except ValueError:
             pass
 
@@ -148,7 +152,7 @@ def compare_versions_file(
 
 
 def check_if_monday():
-    return date.today().weekday() == 0
+    return datetime.now(tz=UTC).date().weekday() == 0
 
 
 def get_last_line(file_path):
@@ -199,7 +203,7 @@ def convert_date_format(original_date_string):
 
 
 def get_current_year():
-    return datetime.now().year
+    return datetime.now(tz=UTC).year
 
 
 def get_fiscal_year(date):
@@ -209,7 +213,7 @@ def get_fiscal_year(date):
 
 def get_previous_months(
     lookback: int = 12,
-    starting_date: date = date.today(),
+    starting_date: date | None = None,
     string_format: bool = True,
     period_type: Literal["year", "month", "day"] = "month",
     step: int = 1,
@@ -229,6 +233,8 @@ def get_previous_months(
     Returns:
         list[str | date]: A descending ordered list of strings or date of the previous periods.
     """
+    if starting_date is None:
+        starting_date = datetime.now(tz=UTC).date()
 
     _formats = {
         "year": "%Y",
@@ -279,13 +285,12 @@ def flatten_dict(dd, separator="_", prefix=""):
 
 def zip_file(file_path: str, chunk_size: int = 100000):
     zip_path = f"{file_path}.gz"
-    with open(file_path, "rb") as orig_file:
-        with gzip.open(zip_path, "wb") as zipped_file:
-            while True:
-                chunk = orig_file.read(chunk_size)
-                if not chunk:
-                    break
-                zipped_file.write(chunk)
+    with open(file_path, "rb") as orig_file, gzip.open(zip_path, "wb") as zipped_file:
+        while True:
+            chunk = orig_file.read(chunk_size)
+            if not chunk:
+                break
+            zipped_file.write(chunk)
     return zip_path
 
 
@@ -390,9 +395,11 @@ def parse_date_string(
     if isinstance(input_formats, str):
         input_formats = [input_formats]
 
-    for format in input_formats:
+    for date_format in input_formats:
         try:
-            parsed_date = datetime.strptime(date_string, format)
+            parsed_date = datetime.strptime(date_string, date_format).replace(
+                tzinfo=UTC
+            )
             return parsed_date.strftime(output_format)
         except ValueError:
             continue
@@ -407,7 +414,12 @@ def extract_date_from_filename(filename):
     if match:
         date_string = match.group(1)
         # Parse the date string into a datetime object
-        return datetime.strptime(date_string, "%Y-%m-%d").date().isoformat()
+        return (
+            datetime.strptime(date_string, "%Y-%m-%d")
+            .replace(tzinfo=timezone.utc)
+            .date()
+            .isoformat()
+        )
     else:
         return None
 
@@ -554,7 +566,7 @@ def get_dates_since_start_of_month(
     Returns:
         list[str]: List of dates with YYYY-MM-DD string format.
     """
-    last_day_of_month = date.today()
+    last_day_of_month = datetime.now(tz=UTC).date()
     if not include_today:
         if last_day_of_month.day == 1:
             return []

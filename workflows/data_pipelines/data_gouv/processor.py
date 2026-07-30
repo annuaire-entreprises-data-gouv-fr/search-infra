@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import shutil
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 import pyarrow as pa
@@ -54,7 +54,7 @@ class DataGouvProcessor:
     RESOURCE_ID_DOC_ETAB = "e8a88fe5-d1f5-4700-9cdf-af2c96eb7ef6"
 
     def __init__(self):
-        self.today_date = datetime.today().strftime("%Y-%m-%d")
+        self.today_date = datetime.now(tz=UTC).strftime("%Y-%m-%d")
         self.chunk_size = 100000
         self.ul_columns = [
             "siren",
@@ -436,9 +436,8 @@ class DataGouvProcessor:
                 writer.close()
 
     def compress_and_upload_file(self, filepath):
-        with open(filepath, "rb") as f_in:
-            with gzip.open(f"{filepath}.gz", "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
+        with open(filepath, "rb") as f_in, gzip.open(f"{filepath}.gz", "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
 
     def send_to_object_storage(self, list_files):
         """Send files to the object storage"""

@@ -69,7 +69,7 @@ def index_unites_legales_by_chunk(
         index=elastic_index, body={"index.refresh_interval": -1}
     )
 
-    logger = 0
+    log_counter = 0
     doc_count = 0
     chunk_unites_legales_sqlite = cursor.fetchmany(elastic_bulk_size)
     while chunk_unites_legales_sqlite:
@@ -91,9 +91,9 @@ def index_unites_legales_by_chunk(
         chunk_unites_legales_processed = process_unites_legales(
             liste_unites_legales_sqlite
         )
-        logger += 1
-        if logger % 100000 == 0:
-            logger.info(f"logger={logger}")
+        log_counter += 1
+        if log_counter % 100000 == 0:
+            logger.info(f"log_counter={log_counter}")
         try:
             chunk_doc_generator = doc_unite_legale_generator(
                 chunk_unites_legales_processed, elastic_index

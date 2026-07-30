@@ -125,22 +125,22 @@ def process_procedure_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
 class BodaccProcessor(DataProcessor):
     CHUNK_SIZE = 100_000
 
-    COLUMNS_RADIATIONS = [
+    COLUMNS_RADIATIONS = (
         "id",
         "listepersonnes",
         "dateparution",
         "typeavis",
         "radiationaurcs",
         "parutionavisprecedent",
-    ]
-    COLUMNS_PROCEDURES = [
+    )
+    COLUMNS_PROCEDURES = (
         "id",
         "listepersonnes",
         "dateparution",
         "typeavis",
         "jugement",
         "parutionavisprecedent",
-    ]
+    )
 
     def __init__(self):
         super().__init__(BODACC_CONFIG)

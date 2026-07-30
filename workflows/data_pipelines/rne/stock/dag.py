@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, task
@@ -21,7 +21,7 @@ default_args = {
     tags=["rne", "stock", "download"],
     default_args=default_args,
     schedule=None,  # <- No automatic scheduling
-    start_date=datetime(2026, 1, 1),
+    start_date=datetime(2026, 1, 1, tzinfo=UTC),
     dagrun_timeout=timedelta(minutes=60 * 18),
     params={},
     catchup=False,

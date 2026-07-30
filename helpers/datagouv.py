@@ -104,12 +104,9 @@ def post_resource(
     """
     if not file_to_upload["dest_path"].endswith("/"):
         file_to_upload["dest_path"] += "/"
-    files = {
-        "file": open(
-            f"{file_to_upload['dest_path']}{file_to_upload['dest_name']}",
-            "rb",
-        )
-    }
+
+    file_path = f"{file_to_upload['dest_path']}{file_to_upload['dest_name']}"
+
     if resource_id:
         url = (
             f"{DATAGOUV_URL}/api/1/datasets/{dataset_id}/resources/{resource_id}/"
@@ -117,18 +114,25 @@ def post_resource(
         )
     else:
         url = f"{DATAGOUV_URL}/api/1/datasets/{dataset_id}/upload/"
-    r = datagouv_session.post(url, files=files)
+
+    with open(file_path, "rb") as file:
+        files = {"file": file}
+        r = datagouv_session.post(url, files=files)
+
     r.raise_for_status()
+
     if not resource_id:
         resource_id = r.json()["id"]
-        logger.info("Resource was given this id:", resource_id)
+        logger.info("Resource was given this id: %s", resource_id)
         url = (
             f"{DATAGOUV_URL}/api/1/datasets/{dataset_id}/resources/{resource_id}/"
             "upload/"
         )
+
     if resource_id and resource_payload:
         r_put = datagouv_session.put(url.replace("upload/", ""), json=resource_payload)
         r_put.raise_for_status()
+
     return r
 
 

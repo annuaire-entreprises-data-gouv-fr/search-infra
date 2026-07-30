@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, setup, task, teardown
@@ -30,7 +30,7 @@ default_args = {
     tags=["bodacc", "radiations", "export"],
     default_args=default_args,
     schedule=None,  # Triggered by the index_elasticsearch dag
-    start_date=datetime(2026, 1, 1),
+    start_date=datetime(2026, 1, 1, tzinfo=UTC),
     dagrun_timeout=timedelta(minutes=60),
     params={},
     catchup=False,

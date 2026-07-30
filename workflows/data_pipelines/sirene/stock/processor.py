@@ -1,7 +1,7 @@
 import logging
 import shutil
 import zipfile
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -46,13 +46,13 @@ class SireneStockProcessor(DataProcessor):
             metadata["resource"]["title"].lower().replace("é", "e").replace("û", "u")
         )
 
-        current_month = datetime.now().month
-        current_year = datetime.now().year
+        now = datetime.now(tz=UTC)
+        current_month = now.month
+        current_year = now.year
 
         year_month = ""
-        for month in MONTH_MAPPING:
+        for month, month_num in MONTH_MAPPING.items():
             if month in title:
-                month_num = MONTH_MAPPING[month]
                 # If the month in the datagouv title is December while the
                 # current month is January, it means the stock file
                 # is still about the previous year

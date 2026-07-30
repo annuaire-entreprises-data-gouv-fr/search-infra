@@ -10,6 +10,8 @@ from requests import RequestException, Response, Session
 P = ParamSpec("P")
 R = TypeVar("R", bound=Response)
 
+logger = logging.getLogger(__name__)
+
 
 def retry_request(
     max_retries: int = 10, backoff_factor: float = 0.3
@@ -37,17 +39,17 @@ def retry_request(
                     response = func(*args, **kwargs)
                     match response.status_code:
                         case code if code < 400:
-                            logging.info(f"Status code : {code}")
+                            logger.info(f"Status code : {code}")
                             return response
                         case 429 | 502 | 503 | 504:
                             sleep_time = backoff_factor * (2**retries)
-                            logging.warning(
+                            logger.warning(
                                 f"Retryable error: {response.status_code}. "
                                 f"Sleeping for {sleep_time} seconds..."
                             )
                             time.sleep(sleep_time)
                         case 500:
-                            logging.error(
+                            logger.error(
                                 "Internal Server Error (500). "
                                 "Terminating retry attempts."
                             )
@@ -55,7 +57,7 @@ def retry_request(
                         case _:
                             response.raise_for_status()
                 except RequestException as e:
-                    logging.error(f"Request failed: {e}")
+                    logger.error(f"Request failed: {e}")
                     if retries == max_retries:
                         raise
                 retries += 1
@@ -133,7 +135,7 @@ class ApiClient:
         while current_params is not None:
             request_count += batch_size
             if request_count % 10000 == 0:
-                logging.info(f"Request count: {request_count}")
+                logger.info(f"Request count: {request_count}")
 
             start_time = time.time()
             response = self.get(endpoint, params=current_params)
@@ -183,7 +185,7 @@ class AirflowApiClient(ApiClient):
                 key=lambda ti: (ti.get("end_date") is None, ti.get("end_date", "")),
             )
         except KeyError as e:
-            logging.error("Unexpected API response format: %s", e)
+            logger.error("Unexpected API response format: %s", e)
             raise RuntimeError("Airflow API returned unexpected response format") from e
 
     def _fetch_and_set_token(self) -> None:
@@ -209,8 +211,8 @@ class AirflowApiClient(ApiClient):
                 {"Authorization": f"Bearer {self._token}", **original_headers}
             )
 
-            logging.info("Successfully fetched new Airflow API token")
+            logger.info("Successfully fetched new Airflow API token")
 
         except Exception as e:
-            logging.error("Failed to fetch Airflow API token: %s", e)
+            logger.error("Failed to fetch Airflow API token: %s", e)
             raise RuntimeError("Failed to authenticate with Airflow API") from e

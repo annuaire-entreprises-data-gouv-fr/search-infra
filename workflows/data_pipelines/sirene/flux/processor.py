@@ -1,6 +1,6 @@
 import logging
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -126,7 +126,7 @@ class SireneFluxProcessor(DataProcessor):
             raise ValueError("Sirene API flux token is missing!")
 
         self.client = SireneApiClient(self.config.url_api, self.config.auth_api)
-        self.current_month = datetime.today().strftime("%Y-%m")
+        self.current_month = datetime.now(UTC).strftime("%Y-%m")
         # Descending order so we start by the most recent day
         # Higher priority to the latest SIRENE flux updates
         self.current_dates = get_dates_since_start_of_month(
@@ -150,7 +150,7 @@ class SireneFluxProcessor(DataProcessor):
         )
         periodes_output_path = f"{self.config.tmp_folder}flux_unite_legale_periodes_{self.current_month}.csv"
 
-        if datetime.today().day == 1:
+        if datetime.now(UTC).day == 1:
             logger.info(
                 "First of the month, the flux API won't return any output. A headers only CSV is created instead."
             )
@@ -268,7 +268,7 @@ class SireneFluxProcessor(DataProcessor):
         )
         periodes_output_path = f"{self.config.tmp_folder}flux_etablissement_periodes_{self.current_month}.csv"
 
-        if datetime.today().day == 1:
+        if datetime.now(UTC).day == 1:
             logger.info(
                 "First day of the month, the flux API won't return any output. A headers only CSV is created instead."
             )

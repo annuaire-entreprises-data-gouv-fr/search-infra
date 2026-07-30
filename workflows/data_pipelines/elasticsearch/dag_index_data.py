@@ -1,6 +1,6 @@
 import os
 import shutil
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
@@ -52,7 +52,7 @@ default_args = {
     dag_id=AIRFLOW_ELK_DAG_NAME,
     default_args=default_args,
     schedule=None,  # Triggered by database etl
-    start_date=datetime(2026, 1, 1),
+    start_date=datetime(2026, 1, 1, tzinfo=UTC),
     dagrun_timeout=timedelta(minutes=60 * 12),
     tags=["index", "elasticsearch"],
     catchup=False,

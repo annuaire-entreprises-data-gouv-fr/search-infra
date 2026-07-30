@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from airflow.sdk import Variable
 
@@ -48,10 +48,10 @@ class DataSourceConfig:
     post_processing_queries: str | list[str] | None = None
 
 
-CURRENT_MONTH: str = datetime.now().strftime("%Y-%m")
-PREVIOUS_MONTH: str = (datetime.now().replace(day=1) - timedelta(days=1)).strftime(
-    "%Y-%m"
-)
+CURRENT_MONTH: str = datetime.now(tz=UTC).strftime("%Y-%m")
+PREVIOUS_MONTH: str = (
+    datetime.now(tz=UTC).replace(day=1) - timedelta(days=1)
+).strftime("%Y-%m")
 
 AIRFLOW_ENV = Variable.get("ENV", "dev")
 BASE_TMP_FOLDER = "/tmp"

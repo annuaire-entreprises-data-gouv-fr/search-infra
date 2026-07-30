@@ -1,5 +1,6 @@
 import logging
 import shutil
+from pathlib import Path
 
 import pandas as pd
 import requests
@@ -23,45 +24,73 @@ logger = logging.getLogger(__name__)
 
 def download_historique(data_dir):
     year_month = get_sirene_processing_month()
+
     filename = STOCK_SIRENE_CONFIG.files_to_download["historique_unite_legale"][
         "destination"
     ].split("/")[-1]
     filename = filename.replace(CURRENT_MONTH, year_month)
+
     url = STOCK_SIRENE_CONFIG.url_object_storage + filename
 
+    data_path = Path(data_dir)
+    zip_path = data_path / "StockUniteLegaleHistorique_utf8.zip"
+
     logger.info(f"Downloading and unpacking {url}..")
-    r = requests.get(
-        url,
-        allow_redirects=True,
-    )
-    open(data_dir + "StockUniteLegaleHistorique_utf8.zip", "wb").write(r.content)
-    shutil.unpack_archive(data_dir + "StockUniteLegaleHistorique_utf8.zip", data_dir)
+
+    with requests.get(url, allow_redirects=True, stream=True) as r:
+        r.raise_for_status()
+
+        with open(zip_path, "wb") as f_out:
+            for chunk in r.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    f_out.write(chunk)
+
+    shutil.unpack_archive(zip_path, data_path)
+
+    csv_path = data_path / "StockUniteLegaleHistorique_utf8.csv"
+
     df_iterator = pd.read_csv(
-        f"{data_dir}StockUniteLegaleHistorique_utf8.csv",
+        csv_path,
         chunksize=100000,
         dtype=str,
     )
+
     return df_iterator
 
 
 def download_stock(data_dir):
     year_month = get_sirene_processing_month()
+
     filename = STOCK_SIRENE_CONFIG.files_to_download["stock_unite_legale"][
         "destination"
     ].split("/")[-1]
     filename = filename.replace(CURRENT_MONTH, year_month)
+
     url = STOCK_SIRENE_CONFIG.url_object_storage + filename
 
+    data_path = Path(data_dir)
+    zip_path = data_path / "StockUniteLegale_utf8.zip"
+
     logger.info(f"Downloading and unpacking {url}..")
-    r = requests.get(
-        url,
-        allow_redirects=True,
-    )
-    open(data_dir + "StockUniteLegale_utf8.zip", "wb").write(r.content)
-    shutil.unpack_archive(data_dir + "StockUniteLegale_utf8.zip", data_dir)
+
+    with requests.get(url, allow_redirects=True, stream=True) as r:
+        r.raise_for_status()
+
+        with open(zip_path, "wb") as f_out:
+            for chunk in r.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    f_out.write(chunk)
+
+    shutil.unpack_archive(zip_path, data_path)
+
+    csv_path = data_path / "StockUniteLegale_utf8.csv"
+
     df_iterator = pd.read_csv(
-        f"{data_dir}StockUniteLegale_utf8.csv", chunksize=100000, dtype=str
+        csv_path,
+        chunksize=100000,
+        dtype=str,
     )
+
     return df_iterator
 
 

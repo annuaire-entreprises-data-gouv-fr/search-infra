@@ -51,7 +51,7 @@ def get_start_date():
             data = json.load(fp)
 
         previous_latest_date = data["latest_date"]
-        previous_latest_date = datetime.strptime(previous_latest_date, "%Y-%m-%d")
+        previous_latest_date = datetime.fromisoformat(previous_latest_date)
         start_date = datetime.strftime(previous_latest_date, "%Y-%m-%d")
         ti.xcom_push(key="start_date", value=start_date)
     except ClientError as e:
@@ -124,7 +124,7 @@ def get_start_date_rne_database():
     start_date = ti.xcom_pull(key="start_date", task_ids="get_start_date")
     local_database_path = RNE_DB_TMP_FOLDER + f"rne_{start_date}.db"
     if start_date is not None:
-        previous_latest_date = datetime.strptime(start_date, "%Y-%m-%d")
+        previous_latest_date = datetime.fromisoformat(start_date)
         previous_start_date = datetime.strftime(
             (previous_latest_date - timedelta(days=1)), "%Y-%m-%d"
         )
@@ -226,9 +226,11 @@ def process_flux_json_files():
                 json_path = f"{RNE_DB_TMP_FOLDER}rne_flux_{file_date}.json"
 
                 # Unzip json file
-                with gzip.open(f"{json_path}.gz", "rb") as f_in:
-                    with open(json_path, "wb") as f_out:
-                        shutil.copyfileobj(f_in, f_out)
+                with (
+                    gzip.open(f"{json_path}.gz", "rb") as f_in,
+                    open(json_path, "wb") as f_out,
+                ):
+                    shutil.copyfileobj(f_in, f_out)
 
                 # Remove zip file
                 os.remove(f"{json_path}.gz")
@@ -361,7 +363,7 @@ def upload_latest_date_rne_object_storage():
     last_date_processed = ti.xcom_pull(
         key="last_date_processed", task_ids="process_flux_json_files"
     )
-    last_date_processed = datetime.strptime(last_date_processed, "%Y-%m-%d")
+    last_date_processed = datetime.fromisoformat(last_date_processed)
     latest_date = (last_date_processed + timedelta(days=1)).strftime("%Y-%m-%d")
     data = {}
     data["latest_date"] = latest_date

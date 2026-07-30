@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 
 from data_pipelines_annuaire.helpers.utils import (
     convert_date_format,
@@ -263,7 +263,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         )
 
         # Get the current date and time
-        unite_legale_processed["date_mise_a_jour"] = datetime.now().strftime(
+        unite_legale_processed["date_mise_a_jour"] = datetime.now(tz=UTC).strftime(
             "%Y-%m-%dT%H:%M:%S"
         )
         unite_legale_processed["date_mise_a_jour_rne"] = convert_date_format(

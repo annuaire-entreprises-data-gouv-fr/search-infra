@@ -41,10 +41,11 @@ def get_last_line(file_path):
 @pytest.fixture
 def temp_file_path():
     # Create a temporary file for testing
-    temp_file = tempfile.NamedTemporaryFile(delete=False)
-    temp_file_path = temp_file.name
-    temp_file.close()
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        temp_file_path = temp_file.name
+
     yield temp_file_path
+
     # Remove the temporary file after the test
     os.remove(temp_file_path)
 

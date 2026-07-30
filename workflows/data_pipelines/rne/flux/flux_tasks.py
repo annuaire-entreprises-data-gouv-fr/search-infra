@@ -4,7 +4,7 @@ import logging
 import os
 import re
 import shutil
-from datetime import datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from airflow.sdk import get_current_context, task
 
@@ -55,9 +55,11 @@ def get_latest_json_file(ti):
     logger.info(f"Got zip file : rne_flux_{start_date}.json.gz")
 
     # Unzip json file
-    with gzip.open(f"{last_json_file_path}.gz", "rb") as f_in:
-        with open(last_json_file_path, "wb") as f_out:
-            shutil.copyfileobj(f_in, f_out)
+    with (
+        gzip.open(f"{last_json_file_path}.gz", "rb") as f_in,
+        open(last_json_file_path, "wb") as f_out,
+    ):
+        shutil.copyfileobj(f_in, f_out)
 
     ti.xcom_push(key="last_json_file_path", value=last_json_file_path)
 
@@ -110,7 +112,7 @@ def compute_start_date():
     last_json_date = get_last_json_file_date()
 
     if last_json_date:
-        last_date_obj = datetime.strptime(last_json_date, "%Y-%m-%d")
+        last_date_obj = date.fromisoformat(last_json_date)
         start_date = last_date_obj.strftime("%Y-%m-%d")
         logger.info(f"++++++++Start date: {start_date}")
     else:
@@ -169,9 +171,11 @@ def get_and_save_daily_flux_rne(
                 # If exception accures, save uncompleted file
                 if os.path.exists(json_file_path):
                     # Zip file
-                    with open(json_file_path, "rb") as f_in:
-                        with gzip.open(f"{json_file_path}.gz", "wb") as f_out:
-                            shutil.copyfileobj(f_in, f_out)
+                    with (
+                        open(json_file_path, "rb") as f_in,
+                        gzip.open(f"{json_file_path}.gz", "wb") as f_out,
+                    ):
+                        shutil.copyfileobj(f_in, f_out)
                     object_storage_client.send_files(
                         list_files=[
                             {
@@ -191,9 +195,11 @@ def get_and_save_daily_flux_rne(
 
     if os.path.exists(json_file_path):
         # Zip file
-        with open(json_file_path, "rb") as f_in:
-            with gzip.open(f"{json_file_path}.gz", "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
+        with (
+            open(json_file_path, "rb") as f_in,
+            gzip.open(f"{json_file_path}.gz", "wb") as f_out,
+        ):
+            shutil.copyfileobj(f_in, f_out)
 
         object_storage_client.send_files(
             list_files=[
@@ -221,12 +227,12 @@ def get_every_day_flux():
     ti = get_current_context()["ti"]
     # Get the start and end date
     start_date = compute_start_date()
-    end_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    end_date = (datetime.now(UTC) - timedelta(days=1)).strftime("%Y-%m-%d")
     logger.info(f"********* Start date: {start_date}")
     logger.info(f"********* End date: {end_date}")
 
-    current_date = datetime.strptime(start_date, "%Y-%m-%d")
-    end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
+    current_date = datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=UTC)
+    end_date_dt = datetime.strptime(end_date, "%Y-%m-%d").replace(tzinfo=UTC)
     first_exec = True
     while current_date <= end_date_dt:
         start_date_formatted = current_date.strftime("%Y-%m-%d")
