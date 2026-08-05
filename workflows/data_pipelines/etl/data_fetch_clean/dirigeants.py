@@ -8,6 +8,10 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichm
 # fmt: on
 
 
+def concatenate_roles(roles):
+    return ", ".join(str(role) for role in roles if pd.notna(role))
+
+
 def preprocess_personne_physique(query):
     cols = [column[0] for column in query.description]
     pp_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
@@ -61,8 +65,11 @@ def preprocess_personne_physique(query):
                 "date_mise_a_jour",
             ],
             dropna=False,
-        )["role_description"]
-        .apply(lambda x: ", ".join(str(val) for val in x if val is not None))
+        )
+        .agg(
+            role=("role", concatenate_roles),
+            role_description=("role_description", concatenate_roles),
+        )
         .reset_index()
     )
     return pp_clean
@@ -97,8 +104,11 @@ def preprocess_dirigeant_pm(query):
     dirig_clean = (
         dirig_chunk.groupby(
             by=["siren", "siren_dirigeant", "denomination"], dropna=False
-        )["role_description"]
-        .apply(lambda x: ", ".join(str(val) for val in x if val is not None))
+        )
+        .agg(
+            role=("role", concatenate_roles),
+            role_description=("role_description", concatenate_roles),
+        )
         .reset_index()
     )
     return dirig_clean
