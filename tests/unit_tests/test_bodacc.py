@@ -1,8 +1,12 @@
 import json
+import sqlite3
 
 import pandas as pd
 import pytest
 
+from data_pipelines_annuaire.workflows.data_pipelines.bodacc.config import (
+    RADIATIONS_CONFIG,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.creations import (
     _parse_creation_date,
     process_creations,
@@ -14,6 +18,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.bodacc.procedures_collecti
     _parse_jugement_json,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.radiations import (
+    _is_transfert_siege_hors_ressort,
     _parse_radiation_json,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
@@ -85,6 +90,30 @@ def test_parse_radiation_json_pm_no_date():
 
 def test_parse_radiation_json_empty():
     assert _parse_radiation_json("") == ""
+
+
+# _is_transfert_siege_hors_ressort()
+
+
+def test_is_transfert_siege_hors_ressort():
+    data = json.dumps(
+        {"radiationPM": "O", "commentaire": "Transfert du siège hors ressort"}
+    )
+    assert _is_transfert_siege_hors_ressort(data) is True
+
+
+def test_is_transfert_siege_hors_ressort_other_comment():
+    data = json.dumps({"commentaire": "Rapport de radiation d'office"})
+    assert _is_transfert_siege_hors_ressort(data) is False
+
+
+def test_is_transfert_siege_hors_ressort_no_comment():
+    data = json.dumps({"dateCessationActivitePP": "2024-01-15"})
+    assert _is_transfert_siege_hors_ressort(data) is False
+
+
+def test_is_transfert_siege_hors_ressort_empty():
+    assert _is_transfert_siege_hors_ressort("") is False
 
 
 # _parse_jugement_json()
@@ -670,3 +699,96 @@ def test_process_creations_filters_annulation(tmp_path):
     # A11 est annulée par A20, et l'avis d'annulation A20 est lui-même exclu.
     # Seule la création A30 subsiste.
     assert df["id_annonce"].tolist() == ["A30"]
+
+
+# RADIATIONS_CONFIG.post_processing_queries
+
+
+@pytest.fixture
+def radiations_db():
+    conn = sqlite3.connect(":memory:")
+    conn.executescript(RADIATIONS_CONFIG.table_ddl)
+    conn.executescript(
+        """
+        CREATE TABLE unite_legale (
+            siren TEXT,
+            nature_juridique_unite_legale TEXT,
+            etat_administratif_unite_legale TEXT
+        );
+        CREATE TABLE etablissement (
+            siren TEXT,
+            etat_administratif_etablissement TEXT,
+            date_creation DATE,
+            date_debut_activite DATE
+        );
+        CREATE TABLE immatriculation (siren TEXT, date_immatriculation DATE);
+        CREATE TABLE bodacc_creations (siren TEXT, date DATE);
+        """
+    )
+    yield conn
+    conn.close()
+
+
+def _run_post_processing(conn) -> dict[str, tuple[int, str]]:
+    for query in RADIATIONS_CONFIG.post_processing_queries:
+        conn.execute(query)
+    return {
+        siren: (visibility, reason)
+        for siren, visibility, reason in conn.execute(
+            "SELECT siren, visibility, visibility_reason FROM bodacc_radiations"
+        )
+    }
+
+
+def test_post_processing_accumulates_visibility_reasons(radiations_db):
+    radiations_db.executescript(
+        """
+        INSERT INTO bodacc_radiations (siren, id_annonce, est_radie, date)
+            VALUES ('111111111', 'A1', 1, '2020-01-01');
+        INSERT INTO unite_legale VALUES ('111111111', '1000', 'A');
+        INSERT INTO etablissement VALUES ('111111111', 'A', '2021-05-01', '2021-05-01');
+        INSERT INTO bodacc_creations VALUES ('111111111', '2021-06-01');
+        """
+    )
+
+    visibility, reason = _run_post_processing(radiations_db)["111111111"]
+
+    assert visibility == 0
+    assert reason == (
+        "ei_active_on_sirene"
+        " | ei_with_new_etab_since_radiation"
+        " | ei_with_bodacc_creation_since_radiation"
+    )
+
+
+def test_post_processing_single_reason_has_no_leading_separator(radiations_db):
+    # L'unité légale est cessée dans SIRENE : seule la 2e requête doit matcher.
+    radiations_db.executescript(
+        """
+        INSERT INTO bodacc_radiations (siren, id_annonce, est_radie, date)
+            VALUES ('222222222', 'A2', 1, '2020-01-01');
+        INSERT INTO unite_legale VALUES ('222222222', '1000', 'C');
+        INSERT INTO etablissement VALUES ('222222222', 'C', '2021-05-01', '2021-05-01');
+        """
+    )
+
+    visibility, reason = _run_post_processing(radiations_db)["222222222"]
+
+    assert visibility == 0
+    assert reason == "ei_with_new_etab_since_radiation"
+
+
+def test_post_processing_keeps_unmatched_radiation_visible(radiations_db):
+    radiations_db.executescript(
+        """
+        INSERT INTO bodacc_radiations (siren, id_annonce, est_radie, date)
+            VALUES ('333333333', 'A3', 1, '2020-01-01');
+        INSERT INTO unite_legale VALUES ('333333333', '1000', 'C');
+        INSERT INTO etablissement VALUES ('333333333', 'C', '2019-01-01', '2019-01-01');
+        """
+    )
+
+    visibility, reason = _run_post_processing(radiations_db)["333333333"]
+
+    assert visibility == 1
+    assert reason == "visible_by_default"

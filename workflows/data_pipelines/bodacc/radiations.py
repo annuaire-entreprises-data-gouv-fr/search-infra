@@ -4,11 +4,14 @@ import logging
 import pandas as pd
 
 from data_pipelines_annuaire.helpers.data_quality import clean_sirent_column
+from data_pipelines_annuaire.helpers.utils import parse_json_safe
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
     extract_sirens_from_listepersonnes,
     parse_date_bodacc,
     process_discarded_announcements,
 )
+
+logger = logging.getLogger(__name__)
 
 _INPUT_COLUMNS = [
     "id",
@@ -41,6 +44,20 @@ def _parse_radiation_json(radiation_str: str) -> str:
         return parse_date_bodacc(data["radiationPP"].get("dateCessationActivitePP", ""))
     # Les PM n'ont pas de date de disponible
     return ""
+
+
+def _is_transfert_siege_hors_ressort(radiationaurcs_str: str) -> bool:
+    """
+    Vérifie si la radiation correspond à un transfert de siège hors ressort.
+    L'entreprise n'est pas radiée, seulement le siège est radiée de ce RCS
+    car il est transféré auprès d'un autre greffe.
+    Cette mention n'existe plus depuis le 1er avril 2012 mais doit être maintenue
+    pour ne pas identifier à tort de vraies radiations.
+    """
+    data = parse_json_safe(radiationaurcs_str)
+    if not data:
+        return False
+    return data.get("commentaire", "") == "Transfert du siège hors ressort"
 
 
 def _process_radiation_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
@@ -76,7 +93,7 @@ def _process_radiation_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
 
 
 def process_radiations(raw_file_path: str, chunk_size: int) -> pd.DataFrame:
-    logging.info("Processing radiations...")
+    logger.info("Processing radiations...")
     chunks_processed = []
 
     # Charger le fichier complet pour gérer les annulations
@@ -86,11 +103,16 @@ def process_radiations(raw_file_path: str, chunk_size: int) -> pd.DataFrame:
         sep=";",
         usecols=_INPUT_COLUMNS,
     )
-    logging.info(f"Loaded {len(df_full)} radiation rows")
+    logger.info(f"Loaded {len(df_full)} radiation rows")
 
     # Filtrer les annulations
     df_full = process_discarded_announcements(df_full)
-    logging.info(f"After filtering cancellations: {len(df_full)} rows")
+    logger.info(f"After filtering cancellations: {len(df_full)} rows")
+
+    # Exclure les transferts de siège hors ressort (annonces antérieures au 2012-04-01)
+    is_transfert = df_full["radiationaurcs"].apply(_is_transfert_siege_hors_ressort)
+    df_full = df_full[~is_transfert.astype(bool)]
+    logger.info(f"Après filtrage des transferts hors ressort : {len(df_full)} lignes")
 
     # Traiter par chunks pour la mémoire
     for i in range(0, len(df_full), chunk_size):
@@ -100,7 +122,7 @@ def process_radiations(raw_file_path: str, chunk_size: int) -> pd.DataFrame:
             chunks_processed.append(processed)
 
     if not chunks_processed:
-        logging.warning("No radiations found")
+        logger.warning("No radiations found")
         return pd.DataFrame(columns=_OUTPUT_COLUMNS)
 
     # Concaténer tous les chunks
@@ -122,7 +144,7 @@ def process_radiations(raw_file_path: str, chunk_size: int) -> pd.DataFrame:
     n_duplicates = duplicated_mask.sum()
     if n_duplicates > 0:
         sample_sirens = df.loc[duplicated_mask, "siren"].head(5).tolist()
-        logging.info(
+        logger.info(
             f"Radiations: {n_duplicates} duplicate Siren, sample:\n{sample_sirens}"
         )
     df = df.drop_duplicates(subset=["siren"], keep="first")

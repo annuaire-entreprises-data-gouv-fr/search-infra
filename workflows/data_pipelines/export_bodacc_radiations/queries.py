@@ -30,6 +30,7 @@ RADIATIONS_INCOHERENCES_QUERY = """
     SELECT
         r.siren,
         CASE
+            WHEN ul.siren IS NULL THEN NULL
             WHEN ul.nature_juridique_unite_legale = '1000'
                 OR ul.nature_juridique_unite_legale LIKE '2%'
             THEN 'true'
