@@ -7,7 +7,6 @@ BODACC_CONFIG = DataSourceConfig(
     name="bodacc",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/bodacc",
     object_storage_path="bodacc",
-    file_name="bodacc",
     files_to_download={
         "procedures_collectives": {
             "huwise": True,
@@ -20,67 +19,90 @@ BODACC_CONFIG = DataSourceConfig(
             "destination": f"{DataSourceConfig.base_tmp_folder}/bodacc/radiations-raw.csv",
         },
     },
-    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}bodacc/latest/bodacc.csv",
-    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}bodacc/latest/metadata.json",
-    # radiation_visibility et radiation_visibility_reason sont alimentés par la
-    # task de postprocessing dans le DAG d'ETL pour masquer certaines radiations
+)
+
+RADIATIONS_CONFIG = DataSourceConfig(
+    name="bodacc_radiations",
+    tmp_folder=BODACC_CONFIG.tmp_folder,
+    object_storage_path=f"{BODACC_CONFIG.object_storage_path}/radiations",
+    file_name="radiations",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}bodacc/radiations/latest/radiations.csv",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}bodacc/radiations/latest/metadata.json",
     table_ddl="""
         BEGIN;
-        CREATE TABLE IF NOT EXISTS bodacc
+        CREATE TABLE IF NOT EXISTS bodacc_radiations
         (
             siren TEXT PRIMARY KEY,
-            radiation_id_annonce TEXT,
-            radiation_est_radie INTEGER,
-            radiation_date DATE,
-            radiation_date_publication DATE,
-            procedure_collective_id_annonce TEXT,
-            procedure_collective_statut TEXT,
-            procedure_collective_nature TEXT,
-            procedure_collective_complement TEXT,
-            procedure_collective_date DATE,
-            procedure_collective_date_publication DATE,
+            id_annonce TEXT,
+            est_radie INTEGER,
+            date DATE,
+            date_publication DATE,
 
-            procedure_collective_cloturee_nature TEXT,
-
-            radiation_visibility INTEGER DEFAULT 1,
-            radiation_visibility_reason TEXT DEFAULT 'visible_by_default'
+            visibility INTEGER DEFAULT 1,
+            visibility_reason TEXT DEFAULT 'visible_by_default'
         );
         COMMIT;
     """,
     post_processing_queries=[
         """
-            UPDATE bodacc
-            SET radiation_visibility = 0,
-                radiation_visibility_reason = 'ei_active_on_sirene'
-            WHERE bodacc.radiation_est_radie
+            UPDATE bodacc_radiations
+            SET visibility = 0,
+                visibility_reason = 'ei_active_on_sirene'
+            WHERE bodacc_radiations.est_radie
             AND siren IN (
                 SELECT ul.siren
                 FROM unite_legale AS ul
                 INNER JOIN etablissement AS e ON e.siren = ul.siren
-                WHERE bodacc.siren = ul.siren
+                WHERE bodacc_radiations.siren = ul.siren
                 AND ul.nature_juridique_unite_legale = '1000'
                 AND ul.etat_administratif_unite_legale = 'A'
                 AND e.etat_administratif_etablissement = 'A'
             )
             """,
+        # radiation_visibility et radiation_visibility_reason sont alimentés par la
+        # task de postprocessing dans le DAG d'ETL pour masquer les radiations correspondantes
         """
-            UPDATE bodacc
-            SET radiation_visibility = 0,
-                radiation_visibility_reason = 'ei_with_new_etab_since_radiation'
-            WHERE bodacc.radiation_est_radie
+            UPDATE bodacc_radiations
+            SET visibility = 0,
+                visibility_reason = 'ei_with_new_etab_since_radiation'
+            WHERE bodacc_radiations.est_radie
             AND siren IN (
                 SELECT ul.siren
                 FROM unite_legale AS ul
                 INNER JOIN etablissement AS e ON e.siren = ul.siren
                 left join immatriculation AS i on i.siren = ul.siren
-                WHERE bodacc.siren = ul.siren
+                WHERE bodacc_radiations.siren = ul.siren
                 AND ul.nature_juridique_unite_legale = '1000'
                 AND (
-                    e.date_creation >= bodacc.radiation_date
-                 OR e.date_debut_activite >= bodacc.radiation_date
-                 OR i.date_immatriculation >= bodacc.radiation_date
+                    e.date_creation >= bodacc_radiations.date
+                 OR e.date_debut_activite >= bodacc_radiations.date
+                 OR i.date_immatriculation >= bodacc_radiations.date
                  )
             )
             """,
     ],
+)
+
+PROCEDURES_COLLECTIVES_CONFIG = DataSourceConfig(
+    name="bodacc_procedures_collectives",
+    tmp_folder=BODACC_CONFIG.tmp_folder,
+    object_storage_path=f"{BODACC_CONFIG.object_storage_path}/procedures_collectives",
+    file_name="procedures_collectives",
+    url_object_storage=f"{OBJECT_STORAGE_BASE_URL}bodacc/procedures_collectives/latest/procedures_collectives.csv",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}bodacc/procedures_collectives/latest/metadata.json",
+    table_ddl="""
+        BEGIN;
+        CREATE TABLE IF NOT EXISTS bodacc_procedures_collectives
+        (
+            siren TEXT PRIMARY KEY,
+            id_annonce TEXT,
+            statut TEXT,
+            nature TEXT,
+            complement TEXT,
+            date DATE,
+            date_publication DATE,
+            cloturee_nature TEXT
+        );
+        COMMIT;
+    """,
 )
