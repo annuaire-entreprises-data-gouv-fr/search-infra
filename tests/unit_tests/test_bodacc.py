@@ -3,6 +3,10 @@ import json
 import pandas as pd
 import pytest
 
+from data_pipelines_annuaire.workflows.data_pipelines.bodacc.creations import (
+    _parse_creation_date,
+    process_creations,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.procedures_collectives import (
     _apply_procedure_collective_rules,
     _is_cloture,
@@ -568,3 +572,101 @@ def test_unnest_listepersonnes_drops_rows_without_siren():
     result = extract_sirens_from_listepersonnes(df)
     assert len(result) == 1
     assert result["siren"].iloc[0] == "999999999"
+
+
+# _parse_creation_date()
+
+
+def test_parse_creation_date_immatriculation():
+    acte = '{"dateImmatriculation": "2026-06-15", "dateCommencementActivite": "2026-06-16"}'
+    assert _parse_creation_date(acte) == "2026-06-15"
+
+
+def test_parse_creation_date_fallback_commencement():
+    acte = '{"dateCommencementActivite": "2026-06-16"}'
+    assert _parse_creation_date(acte) == "2026-06-16"
+
+
+def test_parse_creation_date_no_date():
+    assert _parse_creation_date('{"creation": {"categorieCreation": "x"}}') == ""
+
+
+def test_parse_creation_date_empty():
+    assert _parse_creation_date("") == ""
+
+
+def test_parse_creation_date_invalid_json():
+    assert _parse_creation_date("not json") == ""
+
+
+# process_creations()
+
+
+def _creation_listepersonnes(siren: str) -> str:
+    return json.dumps(
+        {"personne": {"numeroImmatriculation": {"numeroIdentification": siren}}}
+    )
+
+
+def test_process_creations_keeps_all_rows(tmp_path):
+    raw = tmp_path / "creations-raw.csv"
+    pd.DataFrame(
+        {
+            "id": ["A001", "A002", "A003"],
+            "listepersonnes": [
+                _creation_listepersonnes("111 111 111"),
+                _creation_listepersonnes("222 222 222"),
+                # Même SIREN ré-immatriculé : on garde les deux annonces.
+                _creation_listepersonnes("111 111 111"),
+            ],
+            "dateparution": ["2024-01-10", "2024-02-10", "2025-03-10"],
+            "typeavis": ["annonce", "annonce", "annonce"],
+            "acte": [
+                '{"dateImmatriculation": "2024-01-05"}',
+                '{"dateCommencementActivite": "2024-02-05"}',
+                '{"dateImmatriculation": "2025-03-05"}',
+            ],
+            "parutionavisprecedent": ["", "", ""],
+        }
+    ).to_csv(raw, sep=";", index=False)
+
+    df = process_creations(str(raw), chunk_size=100)
+
+    assert len(df) == 3
+    assert sorted(df["siren"].tolist()) == ["111111111", "111111111", "222222222"]
+    dates = dict(zip(df["id_annonce"], df["date"]))
+    assert dates["A001"] == pd.Timestamp("2024-01-05")
+    assert dates["A002"] == pd.Timestamp("2024-02-05")
+    assert dates["A003"] == pd.Timestamp("2025-03-05")
+
+
+def test_process_creations_filters_annulation(tmp_path):
+    raw = tmp_path / "creations-raw.csv"
+    # build_bodacc_id => f"{lettre}{numeroParution}{numeroAnnonce}" = "A11"
+    avis_precedent = json.dumps(
+        {"nomPublication": "BODACC A", "numeroParution": "1", "numeroAnnonce": "1"}
+    )
+    pd.DataFrame(
+        {
+            "id": ["A11", "A20", "A30"],
+            "listepersonnes": [
+                _creation_listepersonnes("111 111 111"),
+                _creation_listepersonnes("222 222 222"),
+                _creation_listepersonnes("333 333 333"),
+            ],
+            "dateparution": ["2024-01-10", "2024-02-10", "2024-03-10"],
+            "typeavis": ["annonce", "annulation", "annonce"],
+            "acte": [
+                '{"dateImmatriculation": "2024-01-05"}',
+                "{}",
+                '{"dateImmatriculation": "2024-03-05"}',
+            ],
+            "parutionavisprecedent": ["", avis_precedent, ""],
+        }
+    ).to_csv(raw, sep=";", index=False)
+
+    df = process_creations(str(raw), chunk_size=100)
+
+    # A11 est annulée par A20, et l'avis d'annulation A20 est lui-même exclu.
+    # Seule la création A30 subsiste.
+    assert df["id_annonce"].tolist() == ["A30"]

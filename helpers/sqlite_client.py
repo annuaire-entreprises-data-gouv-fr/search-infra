@@ -1,9 +1,9 @@
 import logging
 import os
 import sqlite3
+from typing import Self
 
 import pandas as pd
-from typing_extensions import Self
 
 from data_pipelines_annuaire.helpers.filesystem import LocalFile
 

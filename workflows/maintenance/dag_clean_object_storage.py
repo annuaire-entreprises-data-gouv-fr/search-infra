@@ -1,7 +1,7 @@
 import logging
 import re
 from collections import defaultdict
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, task
@@ -45,12 +45,12 @@ def delete_old_files(
         base_name = re.sub(r"\d{4}(-\d{2}(-\d{2})?)?", "YYYY-MM-DD", file_name)
         groups[base_name].append((file_name, last_modified))
 
-    current_time = datetime.now(timezone.utc)
+    current_time = datetime.now(UTC)
     for files in groups.values():
         files.sort(key=lambda x: x[1], reverse=True)
         for i, (file_name, last_modified) in enumerate(files):
             # Ensure both datetime objects are offset-aware
-            last_modified = last_modified.replace(tzinfo=timezone.utc)
+            last_modified = last_modified.replace(tzinfo=UTC)
             age = current_time - last_modified
             if i < keep_latest or age < timedelta(days=retention_days):
                 continue
