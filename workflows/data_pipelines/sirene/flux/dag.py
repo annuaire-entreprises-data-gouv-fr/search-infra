@@ -1,5 +1,6 @@
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 
+import pendulum
 from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.sdk import dag, task
@@ -22,8 +23,8 @@ default_args = {
 @dag(
     tags=["sirene", "flux"],
     default_args=default_args,
-    schedule="30 6 * * *",  # Daily at 6:30 AM
-    start_date=datetime(2026, 1, 1, tzinfo=UTC),
+    schedule="30 7 * * *",  # Daily at 7:30 AM Paris timezone
+    start_date=pendulum.datetime(2026, 1, 1, tz="Europe/Paris"),
     dagrun_timeout=timedelta(minutes=60 * 12),
     params={},
     catchup=False,
