@@ -2,10 +2,11 @@
 
 > :warning: L'exploitation de ces données est encore en phase de test et de développement.
 
-Ce module collecte et traite les **radiations** et **procédures collectives** publiées au [BODACC](https://www.bodacc.fr/) (Bulletin Officiel des Annonces Civiles et Commerciales).
+Ce module collecte et traite les **radiations**, **procédures collectives** et **créations** publiées au [BODACC](https://www.bodacc.fr/) (Bulletin Officiel des Annonces Civiles et Commerciales).
 Seules les données suivantes sont intégrées :
 - radiations au RCS
 - procédures collectives en cours
+- créations
 
 | Information | Valeur |
 | -------- | -------- |
@@ -17,7 +18,7 @@ Seules les données suivantes sont intégrées :
 ## Pipeline
 
 ```
-1. Collecte : télécharge les CSV radiations + procédures collectives
+1. Collecte : télécharge les CSV radiations + procédures collectives + créations
 2. Pré-traitement : filtre les annulations/rectificatifs
 3. Applatissage des JSON : extrait les SIREN et données métiers (date de radiation, nature du jugement, etc.)
 4. Classifie les annonces de procédures collectives avec `rule.yml` pour les procédures collectives
@@ -48,6 +49,9 @@ Le pipeline gère trois types de corrections d'annonces :
   - Exclusion des familles non pertinentes : `Avis de dépôt`, `Loi de 1967`, etc.
   - Détection des clôtures : les procédures dont la `famille` contient "jugement de clôture" sont marquées `is_cloture`
   - Expiration : les procédures de plus de 10 ans sont marquées `is_expired`
+- **Créations** :
+  - On récupère la date de création depuis la colonne `acte` : `dateImmatriculation`, avec fallback sur `dateCommencementActivite`
+  - Pas de déduplication par SIREN
 
 ## 4. Classification des procédures collectives
 

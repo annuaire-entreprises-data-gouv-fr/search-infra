@@ -5,7 +5,7 @@ import logging
 import os
 import re
 from ast import literal_eval
-from datetime import UTC, date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Literal
 from unicodedata import normalize
@@ -416,7 +416,7 @@ def extract_date_from_filename(filename):
         # Parse the date string into a datetime object
         return (
             datetime.strptime(date_string, "%Y-%m-%d")
-            .replace(tzinfo=timezone.utc)
+            .replace(tzinfo=UTC)
             .date()
             .isoformat()
         )
