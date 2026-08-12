@@ -15,8 +15,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.export_bodacc_radiations.p
     get_latest_sirene_database,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.export_bodacc_radiations.queries import (
-    RADIATIONS_PM_QUERY,
-    RADIATIONS_PP_QUERY,
+    RADIATIONS_INCOHERENCES_QUERY,
 )
 
 default_args = {
@@ -51,12 +50,8 @@ def export_bodacc_radiations():
 
     files_to_export = [
         ExportFile(
-            file_name="radiations_pp.csv",
-            query=RADIATIONS_PP_QUERY,
-        ),
-        ExportFile(
-            file_name="radiations_pm.csv",
-            query=RADIATIONS_PM_QUERY,
+            file_name="radiations_incoherences.csv",
+            query=RADIATIONS_INCOHERENCES_QUERY,
         ),
     ]
 
