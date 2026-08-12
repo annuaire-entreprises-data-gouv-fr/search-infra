@@ -3,6 +3,18 @@ from data_pipelines_annuaire.config import (
     DataSourceConfig,
 )
 
+
+def _hide_radiation(reason: str) -> str:
+    """
+    Retourne une clause SQL SET qui met à jour les colonnes de masquage d'une radiation
+    tout en conservant d'autres raisons concomitantes.
+    """
+    return (
+        "visibility = 0, "
+        f"visibility_reason = COALESCE(NULLIF(visibility_reason, 'visible_by_default') || ' | ', '') || '{reason}'"
+    )
+
+
 BODACC_CONFIG = DataSourceConfig(
     name="bodacc",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/bodacc",
@@ -49,10 +61,9 @@ RADIATIONS_CONFIG = DataSourceConfig(
         COMMIT;
     """,
     post_processing_queries=[
-        """
+        f"""
             UPDATE bodacc_radiations
-            SET visibility = 0,
-                visibility_reason = 'ei_active_on_sirene'
+            SET {_hide_radiation("ei_active_on_sirene")}
             WHERE bodacc_radiations.est_radie
             AND siren IN (
                 SELECT ul.siren
@@ -66,11 +77,9 @@ RADIATIONS_CONFIG = DataSourceConfig(
             """,
         # radiation_visibility et radiation_visibility_reason sont alimentés par la
         # task de postprocessing dans le DAG d'ETL pour masquer les radiations correspondantes
-        """
+        f"""
             UPDATE bodacc_radiations
-            SET visibility = 0,
-                visibility_reason = case when visibility_reason is null then '' else ' | '
-                                    end || 'ei_with_new_etab_since_radiation'
+            SET {_hide_radiation("ei_with_new_etab_since_radiation")}
             WHERE bodacc_radiations.est_radie
             AND siren IN (
                 SELECT ul.siren
@@ -90,11 +99,9 @@ RADIATIONS_CONFIG = DataSourceConfig(
         # l'entité est de nouveau active : on masque la radiation correspondante.
         # Seules les PP portent une date de radiation, les PM (date nulle) ne
         # matchent donc jamais la comparaison.
-        """
+        f"""
             UPDATE bodacc_radiations
-            SET visibility = 0,
-                visibility_reason = case when visibility_reason is null then '' else ' | '
-                                    end || 'ei_with_bodacc_creation_since_radiation'
+            SET {_hide_radiation("ei_with_bodacc_creation_since_radiation")}
             WHERE bodacc_radiations.est_radie
             AND EXISTS (
                 SELECT 1
