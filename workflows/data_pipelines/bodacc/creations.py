@@ -12,7 +12,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
 
 logger = logging.getLogger(__name__)
 
-_INPUT_COLUMNS = [
+INPUT_COLUMNS = [
     "id",
     "listepersonnes",
     "dateparution",
@@ -74,7 +74,7 @@ def process_creations(raw_file_path: str, chunk_size: int) -> pd.DataFrame:
         raw_file_path,
         dtype=str,
         sep=";",
-        usecols=_INPUT_COLUMNS,
+        usecols=INPUT_COLUMNS,
     )
     logger.info(f"Loaded {len(df_full)} creation rows")
 

@@ -7,6 +7,10 @@ from data_pipelines_annuaire.helpers.notification import (
     Notification,
 )
 from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
+from data_pipelines_annuaire.helpers.orchestration import (
+    force_rebuild_params,
+    force_rebuild_requested,
+)
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 
 __all__ = [
@@ -19,4 +23,6 @@ __all__ = [
     "ObjectStorageClient",
     "SqliteClient",
     "clean_sirent_column",
+    "force_rebuild_params",
+    "force_rebuild_requested",
 ]
