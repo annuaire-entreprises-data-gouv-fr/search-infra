@@ -1,10 +1,12 @@
-import logging
-
 from data_pipelines_annuaire.helpers import (
     DataProcessor,
     Notification,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.bodacc.annonces_couples import (
+    process_annonces_couples,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.config import (
+    ANNONCES_COUPLES_CONFIG,
     BODACC_CONFIG,
     CREATIONS_CONFIG,
     PROCEDURES_COLLECTIVES_CONFIG,
@@ -20,8 +22,6 @@ from data_pipelines_annuaire.workflows.data_pipelines.bodacc.radiations import (
     process_radiations,
 )
 
-logger = logging.getLogger(__name__)
-
 
 class BodaccProcessor(DataProcessor):
     CHUNK_SIZE = 100_000
@@ -35,15 +35,14 @@ class BodaccProcessor(DataProcessor):
             DataProcessor(RADIATIONS_CONFIG),
             DataProcessor(PROCEDURES_COLLECTIVES_CONFIG),
             DataProcessor(CREATIONS_CONFIG),
+            DataProcessor(ANNONCES_COUPLES_CONFIG),
         ]
 
     def preprocess_radiations(self):
-        logger.info("Processing BODACC radiations...")
         df = process_radiations(
             self.config.files_to_download["radiations"]["destination"],
             self.CHUNK_SIZE,
         )
-        logger.info(f"Radiations: {len(df)} unique SIRENs")
         df.to_csv(
             f"{self.config.tmp_folder}/{RADIATIONS_CONFIG.file_name}.csv", index=False
         )
@@ -53,12 +52,10 @@ class BodaccProcessor(DataProcessor):
         )
 
     def preprocess_procedures_collectives(self):
-        logger.info("Processing BODACC procédures collectives...")
         df = process_procedures_collectives(
             self.config.files_to_download["procedures_collectives"]["destination"],
             self.CHUNK_SIZE,
         )
-        logger.info(f"Procédures collectives: {len(df)} unique SIRENs")
         df.to_csv(
             f"{self.config.tmp_folder}/{PROCEDURES_COLLECTIVES_CONFIG.file_name}.csv",
             index=False,
@@ -69,18 +66,30 @@ class BodaccProcessor(DataProcessor):
         )
 
     def preprocess_creations(self):
-        logger.info("Processing BODACC creations...")
         df = process_creations(
             self.config.files_to_download["creations"]["destination"],
             self.CHUNK_SIZE,
         )
-        logger.info(f"Creations: {len(df)} rows")
         df.to_csv(
             f"{self.config.tmp_folder}/{CREATIONS_CONFIG.file_name}.csv", index=False
         )
         DataProcessor.push_message(
             Notification.notification_xcom_key,
             description=f"créations BODACC : {len(df)} annonces",
+        )
+
+    def preprocess_annonces(self):
+        df = process_annonces_couples(
+            self.config.files_to_download["annonces_couples"]["destination"],
+            self.CHUNK_SIZE * 10,  # Nombreuses mais petites lignes
+        )
+        df.to_csv(
+            f"{self.config.tmp_folder}/{ANNONCES_COUPLES_CONFIG.file_name}.csv",
+            index=False,
+        )
+        DataProcessor.push_message(
+            Notification.notification_xcom_key,
+            description=f"annonces BODACC : {len(df)} couples (siren, greffe)",
         )
 
     def send_file_to_object_storage(self):
