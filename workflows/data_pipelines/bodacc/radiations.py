@@ -6,7 +6,7 @@ import pandas as pd
 from data_pipelines_annuaire.helpers.data_quality import clean_sirent_column
 from data_pipelines_annuaire.helpers.utils import parse_json_safe
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
-    extract_sirens_from_listepersonnes,
+    extract_sirens_greffes_from_listepersonnes,
     parse_date_bodacc,
     process_discarded_announcements,
 )
@@ -28,6 +28,7 @@ _OUTPUT_COLUMNS = [
     "est_radie",
     "date",
     "date_publication",
+    "greffe",
 ]
 
 
@@ -66,7 +67,7 @@ def _process_radiation_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
     # Quelques rares cas ont cependant plusieurs objets "personne"
     # Mais ils partagent à chaque fois le même siren, ainsi après déduplication
     # on se retrouve tout de même avec une seule "personne" par annonce
-    chunk = extract_sirens_from_listepersonnes(chunk)
+    chunk = extract_sirens_greffes_from_listepersonnes(chunk)
 
     # Nettoyer et valider les SIREN
     chunk = clean_sirent_column(

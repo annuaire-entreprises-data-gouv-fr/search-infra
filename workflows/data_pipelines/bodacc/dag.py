@@ -18,9 +18,9 @@ default_args = {
 @dag(
     tags=["bodacc"],
     default_args=default_args,
-    schedule="0 16 * * *",
+    schedule="0 18 * * *",
     start_date=datetime(2026, 1, 1, tzinfo=UTC),
-    dagrun_timeout=timedelta(minutes=60),
+    dagrun_timeout=timedelta(minutes=180),
     params={},
     catchup=False,
     on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
@@ -50,6 +50,10 @@ def data_processing_bodacc():
         return bodacc_processor.preprocess_creations()
 
     @task
+    def preprocess_annonces():
+        return bodacc_processor.preprocess_annonces()
+
+    @task
     def save_date_last_modified():
         return bodacc_processor.save_date_last_modified()
 
@@ -68,10 +72,12 @@ def data_processing_bodacc():
             preprocess_radiations(),
             preprocess_procedures_collectives(),
             preprocess_creations(),
+            preprocess_annonces(),
         ]
         >> save_date_last_modified()
         >> send_file_to_object_storage()
         >> compare_files_object_storage()
+        >> clean_previous_outputs()
     )
 
 
