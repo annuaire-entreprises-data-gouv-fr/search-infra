@@ -135,7 +135,7 @@ class ObjectStorageClient:
 
         object_key = f"{OBJECT_STORAGE_ENV_PATH}{object_storage_path}{dest_name}"
 
-        extra_args = {"ContentEncoding": "gzip"}
+        extra_args: dict[str, str] = {}
         if is_public:
             extra_args["ACL"] = "public-read"
         if content_type:
