@@ -1,4 +1,8 @@
-from data_pipelines_annuaire.helpers.api_client import AirflowApiClient, ApiClient
+from data_pipelines_annuaire.helpers.api_client import (
+    AirflowApiClient,
+    ApiClient,
+    GristApiClient,
+)
 from data_pipelines_annuaire.helpers.data_processor import DataProcessor
 from data_pipelines_annuaire.helpers.data_quality import clean_sirent_column
 from data_pipelines_annuaire.helpers.filesystem import LocalFile
@@ -10,6 +14,7 @@ __all__ = [
     "AirflowApiClient",
     "ApiClient",
     "DataProcessor",
+    "GristApiClient",
     "LocalFile",
     "Notification",
     "ObjectStorageClient",
