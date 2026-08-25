@@ -142,7 +142,8 @@ def test_upload_compressed_file_roundtrips_as_gzip(tmp_path):
         captured["key"] == f"ae/{AIRFLOW_ENV}/sirene/database/sirene_2024-03-15.db.gz"
     )
     assert captured["extra_args"]["ACL"] == "public-read"
-    assert captured["extra_args"]["ContentEncoding"] == "gzip"
+    # ContentEncoding would make HTTP requests decompress the file on the fly
+    assert "ContentEncoding" not in captured["extra_args"]
 
 
 def test_upload_compressed_file_raises_when_dest_name_not_gz(tmp_path):
