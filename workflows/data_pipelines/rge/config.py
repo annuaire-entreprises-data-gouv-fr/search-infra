@@ -11,7 +11,8 @@ RGE_CONFIG = DataSourceConfig(
     files_to_download={
         "rge": {
             "url": "https://data.ademe.fr/data-fair/api/v1/datasets/"
-            "liste-des-entreprises-rge-2/lines?size=10000&select=siret%2Ccode_qualification",
+            "liste-des-entreprises-rge-2/lines?size=10000"
+            "&select=siret%2Ccode_qualification%2Clien_date_fin",
         }
     },
     url_object_storage=f"{OBJECT_STORAGE_BASE_URL}rge/latest/rge.csv",

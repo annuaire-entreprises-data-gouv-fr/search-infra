@@ -1,4 +1,6 @@
 import logging
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import requests
@@ -34,8 +36,8 @@ class RgeProcessor(DataProcessor):
                 logger.info("Fetched additional page data.")
 
             logger.info(
-                f"Data downloaded successfully from {url}."
-                "Total records: {len(list_rge)}."
+                f"Data downloaded successfully from {url}. "
+                f"Total records: {len(list_rge)}."
             )
             return list_rge
 
@@ -43,11 +45,26 @@ class RgeProcessor(DataProcessor):
             logger.error(f"Error downloading data from {url}: {e}")
             raise
 
+    def remove_expired_certificates(self, df: pd.DataFrame) -> pd.DataFrame:
+        """The ADEME seems to remove most of expired certificates from its dataset,
+        but some are still persisting and need to be removed."""
+        end_dates = pd.to_datetime(
+            df["lien_date_fin"], format="ISO8601", errors="coerce"
+        )
+        today = pd.Timestamp(datetime.now(ZoneInfo("Europe/Paris")).date())
+        # We also remove certificates where the last validity date is today since the
+        # elasticsearch index will be live most of the next day.
+        is_expired = end_dates.notna() & (end_dates <= today)
+
+        logger.info(f"Removed {int(is_expired.sum())} expired RGE certificates.")
+        return df[~is_expired]
+
     def preprocess_data(self):
         list_rge = self.download_data()
 
         df_rge = pd.DataFrame(list_rge)
         df_rge = df_rge[df_rge["siret"].notna()]
+        df_rge = self.remove_expired_certificates(df_rge)
         df_list_rge = (
             df_rge.groupby(["siret"])["code_qualification"]
             .apply(list)
