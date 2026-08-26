@@ -202,9 +202,9 @@ def process_flux_json_files():
     if start_date is None:
         start_date = "0000-00-00"
 
-    # Do not process last flux file because it might not be completed
+    # Process last flux file (no longer ignored because it may be incomplete)
     json_daily_flux_files = sorted(json_daily_flux_files, reverse=False)
-    json_daily_flux_files = json_daily_flux_files[:-1]
+    # json_daily_flux_files = json_daily_flux_files[:-1]
 
     json_decode_error_count = 0
     for file_path in json_daily_flux_files:
