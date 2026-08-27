@@ -545,7 +545,7 @@ def simplify_date(datetime_str: str) -> str:
 
 
 def download_file(download_url: str, destination_path: str) -> None:
-    logger.info(f"Downloading file from {download_url}..")
+    logger.info(f"Downloading file from {download_url}")
 
     response = requests.get(download_url, stream=True)
     response.raise_for_status()
