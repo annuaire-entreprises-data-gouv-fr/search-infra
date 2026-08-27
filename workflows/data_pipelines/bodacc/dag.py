@@ -25,6 +25,7 @@ default_args = {
     catchup=False,
     on_failure_callback=[Notification(), EmailNotification(to=EMAIL_LIST)],
     on_success_callback=Notification(),
+    max_active_runs=1,
 )
 def data_processing_bodacc():
     bodacc_processor = BodaccProcessor()
