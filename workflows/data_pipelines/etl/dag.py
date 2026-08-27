@@ -40,6 +40,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.bilans_financiers.config i
     BILANS_FINANCIERS_CONFIG,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.config import (
+    ANNONCES_COUPLES_CONFIG,
     CREATIONS_CONFIG,
     PROCEDURES_COLLECTIVES_CONFIG,
     RADIATIONS_CONFIG,
@@ -223,9 +224,10 @@ def database_constructor():
             ALIM_CONFIANCE_CONFIG,
             BILAN_GES_CONFIG,
             AIDES_MINIMIS_CONFIG,
-            # CREATIONS_CONFIG doit précéder RADIATIONS_CONFIG : le
-            # post-traitement des radiations interroge la table bodacc_creations.
+            # CREATIONS_CONFIG et ANNONCES_COUPLES_CONFIG doivent précéder RADIATIONS_CONFIG.
+            # le post-traitement des radiations interroge leurs tables.
             CREATIONS_CONFIG,
+            ANNONCES_COUPLES_CONFIG,
             RADIATIONS_CONFIG,
             PROCEDURES_COLLECTIVES_CONFIG,
             AIDES_ADEME_CONFIG,

@@ -13,7 +13,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
     process_discarded_announcements,
 )
 
-_INPUT_COLUMNS = [
+logger = logging.getLogger(__name__)
+
+INPUT_COLUMNS = [
     "id",
     "listepersonnes",
     "dateparution",
@@ -55,16 +57,14 @@ def _apply_procedure_collective_rules(
     for rule in rules:
         if rule["nature"] != nature:
             continue
-        if "complement_contains" in rule:
-            if (
-                not complement_jugement
-                or rule["complement_contains"].lower()
-                not in complement_jugement.lower()
-            ):
-                continue
+        if "complement_contains" in rule and (
+            not complement_jugement
+            or rule["complement_contains"].lower() not in complement_jugement.lower()
+        ):
+            continue
         return rule.get("statut")
 
-    logging.warning(f"BODACC: nature non traitée dans rule.yml : '{nature}'")
+    logger.warning(f"BODACC: nature non traitée dans rule.yml : '{nature}'")
     return None
 
 
@@ -155,7 +155,7 @@ def _process_procedure_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
 
 
 def process_procedures_collectives(raw_file_path: str, chunk_size: int) -> pd.DataFrame:
-    logging.info("Processing procédures collectives...")
+    logger.info("Processing procédures collectives...")
     chunks_processed = []
 
     # Charger le fichier complet pour gérer les annulations
@@ -163,13 +163,13 @@ def process_procedures_collectives(raw_file_path: str, chunk_size: int) -> pd.Da
         raw_file_path,
         dtype=str,
         sep=";",
-        usecols=_INPUT_COLUMNS,
+        usecols=INPUT_COLUMNS,
     )
-    logging.info(f"Loaded {len(df_full)} procedure rows")
+    logger.info(f"Loaded {len(df_full)} procedure rows")
 
     # Filtrer les annulations et rétractations
     df_full = process_discarded_announcements(df_full)
-    logging.info(f"After filtering cancellations: {len(df_full)} rows")
+    logger.info(f"After filtering cancellations: {len(df_full)} rows")
 
     # Traiter par chunks pour la mémoire
     for i in range(0, len(df_full), chunk_size):
@@ -179,7 +179,7 @@ def process_procedures_collectives(raw_file_path: str, chunk_size: int) -> pd.Da
             chunks_processed.append(processed)
 
     if not chunks_processed:
-        logging.warning("No procedures collectives found")
+        logger.warning("No procedures collectives found")
         return pd.DataFrame(columns=_OUTPUT_COLUMNS)
 
     # Concaténer tous les chunks
@@ -217,7 +217,7 @@ def process_procedures_collectives(raw_file_path: str, chunk_size: int) -> pd.Da
     n_duplicates = duplicated_mask.sum()
     if n_duplicates > 0:
         sample_sirens = df.loc[duplicated_mask, "siren"].head(5).tolist()
-        logging.info(
+        logger.info(
             f"Procedures: {n_duplicates} duplicate Siren, sample:\n{sample_sirens}"
         )
     df = df.drop_duplicates(subset=["siren"], keep="first")
@@ -249,7 +249,7 @@ def process_procedures_collectives(raw_file_path: str, chunk_size: int) -> pd.Da
         axis=1,
     )
 
-    logging.info(
+    logger.info(
         f"Procedures: {len(df)} unique SIRENs, "
         f"{df['is_cloture'].sum()} clôturées, "
         f"{(~df['is_cloture'] & df['is_expired']).sum()} expirées (>10 ans), "

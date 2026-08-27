@@ -4,7 +4,7 @@ from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST
-from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.helpers import Notification, force_rebuild_params
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.processor import (
     BodaccProcessor,
 )
@@ -18,13 +18,15 @@ default_args = {
 @dag(
     tags=["bodacc"],
     default_args=default_args,
-    schedule="0 16 * * *",
+    schedule="0 18 * * *",
     start_date=datetime(2026, 1, 1, tzinfo=UTC),
-    dagrun_timeout=timedelta(minutes=60),
-    params={},
+    # Timout set for full rebuild. An incremental run should take less than 1h.
+    dagrun_timeout=timedelta(minutes=60 * 5),
+    params=force_rebuild_params(),
     catchup=False,
     on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
     on_success_callback=Notification(),
+    max_active_runs=1,
 )
 def data_processing_bodacc():
     bodacc_processor = BodaccProcessor()
@@ -50,6 +52,10 @@ def data_processing_bodacc():
         return bodacc_processor.preprocess_creations()
 
     @task
+    def preprocess_annonces():
+        return bodacc_processor.preprocess_annonces()
+
+    @task
     def save_date_last_modified():
         return bodacc_processor.save_date_last_modified()
 
@@ -68,10 +74,12 @@ def data_processing_bodacc():
             preprocess_radiations(),
             preprocess_procedures_collectives(),
             preprocess_creations(),
+            preprocess_annonces(),
         ]
         >> save_date_last_modified()
         >> send_file_to_object_storage()
         >> compare_files_object_storage()
+        >> clean_previous_outputs()
     )
 
 
