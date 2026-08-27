@@ -1,10 +1,9 @@
 from datetime import UTC, datetime, timedelta
 
-from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST
-from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.helpers import EmailNotification, Notification
 from data_pipelines_annuaire.workflows.data_pipelines.sirene.stock.processor import (
     SireneStockProcessor,
 )
@@ -24,7 +23,7 @@ default_args = {
     params={},
     catchup=False,
     max_active_runs=1,
-    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
+    on_failure_callback=[Notification(), EmailNotification(to=EMAIL_LIST)],
     on_success_callback=Notification(),
 )
 def data_processing_sirene_stock():

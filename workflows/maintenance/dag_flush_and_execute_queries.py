@@ -1,6 +1,5 @@
 from datetime import UTC, datetime, timedelta
 
-from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag
 
 from data_pipelines_annuaire.config import (
@@ -10,7 +9,7 @@ from data_pipelines_annuaire.config import (
     REDIS_PASSWORD,
     REDIS_PORT,
 )
-from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.helpers import EmailNotification, Notification
 from data_pipelines_annuaire.helpers.execute_slow_queries import (
     execute_slow_requests,
 )
@@ -29,7 +28,7 @@ default_args = {
     dagrun_timeout=timedelta(minutes=10),
     params={},
     catchup=False,
-    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
+    on_failure_callback=[Notification(), EmailNotification(to=EMAIL_LIST)],
     on_success_callback=Notification(),
     max_active_runs=1,
 )

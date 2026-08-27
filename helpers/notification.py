@@ -1,8 +1,39 @@
 from enum import Enum
+from pathlib import Path
+from zoneinfo import ZoneInfo
 
+from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import BaseNotifier
 
+from data_pipelines_annuaire.config import AIRFLOW_ENV
 from data_pipelines_annuaire.helpers import AirflowApiClient, tchap
+
+EMAIL_NOTIFICATION_TEMPLATE = (
+    Path(__file__).parent / "templates" / "email_notification.html"
+).as_posix()
+EMAIL_TIMEZONE = ZoneInfo("Europe/Paris")
+
+
+class EmailNotification(SmtpNotifier):
+    """
+    SmtpNotifier extended with a custom email template.
+
+    Usage:
+        >>> on_failure_callback=[Notification(), EmailNotification(to=EMAIL_LIST)],
+    """
+
+    template_fields = (*SmtpNotifier.template_fields, "env", "tz")
+
+    def __init__(self, to, subject=None, **kwargs):
+        kwargs.setdefault("template", EMAIL_NOTIFICATION_TEMPLATE)
+        if subject is None:
+            subject = (
+                "[Annuaire des Entreprises - {{ env }}] "
+                "🔴 Échec du DAG {{ dag.dag_id }}"
+            )
+        self.env = AIRFLOW_ENV
+        self.tz = EMAIL_TIMEZONE
+        super().__init__(to=to, subject=subject, **kwargs)
 
 
 class Notification(BaseNotifier):
@@ -19,13 +50,13 @@ class Notification(BaseNotifier):
 
     Usage:
         Add the following parameters to a DAG definition:
-            >> on_failure_callback=Notification(),
-            >> on_success_callback=Notification(),
+            >>> on_failure_callback=Notification(),
+            >>> on_success_callback=Notification(),
 
         [Optional] In the relevant @task, use the following code to provide additional
         context for the notification:
-            >> from data_pipelines_annuaire.helpers import Notification
-            >> ti.xcom_push(key=Notification.notification_xcom_key, value=error_message)
+            >>> from data_pipelines_annuaire.helpers import Notification
+            >>> ti.xcom_push(key=Notification.notification_xcom_key, value=error_message)
     """
 
     notification_xcom_key = "notification_message"

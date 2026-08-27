@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 import pendulum
-from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.sdk import dag, task
 
@@ -9,7 +8,7 @@ from data_pipelines_annuaire.config import (
     AIRFLOW_ETL_DAG_NAME,
     EMAIL_LIST,
 )
-from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.helpers import EmailNotification, Notification
 from data_pipelines_annuaire.workflows.data_pipelines.sirene.flux.processor import (
     SireneFluxProcessor,
 )
@@ -29,7 +28,7 @@ default_args = {
     params={},
     catchup=False,
     max_active_runs=1,
-    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
+    on_failure_callback=[Notification(), EmailNotification(to=EMAIL_LIST)],
     on_success_callback=Notification(),
 )
 def data_processing_sirene_flux():
