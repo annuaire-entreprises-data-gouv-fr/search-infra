@@ -2,7 +2,6 @@ import os
 import shutil
 from datetime import UTC, datetime, timedelta
 
-from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.sdk import dag, task
 
@@ -21,7 +20,11 @@ from data_pipelines_annuaire.config import (
     REDIS_PORT,
     SIRENE_OBJECT_STORAGE_DATA_PATH,
 )
-from data_pipelines_annuaire.helpers import Notification, ObjectStorageClient
+from data_pipelines_annuaire.helpers import (
+    EmailNotification,
+    Notification,
+    ObjectStorageClient,
+)
 from data_pipelines_annuaire.helpers.flush_cache import flush_redis_cache
 from data_pipelines_annuaire.tests.e2e_tests.run_tests import run_e2e_tests
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.index import (
@@ -57,7 +60,7 @@ default_args = {
     tags=["index", "elasticsearch"],
     catchup=False,
     max_active_runs=1,
-    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
+    on_failure_callback=[Notification(), EmailNotification(to=EMAIL_LIST)],
     on_success_callback=Notification(),
 )
 def index_elasticsearch():

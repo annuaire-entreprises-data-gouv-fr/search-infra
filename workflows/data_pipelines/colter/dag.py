@@ -1,10 +1,9 @@
 from datetime import UTC, datetime, timedelta
 
-from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import Asset, dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST
-from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.helpers import EmailNotification, Notification
 from data_pipelines_annuaire.workflows.data_pipelines.colter.config import (
     COLTER_CONFIG,
     ELUS_CONFIG,
@@ -28,7 +27,7 @@ dataset_colter = Asset(COLTER_CONFIG.name)
     schedule="0 16 * * *",
     start_date=datetime(2026, 1, 1, tzinfo=UTC),
     dagrun_timeout=timedelta(minutes=60),
-    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
+    on_failure_callback=[Notification(), EmailNotification(to=EMAIL_LIST)],
     on_success_callback=Notification(),
     max_active_runs=1,
     params={},
@@ -84,7 +83,7 @@ def data_processing_collectivite_territoriale():
     schedule=[dataset_colter],
     start_date=datetime(2026, 1, 1, tzinfo=UTC),
     dagrun_timeout=timedelta(minutes=60),
-    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
+    on_failure_callback=[Notification(), EmailNotification(to=EMAIL_LIST)],
     on_success_callback=Notification(),
     params={},
     catchup=False,

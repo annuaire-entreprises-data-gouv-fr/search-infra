@@ -1,11 +1,10 @@
 from datetime import UTC, datetime, timedelta
 
-from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.providers.standard.operators.python import ShortCircuitOperator
 from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST, METADATA_CC_TMP_FOLDER
-from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.helpers import EmailNotification, Notification
 from data_pipelines_annuaire.workflows.data_pipelines.metadata.cc.task_functions import (
     create_metadata_convention_collective_json,
     is_metadata_not_updated,
@@ -26,7 +25,7 @@ default_args = {
     catchup=False,
     max_active_runs=1,
     dagrun_timeout=timedelta(minutes=(60 * 100)),
-    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
+    on_failure_callback=[Notification(), EmailNotification(to=EMAIL_LIST)],
     on_success_callback=Notification(),
     tags=["api", "metadata", "cc"],
 )

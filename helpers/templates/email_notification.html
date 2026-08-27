@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="color-scheme" content="light" />
+        <meta name="supported-color-schemes" content="light" />
+        <title>Annuaire des Entreprises — Notification Airflow</title>
+    </head>
+    <body
+        style="
+            margin: 0;
+            padding: 0;
+            background-color: #eeeeee;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        "
+    >
+        <!-- Preheader (hidden) -->
+        <div
+            style="
+                display: none;
+                max-height: 0;
+                overflow: hidden;
+                opacity: 0;
+                color: #eeeeee;
+                font-size: 1px;
+                line-height: 1px;
+            "
+        >
+            Échec du DAG {{ dag.dag_id }} — pipeline de données de l'Annuaire
+            des Entreprises.
+        </div>
+
+        <table
+            role="presentation"
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            style="background-color: #eeeeee"
+        >
+            <tr>
+                <td align="center" style="padding: 24px 12px">
+                    <table
+                        role="presentation"
+                        width="600"
+                        cellpadding="0"
+                        cellspacing="0"
+                        border="0"
+                        style="
+                            width: 600px;
+                            max-width: 600px;
+                            background-color: #ffffff;
+                            border: 1px solid #dddddd;
+                        "
+                    >
+                        <!-- ===== Product name ===== -->
+                        <tr>
+                            <td style="padding: 24px 32px 4px 32px">
+                                <div
+                                    style="
+                                        font-family:
+                                            &quot;Marianne&quot;,
+                                            &quot;Segoe UI&quot;, Arial,
+                                            sans-serif;
+                                        font-size: 20px;
+                                        line-height: 26px;
+                                        font-weight: 700;
+                                        color: #000091;
+                                    "
+                                >
+                                    Annuaire des Entreprises
+                                </div>
+                                <div
+                                    style="
+                                        font-family:
+                                            &quot;Marianne&quot;,
+                                            &quot;Segoe UI&quot;, Arial,
+                                            sans-serif;
+                                        font-size: 13px;
+                                        line-height: 18px;
+                                        color: #666666;
+                                        padding-top: 2px;
+                                    "
+                                >
+                                    Infrastructure de données · Airflow
+                                </div>
+                                <div style="padding-top: 10px">
+                                    <!-- prettier-ignore -->
+                                    <span
+                                        style="
+                                            display: inline-block;
+                                            padding: 3px 10px;
+                                            border-radius: 4px;
+                                            background-color: #e8edff;
+                                            font-family:
+                                                &quot;Marianne&quot;,
+                                                &quot;Segoe UI&quot;, Arial,
+                                                sans-serif;
+                                            font-size: 12px;
+                                            line-height: 18px;
+                                            font-weight: 700;
+                                            letter-spacing: 0.4px;
+                                            text-transform: uppercase;
+                                            color: #000091;
+                                        "
+                                        >Environnement&nbsp;: {{ env }}</span
+                                    >
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- ===== Alert banner ===== -->
+                        <tr>
+                            <td style="padding: 20px 32px 8px 32px">
+                                <table
+                                    role="presentation"
+                                    width="100%"
+                                    cellpadding="0"
+                                    cellspacing="0"
+                                    border="0"
+                                    style="
+                                        background-color: #fff0f0;
+                                        border-left: 4px solid #ce0500;
+                                    "
+                                >
+                                    <tr>
+                                        <td
+                                            style="
+                                                padding: 16px 20px;
+                                                font-family:
+                                                    &quot;Marianne&quot;,
+                                                    &quot;Segoe UI&quot;, Arial,
+                                                    sans-serif;
+                                            "
+                                        >
+                                            <div
+                                                style="
+                                                    font-size: 16px;
+                                                    line-height: 22px;
+                                                    font-weight: 700;
+                                                    color: #ce0500;
+                                                "
+                                            >
+                                                🔴 Échec d'un traitement de
+                                                données
+                                            </div>
+                                            <div
+                                                style="
+                                                    font-size: 14px;
+                                                    line-height: 20px;
+                                                    color: #3a3a3a;
+                                                    padding-top: 6px;
+                                                "
+                                            >
+                                                Le DAG
+                                                <strong style="color: #161616"
+                                                    >{{ dag.dag_id }}</strong
+                                                >
+                                                s'est terminé en erreur. {% if
+                                                reason is defined and reason
+                                                %}<br />Motif&nbsp;: {{ reason
+                                                }}{% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <!-- ===== Details card ===== -->
+                        <tr>
+                            <td style="padding: 12px 32px 8px 32px">
+                                <div
+                                    style="
+                                        font-family:
+                                            &quot;Marianne&quot;,
+                                            &quot;Segoe UI&quot;, Arial,
+                                            sans-serif;
+                                        font-size: 12px;
+                                        line-height: 16px;
+                                        font-weight: 700;
+                                        letter-spacing: 0.6px;
+                                        color: #666666;
+                                        text-transform: uppercase;
+                                        padding-bottom: 8px;
+                                    "
+                                >
+                                    Détails de l'exécution
+                                </div>
+                                <table
+                                    role="presentation"
+                                    width="100%"
+                                    cellpadding="0"
+                                    cellspacing="0"
+                                    border="0"
+                                    style="
+                                        border: 1px solid #eeeeee;
+                                        border-radius: 4px;
+                                        font-family:
+                                            &quot;Marianne&quot;,
+                                            &quot;Segoe UI&quot;, Arial,
+                                            sans-serif;
+                                    "
+                                >
+                                    <tr>
+                                        <td
+                                            width="40%"
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #666666;
+                                                background-color: #f6f6f6;
+                                                border-bottom: 1px solid #eeeeee;
+                                            "
+                                        >
+                                            DAG
+                                        </td>
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #161616;
+                                                font-weight: 600;
+                                                border-bottom: 1px solid #eeeeee;
+                                            "
+                                        >
+                                            {{ dag.dag_id }}
+                                        </td>
+                                    </tr>
+
+                                    {% if dag_run is defined and dag_run %}
+                                    <tr>
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #666666;
+                                                background-color: #f6f6f6;
+                                                border-bottom: 1px solid #eeeeee;
+                                            "
+                                        >
+                                            Statut
+                                        </td>
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                border-bottom: 1px solid #eeeeee;
+                                            "
+                                        >
+                                            <span
+                                                style="
+                                                    display: inline-block;
+                                                    font-size: 12px;
+                                                    font-weight: 700;
+                                                    color: #ffffff;
+                                                    background-color: #ce0500;
+                                                    padding: 3px 10px;
+                                                    border-radius: 4px;
+                                                    text-transform: uppercase;
+                                                    letter-spacing: 0.4px;
+                                                "
+                                                >{{ dag_run.state }}</span
+                                            >
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #666666;
+                                                background-color: #f6f6f6;
+                                                border-bottom: 1px solid #eeeeee;
+                                            "
+                                        >
+                                            Run ID
+                                        </td>
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #161616;
+                                                border-bottom: 1px solid #eeeeee;
+                                                word-break: break-all;
+                                            "
+                                        >
+                                            {{ dag_run.run_id }}
+                                        </td>
+                                    </tr>
+                                    {% if dag_run.run_type %}
+                                    <tr>
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #666666;
+                                                background-color: #f6f6f6;
+                                                border-bottom: 1px solid #eeeeee;
+                                            "
+                                        >
+                                            Type de déclenchement
+                                        </td>
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #161616;
+                                                border-bottom: 1px solid #eeeeee;
+                                            "
+                                        >
+                                            {{ dag_run.run_type }}
+                                        </td>
+                                    </tr>
+                                    {% endif %} {% if dag_run.logical_date %}
+                                    <tr>
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #666666;
+                                                background-color: #f6f6f6;
+                                                border-bottom: 1px solid #eeeeee;
+                                            "
+                                        >
+                                            Date logique
+                                        </td>
+                                        <!-- prettier-ignore -->
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #161616;
+                                                border-bottom: 1px solid #eeeeee;
+                                            "
+                                        >
+                                            {{ dag_run.logical_date.astimezone(tz).strftime('%d/%m/%Y %H:%M %Z') }}
+                                        </td>
+                                    </tr>
+                                    {% endif %} {% if dag_run.start_date %}
+                                    <tr>
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #666666;
+                                                background-color: #f6f6f6;
+                                                border-bottom: 1px solid #eeeeee;
+                                            "
+                                        >
+                                            Début
+                                        </td>
+                                        <!-- prettier-ignore -->
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #161616;
+                                                border-bottom: 1px solid #eeeeee;
+                                            "
+                                        >
+                                            {{ dag_run.start_date.astimezone(tz).strftime('%d/%m/%Y %H:%M:%S %Z') }}
+                                        </td>
+                                    </tr>
+                                    {% endif %} {% if dag_run.end_date %}
+                                    <tr>
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #666666;
+                                                background-color: #f6f6f6;
+                                                border-bottom: 1px solid #eeeeee;
+                                            "
+                                        >
+                                            Fin
+                                        </td>
+                                        <!-- prettier-ignore -->
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #161616;
+                                                border-bottom: 1px solid #eeeeee;
+                                            "
+                                        >
+                                            {{ dag_run.end_date.astimezone(tz).strftime('%d/%m/%Y %H:%M:%S %Z') }}
+                                        </td>
+                                    </tr>
+                                    {% endif %} {% endif %} {% if ti is defined
+                                    and ti %}
+                                    <tr>
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #666666;
+                                                background-color: #f6f6f6;
+                                                border-bottom: 1px solid #eeeeee;
+                                            "
+                                        >
+                                            Tâche en échec
+                                        </td>
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #161616;
+                                                font-weight: 600;
+                                                border-bottom: 1px solid #eeeeee;
+                                            "
+                                        >
+                                            {{ ti.task_id }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #666666;
+                                                background-color: #f6f6f6;
+                                            "
+                                        >
+                                            Tentative
+                                        </td>
+                                        <!-- prettier-ignore -->
+                                        <td
+                                            style="
+                                                padding: 12px 16px;
+                                                font-size: 13px;
+                                                color: #161616;
+                                            "
+                                        >
+                                            {{ ti.try_number }} sur {{ ti.max_tries + 1 }}
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </table>
+                            </td>
+                        </tr>
+
+                        {% if ti is defined and ti %}
+                        <!-- ===== Call to action ===== -->
+                        <tr>
+                            <td style="padding: 20px 32px 4px 32px">
+                                <table
+                                    role="presentation"
+                                    cellpadding="0"
+                                    cellspacing="0"
+                                    border="0"
+                                >
+                                    <tr>
+                                        <td
+                                            style="
+                                                background-color: #000091;
+                                                border-radius: 4px;
+                                            "
+                                        >
+                                            <a
+                                                href="{{ ti.log_url }}"
+                                                target="_blank"
+                                                style="
+                                                    display: inline-block;
+                                                    padding: 12px 24px;
+                                                    font-family:
+                                                        &quot;Marianne&quot;,
+                                                        &quot;Segoe UI&quot;,
+                                                        Arial, sans-serif;
+                                                    font-size: 14px;
+                                                    font-weight: 700;
+                                                    color: #ffffff;
+                                                    text-decoration: none;
+                                                "
+                                            >
+                                                Consulter les logs Airflow
+                                                &rarr;
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        {% endif %}
+
+                        <!-- ===== Footer ===== -->
+                        <tr>
+                            <td
+                                style="
+                                    padding: 20px 32px;
+                                    background-color: #f6f6f6;
+                                    border-top: 1px solid #eeeeee;
+                                    font-family:
+                                        &quot;Marianne&quot;,
+                                        &quot;Segoe UI&quot;, Arial, sans-serif;
+                                "
+                            >
+                                <div
+                                    style="
+                                        font-size: 13px;
+                                        line-height: 18px;
+                                        font-weight: 700;
+                                        color: #161616;
+                                    "
+                                >
+                                    Annuaire des Entreprises
+                                </div>
+                                <div
+                                    style="
+                                        font-size: 12px;
+                                        line-height: 18px;
+                                        color: #666666;
+                                        padding-top: 4px;
+                                    "
+                                >
+                                    Un service public conçu par la Direction
+                                    interministérielle du numérique (DINUM).
+                                </div>
+                                <div
+                                    style="
+                                        font-size: 12px;
+                                        line-height: 18px;
+                                        padding-top: 8px;
+                                    "
+                                >
+                                    <a
+                                        href="https://annuaire-entreprises.data.gouv.fr"
+                                        target="_blank"
+                                        style="
+                                            color: #000091;
+                                            text-decoration: underline;
+                                        "
+                                        >annuaire-entreprises.data.gouv.fr</a
+                                    >
+                                </div>
+                                <div
+                                    style="
+                                        font-size: 12px;
+                                        line-height: 18px;
+                                        color: #666666;
+                                        padding-top: 12px;
+                                    "
+                                >
+                                    Vous recevez cet e-mail mais ce n'est pas
+                                    censé être le cas&nbsp;?
+                                    <a
+                                        href="https://annuaire-entreprises.data.gouv.fr/faq/parcours"
+                                        target="_blank"
+                                        style="
+                                            color: #000091;
+                                            text-decoration: underline;
+                                        "
+                                        >Contactez l'équipe Annuaire</a
+                                    >.
+                                </div>
+                                <div
+                                    style="
+                                        font-size: 11px;
+                                        line-height: 16px;
+                                        color: #999999;
+                                        padding-top: 12px;
+                                    "
+                                >
+                                    Message automatique envoyé par le pipeline
+                                    de données. Merci de ne pas y répondre.
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

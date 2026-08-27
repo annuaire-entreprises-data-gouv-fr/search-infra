@@ -3,14 +3,13 @@ import re
 from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 
-from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import (
     EMAIL_LIST,
     OBJECT_STORAGE_ENV_PATH,
 )
-from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.helpers import EmailNotification, Notification
 from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 
 logger = logging.getLogger(__name__)
@@ -75,7 +74,7 @@ default_args = {
     start_date=datetime(2026, 1, 1, tzinfo=UTC),
     dagrun_timeout=timedelta(minutes=30),
     catchup=False,
-    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
+    on_failure_callback=[Notification(), EmailNotification(to=EMAIL_LIST)],
     on_success_callback=Notification(),
     max_active_runs=1,  # Allow only one execution at a time
 )

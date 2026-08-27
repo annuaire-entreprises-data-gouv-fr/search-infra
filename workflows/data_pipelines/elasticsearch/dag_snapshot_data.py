@@ -1,13 +1,12 @@
 from datetime import UTC, datetime, timedelta
 
-from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from airflow.sdk import dag
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_SNAPSHOT_DAG_NAME,
     EMAIL_LIST,
 )
-from data_pipelines_annuaire.helpers import Notification
+from data_pipelines_annuaire.helpers import EmailNotification, Notification
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.downstream import (
     update_downstream_alias,
     wait_for_downstream_import,
@@ -34,7 +33,7 @@ default_args = {
     tags=["siren"],
     catchup=False,
     max_active_runs=1,
-    on_failure_callback=[Notification(), SmtpNotifier(to=EMAIL_LIST)],
+    on_failure_callback=[Notification(), EmailNotification(to=EMAIL_LIST)],
     on_success_callback=Notification(),
 )
 def snapshot_index():
