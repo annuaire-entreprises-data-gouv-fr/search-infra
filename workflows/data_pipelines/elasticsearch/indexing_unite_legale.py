@@ -1,5 +1,6 @@
 import logging
 import time
+from dataclasses import dataclass, field
 
 from elasticsearch.helpers import parallel_bulk
 
@@ -13,6 +14,29 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch\
 
 # fmt: on
 logger = logging.getLogger(__name__)
+
+LOG_EVERY_N_DOCUMENTS = 1_000_000
+MAX_LOGGED_FAILURES = 20
+
+
+@dataclass
+class ProducerTimings:
+    """Time spent by the producer thread, split by phase.
+
+    Only actual work is accumulated here: while the producer is blocked by the bulk
+    queue back-pressure, it sits between two `yield`s and no timer is running. So
+    comparing `busy` to the total wall clock of the indexing tells whether the
+    pipeline is producer-bound (SQLite query + Python transform) or Elasticsearch-bound.
+    """
+
+    unites_legales_read: int = field(default=0)
+    fetch: float = field(default=0.0)
+    transform: float = field(default=0.0)
+    build_documents: float = field(default=0.0)
+
+    @property
+    def busy(self) -> float:
+        return self.fetch + self.transform + self.build_documents
 
 
 def doc_unite_legale_generator(data, elastic_index):
@@ -57,6 +81,55 @@ def doc_unite_legale_generator(data, elastic_index):
             ).to_dict(include_meta=True)
 
 
+def generate_unite_legale_docs(cursor, elastic_bulk_size, elastic_index, timings):
+    # Lazily stream documents to index: pull a batch from SQLite, clean it,
+    # and yield each resulting document. Feeding a single long-lived generator to
+    # parallel_bulk lets the read/transform overlap with the ES bulk requests
+    # instead of running them serially per batch.
+    #
+    # Each phase is materialised rather than chained lazily so that its cost can be
+    # measured separately, see ProducerTimings.
+    unite_legale_columns = tuple(x[0] for x in cursor.description)
+    while True:
+        started_at = time.perf_counter()
+        chunk_unites_legales_sqlite = cursor.fetchmany(elastic_bulk_size)
+        timings.fetch += time.perf_counter() - started_at
+
+        if not chunk_unites_legales_sqlite:
+            return
+
+        started_at = time.perf_counter()
+        liste_unites_legales_sqlite = tuple(
+            dict(zip(unite_legale_columns, unite_legale))
+            for unite_legale in chunk_unites_legales_sqlite
+        )
+        chunk_unites_legales_processed = process_unites_legales(
+            liste_unites_legales_sqlite
+        )
+        timings.transform += time.perf_counter() - started_at
+
+        started_at = time.perf_counter()
+        documents = list(
+            doc_unite_legale_generator(chunk_unites_legales_processed, elastic_index)
+        )
+        timings.build_documents += time.perf_counter() - started_at
+
+        timings.unites_legales_read += len(chunk_unites_legales_sqlite)
+        yield from documents
+
+
+def log_indexing_progress(doc_count, started_at, timings):
+    elapsed = time.perf_counter() - started_at
+    logger.info(
+        f"Indexed {doc_count} documents from {timings.unites_legales_read} unites "
+        f"legales in {elapsed:.0f}s. Producer busy {timings.busy:.0f}s "
+        f"({timings.busy / elapsed:.0%} of wall clock): "
+        f"sqlite fetch {timings.fetch:.0f}s, "
+        f"transform {timings.transform:.0f}s, "
+        f"document build {timings.build_documents:.0f}s"
+    )
+
+
 def index_unites_legales_by_chunk(
     cursor,
     elastic_connection,
@@ -66,62 +139,62 @@ def index_unites_legales_by_chunk(
 ):
     # Indexing performance : do not refresh the index while indexing
     elastic_connection.indices.put_settings(
-        index=elastic_index, body={"index.refresh_interval": -1}
+        index=elastic_index,
+        body={
+            "index.refresh_interval": -1,
+            "index.translog.durability": "async",
+        },
     )
 
-    log_counter = 0
+    timings = ProducerTimings()
+    started_at = time.perf_counter()
     doc_count = 0
-    chunk_unites_legales_sqlite = cursor.fetchmany(elastic_bulk_size)
-    while chunk_unites_legales_sqlite:
-        unite_legale_columns = tuple([x[0] for x in cursor.description])
-        liste_unites_legales_sqlite = []
-        # Group all fetched unites_legales from sqlite in one list
-        for unite_legale in chunk_unites_legales_sqlite:
-            liste_unites_legales_sqlite.append(
-                {
-                    unite_legale_columns: value
-                    for unite_legale_columns, value in zip(
-                        unite_legale_columns, unite_legale
-                    )
-                }
-            )
-
-        liste_unites_legales_sqlite = tuple(liste_unites_legales_sqlite)
-
-        chunk_unites_legales_processed = process_unites_legales(
-            liste_unites_legales_sqlite
+    failure_count = 0
+    next_log_at = LOG_EVERY_N_DOCUMENTS
+    try:
+        # A single parallel_bulk call over one long-lived generator keeps all
+        # `elastic_bulk_thread_count` threads saturated while the generator reads
+        # ahead from SQLite, overlapping read/transform with the ES bulk requests.
+        # raise_on_* are disabled so that a failed document does not abort the whole
+        # stream: failures are counted and the task fails at the end instead, which
+        # tells us how many documents are missing rather than losing them silently.
+        for success, details in parallel_bulk(
+            elastic_connection,
+            generate_unite_legale_docs(
+                cursor, elastic_bulk_size, elastic_index, timings
+            ),
+            thread_count=elastic_bulk_thread_count,
+            chunk_size=elastic_bulk_size,
+            raise_on_exception=False,
+            raise_on_error=False,
+        ):
+            if success:
+                doc_count += 1
+                if doc_count >= next_log_at:
+                    log_indexing_progress(doc_count, started_at, timings)
+                    next_log_at += LOG_EVERY_N_DOCUMENTS
+            else:
+                failure_count += 1
+                if failure_count <= MAX_LOGGED_FAILURES:
+                    logger.error(f"A document failed to index: {details}")
+    finally:
+        # rollback to the original values
+        elastic_connection.indices.put_settings(
+            index=elastic_index,
+            body={
+                "index.refresh_interval": None,
+                "index.translog.durability": None,
+            },
         )
-        log_counter += 1
-        if log_counter % 100000 == 0:
-            logger.info(f"log_counter={log_counter}")
-        try:
-            chunk_doc_generator = doc_unite_legale_generator(
-                chunk_unites_legales_processed, elastic_index
-            )
-            # Bulk index documents into elasticsearch using the parallel version of the
-            # bulk helper that runs in multiple threads
-            # The bulk helper accept an instance of Elasticsearch class and an
-            # iterable, a generator in our case
-            for success, details in parallel_bulk(
-                elastic_connection,
-                chunk_doc_generator,
-                thread_count=elastic_bulk_thread_count,
-                chunk_size=elastic_bulk_size,
-            ):
-                if not success:
-                    raise Exception(f"A file_access document failed: {details}")
-                else:
-                    doc_count += 1
-        except Exception as e:
-            logger.error(f"Failed to send to Elasticsearch: {e}")
-        logger.info(f"Number of documents indexed: {doc_count}")
 
-        chunk_unites_legales_sqlite = cursor.fetchmany(elastic_bulk_size)
+    log_indexing_progress(doc_count, started_at, timings)
 
-    # rollback to the original value
-    elastic_connection.indices.put_settings(
-        index=elastic_index, body={"index.refresh_interval": None}
-    )
+    if failure_count:
+        raise Exception(
+            f"{failure_count} documents failed to index "
+            f"({doc_count} succeeded). See the logs for the first "
+            f"{MAX_LOGGED_FAILURES} failures."
+        )
 
     # Indexing performance :
     #

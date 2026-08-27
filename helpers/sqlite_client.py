@@ -23,6 +23,9 @@ class SqliteClient:
     Args:
         db_location (str): The file path to the SQLite database. The database file will be created if it does not exist.
         timeout (int, optional): The timeout duration for database operations. Defaults to 30 seconds.
+        check_same_thread (bool, optional): Whether the connection may only be used by the
+            thread that created it. Set to False when a cursor is drained by another thread,
+            which is only safe as long as access stays sequential. Defaults to True.
 
     Example:
         ```python
@@ -44,7 +47,7 @@ class SqliteClient:
         ```
     """
 
-    def __init__(self, db_location, timeout=30) -> None:
+    def __init__(self, db_location, timeout=30, check_same_thread=True) -> None:
         self.db_location = db_location
 
         # SQLite creates the database if it does not exist but not the parent folders
@@ -52,7 +55,9 @@ class SqliteClient:
         if not os.path.exists(self.db_folder):
             os.makedirs(self.db_folder)
 
-        self.db_conn = sqlite3.connect(self.db_location, timeout=timeout)
+        self.db_conn = sqlite3.connect(
+            self.db_location, timeout=timeout, check_same_thread=check_same_thread
+        )
         logger.info(
             f"*********** Connecting to database {self.db_location}! ***********"
         )
