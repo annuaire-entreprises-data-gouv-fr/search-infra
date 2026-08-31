@@ -21,7 +21,7 @@ COLTER_CONFIG = DataSourceConfig(
             "destination": f"{DataSourceConfig.base_tmp_folder}/colter/deps-download.csv",
         },
         "colter_epci": {
-            "url": "https://www.collectivites-locales.gouv.fr/etudes-et-statistiques/acces-par-thematique/perimetre-des-intercommunalites/liste-et-composition-des-epci-fiscalite-propre",
+            "url": "https://www.collectivites-locales.gouv.fr/etudes-et-statistiques/acces-aux-statistiques-par-thematique/perimetre-des-intercommunalites/liste-et-composition-des-epci-fiscalite-propre",
             # The list is not available straight away the 1st of the year
             # So we take the current year once available, otherwise we fallback to the previous year
             "pattern": "Liste des EPCI au 1er janvier %%current_or_previous_year%% (xls)",
