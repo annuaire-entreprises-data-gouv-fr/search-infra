@@ -136,14 +136,18 @@ ELASTIC_USER = Variable.get("ELASTIC_USER", None)
 ELASTIC_BULK_THREAD_COUNT = int(Variable.get("ELASTIC_BULK_THREAD_COUNT", 4))
 ELASTIC_BULK_SIZE = int(Variable.get("ELASTIC_BULK_SIZE", 1500))
 ELASTIC_SHARDS = 2
-# Number of siren ranges fill_elastic_siren_index is split into. The task is bound by a
-# single Python thread, so this is a core count, not an Elasticsearch setting: the VM
-# has 12 and also runs the scheduler and the rest of the stack.
-ELASTIC_INDEXING_SHARD_COUNT = 8
+# Bulk requests take far longer than the 10s default once the cluster is saturated, and a
+# timeout re-sends the whole bulk to a cluster that is already struggling. Seconds.
+ELASTIC_REQUEST_TIMEOUT = 60
 ELASTIC_REPLICAS = 0
 ELASTIC_MIN_DOC_COUNT_EXPECTED = int(
     Variable.get("ELASTIC_MIN_DOC_COUNT_EXPECTED", 26000000)
 )
+
+# Number of siren ranges fill_elastic_siren_index is split into, one mapped task each.
+# Nothing to do with ELASTIC_SHARDS above: this is a core count, the VM has 12 and also
+# runs the scheduler and the rest of the stack.
+INDEXING_SIREN_RANGES = 8
 
 ELASTIC_MAX_LIVE_VERSIONS = int(Variable.get("ELASTIC_MAX_LIVE_VERSIONS", 2))
 

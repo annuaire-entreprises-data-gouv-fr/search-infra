@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from itertools import pairwise
 
 from airflow.sdk import get_current_context, task
-from airflow.utils.trigger_rule import TriggerRule
+from airflow.task.trigger_rule import TriggerRule
 from elasticsearch import NotFoundError
 from elasticsearch.dsl import connections
 
@@ -12,12 +12,13 @@ from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DATA_DIR,
     ELASTIC_BULK_SIZE,
     ELASTIC_BULK_THREAD_COUNT,
-    ELASTIC_INDEXING_SHARD_COUNT,
     ELASTIC_MAX_LIVE_VERSIONS,
     ELASTIC_MIN_DOC_COUNT_EXPECTED,
     ELASTIC_PASSWORD,
+    ELASTIC_REQUEST_TIMEOUT,
     ELASTIC_URL,
     ELASTIC_USER,
+    INDEXING_SIREN_RANGES,
 )
 from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
@@ -48,6 +49,7 @@ def get_elastic_connection():
         hosts=[ELASTIC_URL],
         basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
         retry_on_timeout=True,
+        request_timeout=ELASTIC_REQUEST_TIMEOUT,
     )
     return connections.get_connection()
 
@@ -151,7 +153,7 @@ def compute_siren_shards():
     sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db")
     sqlite_client.tune_for_large_scan()
     unites_legales_count, siren_ranges = compute_siren_ranges(
-        sqlite_client, ELASTIC_INDEXING_SHARD_COUNT
+        sqlite_client, INDEXING_SIREN_RANGES
     )
     sqlite_client.commit_and_close_conn()
 
