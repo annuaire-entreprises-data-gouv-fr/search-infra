@@ -36,25 +36,14 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
                         siren = ul.siren) as sirets_par_idcc,
             (SELECT liste_idcc_unite_legale FROM convention_collective WHERE
                         siren = ul.siren) as liste_idcc_unite_legale,
-            (SELECT count FROM count_etablissement ce WHERE ce.siren = ul.siren) as
-            nombre_etablissements,
-            (SELECT count FROM count_etablissement_ouvert ceo WHERE ceo.siren = ul.siren) as
-            nombre_etablissements_ouverts,
-            (
-                SELECT json_object(
-                    'ca', ca,
-                    'resultat_net', resultat_net,
-                    'date_cloture_exercice', date_cloture_exercice,
-                    'annee_cloture_exercice', annee_cloture_exercice
-                )
-                FROM
-                (
-                    SELECT ca, resultat_net,
-                    date_cloture_exercice, annee_cloture_exercice
-                    FROM bilan_financier
-                    WHERE siren = ul.siren
-                )
-            ) as bilan_financier,
+            ce."count" as nombre_etablissements,
+            ceo."count" as nombre_etablissements_ouverts,
+            CASE WHEN bf.siren IS NOT NULL THEN json_object(
+                'ca', bf.ca,
+                'resultat_net', bf.resultat_net,
+                'date_cloture_exercice', bf.date_cloture_exercice,
+                'annee_cloture_exercice', bf.annee_cloture_exercice
+            ) END as bilan_financier,
             (SELECT json_group_array(
                 json_object(
                     'siren', siren,
@@ -372,34 +361,21 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
                         WHERE s.siren = st.siren
                     )
                 ) as siege,
-            (SELECT est_entrepreneur_spectacle FROM spectacle WHERE siren = ul.siren) as
-             est_entrepreneur_spectacle,
-            (SELECT statut_entrepreneur_spectacle FROM spectacle WHERE siren = ul.siren)
-              as statut_entrepreneur_spectacle,
-            (SELECT liste_finess_juridique FROM finess_juridique WHERE siren = ul.siren)
-              as liste_finess_juridique,
-            (SELECT egapro_renseignee FROM egapro WHERE siren = ul.siren) as
-             egapro_renseignee,
-            (SELECT bilan_ges_renseigne FROM bilan_ges WHERE siren = ul.siren) as
-             bilan_ges_renseigne,
-            (SELECT est_achats_responsables FROM achats_responsables WHERE siren = ul.siren) as
-             est_achats_responsables,
-            (SELECT est_alim_confiance FROM alim_confiance WHERE siren = ul.siren) as
-             est_alim_confiance,
-            (SELECT est_patrimoine_vivant FROM patrimoine_vivant WHERE siren = ul.siren) as
-             est_patrimoine_vivant,
-            (SELECT aide_de_minimis_renseignee FROM aides_minimis WHERE siren = ul.siren) as
-             aide_de_minimis_renseignee,
-            (SELECT aide_ademe_renseignee FROM aides_ademe WHERE siren = ul.siren) as
-             aide_ademe_renseignee,
-             (SELECT est_avocat FROM avocat WHERE siren = ul.siren) as
-             est_avocat,
-            (SELECT DISTINCT colter_code_insee FROM colter WHERE siren = ul.siren) as
-            colter_code_insee,
-            (SELECT DISTINCT colter_code FROM colter WHERE siren = ul.siren) as colter_code,
-            (SELECT DISTINCT colter_niveau FROM colter WHERE siren = ul.siren) as colter_niveau,
-            (SELECT est_ess_france FROM ess_france WHERE siren = ul.siren) as
-            est_ess_france,
+            sp.est_entrepreneur_spectacle as est_entrepreneur_spectacle,
+            sp.statut_entrepreneur_spectacle as statut_entrepreneur_spectacle,
+            fj.liste_finess_juridique as liste_finess_juridique,
+            eg.egapro_renseignee as egapro_renseignee,
+            bg.bilan_ges_renseigne as bilan_ges_renseigne,
+            ar.est_achats_responsables as est_achats_responsables,
+            ac.est_alim_confiance as est_alim_confiance,
+            pv.est_patrimoine_vivant as est_patrimoine_vivant,
+            amin.aide_de_minimis_renseignee as aide_de_minimis_renseignee,
+            aade.aide_ademe_renseignee as aide_ademe_renseignee,
+            av.est_avocat as est_avocat,
+            col.colter_code_insee as colter_code_insee,
+            col.colter_code as colter_code,
+            col.colter_niveau as colter_niveau,
+            ef.est_ess_france as est_ess_france,
             (SELECT json_group_array(
                 json_object(
                     'siren', siren,
@@ -417,35 +393,22 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
                     WHERE siren = ul.siren
                 )
             ) as colter_elus,
-            (SELECT est_qualiopi FROM organisme_formation WHERE siren = ul.siren) as
-            est_qualiopi,
-            (SELECT liste_id_organisme_formation FROM organisme_formation
-            WHERE siren = ul.siren)  as liste_id_organisme_formation,
-            (SELECT est_siae  FROM marche_inclusion WHERE siren = ul.siren) AS est_siae,
-            (SELECT type_siae FROM marche_inclusion WHERE siren = ul.siren)
-            AS type_siae,
-            (SELECT liste_tva FROM tva WHERE siren = ul.siren)
-              as liste_tva,
-            (
-                SELECT json_object(
-                    'numero_rnf', numero_rnf,
-                    'denomination', denomination,
-                    'type_organisme', type_organisme,
-                    'date_creation', date_creation,
-                    'siren', siren,
-                    'siret', siret,
-                    'adresse', adresse,
-                    'code_postal', code_postal,
-                    'ville', ville
-                )
-                FROM
-                (
-                    SELECT numero_rnf, denomination, type_organisme, date_creation, siren,
-                    siret, adresse, code_postal, ville
-                    FROM fondation
-                    WHERE siren = ul.siren
-                )
-            ) as fondation,
+            orgf.est_qualiopi as est_qualiopi,
+            orgf.liste_id_organisme_formation as liste_id_organisme_formation,
+            mi.est_siae AS est_siae,
+            mi.type_siae AS type_siae,
+            tva.liste_tva as liste_tva,
+            CASE WHEN fo.siren IS NOT NULL THEN json_object(
+                'numero_rnf', fo.numero_rnf,
+                'denomination', fo.denomination,
+                'type_organisme', fo.type_organisme,
+                'date_creation', fo.date_creation,
+                'siren', fo.siren,
+                'siret', fo.siret,
+                'adresse', fo.adresse,
+                'code_postal', fo.code_postal,
+                'ville', fo.ville
+            ) END as fondation,
             (
                 SELECT json_object(
                     'date_immatriculation', date_immatriculation,
@@ -470,37 +433,48 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
                     WHERE siren = ul.siren
                 )
             ) as immatriculation,
-            (
-                SELECT json_object(
-                    'radiation',
-                        (
-                            SELECT case when r.visibility then
-                                json_object(
-                                    'est_radie', r.est_radie,
-                                    'id_annonce', r.id_annonce,
-                                    'date', r.date
-                                ) end
-                            FROM bodacc_radiations AS r
-                            WHERE r.siren = ul.siren
-                        ),
-                    'procedure_collective',
-                        (
-                            SELECT json_object(
-                                'statut', pc.statut,
-                                'id_annonce', pc.id_annonce,
-                                'date', pc.date
-                            )
-                            FROM bodacc_procedures_collectives AS pc
-                            WHERE pc.siren = ul.siren
-                            )
-                )
+            json_object(
+                'radiation',
+                    CASE WHEN r.siren IS NOT NULL AND r.visibility THEN json_object(
+                        'est_radie', r.est_radie,
+                        'id_annonce', r.id_annonce,
+                        'date', r.date
+                    ) END,
+                'procedure_collective',
+                    CASE WHEN pc.siren IS NOT NULL THEN json_object(
+                        'statut', pc.statut,
+                        'id_annonce', pc.id_annonce,
+                        'date', pc.date
+                    ) END
             ) as bodacc
             FROM
                 unite_legale ul
-            LEFT JOIN
-                siege st
-            ON
-                ul.siren = st.siren
+            LEFT JOIN siege st ON ul.siren = st.siren
+            -- One indexed seek per table instead of one per column, and measurably
+            -- cheaper than the correlated subqueries these replace. Only tables
+            -- verified unique on siren are joined: convention_collective (several rows
+            -- per siren) and immatriculation (duplicates) stay scalar subqueries above.
+            LEFT JOIN count_etablissement ce ON ce.siren = ul.siren
+            LEFT JOIN count_etablissement_ouvert ceo ON ceo.siren = ul.siren
+            LEFT JOIN bilan_financier bf ON bf.siren = ul.siren
+            LEFT JOIN spectacle sp ON sp.siren = ul.siren
+            LEFT JOIN finess_juridique fj ON fj.siren = ul.siren
+            LEFT JOIN egapro eg ON eg.siren = ul.siren
+            LEFT JOIN bilan_ges bg ON bg.siren = ul.siren
+            LEFT JOIN achats_responsables ar ON ar.siren = ul.siren
+            LEFT JOIN alim_confiance ac ON ac.siren = ul.siren
+            LEFT JOIN patrimoine_vivant pv ON pv.siren = ul.siren
+            LEFT JOIN aides_minimis amin ON amin.siren = ul.siren
+            LEFT JOIN aides_ademe aade ON aade.siren = ul.siren
+            LEFT JOIN avocat av ON av.siren = ul.siren
+            LEFT JOIN colter col ON col.siren = ul.siren
+            LEFT JOIN ess_france ef ON ef.siren = ul.siren
+            LEFT JOIN organisme_formation orgf ON orgf.siren = ul.siren
+            LEFT JOIN marche_inclusion mi ON mi.siren = ul.siren
+            LEFT JOIN tva ON tva.siren = ul.siren
+            LEFT JOIN fondation fo ON fo.siren = ul.siren
+            LEFT JOIN bodacc_radiations r ON r.siren = ul.siren
+            LEFT JOIN bodacc_procedures_collectives pc ON pc.siren = ul.siren
             WHERE ul.siren IS NOT NULL
     """
 
