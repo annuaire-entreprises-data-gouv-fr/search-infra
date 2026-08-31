@@ -588,9 +588,12 @@ def get_dates_since_start_of_month(
 
 
 def load_file(file_name: str):
-    labels_file_path = "dags/data_pipelines_annuaire/helpers/labels/"
+    # Resolved from the package instead of the working directory: the labels used to
+    # be reachable only from the Airflow container, so importing any module reading
+    # one (data_enrichment and everything downstream of it) failed everywhere else.
+    labels_file_path = Path(__file__).parent / "labels"
 
-    with open(f"{labels_file_path}{file_name}") as json_file:
+    with open(labels_file_path / file_name) as json_file:
         file_decoded = json.load(json_file)
     return file_decoded
 

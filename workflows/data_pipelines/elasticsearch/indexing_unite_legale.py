@@ -1,8 +1,9 @@
 import logging
 import time
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 
-from elasticsearch.helpers import parallel_bulk
+from elasticsearch.helpers import expand_action, parallel_bulk
 
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.mapping_index import (
     StructureMapping,
@@ -17,26 +18,96 @@ logger = logging.getLogger(__name__)
 
 LOG_EVERY_N_DOCUMENTS = 1_000_000
 MAX_LOGGED_FAILURES = 20
+JSON_MIMETYPE = "application/json"
 
 
 @dataclass
 class ProducerTimings:
     """Time spent by the producer thread, split by phase.
 
-    Only actual work is accumulated here: while the producer is blocked by the bulk
-    queue back-pressure, it sits between two `yield`s and no timer is running. So
-    comparing `busy` to the total wall clock of the indexing tells whether the
-    pipeline is producer-bound (SQLite query + Python transform) or Elasticsearch-bound.
+    `ThreadPool.imap` drains its iterable from a single task handler thread, so that
+    one thread runs everything up to the bulk queue: our generator (fetch, transform,
+    build_documents), then `expand_action` and the JSON encoding of every document
+    (see TimedJsonSerializer). All five phases are therefore on the critical path and
+    all five are accumulated here.
+
+    Only actual work is accumulated: while the producer is blocked by the bulk queue
+    back-pressure it sits inside `queue.put` and no timer is running. `wall clock -
+    busy` is thus the time spent waiting on Elasticsearch, and `busy / wall clock`
+    tells whether the pipeline is producer-bound or Elasticsearch-bound.
     """
 
     unites_legales_read: int = field(default=0)
     fetch: float = field(default=0.0)
     transform: float = field(default=0.0)
     build_documents: float = field(default=0.0)
+    expand: float = field(default=0.0)
+    serialize: float = field(default=0.0)
+
+    @property
+    def bulk_encode(self) -> float:
+        return self.expand + self.serialize
 
     @property
     def busy(self) -> float:
-        return self.fetch + self.transform + self.build_documents
+        return self.fetch + self.transform + self.build_documents + self.bulk_encode
+
+
+class TimedJsonSerializer:
+    """Wraps the JSON serializer of the client to measure the document encoding.
+
+    `parallel_bulk` chunks its actions through `_chunk_actions`, which calls
+    `serializer.dumps` twice per document (the action header, then the source) in the
+    thread that drains our generator. That encoding costs as much as any other
+    producer phase but used to be invisible, which made the remaining wall clock look
+    like Elasticsearch back-pressure when part of it was our own CPU.
+
+    Only `dumps` is timed: `loads` is called by the bulk worker threads when decoding
+    the responses, off the producer thread, and is delegated untouched.
+    """
+
+    def __init__(self, serializer, timings) -> None:
+        self._serializer = serializer
+        self._timings = timings
+
+    def __getattr__(self, name):
+        return getattr(self._serializer, name)
+
+    def dumps(self, data):
+        started_at = time.perf_counter()
+        serialized = self._serializer.dumps(data)
+        self._timings.serialize += time.perf_counter() - started_at
+        return serialized
+
+
+def timed_expand_action(timings):
+    def expand_and_time(action):
+        started_at = time.perf_counter()
+        expanded = expand_action(action)
+        timings.expand += time.perf_counter() - started_at
+        return expanded
+
+    return expand_and_time
+
+
+@contextmanager
+def time_bulk_encoding(elastic_connection, timings):
+    """Install the timing serializer for the duration of the bulk indexing.
+
+    `parallel_bulk` resolves its serializer through
+    `client.transport.serializers.get_serializer("application/json")`, so replacing
+    that entry is enough to observe the encoding. It is also the seam to reuse to swap
+    in a faster JSON implementation if the measure says the encoding is worth it.
+    """
+    serializers = elastic_connection.transport.serializers
+    original_serializer = serializers.get_serializer(JSON_MIMETYPE)
+    serializers.serializers[JSON_MIMETYPE] = TimedJsonSerializer(
+        original_serializer, timings
+    )
+    try:
+        yield
+    finally:
+        serializers.serializers[JSON_MIMETYPE] = original_serializer
 
 
 def doc_unite_legale_generator(data, elastic_index):
@@ -120,13 +191,17 @@ def generate_unite_legale_docs(cursor, elastic_bulk_size, elastic_index, timings
 
 def log_indexing_progress(doc_count, started_at, timings):
     elapsed = time.perf_counter() - started_at
+    waiting = elapsed - timings.busy
     logger.info(
         f"Indexed {doc_count} documents from {timings.unites_legales_read} unites "
         f"legales in {elapsed:.0f}s. Producer busy {timings.busy:.0f}s "
         f"({timings.busy / elapsed:.0%} of wall clock): "
         f"sqlite fetch {timings.fetch:.0f}s, "
         f"transform {timings.transform:.0f}s, "
-        f"document build {timings.build_documents:.0f}s"
+        f"document build {timings.build_documents:.0f}s, "
+        f"bulk encode {timings.bulk_encode:.0f}s "
+        f"(expand {timings.expand:.0f}s + json {timings.serialize:.0f}s). "
+        f"Waiting on elasticsearch {waiting:.0f}s ({waiting / elapsed:.0%})"
     )
 
 
@@ -158,25 +233,27 @@ def index_unites_legales_by_chunk(
         # raise_on_* are disabled so that a failed document does not abort the whole
         # stream: failures are counted and the task fails at the end instead, which
         # tells us how many documents are missing rather than losing them silently.
-        for success, details in parallel_bulk(
-            elastic_connection,
-            generate_unite_legale_docs(
-                cursor, elastic_bulk_size, elastic_index, timings
-            ),
-            thread_count=elastic_bulk_thread_count,
-            chunk_size=elastic_bulk_size,
-            raise_on_exception=False,
-            raise_on_error=False,
-        ):
-            if success:
-                doc_count += 1
-                if doc_count >= next_log_at:
-                    log_indexing_progress(doc_count, started_at, timings)
-                    next_log_at += LOG_EVERY_N_DOCUMENTS
-            else:
-                failure_count += 1
-                if failure_count <= MAX_LOGGED_FAILURES:
-                    logger.error(f"A document failed to index: {details}")
+        with time_bulk_encoding(elastic_connection, timings):
+            for success, details in parallel_bulk(
+                elastic_connection,
+                generate_unite_legale_docs(
+                    cursor, elastic_bulk_size, elastic_index, timings
+                ),
+                thread_count=elastic_bulk_thread_count,
+                chunk_size=elastic_bulk_size,
+                expand_action_callback=timed_expand_action(timings),
+                raise_on_exception=False,
+                raise_on_error=False,
+            ):
+                if success:
+                    doc_count += 1
+                    if doc_count >= next_log_at:
+                        log_indexing_progress(doc_count, started_at, timings)
+                        next_log_at += LOG_EVERY_N_DOCUMENTS
+                else:
+                    failure_count += 1
+                    if failure_count <= MAX_LOGGED_FAILURES:
+                        logger.error(f"A document failed to index: {details}")
     finally:
         # rollback to the original values
         elastic_connection.indices.put_settings(
