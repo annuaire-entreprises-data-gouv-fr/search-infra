@@ -29,11 +29,14 @@ from data_pipelines_annuaire.helpers.flush_cache import flush_redis_cache
 from data_pipelines_annuaire.tests.e2e_tests.run_tests import run_e2e_tests
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.index import (
     check_elastic_index,
+    compute_siren_shards,
     create_elastic_index,
     delete_previous_elastic_indices,
     fill_elastic_fondation_index,
     fill_elastic_siren_index,
     get_next_index_name,
+    prepare_elastic_index_for_bulk,
+    restore_elastic_index_settings,
     update_elastic_alias,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.sitemap import (
@@ -77,16 +80,30 @@ def index_elasticsearch():
             f"{AIRFLOW_ELK_DATA_DIR}sirene.db",
         )
 
-    elastic_alias_updated = (
+    index_prepared = (
         get_next_index_name()
         >> clean_folder()
         >> get_latest_sirene_database()
         >> delete_previous_elastic_indices()
         >> create_elastic_index()
-        >> fill_elastic_siren_index()
-        >> fill_elastic_fondation_index()
-        >> check_elastic_index()
-        >> update_elastic_alias()
+        >> prepare_elastic_index_for_bulk()
+    )
+
+    siren_shards = compute_siren_shards()
+    siren_index_filled = fill_elastic_siren_index.expand(siren_range=siren_shards)
+    index_prepared >> siren_shards
+
+    # The settings are restored whatever the shards did (ALL_DONE), and everything
+    # downstream waits for that restore *and* for the shards themselves, so a failed
+    # shard still stops the pipeline instead of being masked by a successful restore.
+    settings_restored = restore_elastic_index_settings()
+    siren_index_filled >> settings_restored
+
+    fondations_filled = fill_elastic_fondation_index()
+    [siren_index_filled, settings_restored] >> fondations_filled
+
+    elastic_alias_updated = (
+        fondations_filled >> check_elastic_index() >> update_elastic_alias()
     )
 
     sitemap_updated = elastic_alias_updated >> create_sitemap() >> update_sitemap()

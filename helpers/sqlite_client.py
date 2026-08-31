@@ -9,6 +9,18 @@ from data_pipelines_annuaire.helpers.filesystem import LocalFile
 
 logger = logging.getLogger(__name__)
 
+# Applied per connection, and only where asked for: these trade memory for read speed
+# and would be wasted (or harmful) on the small write connections of the ETL.
+LARGE_SCAN_PRAGMAS = (
+    # 256 MB of page cache instead of the 2 MB default. Negative means KiB.
+    "PRAGMA cache_size = -262144",
+    # Read pages through mmap rather than copying them into the process. SQLite clamps
+    # this to its compile-time maximum, and only the pages actually touched are mapped,
+    # so an oversized value is safe and costs no resident memory.
+    "PRAGMA mmap_size = 30000000000",
+    "PRAGMA temp_store = MEMORY",
+)
+
 
 class SqliteClient:
     """
@@ -73,6 +85,16 @@ class SqliteClient:
         else:
             self.db_conn.commit()
         self.db_conn.close()
+
+    def tune_for_large_scan(self) -> None:
+        """Tune this connection for a long read, such as the indexing query.
+
+        The defaults are sized for the small transactions of the ETL: 2 MB of page
+        cache and no mmap, against a multi-GB database read row by row with tens of
+        index lookups per row. Call this after connecting and before the query.
+        """
+        for pragma in LARGE_SCAN_PRAGMAS:
+            self.execute(pragma)
 
     def commit_and_close_conn(self) -> None:
         self.db_conn.commit()

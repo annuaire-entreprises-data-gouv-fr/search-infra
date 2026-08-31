@@ -1,8 +1,12 @@
+import cProfile
+import io
 import logging
+import pstats
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 
+from elastic_transport import OrjsonSerializer
 from elasticsearch.helpers import expand_action, parallel_bulk
 
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.mapping_index import (
@@ -15,6 +19,10 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch\
 
 # fmt: on
 logger = logging.getLogger(__name__)
+
+# TEMPORARY, to be removed once the transform has been profiled: number of unites
+# legales to profile at the start of the task, 0 to disable.
+PROFILE_TRANSFORM_UNITES_LEGALES = 50_000
 
 LOG_EVERY_N_DOCUMENTS = 1_000_000
 MAX_LOGGED_FAILURES = 20
@@ -54,7 +62,7 @@ class ProducerTimings:
 
 
 class TimedJsonSerializer:
-    """Wraps the JSON serializer of the client to measure the document encoding.
+    """Wraps a JSON serializer to measure the document encoding it does.
 
     `parallel_bulk` chunks its actions through `_chunk_actions`, which calls
     `serializer.dumps` twice per document (the action header, then the source) in the
@@ -91,18 +99,25 @@ def timed_expand_action(timings):
 
 
 @contextmanager
-def time_bulk_encoding(elastic_connection, timings):
-    """Install the timing serializer for the duration of the bulk indexing.
+def orjson_bulk_serializer(elastic_connection, timings):
+    """Encode the bulk payloads with orjson, and keep measuring the cost.
 
     `parallel_bulk` resolves its serializer through
     `client.transport.serializers.get_serializer("application/json")`, so replacing
-    that entry is enough to observe the encoding. It is also the seam to reuse to swap
-    in a faster JSON implementation if the measure says the encoding is worth it.
+    that entry swaps the implementation for the whole bulk. The 2026-08-31 run spent
+    1690s of its 8688s encoding documents with the standard library; orjson measured
+    ~7x faster on documents of this shape. `OrjsonSerializer` subclasses
+    `JsonSerializer` and only overrides `json_dumps` / `json_loads`, so the `default`
+    hook (date, UUID, Decimal) is unchanged.
+
+    The swap is scoped to the indexing: the connection is a process-wide singleton and
+    nothing else in the DAG needs it. The timing wrapper stays on top so the gain shows
+    up in the logs instead of being assumed.
     """
     serializers = elastic_connection.transport.serializers
     original_serializer = serializers.get_serializer(JSON_MIMETYPE)
     serializers.serializers[JSON_MIMETYPE] = TimedJsonSerializer(
-        original_serializer, timings
+        OrjsonSerializer(), timings
     )
     try:
         yield
@@ -152,6 +167,18 @@ def doc_unite_legale_generator(data, elastic_index):
             ).to_dict(include_meta=True)
 
 
+def log_transform_profile(profiler, unites_legales_read):
+    stats_stream = io.StringIO()
+    statistics = pstats.Stats(profiler, stream=stats_stream)
+    statistics.sort_stats("cumulative").print_stats(30)
+    statistics.sort_stats("tottime").print_stats(30)
+    logger.info(
+        f"Transform profile over the first {unites_legales_read} unites legales. "
+        f"The transform timings of that window are inflated by the profiler, the rest "
+        f"of the run is unaffected.\n{stats_stream.getvalue()}"
+    )
+
+
 def generate_unite_legale_docs(cursor, elastic_bulk_size, elastic_index, timings):
     # Lazily stream documents to index: pull a batch from SQLite, clean it,
     # and yield each resulting document. Feeding a single long-lived generator to
@@ -161,6 +188,9 @@ def generate_unite_legale_docs(cursor, elastic_bulk_size, elastic_index, timings
     # Each phase is materialised rather than chained lazily so that its cost can be
     # measured separately, see ProducerTimings.
     unite_legale_columns = tuple(x[0] for x in cursor.description)
+    # `transform` is the largest phase of the run and calls ~40 helpers per unite
+    # legale, so it needs a profile rather than a guess. Over the first chunks only.
+    profiler = cProfile.Profile() if PROFILE_TRANSFORM_UNITES_LEGALES else None
     while True:
         started_at = time.perf_counter()
         chunk_unites_legales_sqlite = cursor.fetchmany(elastic_bulk_size)
@@ -170,6 +200,8 @@ def generate_unite_legale_docs(cursor, elastic_bulk_size, elastic_index, timings
             return
 
         started_at = time.perf_counter()
+        if profiler:
+            profiler.enable()
         liste_unites_legales_sqlite = tuple(
             dict(zip(unite_legale_columns, unite_legale))
             for unite_legale in chunk_unites_legales_sqlite
@@ -177,6 +209,8 @@ def generate_unite_legale_docs(cursor, elastic_bulk_size, elastic_index, timings
         chunk_unites_legales_processed = process_unites_legales(
             liste_unites_legales_sqlite
         )
+        if profiler:
+            profiler.disable()
         timings.transform += time.perf_counter() - started_at
 
         started_at = time.perf_counter()
@@ -186,6 +220,11 @@ def generate_unite_legale_docs(cursor, elastic_bulk_size, elastic_index, timings
         timings.build_documents += time.perf_counter() - started_at
 
         timings.unites_legales_read += len(chunk_unites_legales_sqlite)
+
+        if profiler and timings.unites_legales_read >= PROFILE_TRANSFORM_UNITES_LEGALES:
+            log_transform_profile(profiler, timings.unites_legales_read)
+            profiler = None
+
         yield from documents
 
 
@@ -212,57 +251,46 @@ def index_unites_legales_by_chunk(
     elastic_bulk_size,
     elastic_index,
 ):
-    # Indexing performance : do not refresh the index while indexing
-    elastic_connection.indices.put_settings(
-        index=elastic_index,
-        body={
-            "index.refresh_interval": -1,
-            "index.translog.durability": "async",
-        },
-    )
+    """Index the documents the cursor yields, and return how many were indexed.
 
+    The index settings (`refresh_interval`, `translog.durability`) are handled by the
+    tasks surrounding this one: the function is called once per siren shard, so it can
+    neither disable refresh on entry nor restore it on exit without fighting the other
+    shards.
+    """
     timings = ProducerTimings()
     started_at = time.perf_counter()
     doc_count = 0
     failure_count = 0
     next_log_at = LOG_EVERY_N_DOCUMENTS
-    try:
-        # A single parallel_bulk call over one long-lived generator keeps all
-        # `elastic_bulk_thread_count` threads saturated while the generator reads
-        # ahead from SQLite, overlapping read/transform with the ES bulk requests.
-        # raise_on_* are disabled so that a failed document does not abort the whole
-        # stream: failures are counted and the task fails at the end instead, which
-        # tells us how many documents are missing rather than losing them silently.
-        with time_bulk_encoding(elastic_connection, timings):
-            for success, details in parallel_bulk(
-                elastic_connection,
-                generate_unite_legale_docs(
-                    cursor, elastic_bulk_size, elastic_index, timings
-                ),
-                thread_count=elastic_bulk_thread_count,
-                chunk_size=elastic_bulk_size,
-                expand_action_callback=timed_expand_action(timings),
-                raise_on_exception=False,
-                raise_on_error=False,
-            ):
-                if success:
-                    doc_count += 1
-                    if doc_count >= next_log_at:
-                        log_indexing_progress(doc_count, started_at, timings)
-                        next_log_at += LOG_EVERY_N_DOCUMENTS
-                else:
-                    failure_count += 1
-                    if failure_count <= MAX_LOGGED_FAILURES:
-                        logger.error(f"A document failed to index: {details}")
-    finally:
-        # rollback to the original values
-        elastic_connection.indices.put_settings(
-            index=elastic_index,
-            body={
-                "index.refresh_interval": None,
-                "index.translog.durability": None,
-            },
-        )
+
+    # A single parallel_bulk call over one long-lived generator keeps all
+    # `elastic_bulk_thread_count` threads saturated while the generator reads ahead
+    # from SQLite, overlapping read/transform with the ES bulk requests.
+    # raise_on_* are disabled so that a failed document does not abort the whole
+    # stream: failures are counted and the task fails at the end instead, which tells
+    # us how many documents are missing rather than losing them silently.
+    with orjson_bulk_serializer(elastic_connection, timings):
+        for success, details in parallel_bulk(
+            elastic_connection,
+            generate_unite_legale_docs(
+                cursor, elastic_bulk_size, elastic_index, timings
+            ),
+            thread_count=elastic_bulk_thread_count,
+            chunk_size=elastic_bulk_size,
+            expand_action_callback=timed_expand_action(timings),
+            raise_on_exception=False,
+            raise_on_error=False,
+        ):
+            if success:
+                doc_count += 1
+                if doc_count >= next_log_at:
+                    log_indexing_progress(doc_count, started_at, timings)
+                    next_log_at += LOG_EVERY_N_DOCUMENTS
+            else:
+                failure_count += 1
+                if failure_count <= MAX_LOGGED_FAILURES:
+                    logger.error(f"A document failed to index: {details}")
 
     log_indexing_progress(doc_count, started_at, timings)
 
@@ -272,37 +300,5 @@ def index_unites_legales_by_chunk(
             f"({doc_count} succeeded). See the logs for the first "
             f"{MAX_LOGGED_FAILURES} failures."
         )
-
-    # Indexing performance :
-    #
-    # The _/cat/count/{index} is called only once at the end of the indexing process
-    # and not after each pushed bulk
-    #
-    # i.e. the _cat/count/{index} produce a query that may force Lucene to refresh the
-    # last bulk into a segment
-    # meaning that it would amplify the amount of segment merge and slowdown the
-    # indexing process
-
-    # Add wait and retry mechanism for zero count
-    max_retries = 5
-    retry_interval = 5  # seconds
-
-    for attempt in range(max_retries):
-        doc_count = int(
-            elastic_connection.cat.count(
-                index=elastic_index, params={"format": "json"}
-            )[0]["count"]
-        )
-
-        if doc_count > 0:
-            break
-
-        if attempt < max_retries - 1:
-            logger.warning(
-                f"Document count is zero. Retrying in {retry_interval} seconds..."
-            )
-            time.sleep(retry_interval)
-        else:
-            logger.error("Max retries reached. Document count is still zero.")
 
     return doc_count

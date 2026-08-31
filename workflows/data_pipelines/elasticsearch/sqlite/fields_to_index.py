@@ -1,4 +1,4 @@
-select_fields_to_index_query = """SELECT
+SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
             ul.activite_principale_unite_legale as activite_principale_unite_legale,
             ul.activite_principale_naf25_unite_legale as activite_principale_naf25_unite_legale,
             ul.caractere_employeur as caractere_employeur,
@@ -502,5 +502,28 @@ select_fields_to_index_query = """SELECT
             ON
                 ul.siren = st.siren
             WHERE ul.siren IS NOT NULL
-            ;
     """
+
+
+def select_fields_to_index_query(siren_start=None, siren_end=None):
+    """Return the query and its parameters, restricted to a range of siren.
+
+    Both bounds are optional: the first shard has no lower bound and the last no upper
+    one. The predicates are appended only for the bounds that exist rather than being
+    neutralised with `? IS NULL OR ...`, because the OR form costs the range scan —
+    EXPLAIN QUERY PLAN then falls back to walking the whole index instead of
+    `SEARCH ul USING COVERING INDEX index_unite_legale_siren (siren>? AND siren<?)`.
+
+    siren is fixed-width TEXT, so the lexicographic order of the unique index is the
+    numeric order and a string comparison is a correct range.
+    """
+    predicates = []
+    params = []
+    if siren_start is not None:
+        predicates.append("AND ul.siren >= ?")
+        params.append(siren_start)
+    if siren_end is not None:
+        predicates.append("AND ul.siren < ?")
+        params.append(siren_end)
+
+    return f"{SELECT_FIELDS_TO_INDEX_QUERY} {' '.join(predicates)}", params
