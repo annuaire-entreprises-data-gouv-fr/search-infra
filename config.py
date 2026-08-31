@@ -145,9 +145,10 @@ ELASTIC_MIN_DOC_COUNT_EXPECTED = int(
 )
 
 # Number of siren ranges fill_elastic_siren_index is split into, one mapped task each.
-# Nothing to do with ELASTIC_SHARDS above: this is a core count, the VM has 12 and also
-# runs the scheduler and the rest of the stack.
-INDEXING_SIREN_RANGES = 8
+# Nothing to do with ELASTIC_SHARDS above. Four producers move ~14 000 documents/s where
+# the single-node cluster tops out around 7 500, so more only burns CPU: at 8 the phase
+# timings were inflated x2.5 by contention for no gain in wall clock.
+INDEXING_SIREN_RANGES = 4
 
 ELASTIC_MAX_LIVE_VERSIONS = int(Variable.get("ELASTIC_MAX_LIVE_VERSIONS", 2))
 

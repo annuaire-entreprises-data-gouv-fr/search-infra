@@ -11,6 +11,7 @@ from typing import Literal
 from unicodedata import normalize
 from urllib.parse import urlparse
 
+import orjson
 import pandas as pd
 import requests
 
@@ -18,6 +19,25 @@ from data_pipelines_annuaire.config import AIRFLOW_ENV
 from data_pipelines_annuaire.helpers.datagouv import fetch_last_modified_date
 
 logger = logging.getLogger(__name__)
+
+# "2026-08-31 09:44:01+00:00", the shape SQLite stores. %z also accepts other forms,
+# which is why anything that does not match falls back to the parser.
+RNE_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}[+-]\d{2}:?\d{2}$")
+
+
+def load_json(value):
+    """Parse JSON built by SQLite, roughly twice as fast as the standard library.
+
+    orjson rejects the non-finite numbers SQLite renders for an infinite REAL
+    (`json_object` turns one into `9.0e+999`), where the standard library returns `inf`.
+    Such a row is vanishingly rare but the blast radius is a whole siren range, so the
+    fallback keeps the old behaviour for it. A genuinely malformed payload still raises,
+    from the standard library, exactly as before.
+    """
+    try:
+        return orjson.loads(value)
+    except ValueError:
+        return json.loads(value)
 
 
 def check_if_prod():
@@ -184,9 +204,15 @@ def get_last_line(file_path):
 
 
 def convert_date_format(original_date_string):
+    if original_date_string is None:
+        return None
+
+    # strptime + strftime costs ~40us and this runs once per unite legale. The offset is
+    # dropped rather than applied, so on the usual shape the conversion is a slice.
+    if RNE_DATE_PATTERN.match(original_date_string):
+        return f"{original_date_string[:10]}T{original_date_string[11:19]}"
+
     try:
-        if original_date_string is None:
-            return None
         # Convert to datetime object
         original_datetime = datetime.strptime(
             original_date_string, "%Y-%m-%d %H:%M:%S%z"
