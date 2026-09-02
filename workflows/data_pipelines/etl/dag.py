@@ -59,6 +59,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_
     create_dirig_pp_table,
     get_latest_rne_database,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_doublons_table import (
+    create_doublons_table,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_etablissements_tables import (
     apply_geo_stats_coordinates,
     count_nombre_etablissement,
@@ -292,6 +295,8 @@ def database_constructor():
         >> create_ancien_siege_table()
         # Liens de succession
         >> create_succession_table()
+        # Doublons SIRENE
+        >> create_doublons_table()
         # RNE
         >> get_latest_rne_database()
         >> add_rne_siren_data_to_unite_legale_table()
