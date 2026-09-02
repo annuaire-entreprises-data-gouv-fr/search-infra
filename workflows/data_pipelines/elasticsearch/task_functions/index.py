@@ -1,7 +1,10 @@
 import logging
+import time
 from datetime import UTC, datetime
+from itertools import pairwise
 
 from airflow.sdk import get_current_context, task
+from airflow.task.trigger_rule import TriggerRule
 from elasticsearch import NotFoundError
 from elasticsearch.dsl import connections
 
@@ -12,8 +15,10 @@ from data_pipelines_annuaire.config import (
     ELASTIC_MAX_LIVE_VERSIONS,
     ELASTIC_MIN_DOC_COUNT_EXPECTED,
     ELASTIC_PASSWORD,
+    ELASTIC_REQUEST_TIMEOUT,
     ELASTIC_URL,
     ELASTIC_USER,
+    INDEXING_SIREN_RANGES,
 )
 from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
@@ -34,6 +39,19 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.sqlite.fonda
 )
 
 logger = logging.getLogger(__name__)
+
+ELASTIC_COUNT_MAX_RETRIES = 5
+ELASTIC_COUNT_RETRY_INTERVAL = 5
+
+
+def get_elastic_connection():
+    connections.create_connection(
+        hosts=[ELASTIC_URL],
+        basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        retry_on_timeout=True,
+        request_timeout=ELASTIC_REQUEST_TIMEOUT,
+    )
+    return connections.get_connection()
 
 
 @task
@@ -60,28 +78,116 @@ def create_elastic_index():
 
 
 @task
-def fill_elastic_siren_index():
+def prepare_elastic_index_for_bulk():
+    """Turn off the work Elasticsearch does between bulks, for the whole indexing.
+
+    Cannot live inside `fill_elastic_siren_index` any more: that task now runs once per
+    siren shard, and the first shard to finish would restore the settings under the
+    others.
+    """
     ti = get_current_context()["ti"]
     elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
-    sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db")
-    sqlite_client.execute(select_fields_to_index_query)
-
-    connections.create_connection(
-        hosts=[ELASTIC_URL],
-        basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
-        retry_on_timeout=True,
+    get_elastic_connection().indices.put_settings(
+        index=elastic_index,
+        body={
+            "index.refresh_interval": -1,
+            "index.translog.durability": "async",
+        },
     )
-    elastic_connection = connections.get_connection()
+
+
+@task(trigger_rule=TriggerRule.ALL_DONE)
+def restore_elastic_index_settings():
+    """Put the index back the way the API expects it, whatever the shards did.
+
+    ALL_DONE, so a failed shard cannot leave the index with refresh disabled. It is a
+    leaf: the failure still propagates through the shards themselves, which
+    `fill_elastic_fondation_index` waits on.
+    """
+    ti = get_current_context()["ti"]
+    elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
+    elastic_connection = get_elastic_connection()
+    elastic_connection.indices.put_settings(
+        index=elastic_index,
+        body={
+            "index.refresh_interval": None,
+            "index.translog.durability": None,
+        },
+    )
+    # One explicit refresh so that the document count read downstream is exact.
+    elastic_connection.indices.refresh(index=elastic_index)
+
+
+def compute_siren_ranges(sqlite_client, shard_count):
+    """Split the unites legales into `shard_count` contiguous ranges of siren.
+
+    Balanced by row count rather than by siren prefix: siren are handed out
+    sequentially, so a fixed split of the 9-digit space would leave some shards several
+    times larger than others, and the slowest shard sets the wall clock. Reading a
+    boundary walks the unique index on siren, no table access.
+
+    The ranges tile the whole table: the first has no lower bound, the last no upper
+    one, and each bound is shared with its neighbour. A boundary that repeats (fewer
+    rows than shards) is dropped rather than producing an empty duplicate range.
+    """
+    unites_legales_count = sqlite_client.get_table_count("unite_legale")
+
+    boundaries = []
+    for shard in range(1, shard_count):
+        offset = shard * unites_legales_count // shard_count
+        boundary = sqlite_client.execute(
+            "SELECT siren FROM unite_legale ORDER BY siren LIMIT 1 OFFSET ?",
+            (offset,),
+        ).fetchone()
+        if boundary and boundary[0] not in boundaries:
+            boundaries.append(boundary[0])
+
+    limits = [None, *boundaries, None]
+    return unites_legales_count, [
+        {"siren_start": start, "siren_end": end} for start, end in pairwise(limits)
+    ]
+
+
+@task
+def compute_siren_shards():
+    sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db")
+    sqlite_client.tune_for_large_scan()
+    unites_legales_count, siren_ranges = compute_siren_ranges(
+        sqlite_client, INDEXING_SIREN_RANGES
+    )
+    sqlite_client.commit_and_close_conn()
+
+    logger.info(
+        f"Indexing {unites_legales_count} unites legales in "
+        f"{len(siren_ranges)} shards: {siren_ranges}"
+    )
+    return siren_ranges
+
+
+@task
+def fill_elastic_siren_index(siren_range):
+    ti = get_current_context()["ti"]
+    elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
+    # parallel_bulk drains the document generator (which reads from this cursor) in its
+    # own thread pool task handler, so the connection must allow cross-thread use.
+    # Access stays sequential: the query is issued here, the cursor is drained by that
+    # single handler thread, and the connection is closed here once bulk indexing is over.
+    sqlite_client = SqliteClient(
+        AIRFLOW_ELK_DATA_DIR + "sirene.db", check_same_thread=False
+    )
+    sqlite_client.tune_for_large_scan()
+    query, params = select_fields_to_index_query(**siren_range)
+    sqlite_client.execute(query, params)
 
     doc_count = index_unites_legales_by_chunk(
         cursor=sqlite_client.db_cursor,
-        elastic_connection=elastic_connection,
+        elastic_connection=get_elastic_connection(),
         elastic_bulk_thread_count=ELASTIC_BULK_THREAD_COUNT,
         elastic_bulk_size=ELASTIC_BULK_SIZE,
         elastic_index=elastic_index,
     )
-    ti.xcom_push(key="doc_count", value=doc_count)
     sqlite_client.commit_and_close_conn()
+    return doc_count
 
 
 @task
@@ -113,13 +219,50 @@ def fill_elastic_fondation_index():
     sqlite_client.commit_and_close_conn()
 
 
+def count_indexed_documents(elastic_connection, elastic_index):
+    """Ask Elasticsearch how many documents the index holds.
+
+    Called once, here, rather than at the end of each indexing task: `_cat/count` can
+    force Lucene to refresh the last bulk into a segment, which amplifies segment
+    merging and slows the indexing down. The retry absorbs the lag between the refresh
+    and the count being visible.
+    """
+    for attempt in range(ELASTIC_COUNT_MAX_RETRIES):
+        doc_count = int(
+            elastic_connection.cat.count(
+                index=elastic_index, params={"format": "json"}
+            )[0]["count"]
+        )
+        if doc_count > 0:
+            return doc_count
+
+        if attempt < ELASTIC_COUNT_MAX_RETRIES - 1:
+            logger.warning(
+                f"Document count is zero. Retrying in "
+                f"{ELASTIC_COUNT_RETRY_INTERVAL} seconds..."
+            )
+            time.sleep(ELASTIC_COUNT_RETRY_INTERVAL)
+
+    logger.error("Max retries reached. Document count is still zero.")
+    return 0
+
+
 @task
 def check_elastic_index():
     ti = get_current_context()["ti"]
-    doc_count = ti.xcom_pull(key="doc_count", task_ids="fill_elastic_siren_index")
+    elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
+    # One value per siren shard, since fill_elastic_siren_index is a mapped task.
+    shard_doc_counts = ti.xcom_pull(task_ids="fill_elastic_siren_index") or []
     fondation_doc_count = ti.xcom_pull(
         key="fondation_doc_count",
         task_ids="fill_elastic_fondation_index",
+    )
+    doc_count = count_indexed_documents(get_elastic_connection(), elastic_index)
+    # Informational only, and read from a mapped task: never let its shape fail a run
+    # whose documents are already indexed.
+    logger.info(
+        f"Documents indexed per siren shard: {shard_doc_counts}, "
+        f"counted in the index: {doc_count}"
     )
 
     if int(doc_count) < ELASTIC_MIN_DOC_COUNT_EXPECTED:

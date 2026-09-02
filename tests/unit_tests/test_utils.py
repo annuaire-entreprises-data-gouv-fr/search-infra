@@ -1,11 +1,16 @@
 import logging
 import os
 import tempfile
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from data_pipelines_annuaire.helpers.utils import fetch_hyperlink_from_page
+from data_pipelines_annuaire.helpers.utils import (
+    convert_date_format,
+    fetch_hyperlink_from_page,
+    load_json,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -136,3 +141,63 @@ def test_fetch_hyperlink_not_found(mock_page_response):
             "not_in_the_page",
             match_on="href",
         )
+
+
+# load_json()
+
+
+def test_load_json_parses_what_sqlite_builds():
+    assert load_json('{"siren": "356000000", "ca": 1.5, "nom": null}') == {
+        "siren": "356000000",
+        "ca": 1.5,
+        "nom": None,
+    }
+
+
+def test_load_json_falls_back_on_the_infinity_sqlite_renders():
+    """`json_object` turns an infinite REAL into `9.0e+999`: the standard library reads
+    it as inf, orjson refuses it. One such row must not fail a whole siren range."""
+    assert load_json('{"capital_social":9.0e+999}') == {"capital_social": float("inf")}
+
+
+def test_load_json_still_raises_on_a_malformed_payload():
+    with pytest.raises(ValueError):
+        load_json('{"siren": ')
+
+
+# convert_date_format()
+
+
+@pytest.mark.parametrize(
+    "original_date_string",
+    [
+        "2026-08-31 09:44:01+00:00",
+        "2026-08-31 09:44:01+0200",
+        "2026-01-01 00:00:00-05:00",
+        "2026-12-31 23:59:59+00:00",
+    ],
+)
+def test_convert_date_format_slice_matches_the_parser(original_date_string):
+    """The fast path must return exactly what strptime/strftime returned, offset
+    dropped rather than applied."""
+    expected = datetime.strptime(original_date_string, "%Y-%m-%d %H:%M:%S%z").strftime(
+        "%Y-%m-%dT%H:%M:%S"
+    )
+
+    assert convert_date_format(original_date_string) == expected
+
+
+@pytest.mark.parametrize(
+    "original_date_string, expected",
+    [
+        (None, None),
+        ("2026-08-31", None),
+        ("2026-08-31 09:44:01", None),
+        ("2026-08-31 09:44:01.123+00:00", None),
+        ("pas une date", None),
+    ],
+)
+def test_convert_date_format_rejects_what_it_always_rejected(
+    original_date_string, expected
+):
+    assert convert_date_format(original_date_string) == expected

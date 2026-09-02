@@ -9,6 +9,18 @@ from data_pipelines_annuaire.helpers.filesystem import LocalFile
 
 logger = logging.getLogger(__name__)
 
+# Applied per connection, and only where asked for: these trade memory for read speed
+# and would be wasted (or harmful) on the small write connections of the ETL.
+LARGE_SCAN_PRAGMAS = (
+    # 256 MB of page cache instead of the 2 MB default. Negative means KiB.
+    "PRAGMA cache_size = -262144",
+    # Read pages through mmap rather than copying them into the process. SQLite clamps
+    # this to its compile-time maximum, and only the pages actually touched are mapped,
+    # so an oversized value is safe and costs no resident memory.
+    "PRAGMA mmap_size = 30000000000",
+    "PRAGMA temp_store = MEMORY",
+)
+
 
 class SqliteClient:
     """
@@ -23,6 +35,9 @@ class SqliteClient:
     Args:
         db_location (str): The file path to the SQLite database. The database file will be created if it does not exist.
         timeout (int, optional): The timeout duration for database operations. Defaults to 30 seconds.
+        check_same_thread (bool, optional): Whether the connection may only be used by the
+            thread that created it. Set to False when a cursor is drained by another thread,
+            which is only safe as long as access stays sequential. Defaults to True.
 
     Example:
         ```python
@@ -44,7 +59,7 @@ class SqliteClient:
         ```
     """
 
-    def __init__(self, db_location, timeout=30) -> None:
+    def __init__(self, db_location, timeout=30, check_same_thread=True) -> None:
         self.db_location = db_location
 
         # SQLite creates the database if it does not exist but not the parent folders
@@ -52,7 +67,9 @@ class SqliteClient:
         if not os.path.exists(self.db_folder):
             os.makedirs(self.db_folder)
 
-        self.db_conn = sqlite3.connect(self.db_location, timeout=timeout)
+        self.db_conn = sqlite3.connect(
+            self.db_location, timeout=timeout, check_same_thread=check_same_thread
+        )
         logger.info(
             f"*********** Connecting to database {self.db_location}! ***********"
         )
@@ -68,6 +85,16 @@ class SqliteClient:
         else:
             self.db_conn.commit()
         self.db_conn.close()
+
+    def tune_for_large_scan(self) -> None:
+        """Tune this connection for a long read, such as the indexing query.
+
+        The defaults are sized for the small transactions of the ETL: 2 MB of page
+        cache and no mmap, against a multi-GB database read row by row with tens of
+        index lookups per row. Call this after connecting and before the query.
+        """
+        for pragma in LARGE_SCAN_PRAGMAS:
+            self.execute(pragma)
 
     def commit_and_close_conn(self) -> None:
         self.db_conn.commit()
