@@ -42,6 +42,10 @@ def data_processing_sirene_stock():
         return sirene_stock_processor.convert_stock_etablissement_coordinates()
 
     @task()
+    def deduplicate_doublons():
+        return sirene_stock_processor.deduplicate_stock_doublons()
+
+    @task()
     def send_file_to_object_storage():
         return sirene_stock_processor.send_stock_to_object_storage()
 
@@ -53,6 +57,7 @@ def data_processing_sirene_stock():
         clean_previous_outputs()
         >> download_stock()
         >> convert_etablissement_coordinates()
+        >> deduplicate_doublons()
         >> send_file_to_object_storage()
         >> clean_up()
     )

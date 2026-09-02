@@ -38,6 +38,11 @@ STOCK_SIRENE_CONFIG = DataSourceConfig(
             "url": "https://www.data.gouv.fr/datasets/r/9c4d5d9c-4bbb-4b9c-837a-6155cb589e26",
             "destination": f"{DataSourceConfig.base_tmp_folder}/sirene/stock/StockLiensSuccession_{CURRENT_MONTH}.zip",
         },
+        "doublons": {
+            "resource_id": "d8c31348-8630-4918-b6d1-5dd689b05f29",
+            "url": "https://www.data.gouv.fr/datasets/r/d8c31348-8630-4918-b6d1-5dd689b05f29",
+            "destination": f"{DataSourceConfig.base_tmp_folder}/sirene/stock/stock_doublons_deduplicated_{CURRENT_MONTH}.zip",
+        },
     },
     object_storage_path="insee/sirene_stock/",
     url_object_storage=f"{OBJECT_STORAGE_BASE_URL}insee/sirene_stock/",
