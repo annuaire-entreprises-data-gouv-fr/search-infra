@@ -44,42 +44,33 @@ def _worker_init(
     Exécuté une fois par process fils (via Pool initializer).
     Les connexions ne sont JAMAIS héritées du parent ni passées en argument.
     """
-    from elasticsearch import connections as es_connections
-
-    # SQLite : connexion dédiée au process, en lecture seule de facto
     conn = sqlite3.connect(db_path)
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA busy_timeout=30000")
-    cursor = conn.cursor()
-    # On borne la requête existante sur la plage de siren du worker.
-    # La requête est enveloppée en sous-requête : elle doit exposer une
-    # colonne `siren` et ne pas contenir de LIMIT.
-    cursor.execute(
-        f"SELECT * FROM ({sql_query}) WHERE siren BETWEEN ? AND ?",
-        (None, None),  # remplacé ci-dessous par les bornes réelles
+    _worker_ctx.update(
+        conn=conn,
+        query=sql_query,
+        elastic_index=elastic_index,
+        thread_count=per_worker_thread_count,
+        bulk_size=bulk_size,
     )
-    cursor.close()
-
-    _worker_ctx["conn"] = conn
-    _worker_ctx["query"] = sql_query
-    _worker_ctx["elastic_index"] = elastic_index
-    _worker_ctx["thread_count"] = per_worker_thread_count
-    _worker_ctx["bulk_size"] = bulk_size
-
-    es_connections.create_connection(
+    from elasticsearch import Elasticsearch
+    _worker_ctx["es"] = Elasticsearch(
         hosts=[ELASTIC_URL],
         basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
         retry_on_timeout=True,
     )
-    _worker_ctx["es"] = es_connections.get_connection()
+
 
 
 def _index_siren_range(args: tuple) -> dict:
     """Indexe la plage (start_siren, end_siren). Retourne le nb de docs."""
     start, end = args
+    t0 = time.monotonic()
+    log_counter = 0
     cursor = _worker_ctx["conn"].cursor()
     cursor.execute(
-        f"SELECT * FROM ({_worker_ctx['query']}) WHERE siren BETWEEN ? AND ?",
+        f"SELECT * FROM ({_worker_ctx['query']}) WHERE siren BETWEEN ? AND ? ORDER BY siren",
         (start, end),
     )
 
@@ -104,6 +95,13 @@ def _index_siren_range(args: tuple) -> dict:
             if not success:
                 raise Exception(f"A file_access document failed: {details}")
             doc_count += 1
+        chunk = cursor.fetchmany(_worker_ctx["bulk_size"])
+        log_counter += len(rows)
+        if log_counter % 100_000 < _worker_ctx["bulk_size"]:
+            logger.info(
+                f"Range [{start}-{end}]: {log_counter} rows processed, "
+                f"{doc_count} docs sent, {time.monotonic() - t0:.0f}s elapsed"
+            )
         chunk = cursor.fetchmany(_worker_ctx["bulk_size"])
 
     cursor.close()
@@ -153,7 +151,7 @@ def doc_unite_legale_generator(data, elastic_index):
 
 def index_unites_legales_by_chunk(
     db_path: str,
-    sql_query: str,
+    select_query_probe: str,
     elastic_connection,
     elastic_bulk_thread_count: int,
     elastic_bulk_size: int,
@@ -166,12 +164,12 @@ def index_unites_legales_by_chunk(
         index=elastic_index, body={"index.refresh_interval": -1}
     )
 
-    logger.info("=== CODE VERSION 2026-09-08-POOL ===")
 
+    inner_query = select_query_probe.strip().rstrip(";")
     # Bornes globales + découpage équilibré des plages de siren
     probe = sqlite3.connect(db_path)
     min_s, max_s = probe.execute(
-        f"SELECT MIN(siren), MAX(siren) FROM ({select_query_probe})"
+        f"SELECT MIN(siren), MAX(siren) FROM ({inner_query})"
     ).fetchone()
     probe.close()
 
@@ -193,7 +191,7 @@ def index_unites_legales_by_chunk(
             initializer=_worker_init,
             initargs=(
                 db_path,
-                select_query_probe,   # la requête SQL select_fields_to_index_query
+                inner_query,   # la requête SQL select_fields_to_index_query
                 elastic_index,
                 per_worker_threads,
                 elastic_bulk_size,
@@ -201,7 +199,11 @@ def index_unites_legales_by_chunk(
             maxtasksperchild=1,
         ) as pool:
             for res in pool.imap_unordered(_index_siren_range, ranges):
-                logger.info(f"Pool result: {res}")
+                done_elapsed = res.get("elapsed", "?")
+                logger.info(
+                    f"[PROGRESS] Range {res['range']} done: "
+                    f"{res['doc_count']} docs, elapsed={res}s"
+                )
                 total_docs += res["doc_count"]
     finally:
         elastic_connection.indices.put_settings(

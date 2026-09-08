@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from airflow.sdk import get_current_context, task
 from elasticsearch import NotFoundError
 from elasticsearch.dsl import connections
+from elasticsearch import Elasticsearch
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_ELK_DATA_DIR,
@@ -14,6 +15,7 @@ from data_pipelines_annuaire.config import (
     ELASTIC_PASSWORD,
     ELASTIC_URL,
     ELASTIC_USER,
+    ELASTIC_INDEX_POOL_PROCESSES,
 )
 from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
@@ -69,7 +71,11 @@ def fill_elastic_siren_index():
         basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
         retry_on_timeout=True,
     )
-    elastic_connection = connections.get_connection()
+    elastic_connection = Elasticsearch(
+        hosts=[ELASTIC_URL],
+        basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        retry_on_timeout=True,
+    )
 
     doc_count = index_unites_legales_by_chunk(
         db_path=AIRFLOW_ELK_DATA_DIR + "sirene.db",
