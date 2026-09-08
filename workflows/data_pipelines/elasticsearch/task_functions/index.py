@@ -63,8 +63,6 @@ def create_elastic_index():
 def fill_elastic_siren_index():
     ti = get_current_context()["ti"]
     elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
-    sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db")
-    sqlite_client.execute(select_fields_to_index_query)
 
     connections.create_connection(
         hosts=[ELASTIC_URL],
@@ -74,14 +72,15 @@ def fill_elastic_siren_index():
     elastic_connection = connections.get_connection()
 
     doc_count = index_unites_legales_by_chunk(
-        cursor=sqlite_client.db_cursor,
+        db_path=AIRFLOW_ELK_DATA_DIR + "sirene.db",
+        select_query_probe=select_fields_to_index_query,
         elastic_connection=elastic_connection,
         elastic_bulk_thread_count=ELASTIC_BULK_THREAD_COUNT,
         elastic_bulk_size=ELASTIC_BULK_SIZE,
         elastic_index=elastic_index,
+        pool_process_count=ELASTIC_INDEX_POOL_PROCESSES,
     )
     ti.xcom_push(key="doc_count", value=doc_count)
-    sqlite_client.commit_and_close_conn()
 
 
 @task

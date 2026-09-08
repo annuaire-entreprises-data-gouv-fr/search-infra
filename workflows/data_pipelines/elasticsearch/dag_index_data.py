@@ -27,6 +27,7 @@ from data_pipelines_annuaire.helpers import (
 )
 from data_pipelines_annuaire.helpers.flush_cache import flush_redis_cache
 from data_pipelines_annuaire.tests.e2e_tests.run_tests import run_e2e_tests
+# COMMENT PAUL
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.index import (
     check_elastic_index,
     create_elastic_index,
