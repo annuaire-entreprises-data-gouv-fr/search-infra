@@ -12,6 +12,10 @@ R = TypeVar("R", bound=Response)
 
 logger = logging.getLogger(__name__)
 
+# Requests has no default timeout
+# (connect, read) in seconds
+API_TIMEOUT = (10, 120)
+
 
 def retry_request(
     max_retries: int = 10, backoff_factor: float = 0.3
@@ -105,7 +109,7 @@ class ApiClient:
         This method is decorated with retry_request for automatic retries.
         """
         url = f"{self.base_url}{endpoint}"
-        return self.session.get(url, params=params)
+        return self.session.get(url, params=params, timeout=API_TIMEOUT)
 
     def fetch_all(
         self,
