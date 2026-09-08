@@ -7,6 +7,7 @@ from requests.adapters import HTTPAdapter
 from requests.exceptions import SSLError
 
 from data_pipelines_annuaire.config import RNE_API_DIFF_URL, RNE_API_TOKEN_URL, RNE_AUTH
+from data_pipelines_annuaire.helpers.api_client import API_TIMEOUT
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,9 @@ class ApiRNEClient:
         try:
             selected_auth = random.choice(self.auth)
             logger.info(f"Authentification account used: {selected_auth['username']}")
-            response = self.session.post(RNE_API_TOKEN_URL, json=selected_auth)
+            response = self.session.post(
+                RNE_API_TOKEN_URL, json=selected_auth, timeout=API_TIMEOUT
+            )
             response.raise_for_status()
             token = response.json()["token"]
             logger.info("New token received...")
@@ -91,7 +94,7 @@ class ApiRNEClient:
                     logger.info("Getting new token...")
                     self.token = self.get_new_token()
                 headers = {"Authorization": f"Bearer {self.token}"}
-                response = self.session.get(url, headers=headers)
+                response = self.session.get(url, headers=headers, timeout=API_TIMEOUT)
                 response.raise_for_status()
                 response = response.json()
                 last_siren = self.get_last_siren_in_page(response)
