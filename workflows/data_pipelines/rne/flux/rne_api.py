@@ -95,7 +95,13 @@ class ApiRNEClient:
                 response.raise_for_status()
                 response = response.json()
                 last_siren = self.get_last_siren_in_page(response)
-                logger.info(f"%%%%%%% LAST SIREN : {last_siren}")
+                if last_siren is None:
+                    logger.info(
+                        "Empty page : every SIREN updated between "
+                        f"{start_date} and {end_date} has been fetched."
+                    )
+                else:
+                    logger.info(f"LAST SIREN : {last_siren}")
                 return response, last_siren
 
             except Exception as e:
