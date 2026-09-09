@@ -3,7 +3,11 @@ import re
 
 import pandas as pd
 
-from data_pipelines_annuaire.helpers.utils import keep_only_numbers, parse_json_safe
+from data_pipelines_annuaire.helpers.utils import (
+    keep_only_numbers,
+    normalize_string,
+    parse_json_safe,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +20,18 @@ def fix_mojibake(text: str) -> str:
         return text.encode("latin-1").decode("utf-8")
     except (UnicodeDecodeError, UnicodeEncodeError):
         return text
+
+
+def normalize_greffe(greffe: str) -> str | None:
+    """
+    Normalise un nom de greffe pour le rendre comparable d'une annonce à l'autre.
+    Le même greffe est saisi avec des casses et des séparateurs variables
+    (e.g. "ANGOULEME", "Angoulême", "Aix-en-Provence", "AIX EN PROVENCE").
+    """
+    if pd.isna(greffe) or not greffe:
+        return None
+    normalized = normalize_string(fix_mojibake(str(greffe)))
+    return re.sub(r"[^a-z0-9]+", " ", normalized).strip() or None
 
 
 def parse_date_bodacc(date_str: str) -> str:
@@ -265,6 +281,50 @@ def _extract_sirens_from_personne(listepersonnes: str) -> list[str]:
         if siren and siren not in sirens:
             sirens.append(siren)
     return sirens
+
+
+def _extract_sirens_greffes_from_personne(listepersonnes: str) -> list[tuple[str, str]]:
+    """
+    Extrait les couples (siren, greffe d'immatriculation) depuis listepersonnes.
+    """
+    data = parse_json_safe(listepersonnes)
+    if not data:
+        return []
+
+    # Selon les annonces `personne` est un objet ou une liste
+    personnes = data.get("personne", [])
+    if not isinstance(personnes, list):
+        personnes = [personnes]
+
+    couples: list[tuple[str, str]] = []
+    for personne in personnes:
+        if not isinstance(personne, dict):
+            continue
+        siren = None
+        greffe = None
+        immat_rcs = personne.get("numeroImmatriculation")
+        if isinstance(immat_rcs, dict):
+            siren = immat_rcs.get("numeroIdentification")
+            greffe = normalize_greffe(immat_rcs.get("nomGreffeImmat"))
+        if not siren:
+            immat_rm = personne.get("inscriptionRM")
+            if isinstance(immat_rm, dict):
+                siren = immat_rm.get("numeroIdentificationRM")
+        siren = keep_only_numbers(siren)
+        if siren and not any(siren == s for s, _ in couples):
+            couples.append((siren, greffe))
+    return couples
+
+
+def extract_sirens_greffes_from_listepersonnes(df: pd.DataFrame) -> pd.DataFrame:
+    """Éclate listepersonnes en une ligne par couple (siren, greffe)."""
+    df = df.copy()
+    df["_couples"] = df["listepersonnes"].apply(_extract_sirens_greffes_from_personne)
+    df = df[df["_couples"].apply(len) > 0]
+    df = df.explode("_couples", ignore_index=True)
+    df["siren"] = df["_couples"].str[0]
+    df["greffe"] = df["_couples"].str[1]
+    return df.drop(columns="_couples")
 
 
 def extract_sirens_from_listepersonnes(df: pd.DataFrame) -> pd.DataFrame:

@@ -4,8 +4,15 @@ import sqlite3
 import pandas as pd
 import pytest
 
+from data_pipelines_annuaire.workflows.data_pipelines.bodacc.annonces_couples import (
+    process_annonces_couples,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.config import (
+    ANNONCES_COUPLES_CONFIG,
+    BODACC_CONFIG,
+    CREATIONS_CONFIG,
     RADIATIONS_CONFIG,
+    build_annonces_couples_url,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.creations import (
     _parse_creation_date,
@@ -24,9 +31,11 @@ from data_pipelines_annuaire.workflows.data_pipelines.bodacc.radiations import (
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
     _extract_sirens_from_personne,
     extract_sirens_from_listepersonnes,
+    extract_sirens_greffes_from_listepersonnes,
     fix_mojibake,
     get_previous_ids_to_discard,
     get_processed_ids_to_discard,
+    normalize_greffe,
     parse_date_bodacc,
     process_discarded_announcements,
 )
@@ -707,7 +716,14 @@ def test_process_creations_filters_annulation(tmp_path):
 @pytest.fixture
 def radiations_db():
     conn = sqlite3.connect(":memory:")
-    conn.executescript(RADIATIONS_CONFIG.table_ddl)
+    # Les tables BODACC sont créées depuis leur DDL de production pour que le
+    # test échoue si un post-traitement interroge une colonne qui n'existe pas.
+    for config in (
+        RADIATIONS_CONFIG,
+        CREATIONS_CONFIG,
+        ANNONCES_COUPLES_CONFIG,
+    ):
+        conn.executescript(config.table_ddl)
     conn.executescript(
         """
         CREATE TABLE unite_legale (
@@ -722,7 +738,6 @@ def radiations_db():
             date_debut_activite DATE
         );
         CREATE TABLE immatriculation (siren TEXT, date_immatriculation DATE);
-        CREATE TABLE bodacc_creations (siren TEXT, date DATE);
         """
     )
     yield conn
@@ -747,7 +762,7 @@ def test_post_processing_accumulates_visibility_reasons(radiations_db):
             VALUES ('111111111', 'A1', 1, '2020-01-01');
         INSERT INTO unite_legale VALUES ('111111111', '1000', 'A');
         INSERT INTO etablissement VALUES ('111111111', 'A', '2021-05-01', '2021-05-01');
-        INSERT INTO bodacc_creations VALUES ('111111111', '2021-06-01');
+        INSERT INTO bodacc_creations (siren, date) VALUES ('111111111', '2021-06-01');
         """
     )
 
@@ -792,3 +807,252 @@ def test_post_processing_keeps_unmatched_radiation_visible(radiations_db):
 
     assert visibility == 1
     assert reason == "visible_by_default"
+
+
+# normalize_greffe()
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        ("Aix-en-Provence", "aix en provence"),
+        ("AIX EN PROVENCE", "aix en provence"),
+        ("ANGOULEME", "angouleme"),
+        ("Alençon", "alencon"),
+        ("  Saverne  ", "saverne"),
+        ("", None),
+        (None, None),
+        ("---", None),
+    ],
+)
+def test_normalize_greffe(input, expected):
+    assert normalize_greffe(input) == expected
+
+
+def test_normalize_greffe_handles_nan():
+    assert normalize_greffe(float("nan")) is None
+
+
+# post-traitement : transfert de siège, comparaison des communes
+
+
+# extract_sirens_greffes_from_listepersonnes()
+
+
+def test_extract_sirens_greffes():
+    df = pd.DataFrame(
+        {
+            "listepersonnes": [
+                json.dumps(
+                    {
+                        "personne": {
+                            "numeroImmatriculation": {
+                                "numeroIdentification": "841 511 421",
+                                "nomGreffeImmat": "Aix-en-Provence",
+                            }
+                        }
+                    }
+                )
+            ]
+        }
+    )
+
+    result = extract_sirens_greffes_from_listepersonnes(df)
+
+    assert result["siren"].tolist() == ["841511421"]
+    assert result["greffe"].tolist() == ["aix en provence"]
+
+
+def test_extract_sirens_greffes_without_greffe():
+    # Inscription au répertoire des métiers : pas de greffe d'immatriculation.
+    df = pd.DataFrame(
+        {
+            "listepersonnes": [
+                json.dumps(
+                    {
+                        "personne": {
+                            "inscriptionRM": {"numeroIdentificationRM": "111 111 111"}
+                        }
+                    }
+                )
+            ]
+        }
+    )
+
+    result = extract_sirens_greffes_from_listepersonnes(df)
+
+    assert result["siren"].tolist() == ["111111111"]
+    assert result["greffe"].isna().all()
+
+
+# process_annonces()
+
+
+def _personne(siren, greffe):
+    return json.dumps(
+        {
+            "personne": {
+                "numeroImmatriculation": {
+                    "numeroIdentification": siren,
+                    "nomGreffeImmat": greffe,
+                }
+            }
+        }
+    )
+
+
+def test_process_annonces_keeps_latest_per_siren_and_greffe(tmp_path):
+    raw = tmp_path / "annonces-raw.csv"
+    pd.DataFrame(
+        {
+            "listepersonnes": [
+                _personne("841 511 421", "Saverne"),
+                _personne("841 511 421", "Metz"),
+                _personne("841 511 421", "Metz"),
+                _personne("222 222 222", "Nantes"),
+            ],
+            "dateparution": ["2024-10-10", "2024-11-22", "2025-03-01", "2020-01-01"],
+        }
+    ).to_csv(raw, sep=";", index=False)
+
+    df = process_annonces_couples(str(raw), chunk_size=2)
+
+    couples = {
+        (r.siren, r.greffe): r.date_publication for r in df.itertuples(index=False)
+    }
+    assert couples[("841511421", "saverne")] == pd.Timestamp("2024-10-10")
+    assert couples[("841511421", "metz")] == pd.Timestamp("2025-03-01")
+    assert couples[("222222222", "nantes")] == pd.Timestamp("2020-01-01")
+    assert len(df) == 3
+
+
+def test_process_annonces_merges_previous_couples(tmp_path):
+    raw = tmp_path / "annonces-raw.csv"
+    pd.DataFrame(
+        {
+            "listepersonnes": [
+                _personne("841 511 421", "Metz"),
+                _personne("333 333 333", "Lyon"),
+            ],
+            "dateparution": ["2025-03-01", "2025-02-02"],
+        }
+    ).to_csv(raw, sep=";", index=False)
+
+    previous = tmp_path / "annonces-couples.csv"
+    pd.DataFrame(
+        {
+            "siren": ["841511421", "841511421", "222222222"],
+            "greffe": ["saverne", "metz", "nantes"],
+            "date_publication": ["2024-10-10", "2024-11-22", "2020-01-01"],
+        }
+    ).to_csv(previous, index=False)
+
+    df = process_annonces_couples(
+        str(raw), chunk_size=2, previous_couples_url=str(previous)
+    )
+
+    couples = {
+        (r.siren, r.greffe): r.date_publication for r in df.itertuples(index=False)
+    }
+    # La fenêtre glissante rafraîchit la parution du couple déjà connu..
+    assert couples[("841511421", "metz")] == pd.Timestamp("2025-03-01")
+    # ..conserve ceux qu'elle ne couvre pas..
+    assert couples[("841511421", "saverne")] == pd.Timestamp("2024-10-10")
+    assert couples[("222222222", "nantes")] == pd.Timestamp("2020-01-01")
+    # ..et ajoute les nouveaux.
+    assert couples[("333333333", "lyon")] == pd.Timestamp("2025-02-02")
+    assert len(df) == 4
+
+
+def test_process_annonces_keeps_couples_with_unparsable_dates(tmp_path):
+    raw = tmp_path / "annonces-raw.csv"
+    pd.DataFrame(
+        {
+            "listepersonnes": [_personne("841 511 421", "Metz")],
+            "dateparution": ["pas une date"],
+        }
+    ).to_csv(raw, sep=";", index=False)
+
+    df = process_annonces_couples(str(raw), chunk_size=2)
+
+    # La date illisible devient nulle : le couple est conservé mais reste inerte,
+    # la comparaison avec la date de radiation ne peut jamais être vraie.
+    assert len(df) == 1
+    assert df["date_publication"].isna().all()
+
+
+# construction des URLs de téléchargement
+
+
+def test_build_annonces_couples_url_restricts_to_a_rolling_window():
+    assert "dateparution+%3E%3D+now%28months%3D-3%29" in build_annonces_couples_url(3)
+    assert "now" not in build_annonces_couples_url(None)
+
+
+def test_download_urls_only_select_the_processed_columns():
+    for name, params in BODACC_CONFIG.files_to_download.items():
+        assert "select=" in params["url"], name
+
+
+# post-traitement : transferts de sièges
+
+
+def _insert_radiation(conn, siren, greffe, date_publication):
+    conn.execute(
+        "INSERT INTO bodacc_radiations "
+        "(siren, id_annonce, est_radie, greffe, date_publication) VALUES (?,?,1,?,?)",
+        (siren, f"A-{siren}", greffe, date_publication),
+    )
+
+
+def _insert_annonce(conn, siren, greffe, date_publication):
+    conn.execute(
+        "INSERT INTO bodacc_annonces_couples (siren, greffe, date_publication) VALUES (?,?,?)",
+        (siren, greffe, date_publication),
+    )
+
+
+def test_transfert_de_siege_hidden_when_later_annonce_elsewhere(radiations_db):
+    # AUTOSPACE : radiée par Saverne, réimmatriculée à Metz un mois plus tard.
+    _insert_radiation(radiations_db, "841511421", "saverne", "2024-10-10")
+    _insert_annonce(radiations_db, "841511421", "metz", "2024-11-22")
+
+    visibility, reason = _run_post_processing(radiations_db)["841511421"]
+
+    assert visibility == 0
+    assert reason == "transfert_de_siege"
+
+
+def test_radiation_reelle_when_nothing_follows(radiations_db):
+    _insert_radiation(radiations_db, "222222222", "metz", "2020-06-01")
+
+    visibility, reason = _run_post_processing(radiations_db)["222222222"]
+
+    assert visibility == 1
+    assert reason == "visible_by_default"
+
+
+def test_radiation_reelle_when_later_annonces_same_greffe(radiations_db):
+    # Clôture de liquidation ou dépôt de comptes tardif : même greffe, la
+    # radiation reste réelle.
+    _insert_radiation(radiations_db, "333333333", "metz", "2020-06-01")
+    _insert_annonce(radiations_db, "333333333", "metz", "2021-02-01")
+    _insert_annonce(radiations_db, "333333333", "metz", "2022-09-01")
+
+    assert _run_post_processing(radiations_db)["333333333"][0] == 1
+
+
+def test_radiation_reelle_when_other_greffe_is_anterior(radiations_db):
+    # L'entreprise a transféré son siège puis est morte à destination : l'annonce
+    # d'un autre greffe précède la radiation, elle ne la disqualifie pas.
+    _insert_radiation(radiations_db, "444444444", "nantes", "2020-06-01")
+    _insert_annonce(radiations_db, "444444444", "rennes", "2015-01-01")
+
+    assert _run_post_processing(radiations_db)["444444444"][0] == 1
+
+
+def test_transfert_de_siege_ignores_radiation_without_greffe(radiations_db):
+    _insert_radiation(radiations_db, "555555555", None, "2020-06-01")
+    _insert_annonce(radiations_db, "555555555", "bayonne", "2021-01-01")
+
+    assert _run_post_processing(radiations_db)["555555555"][0] == 1

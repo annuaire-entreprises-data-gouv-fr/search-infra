@@ -545,13 +545,13 @@ def simplify_date(datetime_str: str) -> str:
 
 
 def download_file(download_url: str, destination_path: str) -> None:
-    logger.info(f"Downloading file from {download_url}..")
+    logger.info(f"Downloading file from {download_url}")
 
     response = requests.get(download_url, stream=True)
     response.raise_for_status()
 
     with open(destination_path, "wb") as file:
-        file.writelines(response.iter_content(chunk_size=1024))
+        file.writelines(response.iter_content(chunk_size=1024 * 1024))
 
     logger.info(f"..download successful! File located in {destination_path}.")
 
