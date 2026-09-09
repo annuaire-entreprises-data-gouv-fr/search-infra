@@ -30,6 +30,11 @@ MONTH_MAPPING = {
     "novembre": "11",
     "decembre": "12",
 }
+# Suffix to differentiate the transformed file from the original
+TRANSFORMED_FILE_SUFFIXES = {
+    "stock_etablissement": "_with_gps",
+}
+
 logger = logging.getLogger(__name__)
 
 
@@ -105,9 +110,48 @@ class SireneStockProcessor(DataProcessor):
         ) as zipf:
             # by default zip is conserving the whole directory structure (e.g. /tmp/sirene/stock..)
             # arcname allow to overwrite this
-            zipf.write(output_csv, arcname="StockEtablissement_utf8_with_gps.csv")
+            zipf.write(output_csv, arcname="StockEtablissement_utf8.csv")
 
         logger.info("Stock etablissement coordinates conversion completed.")
+
+    @staticmethod
+    def deduplicate_doublons(df_doublons: pd.DataFrame) -> pd.DataFrame:
+        """
+        In the rare case where a `siren_doublon` is linked to multiple `siren_pivot`,
+        we shall keep only the most recent. If this is not enough, we shall keep the
+        greatest `siren_pivot` as it is likely the last created.
+        """
+        return (
+            df_doublons.sort_values(
+                ["siren_doublon", "date_dernier_traitement_doublon", "siren_pivot"]
+            )
+            .drop_duplicates(subset="siren_doublon", keep="last")
+            .reset_index(drop=True)
+        )
+
+    def deduplicate_stock_doublons(self):
+        zip_path = self.config.files_to_download["doublons"]["destination"]
+        csv_filename = "StockDoublons_utf8.csv"
+        csv_path = f"{self.config.tmp_folder}{csv_filename}"
+
+        logger.info(f"Extracting {zip_path}...")
+        shutil.unpack_archive(zip_path, self.config.tmp_folder)
+
+        # The header separates the column names with ", "
+        df_doublons = pd.read_csv(csv_path, dtype=str, skipinitialspace=True).rename(
+            columns={
+                "siren": "siren_pivot",
+                "sirenDoublon": "siren_doublon",
+                "dateDernierTraitementDoublon": "date_dernier_traitement_doublon",
+            }
+        )
+        self.deduplicate_doublons(df_doublons).to_csv(csv_path, index=False)
+
+        logger.info(f"Compressing output file {csv_path} to {zip_path}...")
+        with zipfile.ZipFile(zip_path, "w") as zipf:
+            zipf.write(csv_path, arcname=csv_filename)
+
+        logger.info("Stock doublons deduplication completed.")
 
     def send_stock_to_object_storage(self):
 
@@ -116,14 +160,10 @@ class SireneStockProcessor(DataProcessor):
         for key, file_config in self.config.files_to_download.items():
             original_filename = file_config["destination"].split("/")[-1]
 
-            if key == "stock_etablissement":
-                source_name = original_filename.replace(".zip", "_with_gps.zip")
-                dest_name = self.stock_filename(source_name, file_config["resource_id"])
-            else:
-                source_name = original_filename
-                dest_name = self.stock_filename(
-                    original_filename, file_config["resource_id"]
-                )
+            source_name = original_filename.replace(
+                ".zip", f"{TRANSFORMED_FILE_SUFFIXES.get(key, '')}.zip"
+            )
+            dest_name = self.stock_filename(source_name, file_config["resource_id"])
 
             files_to_send.append(
                 File(

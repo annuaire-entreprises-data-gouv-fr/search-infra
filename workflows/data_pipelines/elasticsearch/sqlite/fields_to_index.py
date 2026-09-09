@@ -24,6 +24,7 @@ select_fields_to_index_query = """SELECT
             ul.prenom as prenom,
             ul.sigle as sigle,
             ul.siren,
+            (SELECT siren_pivot FROM doublons WHERE siren_doublon = ul.siren) as siren_pivot,
             st.siret as siret_siege,
             ul.tranche_effectif_salarie_unite_legale as
             tranche_effectif_salarie_unite_legale,
