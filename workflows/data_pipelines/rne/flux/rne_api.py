@@ -3,19 +3,23 @@ import random
 import time
 
 import requests
-from requests.adapters import HTTPAdapter
 from requests.exceptions import SSLError
 
 from data_pipelines_annuaire.config import RNE_API_DIFF_URL, RNE_API_TOKEN_URL, RNE_AUTH
+from data_pipelines_annuaire.helpers.api_client import API_TIMEOUT
+from data_pipelines_annuaire.helpers.retry import BASE_DELAY, retry_delay
 
 logger = logging.getLogger(__name__)
+
+# The RNE API quota is bound to an account, only time will lift a 429
+RATE_LIMITED_BASE_DELAY = 5 * 60
 
 
 class ApiRNEClient:
     """API client for interacting with the
     Registre National des Entreprises (RNE) API."""
 
-    def __init__(self, max_retries=100):
+    def __init__(self, max_retries=8):
         """
         Initializes the API client.
 
@@ -26,16 +30,9 @@ class ApiRNEClient:
             max_retries (int): Maximum number of retries for API requests.
         """
         self.auth = RNE_AUTH
-        self.session = self.create_persistent_session()
+        self.session = requests.Session()
         self.token = self.get_new_token()
         self.max_retries = max_retries
-
-    def create_persistent_session(self):
-        """Create a session with a custom HTTP adapter for max retries."""
-        session = requests.Session()
-        adapter = HTTPAdapter(max_retries=20)
-        session.mount("http://", adapter)
-        return session
 
     def get_new_token(self) -> str | None:
         """
@@ -47,7 +44,9 @@ class ApiRNEClient:
         try:
             selected_auth = random.choice(self.auth)
             logger.info(f"Authentification account used: {selected_auth['username']}")
-            response = self.session.post(RNE_API_TOKEN_URL, json=selected_auth)
+            response = self.session.post(
+                RNE_API_TOKEN_URL, json=selected_auth, timeout=API_TIMEOUT
+            )
             response.raise_for_status()
             token = response.json()["token"]
             logger.info("New token received...")
@@ -83,6 +82,7 @@ class ApiRNEClient:
         if last_siren:
             url += f"&searchAfter={last_siren}"
 
+        waits = 0
         for attempt in range(self.max_retries + 1):
             if attempt > 0:
                 logger.info(f"Making API call try : {attempt}")
@@ -91,7 +91,7 @@ class ApiRNEClient:
                     logger.info("Getting new token...")
                     self.token = self.get_new_token()
                 headers = {"Authorization": f"Bearer {self.token}"}
-                response = self.session.get(url, headers=headers)
+                response = self.session.get(url, headers=headers, timeout=API_TIMEOUT)
                 response.raise_for_status()
                 response = response.json()
                 last_siren = self.get_last_siren_in_page(response)
@@ -99,23 +99,31 @@ class ApiRNEClient:
                 return response, last_siren
 
             except Exception as e:
-                if hasattr(e, "response") and e.response.status_code in [401, 403, 429]:
+                error_response = getattr(e, "response", None)
+                status_code = getattr(error_response, "status_code", None)
+                body = getattr(error_response, "text", "") or ""
+                logger.error(
+                    f"API request failed on {url} "
+                    f"with status {status_code}: {e}. Response: {body[:500]}"
+                )
+                base_delay = BASE_DELAY
+                if status_code == 429:
+                    logger.warning("Rate limited by the RNE API.")
+                    base_delay = RATE_LIMITED_BASE_DELAY
+                elif status_code in [401, 403]:
                     self.token = self.get_new_token()
-                    logger.info("Got a new access token and retrying...")
-                elif hasattr(e, "response") and e.response.status_code == 500:
-                    if "Allowed memory size of" in str(e.response.content):
+                    logger.info("Got a new access token.")
+                elif status_code == 500:
+                    if "Allowed memory size of" in str(error_response.content):
                         url = url.replace("pageSize=100", "pageSize=1")
                         logger.info(f"***Memory Error changing page size to 1 : {url}")
                     else:
-                        logger.info(f"***Error HTTP: {e}")
                         url = url.replace("pageSize=100", "pageSize=5")
                         logger.info(f"***Changing page size to 5: {url}")
-                        time.sleep(60)
-                else:
-                    logger.error(f"Error occurred while making API request: {e}")
-                    if attempt < self.max_retries:
-                        time.sleep(60)
-                    else:
-                        raise Exception(
-                            "Max retries reached. Unable to establish a connection."
-                        )
+
+                delay = retry_delay(waits, base_delay=base_delay)
+                waits += 1
+                logger.info(f"Waiting {delay:.1f} seconds before the next try...")
+                time.sleep(delay)
+
+        raise Exception(f"Max retries reached ({self.max_retries})")

@@ -7,10 +7,16 @@ from typing import Any, ParamSpec, TypeVar
 from airflow.sdk import Variable
 from requests import RequestException, Response, Session
 
+from data_pipelines_annuaire.helpers.retry import retry_delay
+
 P = ParamSpec("P")
 R = TypeVar("R", bound=Response)
 
 logger = logging.getLogger(__name__)
+
+# Requests has no default timeout
+# (connect, read) in seconds
+API_TIMEOUT = (10, 120)
 
 
 def retry_request(
@@ -42,7 +48,7 @@ def retry_request(
                             logger.info(f"Status code : {code}")
                             return response
                         case 429 | 502 | 503 | 504:
-                            sleep_time = backoff_factor * (2**retries)
+                            sleep_time = retry_delay(retries, base_delay=backoff_factor)
                             logger.warning(
                                 f"Retryable error: {response.status_code}. "
                                 f"Sleeping for {sleep_time} seconds..."
@@ -105,7 +111,7 @@ class ApiClient:
         This method is decorated with retry_request for automatic retries.
         """
         url = f"{self.base_url}{endpoint}"
-        return self.session.get(url, params=params)
+        return self.session.get(url, params=params, timeout=API_TIMEOUT)
 
     def fetch_all(
         self,

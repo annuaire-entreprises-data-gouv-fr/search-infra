@@ -21,7 +21,7 @@ default_args = {
     schedule="0 1 * * *",  # Run every day at 1 AM
     start_date=datetime(2026, 1, 1, tzinfo=UTC),
     max_active_runs=1,
-    dagrun_timeout=timedelta(days=30),
+    dagrun_timeout=timedelta(days=7),
     params={},
     catchup=False,
     on_failure_callback=[Notification(), EmailNotification(to=EMAIL_LIST)],
