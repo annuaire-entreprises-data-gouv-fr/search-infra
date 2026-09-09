@@ -3,7 +3,11 @@ from datetime import UTC, datetime, timedelta
 from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST
-from data_pipelines_annuaire.helpers import EmailNotification, Notification, force_rebuild_params
+from data_pipelines_annuaire.helpers import (
+    EmailNotification,
+    Notification,
+    force_rebuild_params,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.processor import (
     BodaccProcessor,
 )
