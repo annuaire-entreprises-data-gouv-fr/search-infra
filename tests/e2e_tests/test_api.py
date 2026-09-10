@@ -1103,3 +1103,204 @@ def test_successions(api_response_tester):
     assert "successions" not in ul.get("siege", {})
     assert "successions" not in ul.get("matching_etablissements", {})[0]
     assert "successions" in ul.get("etablissements", {})[0]
+
+
+def test_health_elastic_ok(api_response_tester):
+    path = "/health/elastic"
+    api_response_tester.assert_api_response_code_200(path)
+
+
+def test_search_fondation(api_response_tester):
+    """
+    test if searching a fondation by its title returns it first.
+    """
+    path = "/fondation?q=fonds de dotation pro bono lab"
+    api_response_tester.assert_api_response_code_200(path)
+    api_response_tester.test_field_value(path, 0, "numero_rnf", "092-FDD-00061-08")
+    api_response_tester.test_field_value(path, 0, "siren", "812333425")
+
+
+def test_search_fondation_by_numero_rnf(api_response_tester):
+    """
+    test if a `numéro RNF` query returns the matching fondation directly.
+    """
+    path = "/fondation?q=092-FDD-00061-08"
+    api_response_tester.assert_api_response_code_200(path)
+    response = api_response_tester.get_api_response(path)
+    assert response.json()["total_results"] == 1
+    fondation = response.json()["results"][0]
+    assert fondation["numero_rnf"] == "092-FDD-00061-08"
+    assert fondation["denomination"] == "FONDS DE DOTATION PRO BONO LAB"
+    assert fondation["type_organisme"] == "FDD"
+    assert fondation["date_creation"] == "2015-02-04"
+    assert fondation["siret"] == "81233342500013"
+
+
+def test_search_fondation_by_numero_rnf_is_case_insensitive(api_response_tester):
+    """
+    test if a lowercase `numéro RNF` query returns the matching fondation.
+    """
+    path = "/fondation?q=092-fdd-00061-08"
+    api_response_tester.assert_api_response_code_200(path)
+    api_response_tester.test_field_value(path, 0, "numero_rnf", "092-FDD-00061-08")
+
+
+def test_search_fondation_by_siren(api_response_tester):
+    """
+    Make sure a SIREN query returns the matching fondation directly.
+    """
+    path = "/fondation?q=812333425"
+    api_response_tester.assert_api_response_code_200(path)
+    response = api_response_tester.get_api_response(path)
+    assert response.json()["total_results"] == 1
+    fondation = response.json()["results"][0]
+    assert fondation["numero_rnf"] == "092-FDD-00061-08"
+    assert fondation["siren"] == "812333425"
+
+
+def test_search_fondation_by_siren_with_spaces(api_response_tester):
+    """
+    Make sure if a spaced SIREN returns the matching fondation.
+    """
+    path = "/fondation?q= 812 333  425 "
+    api_response_tester.assert_api_response_code_200(path)
+    api_response_tester.test_field_value(path, 0, "numero_rnf", "092-FDD-00061-08")
+
+
+def test_search_siren_that_is_not_a_fondation(api_response_tester):
+    """
+    Make sure an existing SIREN that is not a fondation returns an empty payload.
+    """
+    path = "/fondation?q=356000000"  # La Poste
+    api_response_tester.assert_api_response_code_200(path)
+    response = api_response_tester.get_api_response(path)
+    assert response.json()["total_results"] == 0
+    assert response.json()["results"] == []
+
+
+def test_search_fondation_without_siret(api_response_tester):
+    """
+    test if fondations the RNF does not link to an établissement are searchable.
+    """
+    path = "/fondation?q=fonds de dotation savoie mont-blanc"
+    api_response_tester.assert_api_response_code_200(path)
+    response = api_response_tester.get_api_response(path)
+    fondation = response.json()["results"][0]
+    assert fondation["numero_rnf"] == "073-FDD-00072-04"
+    assert fondation["siren"] is None
+    assert fondation["siret"] is None
+
+
+def test_search_fondation_without_siret_by_numero_rnf(api_response_tester):
+    """
+    test if a fondation indexed without a siret is retrievable by `numéro RNF`.
+    """
+    path = "/fondation?q=073-FDD-00072-04"
+    api_response_tester.assert_api_response_code_200(path)
+    response = api_response_tester.get_api_response(path)
+    fondation = response.json()["results"][0]
+    assert fondation["numero_rnf"] == "073-FDD-00072-04"
+    assert fondation["siret"] is None
+
+
+def test_search_unknown_numero_rnf(api_response_tester):
+    """
+    test if a well-formed but unknown `numéro RNF` returns no result.
+    """
+    path = "/fondation?q=999-FDD-99999-99"
+    api_response_tester.assert_api_response_code_200(path)
+    response = api_response_tester.get_api_response(path)
+    assert response.json()["total_results"] == 0
+    assert response.json()["results"] == []
+
+
+def test_search_fondation_requires_query(api_response_tester):
+    """
+    test if searching fondations without `q` returns an error.
+    """
+    path = "fondation"
+    api_response_tester.assert_api_response_code_400(path)
+    response = api_response_tester.get_api_response(path)
+    assert (
+        response.json()["erreur"]
+        == "Veuillez indiquer au moins un paramètre de recherche."
+    )
+
+
+def test_search_fondation_refuses_short_terms(api_response_tester):
+    """
+    test if a query shorter than three characters returns an error.
+    """
+    path = "/fondation?q=ab"
+    api_response_tester.assert_api_response_code_400(path)
+    response = api_response_tester.get_api_response(path)
+    assert response.json()["erreur"] == (
+        "3 caractères minimum pour les termes de la requête"
+    )
+
+
+def test_search_fondation_ignores_unknown_parameters(api_response_tester):
+    """
+    test that unknown parameters are silently ignored, as on `/search`.
+    """
+    path = "/fondation?q=fonds de dotation pro bono lab"
+    api_response_tester.assert_api_response_code_200(path)
+    expected = api_response_tester.get_api_response(path).json()
+
+    path_with_unknown_params = f"{path}&est_bio=true"
+    api_response_tester.assert_api_response_code_200(path_with_unknown_params)
+    response = api_response_tester.get_api_response(path_with_unknown_params).json()
+    assert response["results"] == expected["results"]
+
+
+def test_search_fondation_excluded_from_text_search(api_response_tester):
+    """
+    test that fondations indexed without a siret never leak into `/search`.
+    """
+    path = "/search?q=fonds de dotation savoie mont-blanc"
+    api_response_tester.assert_api_response_code_200(path)
+    results = api_response_tester.get_api_response(path).json()["results"]
+    assert all(result.get("siren") for result in results)
+
+
+def test_siren_pivot_doublon(api_response_tester):
+    """
+    test if a SIREN doublon returns its SIREN pivot.
+    """
+    path = "/search?q=106305808"
+    api_response_tester.assert_api_response_code_200(path)
+    api_response_tester.test_field_value(path, 0, "siren", "106305808")
+    api_response_tester.test_field_value(path, 0, "siren_pivot", "106106172")
+
+
+def test_siren_pivot_null_when_not_doublon(api_response_tester):
+    """
+    test if siren_pivot is present and null when the SIREN is not a doublon.
+    """
+    path = "/search?q=356000000"
+    api_response_tester.assert_api_response_code_200(path)
+    unite_legale = api_response_tester.get_api_response(path).json()["results"][0]
+    assert "siren_pivot" in unite_legale
+    assert unite_legale["siren_pivot"] is None
+
+
+def test_siren_pivot_in_minimal_response(api_response_tester):
+    """
+    test if siren_pivot is returned in the minimal response.
+    """
+    path = "/search?q=106305808&minimal=True"
+    api_response_tester.assert_api_response_code_200(path)
+    unite_legale = api_response_tester.get_api_response(path).json()["results"][0]
+    assert unite_legale["siren_pivot"] == "106106172"
+
+
+def test_siren_pivot_is_not_searchable(api_response_tester):
+    """
+    test if `siren_pivot` has no impact on the search. Searching for the pivot
+    SIREN returns the pivot unité légale, not the doublon pointing to it.
+    """
+    path = "/search?q=106106172"
+    api_response_tester.assert_api_response_code_200(path)
+    api_response_tester.test_field_value(path, 0, "siren", "106106172")
+    results = api_response_tester.get_api_response(path).json()["results"]
+    assert "106305808" not in [result.get("siren") for result in results]
