@@ -245,8 +245,8 @@ class SiegeMapping(InnerDoc):
 
 
 class EluMapping(InnerDoc):
-    nom = Text()
-    prenom = Text()
+    nom = Text(analyzer=annuaire_analyzer)
+    prenom = Text(analyzer=annuaire_analyzer)
     date_naissance = Date()
     sexe = Keyword()
     fonction = Text()
