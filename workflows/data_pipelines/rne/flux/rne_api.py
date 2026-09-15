@@ -95,7 +95,13 @@ class ApiRNEClient:
                 response.raise_for_status()
                 response = response.json()
                 last_siren = self.get_last_siren_in_page(response)
-                logger.info(f"%%%%%%% LAST SIREN : {last_siren}")
+                if last_siren is None:
+                    logger.info(
+                        "Empty page: every SIREN updated between "
+                        f"{start_date} and {end_date} has been fetched."
+                    )
+                else:
+                    logger.info(f"LAST SIREN: {last_siren}")
                 return response, last_siren
 
             except Exception as e:
@@ -103,23 +109,25 @@ class ApiRNEClient:
                 status_code = getattr(error_response, "status_code", None)
                 body = getattr(error_response, "text", "") or ""
                 logger.error(
-                    f"API request failed on {url} "
-                    f"with status {status_code}: {e}. Response: {body[:500]}"
+                    f"API request failed on {url}\n"
+                    f"With status {status_code}: {e}.\n"
+                    f"Response: {body[:500]}"
                 )
                 base_delay = BASE_DELAY
                 if status_code == 429:
-                    logger.warning("Rate limited by the RNE API.")
+                    logger.warning("Rate limited by the RNE API (429).")
                     base_delay = RATE_LIMITED_BASE_DELAY
                 elif status_code in [401, 403]:
+                    logger.info("Authorization refused (401/403).")
                     self.token = self.get_new_token()
-                    logger.info("Got a new access token.")
                 elif status_code == 500:
+                    logger.info("Memory Error (500)..")
                     if "Allowed memory size of" in str(error_response.content):
                         url = url.replace("pageSize=100", "pageSize=1")
-                        logger.info(f"***Memory Error changing page size to 1 : {url}")
+                        logger.info(f".. changing page size to 1: {url}")
                     else:
                         url = url.replace("pageSize=100", "pageSize=5")
-                        logger.info(f"***Changing page size to 5: {url}")
+                        logger.info(f".. changing page size to 5: {url}")
 
                 delay = retry_delay(waits, base_delay=base_delay)
                 waits += 1

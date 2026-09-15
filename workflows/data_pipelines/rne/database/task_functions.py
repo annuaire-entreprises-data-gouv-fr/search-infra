@@ -2,7 +2,6 @@ import gzip
 import json
 import logging
 import os
-import re
 import shutil
 from datetime import datetime, timedelta
 
@@ -26,6 +25,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.rne.database.process_rne i
     get_tables_count,
     inject_records_into_db,
     remove_duplicates_from_tables,
+)
+from data_pipelines_annuaire.workflows.data_pipelines.rne.flux.flux_tasks import (
+    RneFluxFile,
 )
 
 logger = logging.getLogger(__name__)
@@ -203,54 +205,50 @@ def process_flux_json_files():
         start_date = "0000-00-00"
 
     # Process last flux file (no longer ignored because it may be incomplete)
-    json_daily_flux_files = sorted(json_daily_flux_files, reverse=False)
-    # json_daily_flux_files = json_daily_flux_files[:-1]
+    flux_files = sorted(
+        flux_file
+        for flux_file in map(RneFluxFile.parse, json_daily_flux_files)
+        if flux_file
+    )
 
     json_decode_error_count = 0
-    for file_path in json_daily_flux_files:
-        date_match = re.search(r"rne_flux_(\d{4}-\d{2}-\d{2})", file_path)
-        if date_match:
-            file_date = date_match.group(1)
-            if file_date >= start_date:
-                logger.info(f"Processing file {file_path} with date {file_date}")
-                object_storage_client.get_files(
-                    list_files=[
-                        {
-                            "source_path": RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
-                            "source_name": f"rne_flux_{file_date}.json.gz",
-                            "dest_path": RNE_DB_TMP_FOLDER,
-                            "dest_name": f"rne_flux_{file_date}.json.gz",
-                        }
-                    ],
-                )
-                json_path = f"{RNE_DB_TMP_FOLDER}rne_flux_{file_date}.json"
+    for flux_file in flux_files:
+        if flux_file.flux_date < start_date:
+            continue
+        logger.info(f"Processing file {flux_file.path} with date {flux_file.flux_date}")
+        object_storage_client.get_files(
+            list_files=[
+                {
+                    "source_path": RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
+                    "source_name": flux_file.name,
+                    "dest_path": RNE_DB_TMP_FOLDER,
+                    "dest_name": flux_file.name,
+                }
+            ],
+        )
+        json_path = f"{RNE_DB_TMP_FOLDER}{flux_file.name.removesuffix('.gz')}"
 
-                # Unzip json file
-                with (
-                    gzip.open(f"{json_path}.gz", "rb") as f_in,
-                    open(json_path, "wb") as f_out,
-                ):
-                    shutil.copyfileobj(f_in, f_out)
+        # Unzip json file
+        with (
+            gzip.open(f"{json_path}.gz", "rb") as f_in,
+            open(json_path, "wb") as f_out,
+        ):
+            shutil.copyfileobj(f_in, f_out)
 
-                # Remove zip file
-                os.remove(f"{json_path}.gz")
+        # Remove zip file
+        os.remove(f"{json_path}.gz")
 
-                json_decode_error_count = inject_records_into_db(
-                    json_path, rne_db_path, "flux"
-                )
-                logger.info(
-                    f"File {json_path} processed and"
-                    " records injected into the database."
-                )
-                os.remove(json_path)
+        json_decode_error_count += inject_records_into_db(
+            json_path, rne_db_path, "flux"
+        )
+        logger.info(
+            f"File {json_path} processed and records injected into the database."
+        )
+        os.remove(json_path)
 
-    # Extract dates from the JSON file names and sort them
-    dates = sorted(
-        re.findall(r"rne_flux_(\d{4}-\d{2}-\d{2})", " ".join(json_daily_flux_files))
-    )
-    if dates:
-        last_date_processed = dates[-1]
-        logger.info(f"***** Last date saved: {last_date_processed}")
+    if flux_files:
+        last_date_processed = flux_files[-1].flux_date
+        logger.info(f"Last date saved: {last_date_processed}")
     else:
         last_date_processed = None
     ti.xcom_push(key="last_date_processed", value=last_date_processed)

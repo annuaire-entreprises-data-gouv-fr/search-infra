@@ -155,32 +155,36 @@ def check_if_monday():
     return datetime.now(tz=UTC).date().weekday() == 0
 
 
-def get_last_line(file_path):
+def get_last_lines(file_path: str, count: int = 1) -> list[bytes]:
     """
-    Retrieve the last line from a given file.
+    Retrieve the last lines from a given file.
 
     Parameters:
     - file_path (str): The path to the file.
+    - count (int): The number of lines to retrieve.
 
     Returns:
-    - str or None: The last line if found, or None if the file is empty.
+    - list[bytes]: The last lines.
     """
     try:
         with open(file_path, "rb") as f:
-            try:  # catch OSError in case of a one line file
+            try:  # catch OSError in case of a file shorter than `count` lines
                 f.seek(-2, os.SEEK_END)
-                while f.read(1) != b"\n":
+                newlines_found = 0
+                while newlines_found < count:
+                    if f.read(1) == b"\n":
+                        newlines_found += 1
                     f.seek(-2, os.SEEK_CUR)
             except OSError as error:
                 logger.error(f"{error}")
                 f.seek(0)
-            last_line = f.readline().decode()
-            logger.info(f"Last line: {last_line}")
+            last_lines = f.readlines()[-count:]
+            logger.info(f"Last lines: {last_lines}")
 
-        return last_line if last_line else None
+        return last_lines
     except Exception as e:
-        logger.error(f"Error while reading last line: {e}")
-        return None
+        logger.error(f"Error while reading last lines: {e}")
+        return []
 
 
 def convert_date_format(original_date_string):
