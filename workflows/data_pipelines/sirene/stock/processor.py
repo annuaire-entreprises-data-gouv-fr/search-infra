@@ -117,13 +117,13 @@ class SireneStockProcessor(DataProcessor):
     @staticmethod
     def deduplicate_doublons(df_doublons: pd.DataFrame) -> pd.DataFrame:
         """
-        In the rare case where a `siren_doublon` is linked to multiple `siren_pivot`,
+        In the rare case where a `siren_doublon` is linked to multiple `siren_conserve`,
         we shall keep only the most recent. If this is not enough, we shall keep the
-        greatest `siren_pivot` as it is likely the last created.
+        greatest `siren_conserve` as it is likely the last created.
         """
         return (
             df_doublons.sort_values(
-                ["siren_doublon", "date_dernier_traitement_doublon", "siren_pivot"]
+                ["siren_doublon", "date_dernier_traitement_doublon", "siren_conserve"]
             )
             .drop_duplicates(subset="siren_doublon", keep="last")
             .reset_index(drop=True)
@@ -140,7 +140,7 @@ class SireneStockProcessor(DataProcessor):
         # The header separates the column names with ", "
         df_doublons = pd.read_csv(csv_path, dtype=str, skipinitialspace=True).rename(
             columns={
-                "siren": "siren_pivot",
+                "siren": "siren_conserve",
                 "sirenDoublon": "siren_doublon",
                 "dateDernierTraitementDoublon": "date_dernier_traitement_doublon",
             }

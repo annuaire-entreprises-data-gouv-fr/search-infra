@@ -391,7 +391,7 @@ class UniteLegaleMapping(InnerDoc):
     siege = Object(SiegeMapping)
     sigle = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     siren = Keyword(required=True)
-    siren_pivot = Keyword()
+    siren_conserve = Keyword()
     siret_siege = Keyword()
     sirets_par_idcc = Text()
     slug = Text()
