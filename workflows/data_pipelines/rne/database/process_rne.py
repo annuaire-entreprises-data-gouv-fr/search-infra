@@ -1,6 +1,7 @@
 import json
 import logging
-from typing import Literal
+from collections.abc import Iterable
+from typing import Any, Literal
 
 from pydantic import ValidationError
 
@@ -208,21 +209,24 @@ def inject_records_into_db(
 
     with open(file_path, "r") as file:
         logger.info(f"Injecting records from file: {file_path}")
-        file_content = []
         try:
             if file_type == "stock":
                 # Stock file looks like: [{},{},{}]
-                file_content = json.loads(file.read())
-            if file_type == "flux":
+                file_content: Iterable[Any] = json.loads(file.read())
+            else:
                 # Flux file looks like: {}\n{}\n{}
-                for line in file:
+                # Lines are parsed one by one from the buffer so the file
+                # is never loaded in memory in full with a risk of OOM error
+                file_content = file
+
+            for record in file_content:
+                if file_type == "flux":
                     try:
-                        file_content_record = json.loads(line)
-                        file_content.append(file_content_record)
+                        record = json.loads(record)
                     except json.JSONDecodeError as e:
                         if json_decode_error_count < 3:
                             logger.error(
-                                f"JSONDecodeError: {e} in file {file_path} at line {line}"
+                                f"JSONDecodeError: {e} in file {file_path} at line {record}"
                             )
                         else:
                             logger.error(
@@ -232,7 +236,6 @@ def inject_records_into_db(
                         json_decode_error_count += 1
                         continue
 
-            for record in file_content:
                 company = record.get("company", {}) if file_type == "flux" else record
                 try:
                     unite_legale_processed = extract_rne_data(company, file_type)
@@ -249,9 +252,9 @@ def inject_records_into_db(
                         # Raise the exception anyway for new SIREN issues
                         raise
                 unites_legales.append(unite_legale_processed)
-                # If the pending queue exceeds 100,000, we insert it directly;
+                # If the pending queue exceeds 10 000 (~100Mo), we insert it directly;
                 # otherwise, it is inserted at the end of the loop.
-                if len(unites_legales) > 100000:
+                if len(unites_legales) > 10000:
                     insert_unites_legales_into_db(unites_legales, file_path, db_path)
                     unites_legales = []
 
