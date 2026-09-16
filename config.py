@@ -136,10 +136,19 @@ ELASTIC_USER = Variable.get("ELASTIC_USER", None)
 ELASTIC_BULK_THREAD_COUNT = int(Variable.get("ELASTIC_BULK_THREAD_COUNT", 4))
 ELASTIC_BULK_SIZE = int(Variable.get("ELASTIC_BULK_SIZE", 1500))
 ELASTIC_SHARDS = 2
+# Bulk requests take far longer than the 10s default once the cluster is saturated, and a
+# timeout re-sends the whole bulk to a cluster that is already struggling. Seconds.
+ELASTIC_REQUEST_TIMEOUT = 60
 ELASTIC_REPLICAS = 0
 ELASTIC_MIN_DOC_COUNT_EXPECTED = int(
     Variable.get("ELASTIC_MIN_DOC_COUNT_EXPECTED", 26000000)
 )
+
+# Number of siren ranges fill_elastic_siren_index is split into, one mapped task each.
+# Nothing to do with ELASTIC_SHARDS above. Four producers move ~14 000 documents/s where
+# the single-node cluster tops out around 7 500, so more only burns CPU: at 8 the phase
+# timings were inflated x2.5 by contention for no gain in wall clock.
+INDEXING_SIREN_RANGES = 4
 
 ELASTIC_MAX_LIVE_VERSIONS = int(Variable.get("ELASTIC_MAX_LIVE_VERSIONS", 2))
 

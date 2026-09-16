@@ -1,8 +1,8 @@
-import json
 from datetime import UTC, datetime
 
 from data_pipelines_annuaire.helpers.utils import (
     convert_date_format,
+    load_json,
     sqlite_str_to_bool,
     str_to_list,
 )
@@ -36,12 +36,14 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.structure_ty
 
 def process_unites_legales(chunk_unites_legales_sqlite):
     list_unites_legales_processed = []
+    # Constant for the run, and this loop turns over 30 million times.
+    date_mise_a_jour = datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%S")
     for unite_legale in chunk_unites_legales_sqlite:
         unite_legale_processed = {}
         type_structure = [StructureType.UNITE_LEGALE]
         for field in unite_legale:
             if field in ["colter_elus"]:
-                unite_legale_processed[field] = json.loads(unite_legale[field])
+                unite_legale_processed[field] = load_json(unite_legale[field])
             else:
                 unite_legale_processed[field] = unite_legale[field]
         # Statut de diffusion
@@ -68,7 +70,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
 
         # Bilan financier
         if unite_legale["bilan_financier"]:
-            unite_legale_processed["bilan_financier"] = json.loads(
+            unite_legale_processed["bilan_financier"] = load_json(
                 unite_legale["bilan_financier"]
             )
         else:
@@ -129,7 +131,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         # Immatriculation
         immatriculation = unite_legale.get("immatriculation")
         if immatriculation:
-            immatriculation_data = json.loads(immatriculation)
+            immatriculation_data = load_json(immatriculation)
             immatriculation_data["indicateur_associe_unique"] = sqlite_str_to_bool(
                 immatriculation_data.get("indicateur_associe_unique", None)
             )
@@ -263,10 +265,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["from_rne"]
         )
 
-        # Get the current date and time
-        unite_legale_processed["date_mise_a_jour"] = datetime.now(tz=UTC).strftime(
-            "%Y-%m-%dT%H:%M:%S"
-        )
+        unite_legale_processed["date_mise_a_jour"] = date_mise_a_jour
         unite_legale_processed["date_mise_a_jour_rne"] = convert_date_format(
             unite_legale["date_mise_a_jour_rne"]
         )
@@ -307,7 +306,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
         # See the fill_elastic_fondation_index() task for fondations without a SIRET
         fondation = unite_legale_processed.pop("fondation")
         if fondation:
-            fondation = json.loads(fondation)
+            fondation = load_json(fondation)
             fondation["adresse"] = format_fondation_adresse(fondation)
             unite_legale_processed["numero_rnf"] = fondation["numero_rnf"]
             type_structure.append(StructureType.FONDATION)
