@@ -13,9 +13,11 @@ class AvocatProcessor(DataProcessor):
         super().__init__(AVOCAT_CONFIG)
 
     def preprocess_data(self):
+        file_params = self.config.files_to_download["avocat"]
         df_avocat = (
             pd.read_csv(
-                self.config.files_to_download["avocat"]["destination"],
+                file_params["destination"],
+                encoding=file_params["encoding"],
                 dtype="string",
                 sep=";",
                 usecols=["cbSiretSiren"],
