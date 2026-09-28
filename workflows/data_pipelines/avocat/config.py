@@ -14,6 +14,9 @@ AVOCAT_CONFIG = DataSourceConfig(
             "url": f"{DATAGOUV_URL}/api/1/datasets/6357de8624b187e5486cbef3",
             "dataset_id": "6357de8624b187e5486cbef3",
             "destination": f"{DataSourceConfig.base_tmp_folder}/avocat/avocat-download.csv",
+            # The source files alternate between UTF-8 and Windows-1252
+            # Since only the numeric SIREN column is needed, latin-1 allow to decode both
+            "encoding": "latin-1",
         }
     },
     url_object_storage=f"{OBJECT_STORAGE_BASE_URL}avocat/latest/avocat.csv",
