@@ -29,11 +29,13 @@ from data_pipelines_annuaire.helpers.flush_cache import flush_redis_cache
 from data_pipelines_annuaire.tests.run_tests import run_e2e_tests, run_search_tests
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.index import (
     check_elastic_index,
+    compute_siren_ranges,
     create_elastic_index,
     delete_previous_elastic_indices,
     fill_elastic_fondation_index,
     fill_elastic_siren_index,
     get_next_index_name,
+    restore_elastic_index_settings,
     update_elastic_alias,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.sitemap import (
@@ -77,16 +79,24 @@ def index_elasticsearch():
             f"{AIRFLOW_ELK_DATA_DIR}sirene.db",
         )
 
-    elastic_alias_updated = (
+    index_created = (
         get_next_index_name()
         >> clean_folder()
         >> get_latest_sirene_database()
         >> delete_previous_elastic_indices()
         >> create_elastic_index()
-        >> fill_elastic_siren_index()
-        >> fill_elastic_fondation_index()
-        >> check_elastic_index()
-        >> update_elastic_alias()
+    )
+
+    siren_ranges = compute_siren_ranges()
+    unites_legales_filled = fill_elastic_siren_index.expand(siren_range=siren_ranges)
+    fondations_filled = fill_elastic_fondation_index()
+    settings_restored = restore_elastic_index_settings()
+
+    index_created >> [siren_ranges, fondations_filled]
+    [unites_legales_filled, fondations_filled] >> settings_restored
+
+    elastic_alias_updated = (
+        settings_restored >> check_elastic_index() >> update_elastic_alias()
     )
 
     sitemap_updated = elastic_alias_updated >> create_sitemap() >> update_sitemap()

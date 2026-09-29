@@ -592,9 +592,10 @@ def get_dates_since_start_of_month(
 
 
 def load_file(file_name: str):
-    labels_file_path = "dags/data_pipelines_annuaire/helpers/labels/"
 
-    with open(f"{labels_file_path}{file_name}") as json_file:
+    labels_file_path = Path(__file__).parent / "labels"
+
+    with open(labels_file_path / file_name) as json_file:
         file_decoded = json.load(json_file)
     return file_decoded
 
