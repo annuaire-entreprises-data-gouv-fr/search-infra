@@ -26,7 +26,7 @@ from data_pipelines_annuaire.helpers import (
     ObjectStorageClient,
 )
 from data_pipelines_annuaire.helpers.flush_cache import flush_redis_cache
-from data_pipelines_annuaire.tests.e2e_tests.run_tests import run_e2e_tests
+from data_pipelines_annuaire.tests.run_tests import run_e2e_tests, run_search_tests
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.index import (
     check_elastic_index,
     create_elastic_index,
@@ -90,6 +90,7 @@ def index_elasticsearch():
     )
 
     sitemap_updated = elastic_alias_updated >> create_sitemap() >> update_sitemap()
+    run_tests = [run_e2e_tests(), run_search_tests()]
 
     if API_IS_REMOTE:
         trigger_snapshot_dag = TriggerDagRunOperator(
@@ -99,21 +100,21 @@ def index_elasticsearch():
             wait_for_completion=True,
             deferrable=False,
         )
-        tests_successful = (
+        (
             elastic_alias_updated
             >> trigger_snapshot_dag
             >> sync_data_source_updates_file()
-            >> run_e2e_tests()
+            >> run_tests
         )
+        indexing_complete = [sitemap_updated, *run_tests] >> clean_folder()
     else:
         tests_successful = (
             elastic_alias_updated
             >> sync_data_source_updates_file()
-            >> run_e2e_tests()
+            >> run_tests
             >> flush_redis_cache(REDIS_HOST, REDIS_PORT, REDIS_DB, REDIS_PASSWORD)
         )
-
-    indexing_complete = [sitemap_updated, tests_successful] >> clean_folder()
+        indexing_complete = [sitemap_updated, tests_successful] >> clean_folder()
 
     trigger_radiations_export_dag = TriggerDagRunOperator(
         task_id="trigger_radiations_export_dag",
