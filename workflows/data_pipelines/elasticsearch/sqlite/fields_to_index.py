@@ -343,3 +343,21 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
             LEFT JOIN bodacc_procedures_collectives ON bodacc_procedures_collectives.siren = unite_legale.siren
             WHERE unite_legale.siren IS NOT NULL
     """
+
+
+def select_fields_to_index_query(
+    siren_start: str | None = None, siren_end: str | None = None
+):
+    """Return the query to index with filters on `unite_legale.siren`.
+
+    Args:
+        siren_start (str | None): filter every SIREN after, including this one. None means not filter applied.
+        siren_end (str | None): filter every SIREN strictly before this one. None means not filter applied.
+    """
+    filters = []
+    if siren_start is not None:
+        filters.append(f"AND unite_legale.siren >= '{siren_start}'")
+    if siren_end is not None:
+        filters.append(f"AND unite_legale.siren < '{siren_end}'")
+
+    return f"{SELECT_FIELDS_TO_INDEX_QUERY} {' '.join(filters)}"

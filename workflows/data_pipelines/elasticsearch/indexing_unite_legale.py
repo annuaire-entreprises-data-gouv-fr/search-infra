@@ -1,5 +1,4 @@
 import logging
-import time
 
 from elasticsearch.helpers import parallel_bulk
 
@@ -13,6 +12,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch\
 
 # fmt: on
 logger = logging.getLogger(__name__)
+
+LOG_EVERY_N_DOCUMENTS = 1_000_000
+MAX_LOGGED_FAILURES = 20
 
 
 def doc_unite_legale_generator(data, elastic_index):
@@ -57,6 +59,28 @@ def doc_unite_legale_generator(data, elastic_index):
             ).to_dict(include_meta=True)
 
 
+def generate_unite_legale_docs(cursor, elastic_bulk_size, elastic_index):
+    """Lazy stream of the documents to index.
+
+    Args:
+        cursor (sqlite3.Cursor): Cursor on which the indexing query was executed.
+        elastic_bulk_size (int): Number of rows fetched from SQLite per batch.
+        elastic_index (str): Name of the index the documents are sent to.
+
+    Yields:
+        dict: A document ready for the bulk API, metadata included.
+    """
+    unite_legale_columns = tuple(x[0] for x in cursor.description)
+    while chunk_unites_legales_sqlite := cursor.fetchmany(elastic_bulk_size):
+        yield from doc_unite_legale_generator(
+            process_unites_legales(
+                dict(zip(unite_legale_columns, unite_legale))
+                for unite_legale in chunk_unites_legales_sqlite
+            ),
+            elastic_index,
+        )
+
+
 def index_unites_legales_by_chunk(
     cursor,
     elastic_connection,
@@ -64,95 +88,40 @@ def index_unites_legales_by_chunk(
     elastic_bulk_size,
     elastic_index,
 ):
-    # Indexing performance : do not refresh the index while indexing
-    elastic_connection.indices.put_settings(
-        index=elastic_index, body={"index.refresh_interval": -1}
-    )
-
-    log_counter = 0
+    """Index documents yielded from the cursor and return how many were indexed."""
     doc_count = 0
-    chunk_unites_legales_sqlite = cursor.fetchmany(elastic_bulk_size)
-    while chunk_unites_legales_sqlite:
-        unite_legale_columns = tuple([x[0] for x in cursor.description])
-        liste_unites_legales_sqlite = []
-        # Group all fetched unites_legales from sqlite in one list
-        for unite_legale in chunk_unites_legales_sqlite:
-            liste_unites_legales_sqlite.append(
-                {
-                    unite_legale_columns: value
-                    for unite_legale_columns, value in zip(
-                        unite_legale_columns, unite_legale
-                    )
-                }
-            )
+    failure_count = 0
+    next_log_at = LOG_EVERY_N_DOCUMENTS
 
-        liste_unites_legales_sqlite = tuple(liste_unites_legales_sqlite)
-
-        chunk_unites_legales_processed = process_unites_legales(
-            liste_unites_legales_sqlite
-        )
-        log_counter += 1
-        if log_counter % 100000 == 0:
-            logger.info(f"log_counter={log_counter}")
-        try:
-            chunk_doc_generator = doc_unite_legale_generator(
-                chunk_unites_legales_processed, elastic_index
-            )
-            # Bulk index documents into elasticsearch using the parallel version of the
-            # bulk helper that runs in multiple threads
-            # The bulk helper accept an instance of Elasticsearch class and an
-            # iterable, a generator in our case
-            for success, details in parallel_bulk(
-                elastic_connection,
-                chunk_doc_generator,
-                thread_count=elastic_bulk_thread_count,
-                chunk_size=elastic_bulk_size,
-            ):
-                if not success:
-                    raise Exception(f"A file_access document failed: {details}")
-                else:
-                    doc_count += 1
-        except Exception as e:
-            logger.error(f"Failed to send to Elasticsearch: {e}")
-        logger.info(f"Number of documents indexed: {doc_count}")
-
-        chunk_unites_legales_sqlite = cursor.fetchmany(elastic_bulk_size)
-
-    # rollback to the original value
-    elastic_connection.indices.put_settings(
-        index=elastic_index, body={"index.refresh_interval": None}
-    )
-
-    # Indexing performance :
-    #
-    # The _/cat/count/{index} is called only once at the end of the indexing process
-    # and not after each pushed bulk
-    #
-    # i.e. the _cat/count/{index} produce a query that may force Lucene to refresh the
-    # last bulk into a segment
-    # meaning that it would amplify the amount of segment merge and slowdown the
-    # indexing process
-
-    # Add wait and retry mechanism for zero count
-    max_retries = 5
-    retry_interval = 5  # seconds
-
-    for attempt in range(max_retries):
-        doc_count = int(
-            elastic_connection.cat.count(
-                index=elastic_index, params={"format": "json"}
-            )[0]["count"]
-        )
-
-        if doc_count > 0:
-            break
-
-        if attempt < max_retries - 1:
-            logger.warning(
-                f"Document count is zero. Retrying in {retry_interval} seconds..."
-            )
-            time.sleep(retry_interval)
+    # Bulk index documents into elasticsearch using the parallel version of the
+    # bulk helper that runs in multiple threads
+    # The bulk helper accept an instance of Elasticsearch class and an
+    # iterable, a generator in our case
+    for success, details in parallel_bulk(
+        elastic_connection,
+        generate_unite_legale_docs(cursor, elastic_bulk_size, elastic_index),
+        thread_count=elastic_bulk_thread_count,
+        chunk_size=elastic_bulk_size,
+        raise_on_exception=False,
+        raise_on_error=False,
+    ):
+        if success:
+            doc_count += 1
+            if doc_count >= next_log_at:
+                logger.info(f"Number of documents indexed: {doc_count}")
+                next_log_at += LOG_EVERY_N_DOCUMENTS
         else:
-            logger.error("Max retries reached. Document count is still zero.")
+            failure_count += 1
+            if failure_count <= MAX_LOGGED_FAILURES:
+                logger.error(f"A document failed to index: {details}")
+
+    logger.info(f"Number of documents indexed: {doc_count}")
+
+    if failure_count:
+        raise Exception(
+            f"{failure_count} documents failed to index "
+            f"({doc_count} succeeded). See the logs for the first "
+            f"{MAX_LOGGED_FAILURES} failures."
+        )
 
     return doc_count
