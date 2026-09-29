@@ -143,7 +143,7 @@ SELECT ul.etat_administratif_unite_legale as etat_administratif,
         WHERE siren = ul.siren
     ) as est_avocat
 FROM unite_legale ul
-    LEFT JOIN siege st ON ul.siren = st.siren
+    LEFT JOIN etablissement st ON st.siren = ul.siren AND st.est_siege = 'true'
 WHERE ul.siren IS NOT NULL;
 """
 
