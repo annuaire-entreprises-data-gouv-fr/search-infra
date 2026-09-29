@@ -1,61 +1,50 @@
-select_fields_to_index_query = """SELECT
-            ul.activite_principale_unite_legale as activite_principale_unite_legale,
-            ul.activite_principale_naf25_unite_legale as activite_principale_naf25_unite_legale,
-            ul.caractere_employeur as caractere_employeur,
-            ul.categorie_entreprise as categorie_entreprise,
-            ul.date_creation_unite_legale as date_creation_unite_legale,
-            ul.date_fermeture_unite_legale as date_fermeture,
-            ul.date_mise_a_jour_insee as date_mise_a_jour_insee,
-            ul.date_mise_a_jour_rne as date_mise_a_jour_rne,
-            ul.denomination_usuelle_1 as denomination_usuelle_1_unite_legale,
-            ul.denomination_usuelle_2 as denomination_usuelle_2_unite_legale,
-            ul.denomination_usuelle_3 as denomination_usuelle_3_unite_legale,
-            ul.economie_sociale_solidaire_unite_legale as
+SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
+            unite_legale.activite_principale_unite_legale as activite_principale_unite_legale,
+            unite_legale.activite_principale_naf25_unite_legale as activite_principale_naf25_unite_legale,
+            unite_legale.caractere_employeur as caractere_employeur,
+            unite_legale.categorie_entreprise as categorie_entreprise,
+            unite_legale.date_creation_unite_legale as date_creation_unite_legale,
+            unite_legale.date_fermeture_unite_legale as date_fermeture,
+            unite_legale.date_mise_a_jour_insee as date_mise_a_jour_insee,
+            unite_legale.date_mise_a_jour_rne as date_mise_a_jour_rne,
+            unite_legale.denomination_usuelle_1 as denomination_usuelle_1_unite_legale,
+            unite_legale.denomination_usuelle_2 as denomination_usuelle_2_unite_legale,
+            unite_legale.denomination_usuelle_3 as denomination_usuelle_3_unite_legale,
+            unite_legale.economie_sociale_solidaire_unite_legale as
             economie_sociale_solidaire_unite_legale,
-            ul.etat_administratif_unite_legale as etat_administratif_unite_legale,
-            ul.from_insee as from_insee,
-            ul.from_rne as from_rne,
-            ul.identifiant_association_unite_legale as
+            unite_legale.etat_administratif_unite_legale as etat_administratif_unite_legale,
+            unite_legale.from_insee as from_insee,
+            unite_legale.from_rne as from_rne,
+            unite_legale.identifiant_association_unite_legale as
             identifiant_association_unite_legale,
-            ul.nature_juridique_unite_legale as nature_juridique_unite_legale,
-            ul.nom as nom,
-            ul.nom_raison_sociale as nom_raison_sociale,
-            ul.nom_usage as nom_usage,
-            ul.prenom as prenom,
-            ul.sigle as sigle,
-            ul.siren,
-            (SELECT siren_conserve FROM doublons WHERE siren_doublon = ul.siren) as siren_conserve,
-            st.siret as siret_siege,
-            ul.tranche_effectif_salarie_unite_legale as
+            unite_legale.nature_juridique_unite_legale as nature_juridique_unite_legale,
+            unite_legale.nom as nom,
+            unite_legale.nom_raison_sociale as nom_raison_sociale,
+            unite_legale.nom_usage as nom_usage,
+            unite_legale.prenom as prenom,
+            unite_legale.sigle as sigle,
+            unite_legale.siren,
+            (SELECT siren_conserve FROM doublons WHERE siren_doublon = unite_legale.siren) as siren_conserve,
+            siege.siret as siret_siege,
+            unite_legale.tranche_effectif_salarie_unite_legale as
             tranche_effectif_salarie_unite_legale,
-            ul.statut_diffusion_unite_legale as
+            unite_legale.statut_diffusion_unite_legale as
             statut_diffusion_unite_legale,
-            ul.est_societe_mission as est_societe_mission,
-            ul.annee_categorie_entreprise as annee_categorie_entreprise,
-            ul.annee_tranche_effectif_salarie as annee_tranche_effectif_salarie,
+            unite_legale.est_societe_mission as est_societe_mission,
+            unite_legale.annee_categorie_entreprise as annee_categorie_entreprise,
+            unite_legale.annee_tranche_effectif_salarie as annee_tranche_effectif_salarie,
             (SELECT sirets_par_idcc FROM convention_collective WHERE
-                        siren = ul.siren) as sirets_par_idcc,
+                        siren = unite_legale.siren) as sirets_par_idcc,
             (SELECT liste_idcc_unite_legale FROM convention_collective WHERE
-                        siren = ul.siren) as liste_idcc_unite_legale,
-            (SELECT count FROM count_etablissement ce WHERE ce.siren = ul.siren) as
-            nombre_etablissements,
-            (SELECT count FROM count_etablissement_ouvert ceo WHERE ceo.siren = ul.siren) as
-            nombre_etablissements_ouverts,
-            (
-                SELECT json_object(
-                    'ca', ca,
-                    'resultat_net', resultat_net,
-                    'date_cloture_exercice', date_cloture_exercice,
-                    'annee_cloture_exercice', annee_cloture_exercice
-                )
-                FROM
-                (
-                    SELECT ca, resultat_net,
-                    date_cloture_exercice, annee_cloture_exercice
-                    FROM bilan_financier
-                    WHERE siren = ul.siren
-                )
-            ) as bilan_financier,
+                        siren = unite_legale.siren) as liste_idcc_unite_legale,
+            count_etablissement."count" as nombre_etablissements,
+            count_etablissement_ouvert."count" as nombre_etablissements_ouverts,
+            CASE WHEN bilan_financier.siren IS NOT NULL THEN json_object(
+                'ca', bilan_financier.ca,
+                'resultat_net', bilan_financier.resultat_net,
+                'date_cloture_exercice', bilan_financier.date_cloture_exercice,
+                'annee_cloture_exercice', bilan_financier.annee_cloture_exercice
+            ) END as bilan_financier,
             (SELECT json_group_array(
                 json_object(
                     'siren', siren,
@@ -72,7 +61,7 @@ select_fields_to_index_query = """SELECT
                     SELECT siren, date_mise_a_jour, date_de_naissance, nom,
                     nom_usage, prenoms, nationalite, role_description
                     FROM dirigeant_pp
-                    WHERE siren = ul.siren
+                    WHERE siren = unite_legale.siren
                 )
             ) as dirigeants_pp,
             (SELECT json_group_array(
@@ -89,7 +78,7 @@ select_fields_to_index_query = """SELECT
                         SELECT siren, date_mise_a_jour, denomination, siren_dirigeant,
                         role_description, forme_juridique
                         FROM dirigeant_pm
-                        WHERE siren = ul.siren
+                        WHERE siren = unite_legale.siren
                     )
                 ) as dirigeants_pm,
             (SELECT json_group_array(
@@ -143,77 +132,81 @@ select_fields_to_index_query = """SELECT
                         'type_voie',type_voie,
                         'x',x,
                         'y',y,
+                        -- json() is required, not decorative: SQLite only carries the
+                        -- JSON subtype of json_group_array() across a subquery boundary
+                        -- on some versions. Without it these two come back as escaped
+                        -- strings and the transform iterates over their characters.
                         'successions',json_object(
-                            'predecesseurs',successions_predecesseurs,
-                            'successeurs',successions_successeurs
+                            'predecesseurs',json(successions_predecesseurs),
+                            'successeurs',json(successions_successeurs)
                         )
                         )
                     ) FROM
                     (
                         SELECT
-                        s.activite_principale as activite_principale,
-                        s.activite_principale_naf25 as activite_principale_naf25,
-                        s.activite_principale_registre_metier as
+                        etablissement.activite_principale as activite_principale,
+                        etablissement.activite_principale_naf25 as activite_principale_naf25,
+                        etablissement.activite_principale_registre_metier as
                         activite_principale_registre_metier,
                         CASE
                             WHEN EXISTS (
                                 SELECT 1
                                 FROM ancien_siege
-                                WHERE siret = s.siret
+                                WHERE siret = etablissement.siret
                                 )
                                 THEN TRUE
                             ELSE FALSE
                         END AS ancien_siege,
-                        s.caractere_employeur as caractere_employeur,
-                        s.cedex as cedex,
-                        s.code_pays_etranger as code_pays_etranger,
-                        s.code_postal as code_postal,
-                        s.commune as commune,
-                        s.complement_adresse as complement_adresse,
-                        s.date_creation as date_creation,
-                        s.date_debut_activite as date_debut_activite,
-                        s.date_fermeture_etablissement as date_fermeture,
-                        s.distribution_speciale as distribution_speciale,
-                        s.enseigne_1 as enseigne_1,
-                        s.enseigne_2 as enseigne_2,
-                        s.enseigne_3 as enseigne_3,
-                        s.est_siege as est_siege,
-                        s.etat_administratif_etablissement as
+                        etablissement.caractere_employeur as caractere_employeur,
+                        etablissement.cedex as cedex,
+                        etablissement.code_pays_etranger as code_pays_etranger,
+                        etablissement.code_postal as code_postal,
+                        etablissement.commune as commune,
+                        etablissement.complement_adresse as complement_adresse,
+                        etablissement.date_creation as date_creation,
+                        etablissement.date_debut_activite as date_debut_activite,
+                        etablissement.date_fermeture_etablissement as date_fermeture,
+                        etablissement.distribution_speciale as distribution_speciale,
+                        etablissement.enseigne_1 as enseigne_1,
+                        etablissement.enseigne_2 as enseigne_2,
+                        etablissement.enseigne_3 as enseigne_3,
+                        etablissement.est_siege as est_siege,
+                        etablissement.etat_administratif_etablissement as
                         etat_administratif_etablissement,
                         NULL as geo_adresse,
                         NULL as geo_id,
                         NULL as geo_score,
-                        s.indice_repetition as indice_repetition,
-                        s.latitude as latitude,
-                        s.libelle_cedex as libelle_cedex,
-                        s.libelle_commune as libelle_commune,
-                        s.libelle_commune_etranger as libelle_commune_etranger,
-                        s.libelle_pays_etranger as libelle_pays_etranger,
-                        s.libelle_voie as libelle_voie,
-                        s.longitude as longitude,
-                        (SELECT liste_finess_geographique FROM finess_geographique WHERE siret = s.siret) as
+                        etablissement.indice_repetition as indice_repetition,
+                        etablissement.latitude as latitude,
+                        etablissement.libelle_cedex as libelle_cedex,
+                        etablissement.libelle_commune as libelle_commune,
+                        etablissement.libelle_commune_etranger as libelle_commune_etranger,
+                        etablissement.libelle_pays_etranger as libelle_pays_etranger,
+                        etablissement.libelle_voie as libelle_voie,
+                        etablissement.longitude as longitude,
+                        (SELECT liste_finess_geographique FROM finess_geographique WHERE siret = etablissement.siret) as
                         liste_finess_geographique,
-                        (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
+                        (SELECT liste_id_bio FROM agence_bio WHERE siret = etablissement.siret) as
                         liste_id_bio,
                         (SELECT liste_idcc_etablissement FROM convention_collective
-                        WHERE siret = s.siret) as liste_idcc,
-                        (SELECT liste_rge FROM rge WHERE siret = s.siret) as liste_rge,
-                        (SELECT liste_uai FROM uai WHERE siret = s.siret) as liste_uai,
-                        s.nom_commercial as nom_commercial,
-                        s.numero_voie as numero_voie,
-                        s.dernier_numero_voie as dernier_numero_voie,
-                        s.siren as siren,
-                        s.siret as siret,
-                        s.statut_diffusion_etablissement as
+                        WHERE siret = etablissement.siret) as liste_idcc,
+                        (SELECT liste_rge FROM rge WHERE siret = etablissement.siret) as liste_rge,
+                        (SELECT liste_uai FROM uai WHERE siret = etablissement.siret) as liste_uai,
+                        etablissement.nom_commercial as nom_commercial,
+                        etablissement.numero_voie as numero_voie,
+                        etablissement.dernier_numero_voie as dernier_numero_voie,
+                        etablissement.siren as siren,
+                        etablissement.siret as siret,
+                        etablissement.statut_diffusion_etablissement as
                         statut_diffusion_etablissement,
-                        s.tranche_effectif_salarie as
+                        etablissement.tranche_effectif_salarie as
                         tranche_effectif_salarie,
-                        s.annee_tranche_effectif_salarie as
+                        etablissement.annee_tranche_effectif_salarie as
                         annee_tranche_effectif_salarie,
-                        s.date_mise_a_jour_insee as date_mise_a_jour_insee,
-                        s.type_voie as type_voie,
-                        s.x as x,
-                        s.y as y,
+                        etablissement.date_mise_a_jour_insee as date_mise_a_jour_insee,
+                        etablissement.type_voie as type_voie,
+                        etablissement.x as x,
+                        etablissement.y as y,
                         (SELECT json_group_array(json_object(
                             'siret', siret_predecesseur,
                             'date_lien_succession', date_lien_succession,
@@ -221,7 +214,7 @@ select_fields_to_index_query = """SELECT
                             'continuite_economique', continuite_economique
                             ))
                         FROM liens_succession
-                        WHERE siret_successeur = s.siret
+                        WHERE siret_successeur = etablissement.siret
                         ) as successions_predecesseurs,
                         (SELECT json_group_array(json_object(
                             'siret', siret_successeur,
@@ -230,10 +223,10 @@ select_fields_to_index_query = """SELECT
                             'continuite_economique', continuite_economique
                             ))
                         FROM liens_succession
-                        WHERE siret_predecesseur = s.siret
+                        WHERE siret_predecesseur = etablissement.siret
                         ) as successions_successeurs
-                        FROM etablissement s
-                        WHERE s.siren = ul.siren
+                        FROM etablissement
+                        WHERE etablissement.siren = unite_legale.siren
                     )
                 ) as etablissements,
             (SELECT json_object(
@@ -297,60 +290,60 @@ select_fields_to_index_query = """SELECT
                     FROM
                     (
                         SELECT
-                        s.activite_principale as activite_principale,
-                        s.activite_principale_naf25 as activite_principale_naf25,
-                        s.activite_principale_registre_metier as
+                        siege.activite_principale as activite_principale,
+                        siege.activite_principale_naf25 as activite_principale_naf25,
+                        siege.activite_principale_registre_metier as
                         activite_principale_registre_metier,
-                        s.caractere_employeur as caractere_employeur,
-                        s.cedex as cedex,
-                        s.code_pays_etranger as code_pays_etranger,
-                        s.code_postal as code_postal,
-                        s.commune as commune,
-                        s.complement_adresse as complement_adresse,
-                        s.date_creation as date_creation,
-                        s.date_debut_activite as date_debut_activite,
-                        s.date_fermeture_etablissement as date_fermeture,
-                        s.distribution_speciale as distribution_speciale,
-                        s.enseigne_1 as enseigne_1,
-                        s.enseigne_2 as enseigne_2,
-                        s.enseigne_3 as enseigne_3,
-                        s.est_siege as est_siege,
-                        s.etat_administratif_etablissement as
+                        siege.caractere_employeur as caractere_employeur,
+                        siege.cedex as cedex,
+                        siege.code_pays_etranger as code_pays_etranger,
+                        siege.code_postal as code_postal,
+                        siege.commune as commune,
+                        siege.complement_adresse as complement_adresse,
+                        siege.date_creation as date_creation,
+                        siege.date_debut_activite as date_debut_activite,
+                        siege.date_fermeture_etablissement as date_fermeture,
+                        siege.distribution_speciale as distribution_speciale,
+                        siege.enseigne_1 as enseigne_1,
+                        siege.enseigne_2 as enseigne_2,
+                        siege.enseigne_3 as enseigne_3,
+                        siege.est_siege as est_siege,
+                        siege.etat_administratif_etablissement as
                         etat_administratif_etablissement,
                         NULL as geo_adresse,
                         NULL as geo_id,
                         NULL as geo_score,
-                        s.indice_repetition as indice_repetition,
-                        s.latitude as latitude,
-                        s.libelle_cedex as libelle_cedex,
-                        s.libelle_commune as libelle_commune,
-                        s.libelle_commune_etranger as libelle_commune_etranger,
-                        s.libelle_pays_etranger as libelle_pays_etranger,
-                        s.libelle_voie as libelle_voie,
-                        (SELECT liste_finess_geographique FROM finess_geographique WHERE siret = s.siret) as
+                        siege.indice_repetition as indice_repetition,
+                        siege.latitude as latitude,
+                        siege.libelle_cedex as libelle_cedex,
+                        siege.libelle_commune as libelle_commune,
+                        siege.libelle_commune_etranger as libelle_commune_etranger,
+                        siege.libelle_pays_etranger as libelle_pays_etranger,
+                        siege.libelle_voie as libelle_voie,
+                        (SELECT liste_finess_geographique FROM finess_geographique WHERE siret = siege.siret) as
                         liste_finess_geographique,
-                        (SELECT liste_id_bio FROM agence_bio WHERE siret = s.siret) as
+                        (SELECT liste_id_bio FROM agence_bio WHERE siret = siege.siret) as
                         liste_id_bio,
                         (SELECT liste_idcc_etablissement FROM convention_collective
-                        WHERE siret = s.siret) as liste_idcc,
-                        (SELECT liste_rge FROM rge WHERE siret = s.siret) as liste_rge,
-                        (SELECT liste_uai FROM uai WHERE siret = s.siret) as liste_uai,
-                        s.longitude as longitude,
-                        s.nom_commercial as nom_commercial,
-                        s.numero_voie as numero_voie,
-                        s.dernier_numero_voie as dernier_numero_voie,
-                        s.siren as siren,
-                        s.siret as siret,
-                        s.statut_diffusion_etablissement as
+                        WHERE siret = siege.siret) as liste_idcc,
+                        (SELECT liste_rge FROM rge WHERE siret = siege.siret) as liste_rge,
+                        (SELECT liste_uai FROM uai WHERE siret = siege.siret) as liste_uai,
+                        siege.longitude as longitude,
+                        siege.nom_commercial as nom_commercial,
+                        siege.numero_voie as numero_voie,
+                        siege.dernier_numero_voie as dernier_numero_voie,
+                        siege.siren as siren,
+                        siege.siret as siret,
+                        siege.statut_diffusion_etablissement as
                         statut_diffusion_etablissement,
-                        s.tranche_effectif_salarie as tranche_effectif_salarie,
-                        s.annee_tranche_effectif_salarie as
+                        siege.tranche_effectif_salarie as tranche_effectif_salarie,
+                        siege.annee_tranche_effectif_salarie as
                         annee_tranche_effectif_salarie,
-                        s.type_voie as type_voie,
-                        s.date_mise_a_jour_insee as date_mise_a_jour_insee,
-                        s.date_mise_a_jour_rne as date_mise_a_jour_rne,
-                        s.x as x,
-                        s.y as y,
+                        siege.type_voie as type_voie,
+                        siege.date_mise_a_jour_insee as date_mise_a_jour_insee,
+                        siege.date_mise_a_jour_rne as date_mise_a_jour_rne,
+                        siege.x as x,
+                        siege.y as y,
                         (SELECT json_group_array(json_object(
                             'siret', siret_predecesseur,
                             'date_lien_succession', date_lien_succession,
@@ -358,7 +351,7 @@ select_fields_to_index_query = """SELECT
                             'continuite_economique', continuite_economique
                             ))
                         FROM liens_succession
-                        WHERE siret_successeur = s.siret
+                        WHERE siret_successeur = siege.siret
                         ) as successions_predecesseurs,
                         (SELECT json_group_array(json_object(
                             'siret', siret_successeur,
@@ -367,40 +360,27 @@ select_fields_to_index_query = """SELECT
                             'continuite_economique', continuite_economique
                             ))
                         FROM liens_succession
-                        WHERE siret_predecesseur = s.siret
+                        WHERE siret_predecesseur = siege.siret
                         ) as successions_successeurs
-                        FROM siege as s
-                        WHERE s.siren = st.siren
+                        FROM siege
+                        WHERE siege.siren = unite_legale.siren
                     )
                 ) as siege,
-            (SELECT est_entrepreneur_spectacle FROM spectacle WHERE siren = ul.siren) as
-             est_entrepreneur_spectacle,
-            (SELECT statut_entrepreneur_spectacle FROM spectacle WHERE siren = ul.siren)
-              as statut_entrepreneur_spectacle,
-            (SELECT liste_finess_juridique FROM finess_juridique WHERE siren = ul.siren)
-              as liste_finess_juridique,
-            (SELECT egapro_renseignee FROM egapro WHERE siren = ul.siren) as
-             egapro_renseignee,
-            (SELECT bilan_ges_renseigne FROM bilan_ges WHERE siren = ul.siren) as
-             bilan_ges_renseigne,
-            (SELECT est_achats_responsables FROM achats_responsables WHERE siren = ul.siren) as
-             est_achats_responsables,
-            (SELECT est_alim_confiance FROM alim_confiance WHERE siren = ul.siren) as
-             est_alim_confiance,
-            (SELECT est_patrimoine_vivant FROM patrimoine_vivant WHERE siren = ul.siren) as
-             est_patrimoine_vivant,
-            (SELECT aide_de_minimis_renseignee FROM aides_minimis WHERE siren = ul.siren) as
-             aide_de_minimis_renseignee,
-            (SELECT aide_ademe_renseignee FROM aides_ademe WHERE siren = ul.siren) as
-             aide_ademe_renseignee,
-             (SELECT est_avocat FROM avocat WHERE siren = ul.siren) as
-             est_avocat,
-            (SELECT DISTINCT colter_code_insee FROM colter WHERE siren = ul.siren) as
-            colter_code_insee,
-            (SELECT DISTINCT colter_code FROM colter WHERE siren = ul.siren) as colter_code,
-            (SELECT DISTINCT colter_niveau FROM colter WHERE siren = ul.siren) as colter_niveau,
-            (SELECT est_ess_france FROM ess_france WHERE siren = ul.siren) as
-            est_ess_france,
+            spectacle.est_entrepreneur_spectacle as est_entrepreneur_spectacle,
+            spectacle.statut_entrepreneur_spectacle as statut_entrepreneur_spectacle,
+            finess_juridique.liste_finess_juridique as liste_finess_juridique,
+            egapro.egapro_renseignee as egapro_renseignee,
+            bilan_ges.bilan_ges_renseigne as bilan_ges_renseigne,
+            achats_responsables.est_achats_responsables as est_achats_responsables,
+            alim_confiance.est_alim_confiance as est_alim_confiance,
+            patrimoine_vivant.est_patrimoine_vivant as est_patrimoine_vivant,
+            aides_minimis.aide_de_minimis_renseignee as aide_de_minimis_renseignee,
+            aides_ademe.aide_ademe_renseignee as aide_ademe_renseignee,
+            avocat.est_avocat as est_avocat,
+            colter.colter_code_insee as colter_code_insee,
+            colter.colter_code as colter_code,
+            colter.colter_niveau as colter_niveau,
+            ess_france.est_ess_france as est_ess_france,
             (SELECT json_group_array(
                 json_object(
                     'siren', siren,
@@ -415,38 +395,25 @@ select_fields_to_index_query = """SELECT
                     SELECT DISTINCT siren, nom, prenom, date_naissance,
                     sexe, fonction
                     FROM elus
-                    WHERE siren = ul.siren
+                    WHERE siren = unite_legale.siren
                 )
             ) as colter_elus,
-            (SELECT est_qualiopi FROM organisme_formation WHERE siren = ul.siren) as
-            est_qualiopi,
-            (SELECT liste_id_organisme_formation FROM organisme_formation
-            WHERE siren = ul.siren)  as liste_id_organisme_formation,
-            (SELECT est_siae  FROM marche_inclusion WHERE siren = ul.siren) AS est_siae,
-            (SELECT type_siae FROM marche_inclusion WHERE siren = ul.siren)
-            AS type_siae,
-            (SELECT liste_tva FROM tva WHERE siren = ul.siren)
-              as liste_tva,
-            (
-                SELECT json_object(
-                    'numero_rnf', numero_rnf,
-                    'denomination', denomination,
-                    'type_organisme', type_organisme,
-                    'date_creation', date_creation,
-                    'siren', siren,
-                    'siret', siret,
-                    'adresse', adresse,
-                    'code_postal', code_postal,
-                    'ville', ville
-                )
-                FROM
-                (
-                    SELECT numero_rnf, denomination, type_organisme, date_creation, siren,
-                    siret, adresse, code_postal, ville
-                    FROM fondation
-                    WHERE siren = ul.siren
-                )
-            ) as fondation,
+            organisme_formation.est_qualiopi as est_qualiopi,
+            organisme_formation.liste_id_organisme_formation as liste_id_organisme_formation,
+            marche_inclusion.est_siae AS est_siae,
+            marche_inclusion.type_siae AS type_siae,
+            tva.liste_tva as liste_tva,
+            CASE WHEN fondation.siren IS NOT NULL THEN json_object(
+                'numero_rnf', fondation.numero_rnf,
+                'denomination', fondation.denomination,
+                'type_organisme', fondation.type_organisme,
+                'date_creation', fondation.date_creation,
+                'siren', fondation.siren,
+                'siret', fondation.siret,
+                'adresse', fondation.adresse,
+                'code_postal', fondation.code_postal,
+                'ville', fondation.ville
+            ) END as fondation,
             (
                 SELECT json_object(
                     'date_immatriculation', date_immatriculation,
@@ -468,40 +435,46 @@ select_fields_to_index_query = """SELECT
                     date_cloture_exercice, duree_personne_morale, date_fin_existence, nature_entreprise,
                     date_debut_activite, capital_variable, devise_capital
                     FROM immatriculation
-                    WHERE siren = ul.siren
+                    WHERE siren = unite_legale.siren
                 )
             ) as immatriculation,
-            (
-                SELECT json_object(
-                    'radiation',
-                        (
-                            SELECT case when r.visibility then
-                                json_object(
-                                    'est_radie', r.est_radie,
-                                    'id_annonce', r.id_annonce,
-                                    'date', r.date
-                                ) end
-                            FROM bodacc_radiations AS r
-                            WHERE r.siren = ul.siren
-                        ),
-                    'procedure_collective',
-                        (
-                            SELECT json_object(
-                                'statut', pc.statut,
-                                'id_annonce', pc.id_annonce,
-                                'date', pc.date
-                            )
-                            FROM bodacc_procedures_collectives AS pc
-                            WHERE pc.siren = ul.siren
-                            )
-                )
+            json_object(
+                'radiation',
+                    CASE WHEN bodacc_radiations.siren IS NOT NULL AND bodacc_radiations.visibility THEN json_object(
+                        'est_radie', bodacc_radiations.est_radie,
+                        'id_annonce', bodacc_radiations.id_annonce,
+                        'date', bodacc_radiations.date
+                    ) END,
+                'procedure_collective',
+                    CASE WHEN bodacc_procedures_collectives.siren IS NOT NULL THEN json_object(
+                        'statut', bodacc_procedures_collectives.statut,
+                        'id_annonce', bodacc_procedures_collectives.id_annonce,
+                        'date', bodacc_procedures_collectives.date
+                    ) END
             ) as bodacc
             FROM
-                unite_legale ul
-            LEFT JOIN
-                siege st
-            ON
-                ul.siren = st.siren
-            WHERE ul.siren IS NOT NULL
-            ;
+                unite_legale
+            LEFT JOIN siege ON siege.siren = unite_legale.siren
+            LEFT JOIN count_etablissement ON count_etablissement.siren = unite_legale.siren
+            LEFT JOIN count_etablissement_ouvert ON count_etablissement_ouvert.siren = unite_legale.siren
+            LEFT JOIN bilan_financier ON bilan_financier.siren = unite_legale.siren
+            LEFT JOIN spectacle ON spectacle.siren = unite_legale.siren
+            LEFT JOIN finess_juridique ON finess_juridique.siren = unite_legale.siren
+            LEFT JOIN egapro ON egapro.siren = unite_legale.siren
+            LEFT JOIN bilan_ges ON bilan_ges.siren = unite_legale.siren
+            LEFT JOIN achats_responsables ON achats_responsables.siren = unite_legale.siren
+            LEFT JOIN alim_confiance ON alim_confiance.siren = unite_legale.siren
+            LEFT JOIN patrimoine_vivant ON patrimoine_vivant.siren = unite_legale.siren
+            LEFT JOIN aides_minimis ON aides_minimis.siren = unite_legale.siren
+            LEFT JOIN aides_ademe ON aides_ademe.siren = unite_legale.siren
+            LEFT JOIN avocat ON avocat.siren = unite_legale.siren
+            LEFT JOIN colter ON colter.siren = unite_legale.siren
+            LEFT JOIN ess_france ON ess_france.siren = unite_legale.siren
+            LEFT JOIN organisme_formation ON organisme_formation.siren = unite_legale.siren
+            LEFT JOIN marche_inclusion ON marche_inclusion.siren = unite_legale.siren
+            LEFT JOIN tva ON tva.siren = unite_legale.siren
+            LEFT JOIN fondation ON fondation.siren = unite_legale.siren
+            LEFT JOIN bodacc_radiations ON bodacc_radiations.siren = unite_legale.siren
+            LEFT JOIN bodacc_procedures_collectives ON bodacc_procedures_collectives.siren = unite_legale.siren
+            WHERE unite_legale.siren IS NOT NULL
     """
