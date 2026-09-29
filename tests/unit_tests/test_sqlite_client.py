@@ -34,3 +34,29 @@ def test_to_csv_empty_result_writes_header_only(sqlite_client, tmp_path):
 
     assert output.read_text().splitlines() == ["id,name"]
     assert local_file.lines_count() == 1
+
+
+# SqliteClient.tune_for_large_scan()
+
+
+def test_tune_for_large_scan_applies_the_pragmas(sqlite_client):
+    assert sqlite_client.execute("PRAGMA cache_size").fetchone()[0] != -262144
+
+    sqlite_client.tune_for_large_scan()
+
+    assert sqlite_client.execute("PRAGMA cache_size").fetchone()[0] == -262144
+    # 2 is MEMORY, 0 the default.
+    assert sqlite_client.execute("PRAGMA temp_store").fetchone()[0] == 2
+    # SQLite clamps mmap_size to its compile-time maximum, so only the fact that
+    # mapping is enabled can be asserted portably.
+    assert sqlite_client.execute("PRAGMA mmap_size").fetchone()[0] > 0
+
+
+def test_tune_for_large_scan_leaves_other_connections_alone(sqlite_client, tmp_path):
+    sqlite_client.tune_for_large_scan()
+
+    untuned_client = SqliteClient(str(tmp_path / "untuned.db"))
+    try:
+        assert untuned_client.execute("PRAGMA cache_size").fetchone()[0] != -262144
+    finally:
+        untuned_client.db_conn.close()

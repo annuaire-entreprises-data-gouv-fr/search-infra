@@ -1,4 +1,3 @@
-import json
 import logging
 
 from slugify import slugify
@@ -7,6 +6,7 @@ from data_pipelines_annuaire.helpers.utils import (
     drop_exact_duplicates,
     get_empty_string_if_none,
     load_file,
+    load_json,
     sqlite_str_to_bool,
     str_to_bool,
     str_to_list,
@@ -418,7 +418,7 @@ def format_personnes_physiques(
 ):
     if list_all_personnes is None:
         list_all_personnes = []
-    personnes_physiques = json.loads(list_personnes_physiques_sqlite)
+    personnes_physiques = load_json(list_personnes_physiques_sqlite)
     personnes_physiques_processed = []
 
     for personne_physique in personnes_physiques:
@@ -482,7 +482,7 @@ def format_personnes_physiques(
 def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=None):
     if list_all_dirigeants is None:
         list_all_dirigeants = []
-    dirigeants_pm = json.loads(list_dirigeants_pm_sqlite)
+    dirigeants_pm = load_json(list_dirigeants_pm_sqlite)
     dirigeants_pm_processed = []
     for dirigeant_pm in dirigeants_pm:
         if dirigeant_pm["denomination"]:
@@ -515,7 +515,7 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=None):
 
 
 def format_bodacc(bodacc_sqlite):
-    bodacc = json.loads(bodacc_sqlite) if bodacc_sqlite else {}
+    bodacc = load_json(bodacc_sqlite) if bodacc_sqlite else {}
     if bodacc.get("radiation"):
         bodacc["radiation"]["est_radie"] = sqlite_str_to_bool(
             bodacc["radiation"].get("est_radie", None)
@@ -539,7 +539,7 @@ def format_etablissements_and_complements(
     sigle,
     is_non_diffusible=False,
 ):
-    etablissements = json.loads(list_etablissements_sqlite)
+    etablissements = load_json(list_etablissements_sqlite)
     etablissements_processed = []
     complements = {
         "est_uai": False,
@@ -629,7 +629,7 @@ def format_etablissements_and_complements(
 def format_siege_unite_legale(siege, is_non_diffusible=False):
     if not siege:
         return None
-    siege = json.loads(siege)
+    siege = load_json(siege)
     siege["adresse"] = format_adresse_complete(
         siege["complement_adresse"],
         siege["numero_voie"],
