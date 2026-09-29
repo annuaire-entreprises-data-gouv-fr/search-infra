@@ -237,7 +237,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
 
         # Siege
         unite_legale_processed["siege"] = format_siege_unite_legale(
-            unite_legale["siege"], is_non_diffusible
+            etablissements_processed, unite_legale["siret_siege"]
         )
 
         # Slug Nom Complet

@@ -8,6 +8,7 @@ create_table_etablissement_query = """CREATE TABLE IF NOT EXISTS etablissement
             annee_tranche_effectif_salarie TEXT,
             activite_principale_registre_metier TEXT,
             est_siege TEXT,
+            ancien_siege TEXT,
             numero_voie TEXT,
             dernier_numero_voie TEXT,
             type_voie TEXT,
