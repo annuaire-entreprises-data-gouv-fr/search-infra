@@ -25,7 +25,8 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
             unite_legale.sigle as sigle,
             unite_legale.siren,
             (SELECT siren_conserve FROM doublons WHERE siren_doublon = unite_legale.siren) as siren_conserve,
-            siege.siret as siret_siege,
+            (SELECT siret FROM etablissement WHERE siren = unite_legale.siren
+                AND est_siege = 'true') as siret_siege,
             unite_legale.tranche_effectif_salarie_unite_legale as
             tranche_effectif_salarie_unite_legale,
             unite_legale.statut_diffusion_unite_legale as
@@ -129,6 +130,7 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
                         'tranche_effectif_salarie',tranche_effectif_salarie,
                         'annee_tranche_effectif_salarie',annee_tranche_effectif_salarie,
                         'date_mise_a_jour_insee',date_mise_a_jour_insee,
+                        'date_mise_a_jour_rne',date_mise_a_jour_rne,
                         'type_voie',type_voie,
                         'x',x,
                         'y',y,
@@ -204,6 +206,7 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
                         etablissement.annee_tranche_effectif_salarie as
                         annee_tranche_effectif_salarie,
                         etablissement.date_mise_a_jour_insee as date_mise_a_jour_insee,
+                        etablissement.date_mise_a_jour_rne as date_mise_a_jour_rne,
                         etablissement.type_voie as type_voie,
                         etablissement.x as x,
                         etablissement.y as y,
@@ -229,143 +232,6 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
                         WHERE etablissement.siren = unite_legale.siren
                     )
                 ) as etablissements,
-            (SELECT json_object(
-                        'activite_principale',activite_principale,
-                        'activite_principale_naf25', activite_principale_naf25,
-                        'activite_principale_registre_metier',
-                        activite_principale_registre_metier,
-                        'caractere_employeur',caractere_employeur,
-                        'cedex',cedex,
-                        'code_pays_etranger',code_pays_etranger,
-                        'code_postal',code_postal,
-                        'commune',commune,
-                        'complement_adresse',complement_adresse,
-                        'date_creation',date_creation,
-                        'date_debut_activite',date_debut_activite,
-                        'date_fermeture',date_fermeture,
-                        'distribution_speciale',distribution_speciale,
-                        'enseigne_1',enseigne_1,
-                        'enseigne_2',enseigne_2,
-                        'enseigne_3',enseigne_3,
-                        'est_siege',est_siege,
-                        'etat_administratif',etat_administratif_etablissement,
-                        'from_insee',from_insee,
-                        'from_rne',from_rne,
-                        'geo_adresse',geo_adresse,
-                        'geo_id',geo_id,
-                        'geo_score',geo_score,
-                        'indice_repetition',indice_repetition,
-                        'latitude',latitude,
-                        'libelle_cedex',libelle_cedex,
-                        'libelle_commune',libelle_commune,
-                        'libelle_commune_etranger',libelle_commune_etranger,
-                        'libelle_pays_etranger',libelle_pays_etranger,
-                        'libelle_voie',libelle_voie,
-                        'liste_finess_geographique',liste_finess_geographique,
-                        'liste_id_bio',liste_id_bio,
-                        'liste_idcc',liste_idcc,
-                        'liste_rge',liste_rge,
-                        'liste_uai',liste_uai,
-                        'longitude',longitude,
-                        'nom_commercial',nom_commercial,
-                        'numero_voie',numero_voie,
-                        'dernier_numero_voie',dernier_numero_voie,
-                        'siren',siren,
-                        'siret',siret,
-                        'statut_diffusion_etablissement',
-                        statut_diffusion_etablissement,
-                        'tranche_effectif_salarie',tranche_effectif_salarie,
-                        'annee_tranche_effectif_salarie',
-                        annee_tranche_effectif_salarie,
-                        'type_voie',type_voie,
-                        'date_mise_a_jour_insee',date_mise_a_jour_insee,
-                        'date_mise_a_jour_rne',date_mise_a_jour_rne,
-                        'x',x,
-                        'y',y,
-                        'successions',json_object(
-                            'predecesseurs',successions_predecesseurs,
-                            'successeurs',successions_successeurs
-                        )
-                        )
-                    FROM
-                    (
-                        SELECT
-                        siege.activite_principale as activite_principale,
-                        siege.activite_principale_naf25 as activite_principale_naf25,
-                        siege.activite_principale_registre_metier as
-                        activite_principale_registre_metier,
-                        siege.caractere_employeur as caractere_employeur,
-                        siege.cedex as cedex,
-                        siege.code_pays_etranger as code_pays_etranger,
-                        siege.code_postal as code_postal,
-                        siege.commune as commune,
-                        siege.complement_adresse as complement_adresse,
-                        siege.date_creation as date_creation,
-                        siege.date_debut_activite as date_debut_activite,
-                        siege.date_fermeture_etablissement as date_fermeture,
-                        siege.distribution_speciale as distribution_speciale,
-                        siege.enseigne_1 as enseigne_1,
-                        siege.enseigne_2 as enseigne_2,
-                        siege.enseigne_3 as enseigne_3,
-                        siege.est_siege as est_siege,
-                        siege.etat_administratif_etablissement as
-                        etat_administratif_etablissement,
-                        NULL as geo_adresse,
-                        NULL as geo_id,
-                        NULL as geo_score,
-                        siege.indice_repetition as indice_repetition,
-                        siege.latitude as latitude,
-                        siege.libelle_cedex as libelle_cedex,
-                        siege.libelle_commune as libelle_commune,
-                        siege.libelle_commune_etranger as libelle_commune_etranger,
-                        siege.libelle_pays_etranger as libelle_pays_etranger,
-                        siege.libelle_voie as libelle_voie,
-                        (SELECT liste_finess_geographique FROM finess_geographique WHERE siret = siege.siret) as
-                        liste_finess_geographique,
-                        (SELECT liste_id_bio FROM agence_bio WHERE siret = siege.siret) as
-                        liste_id_bio,
-                        (SELECT liste_idcc_etablissement FROM convention_collective
-                        WHERE siret = siege.siret) as liste_idcc,
-                        (SELECT liste_rge FROM rge WHERE siret = siege.siret) as liste_rge,
-                        (SELECT liste_uai FROM uai WHERE siret = siege.siret) as liste_uai,
-                        siege.longitude as longitude,
-                        siege.nom_commercial as nom_commercial,
-                        siege.numero_voie as numero_voie,
-                        siege.dernier_numero_voie as dernier_numero_voie,
-                        siege.siren as siren,
-                        siege.siret as siret,
-                        siege.statut_diffusion_etablissement as
-                        statut_diffusion_etablissement,
-                        siege.tranche_effectif_salarie as tranche_effectif_salarie,
-                        siege.annee_tranche_effectif_salarie as
-                        annee_tranche_effectif_salarie,
-                        siege.type_voie as type_voie,
-                        siege.date_mise_a_jour_insee as date_mise_a_jour_insee,
-                        siege.date_mise_a_jour_rne as date_mise_a_jour_rne,
-                        siege.x as x,
-                        siege.y as y,
-                        (SELECT json_group_array(json_object(
-                            'siret', siret_predecesseur,
-                            'date_lien_succession', date_lien_succession,
-                            'transfert_siege', transfert_siege,
-                            'continuite_economique', continuite_economique
-                            ))
-                        FROM liens_succession
-                        WHERE siret_successeur = siege.siret
-                        ) as successions_predecesseurs,
-                        (SELECT json_group_array(json_object(
-                            'siret', siret_successeur,
-                            'date_lien_succession', date_lien_succession,
-                            'transfert_siege', transfert_siege,
-                            'continuite_economique', continuite_economique
-                            ))
-                        FROM liens_succession
-                        WHERE siret_predecesseur = siege.siret
-                        ) as successions_successeurs
-                        FROM siege
-                        WHERE siege.siren = unite_legale.siren
-                    )
-                ) as siege,
             spectacle.est_entrepreneur_spectacle as est_entrepreneur_spectacle,
             spectacle.statut_entrepreneur_spectacle as statut_entrepreneur_spectacle,
             finess_juridique.liste_finess_juridique as liste_finess_juridique,
@@ -454,7 +320,6 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
             ) as bodacc
             FROM
                 unite_legale
-            LEFT JOIN siege ON siege.siren = unite_legale.siren
             LEFT JOIN count_etablissement ON count_etablissement.siren = unite_legale.siren
             LEFT JOIN count_etablissement_ouvert ON count_etablissement_ouvert.siren = unite_legale.siren
             LEFT JOIN bilan_financier ON bilan_financier.siren = unite_legale.siren

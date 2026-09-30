@@ -150,6 +150,7 @@ class EtablissementMapping(InnerDoc):
     date_debut_activite = Date()
     date_fermeture = Date()
     date_mise_a_jour_insee = Date()
+    date_mise_a_jour_rne = Date()
     departement = Keyword()
     distribution_speciale = Keyword()
     enseigne_1 = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})

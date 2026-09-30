@@ -17,5 +17,5 @@ select_sitemap_fields_query = """SELECT
         FROM
             unite_legale ul
         JOIN
-            siege st
-        ON st.siren = ul.siren;"""
+            etablissement st
+        ON st.siren = ul.siren AND st.est_siege = 'true';"""
