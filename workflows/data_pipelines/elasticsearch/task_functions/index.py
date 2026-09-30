@@ -27,7 +27,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.indexing_uni
     index_unites_legales_by_chunk,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.sqlite.fields_to_index import (
-    select_fields_to_index_query,
+    SELECT_FIELDS_TO_INDEX_QUERY,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.sqlite.fondations_to_index import (
     select_fondations_to_index_query,
@@ -64,7 +64,7 @@ def fill_elastic_siren_index():
     ti = get_current_context()["ti"]
     elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
     sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db")
-    sqlite_client.execute(select_fields_to_index_query)
+    sqlite_client.execute(SELECT_FIELDS_TO_INDEX_QUERY)
 
     connections.create_connection(
         hosts=[ELASTIC_URL],
