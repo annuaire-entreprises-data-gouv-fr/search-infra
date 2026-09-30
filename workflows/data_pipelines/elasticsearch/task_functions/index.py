@@ -1,4 +1,5 @@
 import logging
+import time
 from datetime import UTC, datetime
 
 from airflow.sdk import get_current_context, task
@@ -12,8 +13,10 @@ from data_pipelines_annuaire.config import (
     ELASTIC_MAX_LIVE_VERSIONS,
     ELASTIC_MIN_DOC_COUNT_EXPECTED,
     ELASTIC_PASSWORD,
+    # ELASTIC_REQUEST_TIMEOUT,
     ELASTIC_URL,
     ELASTIC_USER,
+    INDEXING_PARALLEL_TASKS,
 )
 from data_pipelines_annuaire.helpers import Notification
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
@@ -27,13 +30,26 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.indexing_uni
     index_unites_legales_by_chunk,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.sqlite.fields_to_index import (
-    SELECT_FIELDS_TO_INDEX_QUERY,
+    select_fields_to_index_query,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.sqlite.fondations_to_index import (
     select_fondations_to_index_query,
 )
 
 logger = logging.getLogger(__name__)
+
+ELASTIC_COUNT_MAX_RETRIES = 5
+ELASTIC_COUNT_RETRY_INTERVAL = 5
+
+
+def get_elastic_connection():
+    connections.create_connection(
+        hosts=[ELASTIC_URL],
+        basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        retry_on_timeout=True,
+        # request_timeout=ELASTIC_REQUEST_TIMEOUT,  # Bulk indexing increase the risk of timeout
+    )
+    return connections.get_connection()
 
 
 @task
@@ -46,6 +62,12 @@ def get_next_index_name():
 
 @task
 def create_elastic_index():
+    """
+    Create the index, then optimise it for bulk inserts :
+    * `index.refresh_interval: -1,`: prevents Elasticsearch from performing any refreshes during the bulk indexing process.
+    * `index.translog.durability: async`: stops it from writing transaction logs to disk on every request.
+    Async translog risks data loss on crash but since we restart from scratch in this case this is a non-issue.
+    """
     ti = get_current_context()["ti"]
     elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
     logger.info(f"******************** Index to create: {elastic_index}")
@@ -57,31 +79,81 @@ def create_elastic_index():
         elastic_bulk_size=ELASTIC_BULK_SIZE,
     )
     create_index.execute()
+    get_elastic_connection().indices.put_settings(
+        index=elastic_index,
+        body={
+            "index.refresh_interval": -1,
+            "index.translog.durability": "async",
+        },
+    )
 
 
 @task
-def fill_elastic_siren_index():
+def compute_siren_ranges():
+    """
+    Each parallel task should index the same number of documents to share the load evenly.
+    As a proxy we split the unités légales to N equal ranges.
+    Each range is defined by a first and last SIREN.
+    None means the beginning or end of the `unite_legale` table.
+    """
+    siren_ranges = []
+    siren_start = None
+    with SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db") as sqlite_client:
+        unites_legales_count = sqlite_client.get_table_count("unite_legale")
+        for parallel_task in range(1, INDEXING_PARALLEL_TASKS):
+            offset = parallel_task * unites_legales_count // INDEXING_PARALLEL_TASKS
+            siren_end = sqlite_client.execute(
+                f"SELECT siren FROM unite_legale ORDER BY siren LIMIT 1 OFFSET {offset}"
+            ).fetchone()[0]
+            if siren_end and siren_end != siren_start:
+                siren_ranges.append(
+                    {"siren_start": siren_start, "siren_end": siren_end}
+                )
+                siren_start = siren_end
+    siren_ranges.append({"siren_start": siren_start, "siren_end": None})
+
+    logger.info(
+        f"Indexing {unites_legales_count} unites legales in "
+        f"{len(siren_ranges)} parallel tasks: {siren_ranges}"
+    )
+    return siren_ranges
+
+
+@task
+def fill_elastic_siren_index(siren_range):
     ti = get_current_context()["ti"]
     elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
-    sqlite_client = SqliteClient(AIRFLOW_ELK_DATA_DIR + "sirene.db")
-    sqlite_client.execute(SELECT_FIELDS_TO_INDEX_QUERY)
+    with SqliteClient(
+        AIRFLOW_ELK_DATA_DIR + "sirene.db", check_same_thread=False
+    ) as sqlite_client:
+        query = select_fields_to_index_query(**siren_range)
+        sqlite_client.execute(query)
 
-    connections.create_connection(
-        hosts=[ELASTIC_URL],
-        basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
-        retry_on_timeout=True,
-    )
-    elastic_connection = connections.get_connection()
+        doc_count = index_unites_legales_by_chunk(
+            cursor=sqlite_client.db_cursor,
+            elastic_connection=get_elastic_connection(),
+            elastic_bulk_thread_count=ELASTIC_BULK_THREAD_COUNT,
+            elastic_bulk_size=ELASTIC_BULK_SIZE,
+            elastic_index=elastic_index,
+        )
+    return doc_count
 
-    doc_count = index_unites_legales_by_chunk(
-        cursor=sqlite_client.db_cursor,
-        elastic_connection=elastic_connection,
-        elastic_bulk_thread_count=ELASTIC_BULK_THREAD_COUNT,
-        elastic_bulk_size=ELASTIC_BULK_SIZE,
-        elastic_index=elastic_index,
+
+@task
+def restore_elastic_index_settings():
+    """Put the index settings back to the defaults."""
+    ti = get_current_context()["ti"]
+    elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
+    elastic_connection = get_elastic_connection()
+    elastic_connection.indices.put_settings(
+        index=elastic_index,
+        body={
+            "index.refresh_interval": None,
+            "index.translog.durability": None,
+        },
     )
-    ti.xcom_push(key="doc_count", value=doc_count)
-    sqlite_client.commit_and_close_conn()
+    # Refresh was disabled so we force it
+    elastic_connection.indices.refresh(index=elastic_index)
 
 
 @task
@@ -89,6 +161,7 @@ def fill_elastic_fondation_index():
     """
     Index the fondations that have no SIRET.
     Those with a SIRET are already indexed with their unite_legale equivalent.
+    No paralleling need for such a low volume of entities.
     """
     ti = get_current_context()["ti"]
     elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
@@ -113,14 +186,40 @@ def fill_elastic_fondation_index():
     sqlite_client.commit_and_close_conn()
 
 
+def count_indexed_documents(elastic_index):
+    """Ask Elasticsearch how many documents the index contains."""
+    elastic_connection = get_elastic_connection()
+    for attempt in range(ELASTIC_COUNT_MAX_RETRIES):
+        doc_count = int(
+            elastic_connection.cat.count(
+                index=elastic_index, params={"format": "json"}
+            )[0]["count"]
+        )
+        if doc_count > 0:
+            return doc_count
+
+        if attempt < ELASTIC_COUNT_MAX_RETRIES - 1:
+            logger.warning(
+                f"Document count is zero. Retrying in "
+                f"{ELASTIC_COUNT_RETRY_INTERVAL} seconds..."
+            )
+            time.sleep(ELASTIC_COUNT_RETRY_INTERVAL)
+
+    logger.error("Max retries reached. Document count is still zero.")
+    return 0
+
+
 @task
 def check_elastic_index():
     ti = get_current_context()["ti"]
-    doc_count = ti.xcom_pull(key="doc_count", task_ids="fill_elastic_siren_index")
+    elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
+    parallel_task_doc_counts = ti.xcom_pull(task_ids="fill_elastic_siren_index") or []
     fondation_doc_count = ti.xcom_pull(
         key="fondation_doc_count",
         task_ids="fill_elastic_fondation_index",
     )
+    doc_count = count_indexed_documents(elastic_index)
+    logger.info(f"Documents indexed per parallel task: {parallel_task_doc_counts}.")
 
     if int(doc_count) < ELASTIC_MIN_DOC_COUNT_EXPECTED:
         failure_message = (
