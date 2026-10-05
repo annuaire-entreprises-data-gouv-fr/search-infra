@@ -13,7 +13,7 @@ from data_pipelines_annuaire.helpers.notification import (
 
 
 def render(notifier, context):
-    context = {**context, "env": notifier.env, "tz": notifier.tz}
+    context = notifier._update_context(dict(context))
     jinja_env = SandboxedEnvironment(undefined=StrictUndefined, cache_size=0)
     return jinja_env.from_string(notifier.html_content).render(**context)
 
@@ -77,16 +77,11 @@ def test_email_notification_defaults(notifier):
     assert "{{ env }}" in notifier.subject
 
 
-def test_env_is_exposed_to_the_template(notifier):
-    """Airflow ENV must be a template field."""
-    assert notifier.env == AIRFLOW_ENV
-    assert "env" in notifier.template_fields
+def test_env_and_tz_are_exposed_to_the_template(notifier, full_context):
+    context = notifier._update_context(dict(full_context))
 
-
-def test_tz_is_exposed_to_the_template(notifier):
-    """Europe/Paris must be a template field."""
-    assert notifier.tz == EMAIL_TIMEZONE
-    assert "tz" in notifier.template_fields
+    assert context["env"] == AIRFLOW_ENV
+    assert context["tz"] == EMAIL_TIMEZONE
 
 
 def test_dates_render_in_paris_time(notifier, full_context):

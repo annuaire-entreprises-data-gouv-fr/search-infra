@@ -1,0 +1,25 @@
+---
+name: Docker Build
+on:
+  pull_request:
+    paths:
+      - airflow.Dockerfile
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/docker_build.yml
+  push:
+    branches:
+      - main
+    paths:
+      - airflow.Dockerfile
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/docker_build.yml
+jobs:
+  build:
+    name: Airflow image validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build
+        run: docker build -f airflow.Dockerfile .

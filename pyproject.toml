@@ -1,3 +1,38 @@
+[project]
+name = "annuaire-search-infra"
+version = "1.0.0"
+requires-python = ">=3.12"
+readme = "README.md"
+
+dependencies = [
+    "boto3==1.43.95",
+    "pandas==2.3.3",
+    "openpyxl==3.1.5",
+    "elasticsearch==9.2.1",
+    "requests==2.34.2",
+    "pytest==9.1.1",
+    "pydantic==2.13.5",
+    "pyproj==3.8.0",
+    "redis==8.1.0",
+    "pyarrow==25.0.1",
+]
+
+[dependency-groups]
+# Fourni par l'image Docker, à garder aligné sur AIRFLOW_VERSION dans airflow.Dockerfile
+airflow = ["apache-airflow==3.2.1"]
+# Used by the CI and by the pre-commit hooks through `uv run`
+dev = [
+    "ruff",
+    "mypy",
+    "types-requests",
+]
+
+[project.urls]
+Repository = "https://github.com/annuaire-entreprises-data-gouv-fr/search-infra"
+
+[tool.uv]
+default-groups = ["airflow", "dev"]
+
 [tool.ruff]
 src = ["data_pipelines_annuaire"]
 
@@ -7,3 +42,12 @@ extend-select = ["I"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["data_pipelines_annuaire"]
+
+[tool.ty.environment]
+root = [".."]
+
+[tool.mypy]
+strict_optional = false
+ignore_missing_imports = true
+explicit_package_bases = true
+exclude = ["^\\.venv/"]

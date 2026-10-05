@@ -161,6 +161,33 @@ curl -u http://localhost:9200/your-index-name/_search?pretty
 > [!NOTE]
 > Vous pouvez aussi lancer une instance de l'API de Recherche en local pour faciliter les tests depuis [ce dépôt de code](https://github.com/annuaire-entreprises-data-gouv-fr/search-api).
 
+## Dépendances Python
+
+Les dépendances sont gérées avec [uv](https://docs.astral.sh/uv/) afin d'utiliser strictement le même environnement en local, dans la CI et dans l'image Docker.
+En local celui ci est utilisé par `pre-commit` et le LSP de l'IDE
+
+```bash
+# Créer l'environnement local (Airflow, ruff et mypy compris)
+uv sync
+uv run pytest tests/unit_tests
+# Activer les hooks pre-commit
+uv tool install pre-commit
+pre-commit install
+```
+
+> [!IMPORTANT]
+> Renommer le dépôt lors du clone, les imports du code en dépendent (`from data_pipelines_annuaire.helpers import ...`).
+```bash
+git clone git@github.com:annuaire-entreprises-data-gouv-fr/search-infra.git data_pipelines_annuaire
+```
+
+- **Ajouter ou mettre à jour une dépendance**
+Modifier `pyproject.toml` (ou utiliser `uv add`), puis lancer `uv lock` et commiter `uv.lock`. La CI et le build de l'image échouent si `uv.lock` ne correspond plus à `pyproject.toml`.
+- **Monter la version d'Airflow**
+Airflow est fourni par l'image de base et est déclaré dans le groupe `airflow` de `pyproject.toml`. Modifier en même temps `AIRFLOW_VERSION` dans `airflow.Dockerfile` et la version du groupe `airflow`, puis lancer `uv lock`. Le build de l'image échoue si les deux versions diffèrent.
+- **Monter la version de Python**
+Modifier en même temps `PYTHON_VERSION` dans `airflow.Dockerfile` et la version de Python dans `pyproject.toml`. Puis lancer `uv lock`. Le build de l'image échoue si les deux versions diffèrent.
+
 ## Contact
 
 Channel Tchap : `https://tchap.gouv.fr/#/room/#annuaire-entreprises:agent.dinum.tchap.gouv.fr`

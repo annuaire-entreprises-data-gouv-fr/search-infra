@@ -1,7 +1,6 @@
 version: 2
 updates:
-  - package-ecosystem: "pip"
-    directory: "/"
+  - package-ecosystem: "uv"
     cooldown:
       semver-major-days: 60
       semver-minor-days: 14

@@ -69,7 +69,7 @@ class Pouvoir(BaseModel):
 
 
 class Composition(BaseModel):
-    pouvoirs: list[Pouvoir] | None = Pouvoir()
+    pouvoirs: list[Pouvoir] | None = []
 
 
 class Entreprise(BaseModel):
@@ -120,7 +120,7 @@ class EtablissementPrincipal(BaseModel):
         DescriptionEtablissement()
     )
     adresse: Adresse | None = Adresse()
-    activites: list[Activite] | None = Activite()
+    activites: list[Activite] | None = []
 
 
 class DetailCessationEntreprise(BaseModel):

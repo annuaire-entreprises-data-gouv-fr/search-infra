@@ -15,20 +15,21 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+      - name: Cache uv dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('uv.lock') }}
       - name: Install dependencies
+        # --locked fails if uv.lock no longer matches pyproject.toml.
+        # On failure: run `uv lock` locally and commit the updated uv.lock.
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade ruff mypy
+          python -m pip install --upgrade pip uv
+          uv sync --locked
       - name: Run Ruff
-        run: ruff check --diff --output-format=github .
+        run: uv run --no-sync ruff check --diff --output-format=github .
       - name: Run Mypy
-        run: |
-          mypy --no-strict-optional \
-            --ignore-missing-imports \
-            --install-types \
-            --non-interactive \
-            --explicit-package-bases
-
+        run: uv run --no-sync mypy .
 
   unit-tests:
     name: Run Unit Tests
@@ -47,17 +48,18 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Cache pip dependencies
+      - name: Cache uv dependencies
         uses: actions/cache@v3
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-airflow-3.2.1-pip-${{ hashFiles('data_pipelines_annuaire/requirements.txt') }}
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('data_pipelines_annuaire/uv.lock') }}
       - name: Install dependencies
+        working-directory: data_pipelines_annuaire
+        # --locked fails if uv.lock no longer matches pyproject.toml.
+        # On failure: run `uv lock` locally and commit the updated uv.lock.
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install apache-airflow==3.2.1
-          python -m pip install -r data_pipelines_annuaire/requirements.txt
+          python -m pip install --upgrade pip uv
+          uv sync --locked
       - name: unit tests
-        run: |
-          cd data_pipelines_annuaire
-          pytest tests/unit_tests -v
+        working-directory: data_pipelines_annuaire
+        run: uv run --no-sync pytest tests/unit_tests -v
