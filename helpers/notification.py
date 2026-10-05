@@ -3,7 +3,8 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from airflow.providers.smtp.notifications.smtp import SmtpNotifier
-from airflow.sdk import BaseNotifier
+from airflow.sdk import BaseNotifier, Context
+from airflow.sdk.definitions.context import context_merge
 
 from data_pipelines_annuaire.config import AIRFLOW_ENV
 from data_pipelines_annuaire.helpers import AirflowApiClient, tchap
@@ -22,8 +23,6 @@ class EmailNotification(SmtpNotifier):
         >>> on_failure_callback=[Notification(), EmailNotification(to=EMAIL_LIST)],
     """
 
-    template_fields = (*SmtpNotifier.template_fields, "env", "tz")
-
     def __init__(self, to, subject=None, **kwargs):
         kwargs.setdefault("template", EMAIL_NOTIFICATION_TEMPLATE)
         if subject is None:
@@ -31,9 +30,12 @@ class EmailNotification(SmtpNotifier):
                 "[Annuaire des Entreprises - {{ env }}] "
                 "🔴 Échec du DAG {{ dag.dag_id }}"
             )
-        self.env = AIRFLOW_ENV
-        self.tz = EMAIL_TIMEZONE
         super().__init__(to=to, subject=subject, **kwargs)
+
+    def _update_context(self, context: Context) -> Context:
+        context = super()._update_context(context)
+        context_merge(context, env=AIRFLOW_ENV, tz=EMAIL_TIMEZONE)
+        return context
 
 
 class Notification(BaseNotifier):
