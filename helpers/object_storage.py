@@ -457,8 +457,7 @@ class ObjectStorageClient:
             stat = self.client.head_object(
                 Bucket=self.bucket, Key=f"{OBJECT_STORAGE_ENV_PATH}{file_path}"
             )
-            # Format the datetime object to ISO 8601 format
-            last_modified_str = stat["LastModified"].strftime("%Y-%m-%dT%H:%M:%S")
+            last_modified_str = stat["LastModified"].isoformat(timespec="seconds")
             logger.info(f"Last modified date of '{file_path}': {last_modified_str}")
             return last_modified_str
         except ClientError as e:
