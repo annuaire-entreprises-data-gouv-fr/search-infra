@@ -14,6 +14,9 @@ services:
       AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: True
       AIRFLOW__CORE__LOAD_DEFAULT_CONNECTIONS: False
       AIRFLOW__LOGGING__MIN_LENGTH_MASKED_SECRET: 0
+      # Pour prendre en compte une modification tout de suite : airflow dags reserialize
+      AIRFLOW__DAG_PROCESSOR__MIN_FILE_PROCESS_INTERVAL: 300
+      AIRFLOW__DAG_PROCESSOR__PARSING_PROCESSES: 1
     env_file:
       - .env
     volumes:
@@ -28,7 +31,7 @@ services:
     entrypoint: airflow standalone
     networks:
       - annuaire-network
-    container_name: "airflow-${DOCKER_CONTEXT:-ade}-${DOCKER_ENV:-test}"
+    container_name: "${DOCKER_CONTEXT:-ade}-${DOCKER_ENV:-test}-airflow"
 
   postgres:
     image: postgres:16
@@ -47,7 +50,7 @@ services:
       - "127.0.0.1:${AIRFLOW_POSTGRES_PORT:-5432}:5432"
     networks:
       - annuaire-network
-    container_name: "airflow-db-${DOCKER_CONTEXT:-ade}-${DOCKER_ENV:-test}"
+    container_name: "${DOCKER_CONTEXT:-ade}-${DOCKER_ENV:-test}-airflow-db"
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.2.1
@@ -55,15 +58,12 @@ services:
       - discovery.type=single-node
       - cluster.name=annuaire-search-cluster
       - node.name=annuaire-es-node-1
-      - bootstrap.memory_lock=true
+      - bootstrap.memory_lock=false
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
       - xpack.security.enabled=true
       - ELASTIC_USER=${AIRFLOW_VAR_ELASTIC_USER:-elastic}
       - ELASTIC_PASSWORD=${AIRFLOW_VAR_ELASTIC_PASSWORD:-elastic}
     ulimits:
-      memlock:
-        soft: -1
-        hard: -1
       nofile:
         soft: 65536
         hard: 65536
@@ -74,7 +74,23 @@ services:
       - "9300:9300"
     networks:
       - annuaire-network
-    container_name: "elasticsearch-${DOCKER_CONTEXT:-ade}-${DOCKER_ENV:-test}"
+    container_name: "${DOCKER_CONTEXT:-ade}-${DOCKER_ENV:-test}-elasticsearch"
+
+  # Object Storage S3 local, sans authentification : n'importe quelle clé est acceptée.
+  # Utilisé par les DAGs seulement si AIRFLOW_VAR_OBJECT_STORAGE_URL=http://s3:8333 dans le .env
+  s3:
+    image: chrislusf/seaweedfs:4.48
+    command: server -s3 -dir=/data
+    restart: unless-stopped
+    volumes:
+      - ${LOCAL_TMP_PATH:-.docker}/s3:/data
+    ports:
+      - "127.0.0.1:${S3_PORT:-8333}:8333"
+      # Explorateur web des fichiers : http://127.0.0.1:8888/buckets/
+      - "127.0.0.1:${S3_UI_PORT:-8888}:8888"
+    networks:
+      - annuaire-network
+    container_name: "${DOCKER_CONTEXT:-ade}-${DOCKER_ENV:-test}-s3"
 
 networks:
   annuaire-network:
