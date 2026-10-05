@@ -15,6 +15,9 @@ on:
       - pyproject.toml
       - uv.lock
       - .github/workflows/docker_build.yml
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Airflow image validation
