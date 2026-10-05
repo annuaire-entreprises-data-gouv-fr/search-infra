@@ -188,6 +188,34 @@ Airflow est fourni par l'image de base et est déclaré dans le groupe `airflow`
 - **Monter la version de Python**
 Modifier en même temps `PYTHON_VERSION` dans `airflow.Dockerfile` et la version de Python dans `pyproject.toml`. Puis lancer `uv lock`. Le build de l'image échoue si les deux versions diffèrent.
 
+### Object Storage local
+
+Le `docker-compose.yml` démarre un Object Storage compatible S3 ([SeaweedFS](https://github.com/seaweedfs/seaweedfs)), pour tester les DAGs simplement sans authentification : n'importe quelle clé est acceptée.
+
+1. Faire pointer les DAGs dessus dans le `.env` :
+```bash
+AIRFLOW_VAR_OBJECT_STORAGE_URL=http://s3:8333
+AIRFLOW_VAR_OBJECT_STORAGE_BUCKET=ade
+AIRFLOW_VAR_OBJECT_STORAGE_ACCESS_KEY=local
+AIRFLOW_VAR_OBJECT_STORAGE_SECRET_KEY=local
+```
+
+2. Y déposer les fichiers dont les DAGs ont besoin. Sans authentification, un simple `PUT` HTTP suffit :
+```bash
+# Créer le bucket, puis envoyer par exemple la base SQLite lue par les DAGs d'indexation et d'export
+curl -X PUT http://127.0.0.1:8333/ade
+curl -T sirene_2026-01-01.db.gz -H "x-amz-acl: public-read" \
+  http://127.0.0.1:8333/ade/ae/dev/sirene/database/sirene_2026-01-01.db.gz
+```
+
+3. Consulter le contenu depuis la machine hôte : explorateur web sur http://127.0.0.1:8888/buckets/ (port `S3_UI_PORT`), ou API S3 sur le port `S3_PORT` (8333 par défaut) :
+```bash
+curl "http://127.0.0.1:8333/ade?list-type=2&prefix=ae/dev/"
+aws s3 ls --endpoint-url http://127.0.0.1:8333 s3://ade/ --recursive
+```
+
+Les données sont conservées dans `${LOCAL_TMP_PATH}/s3`.
+
 ## Contact
 
 Channel Tchap : `https://tchap.gouv.fr/#/room/#annuaire-entreprises:agent.dinum.tchap.gouv.fr`
