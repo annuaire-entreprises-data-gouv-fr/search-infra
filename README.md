@@ -205,7 +205,7 @@ AIRFLOW_VAR_OBJECT_STORAGE_SECRET_KEY=local
 # Créer le bucket, puis envoyer par exemple la base SQLite lue par les DAGs d'indexation et d'export
 curl -X PUT http://127.0.0.1:8333/ade
 curl -T sirene_2026-01-01.db.gz -H "x-amz-acl: public-read" \
-  http://127.0.0.1:8333/ade/ae/dev/sirene/database/sirene_2026-01-01.db.gz
+  http://127.0.0.1:8333/ade/ae/dev/database/sirene/sirene_2026-01-01.db.gz
 ```
 
 3. Consulter le contenu depuis la machine hôte : explorateur web sur http://127.0.0.1:8888/buckets/ (port `S3_UI_PORT`), ou API S3 sur le port `S3_PORT` (8333 par défaut) :

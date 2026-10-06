@@ -86,7 +86,7 @@ def delete_old_object_storage_file():
     )
 
     delete_old_files.override(task_id="sirene_database")(
-        prefix=f"{OBJECT_STORAGE_ENV_PATH}sirene/database/",
+        prefix=f"{OBJECT_STORAGE_ENV_PATH}database/sirene/",
         keep_latest=3,
         retention_days=3,
     )
