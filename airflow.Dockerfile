@@ -1,7 +1,7 @@
 # This Dockerfile is used in production by l'Annuaire des Entreprises
 # Any modification should be thoroughly tested
 # Keep the Python and Airflow versions up to date with pyproject.toml
-ARG AIRFLOW_VERSION=3.2.1
+ARG AIRFLOW_VERSION=3.3.2
 ARG AIRFLOW_PYTHON_VERSION=3.12
 
 FROM apache/airflow:slim-${AIRFLOW_VERSION}-python${AIRFLOW_PYTHON_VERSION}
