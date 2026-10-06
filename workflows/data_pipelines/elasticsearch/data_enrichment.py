@@ -585,9 +585,7 @@ def format_etablissements_and_complements(
         etablissement["region"] = label_region_from_departement(
             etablissement["departement"]
         )
-        etablissement["ancien_siege"] = sqlite_str_to_bool(
-            etablissement["ancien_siege"]
-        )
+        etablissement["ancien_siege"] = str_to_bool(etablissement["ancien_siege"])
         etablissement["coordonnees"] = format_coordonnees(
             etablissement["longitude"], etablissement["latitude"]
         )
@@ -626,45 +624,25 @@ def format_etablissements_and_complements(
 
 
 # Siege
-def format_siege_unite_legale(siege, is_non_diffusible=False):
-    if not siege:
-        return None
-    siege = json.loads(siege)
-    siege["adresse"] = format_adresse_complete(
-        siege["complement_adresse"],
-        siege["numero_voie"],
-        siege["dernier_numero_voie"],
-        siege["indice_repetition"],
-        siege["type_voie"],
-        siege["libelle_voie"],
-        siege["libelle_commune"],
-        siege["libelle_cedex"],
-        siege["distribution_speciale"],
-        siege["code_postal"],
-        siege["cedex"],
-        siege["commune"],
-        siege["libelle_commune_etranger"],
-        siege["libelle_pays_etranger"],
-        is_non_diffusible,
+ETABLISSEMENT_ONLY_FIELDS = (
+    "ancien_siege",
+    "concat_enseigne_adresse_siren_siret",
+    "nom_complet",
+    "sigle",
+)
+
+
+def format_siege_unite_legale(etablissements, siret_siege):
+    etablissement_siege = next(
+        (e for e in etablissements if e["siret"] == siret_siege), None
     )
-    siege["departement"] = format_departement(siege["commune"])
-    siege["coordonnees"] = format_coordonnees(siege["longitude"], siege["latitude"])
-    siege["region"] = label_region_from_departement(siege["departement"])
-    siege["epci"] = label_epci_from_commune(siege["commune"])
-    siege["est_siege"] = str_to_bool(siege["est_siege"])
-    siege["liste_idcc"] = str_to_list(siege["liste_idcc"])
-    siege["liste_rge"] = str_to_list(siege["liste_rge"])
-    siege["liste_uai"] = str_to_list(siege["liste_uai"])
-    siege["liste_finess_geographique"] = str_to_list(siege["liste_finess_geographique"])
-    siege["liste_id_bio"] = str_to_list(siege["liste_id_bio"])
-
-    for entry in (siege["successions"]["predecesseurs"] or []) + (
-        siege["successions"]["successeurs"] or []
-    ):
-        entry["transfert_siege"] = str_to_bool(entry.get("transfert_siege"))
-        entry["continuite_economique"] = str_to_bool(entry.get("continuite_economique"))
-
-    return siege
+    if etablissement_siege is None:
+        return None
+    return {
+        field: value
+        for field, value in etablissement_siege.items()
+        if field not in ETABLISSEMENT_ONLY_FIELDS
+    }
 
 
 def calculate_company_size_factor(unite_legale):

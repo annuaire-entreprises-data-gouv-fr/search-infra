@@ -82,9 +82,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_
     create_data_source_last_modified_file,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_siege_tables import (
-    add_rne_data_to_siege_table,
-    create_ancien_siege_table,
-    create_siege_table,
+    add_rne_data_to_siege_etablissement,
+    update_siege_fields_in_etablissement_table,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_succession_table import (
     create_succession_table,
@@ -293,8 +292,7 @@ def database_constructor():
         >> create_geo_stats_table()
         >> apply_geo_stats_coordinates()
         # Siege
-        >> create_siege_table()
-        >> create_ancien_siege_table()
+        >> update_siege_fields_in_etablissement_table()
         # Liens de succession
         >> create_succession_table()
         # Doublons SIRENE
@@ -303,7 +301,7 @@ def database_constructor():
         >> get_latest_rne_database()
         >> add_rne_siren_data_to_unite_legale_table()
         >> validate_unite_legale_with_rne_table()
-        >> add_rne_data_to_siege_table()
+        >> add_rne_data_to_siege_etablissement()
         >> create_dirig_pp_table()
         >> create_dirig_pm_table()
         >> copy_immatriculation_table()
