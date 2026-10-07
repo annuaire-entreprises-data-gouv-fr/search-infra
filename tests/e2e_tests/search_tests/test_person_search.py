@@ -1,4 +1,4 @@
-from data_pipelines_annuaire.tests.search_tests.search_fixtures import (
+from data_pipelines_annuaire.tests.e2e_tests.search_tests.search_fixtures import (
     ARCTURUS,
     COMMUNE_DE_LAMBESC,
     DIRIGEANT_ANNEE_NAISSANCE,
