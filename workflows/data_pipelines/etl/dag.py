@@ -17,6 +17,11 @@ from data_pipelines_annuaire.helpers.database_constructor import (
 from data_pipelines_annuaire.workflows.data_pipelines.achats_responsables.config import (
     ACHATS_RESPONSABLES_CONFIG,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.administration.config import (
+    ADMINISTRATION_BLACKLIST_CONFIG,
+    ADMINISTRATION_CODES_JURIDIQUES_CONFIG,
+    ADMINISTRATION_WHITELIST_CONFIG,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.agence_bio.config import (
     AGENCE_BIO_CONFIG,
 )
@@ -235,6 +240,9 @@ def database_constructor():
             AVOCAT_CONFIG,
             TVA_CONFIG,
             FONDATION_CONFIG,
+            ADMINISTRATION_CODES_JURIDIQUES_CONFIG,
+            ADMINISTRATION_WHITELIST_CONFIG,
+            ADMINISTRATION_BLACKLIST_CONFIG,
         ]
         tasks = []
         for config in config_list:
