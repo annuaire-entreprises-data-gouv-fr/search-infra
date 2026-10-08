@@ -19,7 +19,7 @@ dependencies = [
 
 [dependency-groups]
 # Fourni par l'image Docker, à garder aligné sur AIRFLOW_VERSION dans airflow.Dockerfile
-airflow = ["apache-airflow==3.2.1"]
+airflow = ["apache-airflow==3.3.2"]
 # Used by the CI and by the pre-commit hooks through `uv run`
 dev = [
     "ruff",
