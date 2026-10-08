@@ -94,7 +94,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_
     create_flux_unite_legale_table,
     create_historique_unite_legale_table,
     create_unite_legale_table,
-    enrich_unite_legale_with_etablissement_data,
+    enrich_unite_legale,
     insert_date_fermeture_unite_legale,
     replace_unite_legale_table,
 )
@@ -306,7 +306,7 @@ def database_constructor():
         >> create_dirig_pm_table()
         >> copy_immatriculation_table()
         # Runs after RNE since RNE tasks do update unité légale
-        >> enrich_unite_legale_with_etablissement_data()
+        >> enrich_unite_legale()
         # Labels and others
         >> additional_data_enrichement()
         # The End

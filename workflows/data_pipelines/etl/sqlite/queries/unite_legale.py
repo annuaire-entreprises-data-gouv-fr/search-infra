@@ -229,3 +229,16 @@ update_en_sommeil_query = """
         AND etat_administratif_etablissement = 'A'
     )
 """
+
+add_est_personne_morale_insee_column_query = """
+    ALTER TABLE unite_legale
+    ADD COLUMN est_personne_morale_insee INT DEFAULT 1
+"""
+
+# Same logic as est_personne_morale_insee() function
+update_est_personne_morale_insee_query = """
+    UPDATE unite_legale
+    SET est_personne_morale_insee = 0
+    WHERE nature_juridique_unite_legale = '1000'
+    OR nature_juridique_unite_legale LIKE '2%'
+"""
