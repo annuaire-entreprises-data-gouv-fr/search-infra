@@ -160,6 +160,12 @@ def create_tables(cursor):
             categorisation_activite1 TEXT,
             categorisation_activite2 TEXT,
             categorisation_activite3 TEXT,
+            categorisation_activite4 TEXT,
+            date_fin DATE,
+            exercice_activite TEXT,
+            description_detaillee TEXT,
+            precision_activite TEXT,
+            precision_autre TEXT,
             indicateur_activitee_ape BOOLEAN,
             code_ape TEXT,
             activite_rattachee_eirl BOOLEAN,
@@ -310,6 +316,66 @@ def find_and_delete_same_siren(cursor, siren, file_path):
             )
 
 
+ACTIVITE_COLUMNS = [
+    "siren",
+    "siret",
+    "code_category",
+    "indicateur_principal",
+    "indicateur_prolongement",
+    "date_debut",
+    "form_exercice",
+    "categorisation_activite1",
+    "categorisation_activite2",
+    "categorisation_activite3",
+    "categorisation_activite4",
+    "date_fin",
+    "exercice_activite",
+    "description_detaillee",
+    "precision_activite",
+    "precision_autre",
+    "indicateur_activitee_ape",
+    "code_ape",
+    "activite_rattachee_eirl",
+    "date_mise_a_jour",
+    "file_name",
+]
+
+
+def insert_activites(cursor, unite_legale, siret, activites, file_path):
+    cursor.executemany(
+        f"""
+        INSERT INTO activite ({", ".join(ACTIVITE_COLUMNS)})
+        VALUES ({", ".join(["?"] * len(ACTIVITE_COLUMNS))})
+        """,
+        [
+            (
+                unite_legale.siren,
+                siret,
+                activite.code_category,
+                activite.indicateur_principal,
+                activite.indicateur_prolongement,
+                activite.date_debut,
+                activite.form_exercice,
+                activite.categorisation_activite1,
+                activite.categorisation_activite2,
+                activite.categorisation_activite3,
+                activite.categorisation_activite4,
+                activite.date_fin,
+                activite.exercice_activite,
+                activite.description_detaillee,
+                activite.precision_activite,
+                activite.precision_autre,
+                activite.indicateur_activitee_ape,
+                activite.code_ape,
+                activite.activite_rattachee_eirl,
+                unite_legale.date_mise_a_jour,
+                file_path,
+            )
+            for activite in activites
+        ],
+    )
+
+
 def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
     connection, cursor = connect_to_db(db_path)
 
@@ -409,48 +475,9 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
         )
         # Insert siege activities if they exist
         if siege and siege.activites:
-            for activite in siege.activites:
-                # Define the columns for the activite table
-                activite_columns = [
-                    "siren",
-                    "siret",
-                    "code_category",
-                    "indicateur_principal",
-                    "indicateur_prolongement",
-                    "date_debut",
-                    "form_exercice",
-                    "categorisation_activite1",
-                    "categorisation_activite2",
-                    "categorisation_activite3",
-                    "indicateur_activitee_ape",
-                    "code_ape",
-                    "activite_rattachee_eirl",
-                    "date_mise_a_jour",
-                    "file_name",
-                ]
-                cursor.execute(
-                    f"""
-                    INSERT INTO activite ({", ".join(activite_columns)})
-                    VALUES ({", ".join(["?"] * len(activite_columns))})
-                    """,
-                    (
-                        unite_legale.siren,
-                        siege.siret,
-                        activite.code_category,
-                        activite.indicateur_principal,
-                        activite.indicateur_prolongement,
-                        activite.date_debut,
-                        activite.form_exercice,
-                        activite.categorisation_activite1,
-                        activite.categorisation_activite2,
-                        activite.categorisation_activite3,
-                        activite.indicateur_activitee_ape,
-                        activite.code_ape,
-                        activite.activite_rattachee_eirl,
-                        unite_legale.date_mise_a_jour,
-                        file_path,
-                    ),
-                )
+            insert_activites(
+                cursor, unite_legale, siege.siret, siege.activites, file_path
+            )
 
         # Insert etablissements and their activities
         if unite_legale.etablissements:
@@ -477,48 +504,13 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
 
                 # Insert activites for this etablissement
                 if etablissement.activites:
-                    for activite in etablissement.activites:
-                        # Define the columns for the activite table
-                        activite_columns = [
-                            "siren",
-                            "siret",
-                            "code_category",
-                            "indicateur_principal",
-                            "indicateur_prolongement",
-                            "date_debut",
-                            "form_exercice",
-                            "categorisation_activite1",
-                            "categorisation_activite2",
-                            "categorisation_activite3",
-                            "indicateur_activitee_ape",
-                            "code_ape",
-                            "activite_rattachee_eirl",
-                            "date_mise_a_jour",
-                            "file_name",
-                        ]
-                        cursor.execute(
-                            f"""
-                            INSERT INTO activite ({", ".join(activite_columns)})
-                            VALUES ({", ".join(["?"] * len(activite_columns))})
-                            """,
-                            (
-                                unite_legale.siren,
-                                etablissement.siret,
-                                activite.code_category,
-                                activite.indicateur_principal,
-                                activite.indicateur_prolongement,
-                                activite.date_debut,
-                                activite.form_exercice,
-                                activite.categorisation_activite1,
-                                activite.categorisation_activite2,
-                                activite.categorisation_activite3,
-                                activite.indicateur_activitee_ape,
-                                activite.code_ape,
-                                activite.activite_rattachee_eirl,
-                                unite_legale.date_mise_a_jour,
-                                file_path,
-                            ),
-                        )
+                    insert_activites(
+                        cursor,
+                        unite_legale,
+                        etablissement.siret,
+                        etablissement.activites,
+                        file_path,
+                    )
 
         list_dirigeants_pp, list_dirigeants_pm = unite_legale.get_dirigeants_list()
 

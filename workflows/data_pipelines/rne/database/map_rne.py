@@ -417,6 +417,20 @@ def map_rne_activites_to_ul(activites_rne):
             activite_ul.categorisation_activite3 = getattr(
                 activite_rne, "categorisationActivite3", None
             )
+            activite_ul.categorisation_activite4 = getattr(
+                activite_rne, "categorisationActivite4", None
+            )
+            activite_ul.date_fin = getattr(activite_rne, "dateFin", None)
+            activite_ul.exercice_activite = getattr(
+                activite_rne, "exerciceActivite", None
+            )
+            activite_ul.description_detaillee = getattr(
+                activite_rne, "descriptionDetaillee", None
+            )
+            activite_ul.precision_activite = getattr(
+                activite_rne, "precisionActivite", None
+            )
+            activite_ul.precision_autre = getattr(activite_rne, "precisionAutre", None)
             activite_ul.indicateur_activitee_ape = getattr(
                 activite_rne, "indicateurActiviteeApe", None
             )
