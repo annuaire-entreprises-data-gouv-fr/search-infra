@@ -7,6 +7,7 @@ from data_pipelines_annuaire.helpers.data_quality import clean_sirent_column
 from data_pipelines_annuaire.helpers.utils import parse_json_safe
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
     extract_sirens_greffes_from_listepersonnes,
+    fix_mojibake,
     parse_date_bodacc,
     process_discarded_announcements,
 )
@@ -26,10 +27,16 @@ _OUTPUT_COLUMNS = [
     "siren",
     "id_annonce",
     "est_radie",
+    "motif",
     "date",
     "date_publication",
     "greffe",
 ]
+
+_MOTIFS_RADIATION = {
+    "Radiation d'office": "radiation_d_office",
+    "Radiation suite à clôture des opérations de liquidation": "cloture_liquidation",
+}
 
 
 def _parse_radiation_json(radiation_str: str) -> str:
@@ -45,6 +52,18 @@ def _parse_radiation_json(radiation_str: str) -> str:
         return parse_date_bodacc(data["radiationPP"].get("dateCessationActivitePP", ""))
     # Les PM n'ont pas de date de disponible
     return ""
+
+
+def _parse_radiation_motif(radiationaurcs_str: str) -> str | None:
+    """
+    Extrait le motif de la radiation depuis le commentaire du champ radiationaurcs.
+    Le commentaire n'est renseigné que depuis 2023 : les annonces plus anciennes
+    et les radiations sans motif renvoient None.
+    """
+    data = parse_json_safe(radiationaurcs_str)
+    if not data:
+        return None
+    return _MOTIFS_RADIATION.get(fix_mojibake(data.get("commentaire", "")))
 
 
 def _is_transfert_siege_hors_ressort(radiationaurcs_str: str) -> bool:
@@ -83,6 +102,7 @@ def _process_radiation_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
 
     # Parser le JSON radiationaurcs pour extraire la date
     chunk["date"] = chunk["radiationaurcs"].apply(_parse_radiation_json)
+    chunk["motif"] = chunk["radiationaurcs"].apply(_parse_radiation_motif)
 
     # Marquer comme radié (présent dans le fichier = radié)
     chunk["est_radie"] = 1
