@@ -56,6 +56,7 @@ Le pipeline gère trois types de corrections d'annonces :
 - Déduplication par SIREN en conservant le jugement le plus récent
 - **Radiations** :
   - Parsing de la date de cessation d'activité depuis le JSON `radiationaurcs` (disponible uniquement pour les personnes physiques)
+  - Motif (`motif`) depuis le `commentaire` de `radiationaurcs`, renseigné depuis 2023 : `radiation_d_office`, `cloture_liquidation`, sinon vide (radiation sans motif précis ou annonce antérieure)
 - **Procédures Collectives** :
   - Exclusion des familles non pertinentes : `Avis de dépôt`, `Loi de 1967`, etc.
   - Détection des clôtures : les procédures dont la `famille` contient "jugement de clôture" sont marquées `is_cloture`

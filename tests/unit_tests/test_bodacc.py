@@ -27,6 +27,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.bodacc.procedures_collecti
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.radiations import (
     _is_transfert_siege_hors_ressort,
     _parse_radiation_json,
+    _parse_radiation_motif,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
     _extract_sirens_from_personne,
@@ -99,6 +100,39 @@ def test_parse_radiation_json_pm_no_date():
 
 def test_parse_radiation_json_empty():
     assert _parse_radiation_json("") == ""
+
+
+# _parse_radiation_motif()
+
+
+@pytest.mark.parametrize(
+    "radiationaurcs, expected",
+    [
+        ('{"commentaire": "Radiation d\'office"}', "radiation_d_office"),
+        (
+            '{"dateCessationActivitePP": "2025-02-04", "commentaire": "Radiation d\'office"}',
+            "radiation_d_office",
+        ),
+        (
+            json.dumps(
+                {
+                    "commentaire": "Radiation suite à clôture des opérations de liquidation"
+                }
+            ),
+            "cloture_liquidation",
+        ),
+        (
+            '{"commentaire": "Radiation suite \u00c3\u00a0 cl\u00c3\u00b4ture des op\u00c3\u00a9rations de liquidation"}',
+            "cloture_liquidation",
+        ),
+        ('{"commentaire": "Radiation"}', None),
+        ('{"radiationPM": "O"}', None),
+        ("", None),
+        (None, None),
+    ],
+)
+def test_parse_radiation_motif(radiationaurcs, expected):
+    assert _parse_radiation_motif(radiationaurcs) == expected
 
 
 # _is_transfert_siege_hors_ressort()
