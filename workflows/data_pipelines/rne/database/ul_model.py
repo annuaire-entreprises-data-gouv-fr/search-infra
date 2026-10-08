@@ -79,6 +79,12 @@ class Activite(BaseModel):
     categorisation_activite1: str | None = None
     categorisation_activite2: str | None = None
     categorisation_activite3: str | None = None
+    categorisation_activite4: str | None = None
+    date_fin: date | None = None
+    exercice_activite: str | None = None
+    description_detaillee: str | None = None
+    precision_activite: str | None = None
+    precision_autre: str | None = None
     indicateur_activitee_ape: bool | None = None
     code_ape: str | None = None
     activite_rattachee_eirl: bool | None = None
