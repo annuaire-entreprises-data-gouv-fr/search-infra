@@ -43,6 +43,10 @@ class DirigeantsPP(BaseModel):
     genre: str | None = None
     date_de_naissance: str | None = None
     role: str | None = None
+    autre_role: str | None = None
+    second_role: str | None = None
+    libelle_second_role: str | None = None
+    representant_id: str | None = None
     nationalite: str | None = None
     situation_matrimoniale: str | None = None
     type_dirigeant: Literal["personne physique"] = "personne physique"
@@ -52,6 +56,10 @@ class DirigeantsPM(BaseModel):
     siren: str | None = None
     denomination: str | None = None
     role: str | None = None
+    autre_role: str | None = None
+    second_role: str | None = None
+    libelle_second_role: str | None = None
+    representant_id: str | None = None
     pays: str | None = None
     forme_juridique: str | None = None
     type_dirigeant: Literal["personne morale"] = "personne morale"
