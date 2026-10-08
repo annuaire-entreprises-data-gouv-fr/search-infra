@@ -45,6 +45,8 @@ class DirigeantsPP(BaseModel):
     role: str | None = None
     autre_role: str | None = None
     second_role: str | None = None
+    mention_demission: bool | None = None
+    date_mention_demission: date | None = None
     nationalite: str | None = None
     situation_matrimoniale: str | None = None
     type_dirigeant: Literal["personne physique"] = "personne physique"
@@ -56,6 +58,8 @@ class DirigeantsPM(BaseModel):
     role: str | None = None
     autre_role: str | None = None
     second_role: str | None = None
+    mention_demission: bool | None = None
+    date_mention_demission: date | None = None
     pays: str | None = None
     forme_juridique: str | None = None
     type_dirigeant: Literal["personne morale"] = "personne morale"

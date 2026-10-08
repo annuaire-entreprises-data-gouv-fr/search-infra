@@ -294,6 +294,8 @@ def map_rne_dirigeant_pp_to_ul(dirigeant_pp_rne, pouvoir=None):
         dirigeant_pp_ul.role = pouvoir.roleEntreprise
         dirigeant_pp_ul.autre_role = pouvoir.autreRoleEntreprise
         dirigeant_pp_ul.second_role = pouvoir.secondRoleEntreprise
+        dirigeant_pp_ul.mention_demission = pouvoir.mentionDemissionOrdre
+        dirigeant_pp_ul.date_mention_demission = pouvoir.dateMentionDemissionOrdre
     dirigeant_pp_ul.nationalite = dirigeant_pp_rne.nationalite
     dirigeant_pp_ul.situation_matrimoniale = dirigeant_pp_rne.situationMatrimoniale
     return dirigeant_pp_ul
@@ -307,6 +309,8 @@ def map_rne_dirigeant_pm_to_ul(pouvoir):
     dirigeant_pm_ul.role = pouvoir.roleEntreprise
     dirigeant_pm_ul.autre_role = pouvoir.autreRoleEntreprise
     dirigeant_pm_ul.second_role = pouvoir.secondRoleEntreprise
+    dirigeant_pm_ul.mention_demission = pouvoir.mentionDemissionOrdre
+    dirigeant_pm_ul.date_mention_demission = pouvoir.dateMentionDemissionOrdre
     dirigeant_pm_ul.pays = dirigeant_pm_rne.pays
     dirigeant_pm_ul.forme_juridique = dirigeant_pm_rne.formeJuridique
     return dirigeant_pm_ul
