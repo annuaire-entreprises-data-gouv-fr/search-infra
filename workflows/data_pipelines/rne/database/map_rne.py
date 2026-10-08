@@ -125,7 +125,7 @@ def get_value(rne_company: RNECompany, key: str, default=None):
     return default
 
 
-def get_nature_entreprise_list(rne_company: "RNECompany") -> list[str] | None:
+def get_nature_entreprise_list(rne_company: RNECompany) -> list[str] | None:
     nature_entreprise = set()
 
     # Add the main activity form if it exists
@@ -179,7 +179,7 @@ def get_noms_de_domaine(rne_company: RNECompany) -> list[NomDeDomaine]:
     ]
 
 
-def get_etablissements(rne_company: "RNECompany"):
+def get_etablissements(rne_company: RNECompany):
     return get_value(rne_company, "autresEtablissements", default=[])
 
 
