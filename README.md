@@ -168,10 +168,10 @@ En local celui ci est utilisé par `pre-commit` et le LSP de l'IDE
 
 ```bash
 # Créer l'environnement local (Airflow, ruff et mypy compris)
+uv python install 3.14 --default
 uv sync
 uv run pytest tests/unit_tests
-# Activer les hooks pre-commit
-uv tool install pre-commit
+uv tool install --python 3.14 pre-commit
 pre-commit install
 ```
 

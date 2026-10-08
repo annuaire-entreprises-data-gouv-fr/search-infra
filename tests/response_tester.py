@@ -18,7 +18,7 @@ def get_field_value(results, field_name):
             try:
                 index = int(f)
                 value = value[index]
-            except (ValueError, IndexError):
+            except ValueError, IndexError:
                 return None
         else:
             return None
