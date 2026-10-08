@@ -272,6 +272,7 @@ def remove_duplicates():
         "immatriculation",
         "etablissement",
         "activite",
+        "nom_domaine",
     ]
     try:
         for table in tables:
