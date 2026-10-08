@@ -7,7 +7,7 @@ casse aucun test unitaire : il rend juste une entité introuvable. Ces tests
 couvrent donc un chemin de recherche par champ.
 """
 
-from data_pipelines_annuaire.tests.search_tests.search_fixtures import (
+from data_pipelines_annuaire.tests.e2e_tests.search_tests.search_fixtures import (
     ARCTURUS,
     CNRS,
     COMMUNE_DE_LAMBESC,

@@ -38,6 +38,10 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.sqlite.fonda
 
 logger = logging.getLogger(__name__)
 
+# The Elasticsearch client logs every request at INFO
+# This is spamming Airflow logs. Only warnings and errors should be logged.
+logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
+
 ELASTIC_COUNT_MAX_RETRIES = 5
 ELASTIC_COUNT_RETRY_INTERVAL = 5
 
@@ -71,7 +75,7 @@ def create_elastic_index():
     """
     ti = get_current_context()["ti"]
     elastic_index = ti.xcom_pull(key="elastic_index", task_ids="get_next_index_name")
-    logger.info(f"******************** Index to create: {elastic_index}")
+    logger.info(f"Creating index {elastic_index}..")
     create_index = ElasticCreateIndex(
         elastic_url=ELASTIC_URL,
         elastic_index=elastic_index,

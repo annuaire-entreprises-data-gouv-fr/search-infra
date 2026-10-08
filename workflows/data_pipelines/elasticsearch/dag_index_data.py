@@ -26,7 +26,7 @@ from data_pipelines_annuaire.helpers import (
     ObjectStorageClient,
 )
 from data_pipelines_annuaire.helpers.flush_cache import flush_redis_cache
-from data_pipelines_annuaire.tests.run_tests import run_e2e_tests, run_search_tests
+from data_pipelines_annuaire.tests.run_tests import run_e2e_tests
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.task_functions.index import (
     check_elastic_index,
     compute_siren_ranges,
@@ -100,7 +100,7 @@ def index_elasticsearch():
     )
 
     sitemap_updated = elastic_alias_updated >> create_sitemap() >> update_sitemap()
-    run_tests = [run_e2e_tests(), run_search_tests()]
+    run_tests = run_e2e_tests()
 
     if API_IS_REMOTE:
         trigger_snapshot_dag = TriggerDagRunOperator(
@@ -116,7 +116,7 @@ def index_elasticsearch():
             >> sync_data_source_updates_file()
             >> run_tests
         )
-        indexing_complete = [sitemap_updated, *run_tests] >> clean_folder()
+        indexing_complete = [sitemap_updated, run_tests] >> clean_folder()
     else:
         tests_successful = (
             elastic_alias_updated
