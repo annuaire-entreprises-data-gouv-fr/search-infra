@@ -39,7 +39,7 @@ class RneFluxFile:
     path: str
 
     @classmethod
-    def parse(cls, file_path: str) -> "RneFluxFile | None":
+    def parse(cls, file_path: str) -> RneFluxFile | None:
         """Build a RneFluxFile from its path or return None if the path is not a flux file."""
         match = FLUX_FILE_PATTERN.search(file_path)
         if not match:
@@ -47,7 +47,7 @@ class RneFluxFile:
         return cls(match.group(1), file_path)
 
     @classmethod
-    def list_on_object_storage(cls) -> list["RneFluxFile"]:
+    def list_on_object_storage(cls) -> list[RneFluxFile]:
         """List the flux files hosted on the object storage. The output is sorted."""
         files_on_object_storage = ObjectStorageClient().get_files_from_prefix(
             prefix=RNE_OBJECT_STORAGE_FLUX_DATA_PATH,
@@ -70,7 +70,7 @@ class RneFluxFile:
         return last_date
 
     @classmethod
-    def get_from_object_storage(cls, flux_date: str) -> "RneFluxFile | None":
+    def get_from_object_storage(cls, flux_date: str) -> RneFluxFile | None:
         """Return the file for a date from the object storage or None if it has none."""
         saved = [
             file for file in cls.list_on_object_storage() if file.flux_date == flux_date

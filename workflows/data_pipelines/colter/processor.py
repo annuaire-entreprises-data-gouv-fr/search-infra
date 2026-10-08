@@ -346,7 +346,7 @@ class ElusProcessor(DataProcessor):
             # Check if we got multiple columns (successful parse)
             if len(df_elus.columns) == 1:
                 raise ValueError("Only one column found, wrong separator")
-        except (pd.errors.ParserError, ValueError):
+        except pd.errors.ParserError, ValueError:
             logger.warning(
                 f"***** Separator might be different than semicolon for {url}"
             )
