@@ -6,7 +6,10 @@ from airflow.sdk import Variable
 from data_pipelines_annuaire.helpers import DataProcessor, GristApiClient
 from data_pipelines_annuaire.helpers.object_storage import File
 from data_pipelines_annuaire.workflows.data_pipelines.administration.config import (
+    ADMINISTRATION_BLACKLIST_CONFIG,
+    ADMINISTRATION_CODES_JURIDIQUES_CONFIG,
     ADMINISTRATION_CONFIG,
+    ADMINISTRATION_WHITELIST_CONFIG,
 )
 
 logger = logging.getLogger(__name__)
@@ -23,9 +26,9 @@ class AdministrationProcessor(DataProcessor):
     TABLE_BLACKLIST = "Administration_blacklist_siren_"
 
     TABLES = {
-        TABLE_CODES_JURIDIQUES: "administration_codes_juridiques",
-        TABLE_WHITELIST: "administration_whitelist_siren",
-        TABLE_BLACKLIST: "administration_blacklist_siren",
+        TABLE_CODES_JURIDIQUES: ADMINISTRATION_CODES_JURIDIQUES_CONFIG.name,
+        TABLE_WHITELIST: ADMINISTRATION_WHITELIST_CONFIG.name,
+        TABLE_BLACKLIST: ADMINISTRATION_BLACKLIST_CONFIG.name,
     }
 
     def __init__(self) -> None:
