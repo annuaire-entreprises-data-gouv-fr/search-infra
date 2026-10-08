@@ -339,18 +339,22 @@ def map_dirigeants_rne_to_dirigeants_list_ul(dirigeants_rne):
     # Cas personne morale et exploitation
     for dirigeant in dirigeants_rne:
         if hasattr(dirigeant, "typeDePersonne"):
+            dirigeant_ul: DirigeantsPP | DirigeantsPM
             if dirigeant.typeDePersonne == "INDIVIDU":
-                list_dirigeants.append(
-                    map_rne_dirigeant_pp_to_ul(
-                        dirigeant.individu.descriptionPersonne, dirigeant.roleEntreprise
-                    )
+                dirigeant_ul = map_rne_dirigeant_pp_to_ul(
+                    dirigeant.individu.descriptionPersonne, dirigeant.roleEntreprise
                 )
             elif dirigeant.typeDePersonne == "ENTREPRISE":
-                list_dirigeants.append(
-                    map_rne_dirigeant_pm_to_ul(
-                        dirigeant.entreprise, dirigeant.roleEntreprise
-                    )
+                dirigeant_ul = map_rne_dirigeant_pm_to_ul(
+                    dirigeant.entreprise, dirigeant.roleEntreprise
                 )
+            else:
+                continue
+            dirigeant_ul.autre_role = dirigeant.autreRoleEntreprise
+            dirigeant_ul.second_role = dirigeant.secondRoleEntreprise
+            dirigeant_ul.libelle_second_role = dirigeant.libelleSecondRoleEntreprise
+            dirigeant_ul.representant_id = dirigeant.representantId
+            list_dirigeants.append(dirigeant_ul)
         # Cas personne physique
         else:
             list_dirigeants.append(
