@@ -106,6 +106,7 @@ def index_elasticsearch():
         trigger_snapshot_dag = TriggerDagRunOperator(
             task_id="trigger_snapshot_dag",
             trigger_dag_id=AIRFLOW_SNAPSHOT_DAG_NAME,
+            trigger_run_id="{{ run_id }}",
             logical_date=None,
             wait_for_completion=True,
             deferrable=False,
