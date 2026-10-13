@@ -6,7 +6,6 @@ from airflow.sdk import get_current_context, task
 from elasticsearch.dsl import connections
 
 from data_pipelines_annuaire.config import (
-    AIRFLOW_ELK_DAG_NAME,
     ELASTIC_PASSWORD,
     ELASTIC_SNAPSHOT_MAX_REVISIONS,
     ELASTIC_SNAPSHOT_OBJECT_STORAGE_STATE_PATH,
@@ -67,9 +66,7 @@ def update_object_storage_current_index_version():
         "file": f"daily/{current_date}.json",
         "index": ti.xcom_pull(
             key="elastic_index",
-            task_ids="get_next_index_name",
-            dag_id=AIRFLOW_ELK_DAG_NAME,
-            include_prior_dates=True,
+            task_ids="snapshot_elastic_index",
         ),
         "snapshot": ti.xcom_pull(
             key="snapshot_name",
@@ -122,27 +119,11 @@ def snapshot_elastic_index():
     https://www.elastic.co/docs/deploy-manage/tools/snapshot-and-restore
     """
 
-    ti = get_current_context()["ti"]
-    previous_elastic_index = ti.xcom_pull(
-        key="elastic_index",
-        task_ids="get_next_index_name",
-        dag_id=AIRFLOW_ELK_DAG_NAME,
-        include_prior_dates=True,
-    )
-
-    # Ensure elastic_index is a string
-    if isinstance(previous_elastic_index, list):
-        elastic_index = max(previous_elastic_index)
-    else:
-        elastic_index = previous_elastic_index
+    context = get_current_context()
+    ti = context["ti"]
+    elastic_index = context["params"]["elastic_index"]
 
     ti.xcom_push(key="elastic_index", value=elastic_index)
-
-    logger.info(
-        "elastic_index has to be a string"
-        f"\nprevious_elastic_index type: {type(previous_elastic_index)}, value: {previous_elastic_index}"
-        f"\nelastic_index type: {type(elastic_index)}, value: {elastic_index}"
-    )
 
     current_date = datetime.now(tz=UTC).strftime("%Y%m%d%H%M%S")
     snapshot_name = f"siren-{current_date}"
