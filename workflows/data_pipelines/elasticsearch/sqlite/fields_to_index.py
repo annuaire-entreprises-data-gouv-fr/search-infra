@@ -292,6 +292,7 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
                 'radiation',
                     CASE WHEN bodacc_radiations.siren IS NOT NULL AND bodacc_radiations.visibility THEN json_object(
                         'est_radie', bodacc_radiations.est_radie,
+                        'motif', bodacc_radiations.motif,
                         'id_annonce', bodacc_radiations.id_annonce,
                         'date', bodacc_radiations.date
                     ) END,

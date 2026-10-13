@@ -276,6 +276,7 @@ class ImmatriculationMapping(InnerDoc):
 
 class BodaccRadiationMapping(InnerDoc):
     est_radie = Boolean()
+    motif = Keyword()
     id_annonce = Keyword()
     date = Date()
 

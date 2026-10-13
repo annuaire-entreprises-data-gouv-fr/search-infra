@@ -41,6 +41,7 @@ class DescriptionPersonne(BaseModel):
 class PouvoirIndividu(BaseModel):
     descriptionPersonne: DescriptionPersonne | None = DescriptionPersonne()
     adresseDomicile: Adresse | None = Adresse()
+    qualiteArtisan: str | None = None
 
 
 class PouvoirEntreprise(BaseModel):
@@ -61,6 +62,14 @@ class Entrepreneur(BaseModel):
 
 class Pouvoir(BaseModel):
     roleEntreprise: str | None = None
+    autreRoleEntreprise: str | None = None
+    secondRoleEntreprise: str | None = None
+    libelleSecondRoleEntreprise: str | None = None
+    representantId: str | None = None
+    qualiteArtisan: str | None = None
+    representant: PouvoirIndividu | None = None
+    mentionDemissionOrdre: bool | None = None
+    dateMentionDemissionOrdre: date | None = None
     libelleRoleEntreprise: str | None = None
     typeDePersonne: str | None = None
     individu: PouvoirIndividu | None = PouvoirIndividu()
@@ -83,16 +92,31 @@ class Entreprise(BaseModel):
     dateDebutActiv: str | None = None
 
 
+class NomDeDomaine(BaseModel):
+    nomDomaine: str | None = None
+    dateEffet: date | None = None
+
+
 class Identite(BaseModel):
     entreprise: Entreprise | None = Entreprise()
     entrepreneur: Entrepreneur | None = Entrepreneur()
     description: Description | None = Description()
+    nomsDeDomaine: list[NomDeDomaine] | None = []
+
+
+class Caracteristiques(BaseModel):
+    domiciliataire: bool | None = None
+
+
+class EntrepriseDomiciliataire(BaseModel):
+    siren: str | None = None
+    denomination: str | None = None
 
 
 class AdresseEntreprise(BaseModel):
-    caracteristiques: dict | None = None
+    caracteristiques: Caracteristiques | None = None
     adresse: Adresse | None = Adresse()
-    entrepriseDomiciliataire: dict | None = None
+    entrepriseDomiciliataire: EntrepriseDomiciliataire | None = None
 
 
 class DescriptionEtablissement(BaseModel):
@@ -110,6 +134,13 @@ class Activite(BaseModel):
     categorisationActivite1: str | None = None
     categorisationActivite2: str | None = None
     categorisationActivite3: str | None = None
+    categorisationActivite4: str | None = None
+    dateFin: date | None = None
+    exerciceActivite: str | None = None
+    descriptionDetaillee: str | None = None
+    precisionActivite: str | None = None
+    precisionAutre: str | None = None
+    codeAprm: str | None = None
     indicateurActiviteeApe: bool | None = None
     codeApe: str | None = None
     activiteRattacheeEirl: bool | None = None
@@ -121,6 +152,7 @@ class EtablissementPrincipal(BaseModel):
     )
     adresse: Adresse | None = Adresse()
     activites: list[Activite] | None = []
+    nomsDeDomaine: list[NomDeDomaine] | None = []
 
 
 class DetailCessationEntreprise(BaseModel):
@@ -198,6 +230,7 @@ class Formality(BaseModel):
     typePersonne: str | None = None
     formeJuridique: str | None = None
     diffusionINSEE: str | None = None
+    diffusionCommerciale: bool | None = None
     codeAPE: str | None = None
     created: datetime | None = None
     updated: datetime | None = None
