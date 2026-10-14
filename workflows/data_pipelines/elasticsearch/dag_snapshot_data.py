@@ -1,6 +1,6 @@
 from datetime import UTC, datetime, timedelta
 
-from airflow.sdk import dag
+from airflow.sdk import Param, dag
 
 from data_pipelines_annuaire.config import (
     AIRFLOW_SNAPSHOT_DAG_NAME,
@@ -35,6 +35,14 @@ default_args = {
     max_active_runs=1,
     on_failure_callback=[Notification(), EmailNotification(to=EMAIL_LIST)],
     on_success_callback=Notification(),
+    params={
+        "elastic_index": Param(
+            type="string",
+            minLength=1,
+            title="Index à snapshoter",
+            description="Ex. siren-20261012095620",
+        ),
+    },
 )
 def snapshot_index():
     return (
