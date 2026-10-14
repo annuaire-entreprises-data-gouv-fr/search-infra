@@ -17,9 +17,9 @@ default_args = {
 @dag(
     tags=["sirene", "stock", "historique", "unité légale", "établissement"],
     default_args=default_args,
-    schedule="0 0 * * *",  # Run everyday
+    schedule="30 7 * * *",  # The stock is usually published around 09:30 CET
     start_date=datetime(2026, 1, 1, tzinfo=UTC),
-    dagrun_timeout=timedelta(minutes=60 * 2),
+    dagrun_timeout=timedelta(hours=5),
     params={},
     catchup=False,
     max_active_runs=1,
@@ -28,6 +28,10 @@ default_args = {
 )
 def data_processing_sirene_stock():
     sirene_stock_processor = SireneStockProcessor()
+
+    @task()
+    def wait_for_current_month_stock():
+        return sirene_stock_processor.wait_for_current_month_stock()
 
     @task.bash
     def clean_previous_outputs():
@@ -54,7 +58,8 @@ def data_processing_sirene_stock():
         return f"rm -rf {sirene_stock_processor.config.tmp_folder}"
 
     return (
-        clean_previous_outputs()
+        wait_for_current_month_stock()
+        >> clean_previous_outputs()
         >> download_stock()
         >> convert_etablissement_coordinates()
         >> deduplicate_doublons()

@@ -1,7 +1,8 @@
 import logging
 import shutil
+import time
 import zipfile
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pandas as pd
 
@@ -34,6 +35,9 @@ MONTH_MAPPING = {
 TRANSFORMED_FILE_SUFFIXES = {
     "stock_etablissement": "_with_gps",
 }
+# The geo file is published the 21st of the month
+NOT_MONTHLY_FILES = {"geo_stats"}
+STOCK_PUBLICATION_MAX_WAIT = timedelta(hours=3)
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +46,8 @@ class SireneStockProcessor(DataProcessor):
     def __init__(self):
         super().__init__(STOCK_SIRENE_CONFIG)
 
-    def stock_filename(self, original_filename: str, resource_id: str) -> str:
+    @staticmethod
+    def stock_year_month(resource_id: str) -> str:
         metadata = get_dataset_or_resource_metadata(resource_id=resource_id)
         if metadata.get("message") == "error":
             raise Exception(f"Error while retrieving the {resource_id} metadata")
@@ -70,7 +75,43 @@ class SireneStockProcessor(DataProcessor):
         if not year_month:
             raise Exception(f"Month not found in the title of {resource_id}")
 
-        return original_filename.replace(CURRENT_MONTH, year_month)
+        return year_month
+
+    def stock_filename(self, original_filename: str, resource_id: str) -> str:
+        return original_filename.replace(
+            CURRENT_MONTH, self.stock_year_month(resource_id)
+        )
+
+    def wait_for_current_month_stock(self) -> None:
+        """
+        Wait for INSEE to publish the current month's stock on datagouv.
+        It usually happens around 9:30 CET the first day of the month.
+        """
+        deadline = datetime.now(tz=UTC) + STOCK_PUBLICATION_MAX_WAIT
+        current_month = datetime.now(tz=UTC).strftime("%Y-%m")
+
+        while True:
+            outdated_files = [
+                key
+                for key, file_config in self.config.files_to_download.items()
+                if key not in NOT_MONTHLY_FILES
+                and self.stock_year_month(file_config["resource_id"]) != current_month
+            ]
+            if not outdated_files:
+                logger.info(f"Stock files of {current_month} are published.")
+                return
+
+            if datetime.now(tz=UTC) >= deadline:
+                raise TimeoutError(
+                    f"Stock files of {current_month} still not published "
+                    f"after {STOCK_PUBLICATION_MAX_WAIT}: {outdated_files}"
+                )
+
+            logger.info(
+                f"Stock files not yet published for {current_month}: {outdated_files}. "
+                "Waiting 5 minutes before retry..."
+            )
+            time.sleep(300)
 
     def convert_stock_etablissement_coordinates(self):
         stock_etab_config = self.config.files_to_download["stock_etablissement"]

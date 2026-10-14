@@ -14,6 +14,9 @@ from data_pipelines_annuaire.helpers.utils import (
     get_dates_since_start_of_month,
     zip_file,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.determine_sirene_date import (
+    check_sirene_datasets_availability,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.sirene.flux.api import (
     SireneApiClient,
 )
@@ -356,12 +359,31 @@ class SireneFluxProcessor(DataProcessor):
         If not, wait 5 minutes and retry until it is today.
         If it's 9 AM or later and still not today, continue without waiting.
 
+        On the 1st of the month, the flux is always empty. The update is included in
+        the new stock so we wait for the current month's stock on the object storage
+        instead so the ETL doesn't run on the previous month's data.
+        Fail if it's still missing at 3 PM.
+
         Returns:
             str: Success message when data is available for today or when continuing at 9 AM
         """
         paris_tz = ZoneInfo("Europe/Paris")
 
         while True:
+            current_time = datetime.now(paris_tz)
+            if current_time.day == 1:
+                if check_sirene_datasets_availability("current"):
+                    return "Current month's stock is available."
+                if current_time.hour >= 15:
+                    raise TimeoutError(
+                        "Current month's stock still unavailable at 15:00."
+                    )
+                logger.info(
+                    "Current month's stock not yet available. Waiting 5 minutes before retry..."
+                )
+                time.sleep(300)
+                continue
+
             try:
                 # Get current time in Paris timezone
                 current_time = datetime.now(paris_tz)
