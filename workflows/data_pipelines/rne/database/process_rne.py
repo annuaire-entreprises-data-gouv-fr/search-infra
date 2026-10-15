@@ -208,7 +208,10 @@ def inject_records_into_db(
         "981418494",
         "930636832",
         "429502354",
-        "433531845",
+        "433531845",  # flux du 2026-10-13 avec formality.content vide
+        "343925251",  # flux du 2026-10-13 avec formality.content vide
+        "330137555",  # flux du 2026-10-13 avec formality.content vide
+        "325366185",  # flux du 2026-10-13 avec formality.content vide
     ]
     unites_legales = []
     json_decode_error_count = 0
