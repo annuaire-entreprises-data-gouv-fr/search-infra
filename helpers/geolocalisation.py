@@ -133,7 +133,7 @@ def convert_dataframe_lambert_to_gps(
             return None
         try:
             return float(val)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return None
 
     def convert_row(row):

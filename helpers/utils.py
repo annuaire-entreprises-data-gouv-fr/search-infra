@@ -30,7 +30,7 @@ def str_to_list(string):
     try:
         li = literal_eval(string)
         return li
-    except (ValueError, SyntaxError, TypeError):
+    except ValueError, SyntaxError, TypeError:
         logger.warning(f"***** str_to_list: Could not evaluate: {string!r}")
         return None
 
@@ -702,7 +702,7 @@ def parse_json_safe(json_str: str) -> dict | None:
         return None
     try:
         return json.loads(json_str)
-    except (json.JSONDecodeError, TypeError):
+    except json.JSONDecodeError, TypeError:
         return None
 
 

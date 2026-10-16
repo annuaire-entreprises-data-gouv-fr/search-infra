@@ -184,7 +184,7 @@ class CommunePayload:
         default_factory=lambda: defaultdict(lambda: [0, 0])
     )
 
-    def merge(self, other: "CommunePayload") -> None:
+    def merge(self, other: CommunePayload) -> None:
         for key, effectif in other.effectifs.items():
             self.effectifs[key] += effectif
         self.etablissements.extend(other.etablissements)
@@ -243,7 +243,7 @@ class SortedGroups:
 def _to_coordinate(value: str | None) -> float | None:
     try:
         return round(float(value), 6)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
 
 
