@@ -1,0 +1,68 @@
+from datetime import UTC, datetime, timedelta
+
+from airflow.sdk import dag, task
+
+from data_pipelines_annuaire.config import EMAIL_LIST
+from data_pipelines_annuaire.helpers import EmailNotification, Notification
+from data_pipelines_annuaire.workflows.data_pipelines.opco.config import OPCO_CONFIG
+from data_pipelines_annuaire.workflows.data_pipelines.opco.processor import (
+    OpcoProcessor,
+)
+
+default_args = {
+    "depends_on_past": False,
+    "retries": 1,
+}
+
+
+@dag(
+    tags=["opco"],
+    default_args=default_args,
+    schedule="0 16 * * *",
+    start_date=datetime(2026, 1, 1, tzinfo=UTC),
+    dagrun_timeout=timedelta(minutes=60),
+    params={},
+    catchup=False,
+    on_failure_callback=[Notification(), EmailNotification(to=EMAIL_LIST)],
+    on_success_callback=Notification(),
+    max_active_runs=1,
+)
+def data_processing_opco():
+    opco_processor = OpcoProcessor()
+
+    @task.bash
+    def clean_previous_outputs():
+        return f"rm -rf {OPCO_CONFIG.tmp_folder} && mkdir -p {OPCO_CONFIG.tmp_folder}"
+
+    @task
+    def download_data():
+        return opco_processor.download_data()
+
+    @task
+    def preprocess_data():
+        return opco_processor.preprocess_data()
+
+    @task
+    def save_date_last_modified():
+        return opco_processor.save_date_last_modified()
+
+    @task
+    def send_file_to_object_storage():
+        return opco_processor.send_file_to_object_storage()
+
+    @task
+    def compare_files_object_storage():
+        return opco_processor.compare_files_object_storage()
+
+    return (
+        clean_previous_outputs()
+        >> download_data()
+        >> preprocess_data()
+        >> save_date_last_modified()
+        >> send_file_to_object_storage()
+        >> compare_files_object_storage()
+    )
+
+
+# Instantiate the DAG
+data_processing_opco()

@@ -548,6 +548,7 @@ def format_etablissements_and_complements(
         "est_bio": False,
         "convention_collective_renseignee": False,
     }
+    opcos = set()
     for etablissement in etablissements:
         etablissement["nom_complet"] = nom_complet
         etablissement["sigle"] = sigle
@@ -619,6 +620,10 @@ def format_etablissements_and_complements(
         ]:
             if etablissement[field]:
                 complements[get_elasticsearch_field_name(field)] = True
+        if etablissement["opco"]:
+            opcos.add(etablissement["opco"])
+
+    complements["liste_opco"] = sorted(opcos) or None
 
     return etablissements_processed, complements
 

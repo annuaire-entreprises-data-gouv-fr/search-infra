@@ -1,5 +1,7 @@
 import re
 
+import pytest
+
 min_total_results = 10
 min_total_results_filters = 1000
 
@@ -1443,3 +1445,29 @@ def test_denomination_dirigeant_search(api_response_tester):
     path = "search?q=ganymede jouppe"
     api_response_tester.assert_api_response_code_200(path)
     api_response_tester.test_field_value(path, 0, "siren", "880878145")
+
+
+@pytest.mark.xfail(reason="OPCO pas encore indexé", strict=False)
+def test_opco(api_response_tester):
+    path = "search?q=979807245"
+    api_response_tester.assert_api_response_code_200(path)
+    api_response_tester.test_field_value(path, 0, "siege.opco.nom", "OPCO EP")
+    liste_opco = ["OPCO EP"]
+    api_response_tester.test_field_value(path, 0, "complements.liste_opco", liste_opco)
+
+
+@pytest.mark.xfail(reason="OPCO pas encore indexé", strict=False)
+def test_opco_filter(api_response_tester):
+    path = "search?opco=opco-ep&q=979807245"
+    api_response_tester.assert_api_response_code_200(path)
+    api_response_tester.test_number_of_results(path, 1)
+    results = api_response_tester.get_api_response(path).json()["results"]
+    matching_etablissements = results[0]["matching_etablissements"]
+    assert "97980724500019" in [
+        etablissement["siret"] for etablissement in matching_etablissements
+    ]
+
+
+def test_invalid_opco_filter(api_response_tester):
+    path = "search?opco=xxx"
+    api_response_tester.assert_api_response_code_400(path)
