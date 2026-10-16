@@ -211,6 +211,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             "est_bio",
             "est_rge",
             "est_uai",
+            "liste_opco",
         ]:
             unite_legale_processed[field] = complements[field]
 

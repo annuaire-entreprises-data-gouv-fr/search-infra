@@ -61,6 +61,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.formation.config import (
 from data_pipelines_annuaire.workflows.data_pipelines.marche_inclusion.config import (
     MARCHE_INCLUSION_CONFIG,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.opco.config import OPCO_CONFIG
 from data_pipelines_annuaire.workflows.data_pipelines.patrimoine_vivant.config import (
     PATRIMOINE_VIVANT_CONFIG,
 )
@@ -102,6 +103,7 @@ def create_data_source_last_modified_file():
         BILANS_FINANCIERS_CONFIG.url_object_storage_metadata: "bilan_financier",
         FORMATION_CONFIG.url_object_storage_metadata: "organisme_formation",
         CONVENTION_COLLECTIVE_CONFIG.url_object_storage_metadata: "convention_collective",
+        OPCO_CONFIG.url_object_storage_metadata: "opco",
         MARCHE_INCLUSION_CONFIG.url_object_storage_metadata: "marche_inclusion",
         ACHATS_RESPONSABLES_CONFIG.url_object_storage_metadata: "achats_responsables",
         PATRIMOINE_VIVANT_CONFIG.url_object_storage_metadata: "patrimoine_vivant",
