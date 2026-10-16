@@ -5,7 +5,7 @@ requires-python = ">=3.12"
 readme = "README.md"
 
 dependencies = [
-    "boto3==1.43.95",
+    "boto3==1.43.101",
     "pandas==2.3.3",
     "openpyxl==3.1.5",
     "elasticsearch==9.2.1",
