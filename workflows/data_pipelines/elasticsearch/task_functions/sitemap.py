@@ -15,6 +15,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichm
 )
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.sqlite.sitemap import (
     select_sitemap_fields_query,
+    select_sitemap_fondations_query,
 )
 
 # dev-01 -> sitemap-dev.csv / prod -> sitemap-prod.csv
@@ -88,6 +89,18 @@ def create_sitemap():
                 )
 
         with open(filepath, "a+") as f:
+            f.write(slugs)
+
+    sqlite_client.execute(select_sitemap_fondations_query)
+    with open(filepath, "a+") as f:
+        while fondations := sqlite_client.db_cursor.fetchmany(1500):
+            slugs = ""
+            #  Acitivité Principale is not available for fondationss
+            for numero_rnf, denomination, code_postal in fondations:
+                slug = format_slug(
+                    format_nom_complet(nom_raison_sociale=denomination), numero_rnf
+                )
+                slugs = f"{slugs}{code_postal},,{slug}\n"
             f.write(slugs)
 
 
