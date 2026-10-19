@@ -118,8 +118,6 @@ class Activite(BaseModel):
     dateFin: date | None = None
     exerciceActivite: str | None = None
     descriptionDetaillee: str | None = None
-    precisionActivite: str | None = None
-    precisionAutre: str | None = None
     indicateurActiviteeApe: bool | None = None
     codeApe: str | None = None
     activiteRattacheeEirl: bool | None = None

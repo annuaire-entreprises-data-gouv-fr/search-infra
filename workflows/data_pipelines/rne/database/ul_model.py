@@ -79,8 +79,6 @@ class Activite(BaseModel):
     date_fin: date | None = None
     exercice_activite: str | None = None
     description_detaillee: str | None = None
-    precision_activite: str | None = None
-    precision_autre: str | None = None
     indicateur_activitee_ape: bool | None = None
     code_ape: str | None = None
     activite_rattachee_eirl: bool | None = None

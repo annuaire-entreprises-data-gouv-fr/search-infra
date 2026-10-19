@@ -427,10 +427,6 @@ def map_rne_activites_to_ul(activites_rne):
             activite_ul.description_detaillee = getattr(
                 activite_rne, "descriptionDetaillee", None
             )
-            activite_ul.precision_activite = getattr(
-                activite_rne, "precisionActivite", None
-            )
-            activite_ul.precision_autre = getattr(activite_rne, "precisionAutre", None)
             activite_ul.indicateur_activitee_ape = getattr(
                 activite_rne, "indicateurActiviteeApe", None
             )
