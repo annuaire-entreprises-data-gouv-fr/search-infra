@@ -103,7 +103,7 @@ def get_nom_commercial(unite_legale):
 
 def format_slug(
     nom_complet,
-    siren,
+    unique_id,
     sigle=None,
     nom_commercial_siege=None,
     statut_diffusion=None,
@@ -114,7 +114,7 @@ def format_slug(
     if statut_diffusion == "P" and not is_personne_morale_insee(
         nature_juridique_unite_legale
     ):
-        return slugify(siren)
+        return slugify(unique_id)
 
     # Initialize slug parts with the nom_complet
     slug_parts = [nom_complet]
@@ -126,8 +126,8 @@ def format_slug(
     # Sigle is not a diffusible field for non-diffusible personnes morales
     if sigle and statut_diffusion == "O":
         slug_parts.append(sigle)
-    if siren:
-        slug_parts.append(siren)
+    if unique_id:
+        slug_parts.append(unique_id)
 
     # Join parts to form the full name, and slugify it
     full_name = " ".join(filter(None, slug_parts)).lower()
