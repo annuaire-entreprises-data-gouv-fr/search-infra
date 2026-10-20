@@ -9,8 +9,12 @@ couvrent donc un chemin de recherche par champ.
 
 from data_pipelines_annuaire.tests.e2e_tests.search_tests.search_fixtures import (
     ARCTURUS,
+    ARTS_ET_BANDES_DESSINEES,
     CNRS,
     COMMUNE_DE_LAMBESC,
+    DENOMINATION_USUELLE_ARTS_ET_BANDES_DESSINEES,
+    DENOMINATION_USUELLE_CLIN_D_OEIL,
+    DIEFF_OPTIC,
     DIRIGEANT_NOM,
     DIRIGEANT_PRENOM_EXACT,
     EDF,
@@ -86,6 +90,13 @@ def test_search_by_enseigne(api_response_tester):
 def test_search_by_nom_commercial(api_response_tester):
     api_response_tester.assert_siren_in_results(
         f"search?q={NOM_COMMERCIAL_FRIANDISES}", GANYMEDE_NOM_COMMERCIAL
+    )
+
+
+def test_search_by_denomination_usuelle(api_response_tester):
+    api_response_tester.assert_first_siren(
+        f"search?q={DENOMINATION_USUELLE_ARTS_ET_BANDES_DESSINEES}",
+        ARTS_ET_BANDES_DESSINEES,
     )
 
 
@@ -201,6 +212,18 @@ def test_search_enseigne_and_adresse(api_response_tester):
         0
     ]
     assert "DROUOT" in etablissement["adresse"]
+
+
+def test_search_denomination_usuelle_and_commune(api_response_tester):
+    api_response_tester.assert_first_siren(
+        f"search?q={DENOMINATION_USUELLE_CLIN_D_OEIL} epernay", DIEFF_OPTIC
+    )
+
+
+def test_search_partial_denomination_usuelle_and_adresse(api_response_tester):
+    api_response_tester.assert_first_siren(
+        "search?q=arts 27 toussaint angers", ARTS_ET_BANDES_DESSINEES
+    )
 
 
 def test_search_denomination_and_commune_narrows_results(api_response_tester):
