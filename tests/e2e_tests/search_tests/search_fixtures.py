@@ -32,6 +32,13 @@ OGF_ADRESSE_DROUOT = "rue drouot"
 GANYMEDE_NOM_COMMERCIAL = "981195464"
 NOM_COMMERCIAL_FRIANDISES = "une poignee de friandises"
 
+# Dénomination usuelle distincte de la dénomination, sans enseigne ni nom
+# commercial. Cas remontés dans search-api#544.
+DIEFF_OPTIC = "394328066"
+DENOMINATION_USUELLE_CLIN_D_OEIL = "clin d'oeil"
+ARTS_ET_BANDES_DESSINEES = "422616003"
+DENOMINATION_USUELLE_ARTS_ET_BANDES_DESSINEES = "arts et bandes dessinees"
+
 # Association dotée d'un numéro RNA.
 SECOURS_POPULAIRE_RNA = "312160534"
 RNA_SECOURS_POPULAIRE = "W751004625"

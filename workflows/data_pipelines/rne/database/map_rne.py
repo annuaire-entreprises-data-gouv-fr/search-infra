@@ -353,7 +353,6 @@ def map_dirigeants_rne_to_dirigeants_list_ul(dirigeants_rne):
             dirigeant_ul.autre_role = dirigeant.autreRoleEntreprise
             dirigeant_ul.second_role = dirigeant.secondRoleEntreprise
             dirigeant_ul.libelle_second_role = dirigeant.libelleSecondRoleEntreprise
-            dirigeant_ul.representant_id = dirigeant.representantId
             list_dirigeants.append(dirigeant_ul)
         # Cas personne physique
         else:
