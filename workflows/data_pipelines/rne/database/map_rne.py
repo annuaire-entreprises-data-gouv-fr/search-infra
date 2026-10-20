@@ -179,7 +179,7 @@ def get_noms_de_domaine(rne_company: RNECompany) -> list[NomDeDomaine]:
     ]
 
 
-def get_etablissements(rne_company: "RNECompany"):
+def get_etablissements(rne_company: RNECompany):
     return get_value(rne_company, "autresEtablissements", default=[])
 
 
@@ -332,6 +332,9 @@ def map_rne_dirigeant_pp_to_ul(dirigeant_pp_rne, pouvoir=None):
         dirigeant_pp_ul.second_role = pouvoir.secondRoleEntreprise
         dirigeant_pp_ul.mention_demission = pouvoir.mentionDemissionOrdre
         dirigeant_pp_ul.date_mention_demission = pouvoir.dateMentionDemissionOrdre
+        dirigeant_pp_ul.qualite_artisan = pouvoir.qualiteArtisan or (
+            pouvoir.individu.qualiteArtisan if pouvoir.individu else None
+        )
     dirigeant_pp_ul.nationalite = dirigeant_pp_rne.nationalite
     dirigeant_pp_ul.situation_matrimoniale = dirigeant_pp_rne.situationMatrimoniale
     return dirigeant_pp_ul
