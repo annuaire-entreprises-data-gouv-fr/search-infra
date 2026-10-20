@@ -75,6 +75,7 @@ BODACC_CONFIG = DataSourceConfig(
     name="bodacc",
     tmp_folder=f"{DataSourceConfig.base_tmp_folder}/bodacc",
     object_storage_path="bodacc",
+    url_object_storage_metadata=f"{OBJECT_STORAGE_BASE_URL}bodacc/latest/metadata.json",
     files_to_download={
         "procedures_collectives": {
             "huwise": True,
