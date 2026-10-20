@@ -24,11 +24,8 @@ OPCO_CONFIG = DataSourceConfig(
         CREATE TABLE IF NOT EXISTS opco
         (
             siret TEXT PRIMARY KEY,
-            siren TEXT,
-            opco TEXT,
-            opco_gestion TEXT
+            a_opco INTEGER
         );
-        CREATE INDEX idx_siren_opco ON opco (siren);
         COMMIT;
     """,
 )

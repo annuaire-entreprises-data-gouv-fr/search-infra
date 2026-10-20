@@ -18,25 +18,19 @@ class OpcoProcessor(DataProcessor):
                 self.config.files_to_download["opco"]["destination"],
                 dtype="string",
                 sep="|",
-                usecols=["SIRET", "OPCO_PROPRIETAIRE", "OPCO_GESTION"],
-            )
-            .rename(
-                columns={
-                    "SIRET": "siret",
-                    "OPCO_PROPRIETAIRE": "opco",
-                    "OPCO_GESTION": "opco_gestion",
-                }
+                usecols=["SIRET", "OPCO_PROPRIETAIRE"],
             )
             # SIRET en "anomalie déclarative" are listed without any OPCO
-            .dropna(subset=["opco"])
+            .dropna(subset=["OPCO_PROPRIETAIRE"])
+            .rename(columns={"SIRET": "siret"})
             .drop_duplicates(subset=["siret"])
             .pipe(clean_sirent_column, column_type="siret", max_removal_percentage=1)
-            .assign(siren=lambda df: df["siret"].str[:9])
-        )[["siret", "siren", "opco", "opco_gestion"]]
+            .assign(a_opco=1)
+        )[["siret", "a_opco"]]
 
         df_opco.to_csv(self.config.file_output, index=False)
 
         DataProcessor.push_message(
             Notification.notification_xcom_key,
-            column=df_opco.siren,
+            column=df_opco.siret,
         )
