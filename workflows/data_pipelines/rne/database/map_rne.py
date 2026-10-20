@@ -179,7 +179,7 @@ def get_noms_de_domaine(rne_company: RNECompany) -> list[NomDeDomaine]:
     ]
 
 
-def get_etablissements(rne_company: "RNECompany"):
+def get_etablissements(rne_company: RNECompany):
     return get_value(rne_company, "autresEtablissements", default=[])
 
 
@@ -394,16 +394,6 @@ def map_dirigeants_rne_to_dirigeants_list_ul(dirigeants_rne):
             if isinstance(dirigeant_ul, DirigeantsPP):
                 dirigeant_ul.qualite_artisan = dirigeant.qualiteArtisan or (
                     dirigeant.individu.qualiteArtisan if dirigeant.individu else None
-                )
-            elif dirigeant.representant and dirigeant.representant.descriptionPersonne:
-                representant = map_rne_dirigeant_pp_to_ul(
-                    dirigeant.representant.descriptionPersonne, None
-                )
-                dirigeant_ul.representant_nom = representant.nom
-                dirigeant_ul.representant_nom_usage = representant.nom_usage
-                dirigeant_ul.representant_prenoms = representant.prenoms
-                dirigeant_ul.representant_date_de_naissance = (
-                    representant.date_de_naissance
                 )
             list_dirigeants.append(dirigeant_ul)
         # Cas personne physique

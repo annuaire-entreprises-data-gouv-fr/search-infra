@@ -66,7 +66,6 @@ class Pouvoir(BaseModel):
     secondRoleEntreprise: str | None = None
     libelleSecondRoleEntreprise: str | None = None
     qualiteArtisan: str | None = None
-    representant: PouvoirIndividu | None = None
     mentionDemissionOrdre: bool | None = None
     dateMentionDemissionOrdre: date | None = None
     libelleRoleEntreprise: str | None = None
