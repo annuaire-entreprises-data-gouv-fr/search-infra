@@ -5,7 +5,7 @@ from data_pipelines_annuaire.helpers import (
     Notification,
     force_rebuild_requested,
 )
-from data_pipelines_annuaire.helpers.object_storage import ObjectStorageFile
+from data_pipelines_annuaire.helpers.object_storage import File, ObjectStorageFile
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.annonces_couples import (
     process_annonces_couples,
 )
@@ -158,4 +158,18 @@ class BodaccProcessor(DataProcessor):
             sub_processor.compare_files_object_storage()
             for sub_processor in self._sub_processors
         ]
+        if any(results):
+            # If a metadata.json from any of the sub processor was modified
+            # then update the one in the object storage bodacc/latest folder
+            self.object_storage_client.send_files(
+                list_files=[
+                    File(
+                        source_path=f"{self.config.tmp_folder}/",
+                        source_name="metadata.json",
+                        dest_path=f"{self.config.object_storage_path}/latest/",
+                        dest_name="metadata.json",
+                        content_type=None,
+                    ),
+                ],
+            )
         return any(results)
