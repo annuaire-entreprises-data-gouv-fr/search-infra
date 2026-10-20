@@ -23,25 +23,21 @@ Un employeur adhère à l'OPCO de la branche dont relève sa convention collecti
 Le rattachement est contrôlé par France Compétences au regard de l'activité principale (APE). La table est publiée au plus tard deux mois après la DSN : la donnée a donc toujours un décalage de deux à trois mois.
 
 Trois situations :
-- **SIRET rattaché à un OPCO** : `OPCO_PROPRIETAIRE` est renseigné, `OPCO_GESTION` l'est parfois (voir ci-dessous).
+- **SIRET rattaché à un OPCO** : `OPCO_PROPRIETAIRE` est renseigné, `OPCO_GESTION` (OPCO délégataire de gestion) l'est parfois, uniquement en Outre-mer.
 - **SIRET en anomalie déclarative** : `IDCC` et les OPCO sont vides. C'est le cas d'un IDCC non rattachable à un OPCO (nombreux employeurs publics, VRP, etc.), d'une valeur d'échappement sans OPCO, d'un IDCC ou d'un APE inconnu, ou de l'absence d'IDCC. Ces lignes sont ignorées.
 - **SIRET absent** : aucune DSN depuis octobre 2022, ou SIREN ayant cessé son activité une année précédente.
 
 Bien qu'un établissement puisse avoir plusieurs conventions collectives il ne peut être lié qu'à un seul OPCO.
 L'IDCC retenu pour l'OPCO ne fait pas toujours partie de ses conventions collectives. On ne peut donc pas déduire l'OPCO de la liste des conventions collectives. C'est pourquoi utiliser la table de correspondance de France Compétences est nécessaire.
 
-### La fichier de sortie
+### Le fichier de sortie
 
 | Champ | Source | Description |
 | -------- | -------- | -------- |
 | `siret` | `SIRET` | SIRET de l'établissement |
-| `siren` | `SIRET` | SIREN |
-| `opco` | `OPCO_PROPRIETAIRE` | OPCO de rattachement : celui qui a l'établissement dans son référentiel d'adhérents. |
-| `opco_gestion` | `OPCO_GESTION` | OPCO délégataire de gestion, renseigné uniquement en Outre-mer, là où l'OPCO de rattachement n'est pas toujours présent. Il gère alors les demandes de prise en charge pour son compte. |
+| `a_opco` | `OPCO_PROPRIETAIRE` | `1` si l'établissement est rattaché à un OPCO. Les SIRET sans OPCO ne figurent pas dans le fichier. |
 
 L'`IDCC` n'est pas conservé car la liste exhaustive des conventions collectives par établissement sont déjà récupérées avec le DAG `data_processing_convention_collective`.
-
-Une entreprise peut avoir plusieurs OPCO si ses établissements relèvent de branches différentes, d'où `liste_opco` au niveau de l'unité légale.
 
 ### Documentation
 

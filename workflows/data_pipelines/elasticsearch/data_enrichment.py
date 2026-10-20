@@ -548,7 +548,6 @@ def format_etablissements_and_complements(
         "est_bio": False,
         "convention_collective_renseignee": False,
     }
-    opcos = set()
     for etablissement in etablissements:
         etablissement["nom_complet"] = nom_complet
         etablissement["sigle"] = sigle
@@ -592,6 +591,7 @@ def format_etablissements_and_complements(
         )
         etablissement["epci"] = label_epci_from_commune(etablissement["commune"])
         etablissement["est_siege"] = str_to_bool(etablissement["est_siege"])
+        etablissement["a_opco"] = sqlite_str_to_bool(etablissement["a_opco"])
         etablissement["liste_idcc"] = str_to_list(etablissement["liste_idcc"])
         etablissement["liste_rge"] = str_to_list(etablissement["liste_rge"])
         etablissement["liste_uai"] = str_to_list(etablissement["liste_uai"])
@@ -620,10 +620,6 @@ def format_etablissements_and_complements(
         ]:
             if etablissement[field]:
                 complements[get_elasticsearch_field_name(field)] = True
-        if etablissement["opco"]:
-            opcos.add(etablissement["opco"])
-
-    complements["liste_opco"] = sorted(opcos) or None
 
     return etablissements_processed, complements
 
