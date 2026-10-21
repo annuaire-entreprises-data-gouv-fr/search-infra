@@ -40,6 +40,8 @@ def create_tables(cursor):
             etat_administratif TEXT,
             forme_exercice_activite_principale TEXT,
             statut_diffusion TEXT,
+            diffusion_commerciale INTEGER,
+            siren_domiciliataire TEXT,
             adresse TEXT,
             file_name TEXT
         )
@@ -86,6 +88,7 @@ def create_tables(cursor):
             libelle_second_role TEXT,
             mention_demission INTEGER,
             date_mention_demission DATE,
+            qualite_artisan TEXT,
             nationalite TEXT,
             situation_matrimoniale TEXT,
             file_name TEXT
@@ -162,9 +165,24 @@ def create_tables(cursor):
             date_fin DATE,
             exercice_activite TEXT,
             description_detaillee TEXT,
+            code_aprm TEXT,
             indicateur_activitee_ape BOOLEAN,
             code_ape TEXT,
             activite_rattachee_eirl BOOLEAN,
+            date_mise_a_jour DATE,
+            file_name TEXT
+        )
+    """
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS nom_domaine
+        (
+            siren TEXT,
+            siret TEXT,
+            nom_domaine TEXT,
+            date_effet DATE,
             date_mise_a_jour DATE,
             file_name TEXT
         )
@@ -208,6 +226,9 @@ def create_index_db(cursor):
         ON etablissement (siret, file_name);""",
         """CREATE INDEX IF NOT EXISTS idx_activite_siren_file_name
         ON activite (siren, file_name);""",
+        "CREATE INDEX IF NOT EXISTS idx_siren_nom_domaine ON nom_domaine (siren);",
+        """CREATE INDEX IF NOT EXISTS idx_nom_domaine_siren_file_name
+        ON nom_domaine (siren, file_name);""",
     ]
 
     for statement in index_statements:
@@ -305,6 +326,7 @@ def find_and_delete_same_siren(cursor, siren, file_path):
         "immatriculation",
         "etablissement",
         "activite",
+        "nom_domaine",
     ]
 
     for table in tables:
@@ -336,6 +358,7 @@ ACTIVITE_COLUMNS = [
     "date_fin",
     "exercice_activite",
     "description_detaillee",
+    "code_aprm",
     "indicateur_activitee_ape",
     "code_ape",
     "activite_rattachee_eirl",
@@ -366,6 +389,7 @@ def insert_activites(cursor, unite_legale, siret, activites, file_path):
                 activite.date_fin,
                 activite.exercice_activite,
                 activite.description_detaillee,
+                activite.code_aprm,
                 activite.indicateur_activitee_ape,
                 activite.code_ape,
                 activite.activite_rattachee_eirl,
@@ -398,6 +422,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             "etat_administratif",
             "forme_exercice_activite_principale",
             "statut_diffusion",
+            "diffusion_commerciale",
+            "siren_domiciliataire",
             "adresse",
             "file_name",
         ]
@@ -422,6 +448,8 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 unite_legale.etat_administratif,
                 unite_legale.forme_exercice_activite_principale,
                 unite_legale.statut_diffusion,
+                unite_legale.diffusion_commerciale,
+                unite_legale.siren_domiciliataire,
                 unite_legale.format_address(),
                 file_path,
             ),
@@ -513,6 +541,26 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                         file_path,
                     )
 
+        if unite_legale.noms_de_domaine:
+            cursor.executemany(
+                """
+                INSERT INTO nom_domaine
+                (siren, siret, nom_domaine, date_effet, date_mise_a_jour, file_name)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                [
+                    (
+                        unite_legale.siren,
+                        nom.siret,
+                        nom.nom_domaine,
+                        nom.date_effet,
+                        unite_legale.date_mise_a_jour,
+                        file_path,
+                    )
+                    for nom in unite_legale.noms_de_domaine
+                ],
+            )
+
         list_dirigeants_pp, list_dirigeants_pm = unite_legale.get_dirigeants_list()
 
         for dirigeant_pp in list_dirigeants_pp:
@@ -531,6 +579,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 "libelle_second_role",
                 "mention_demission",
                 "date_mention_demission",
+                "qualite_artisan",
                 "nationalite",
                 "situation_matrimoniale",
                 "file_name",
@@ -554,6 +603,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                     dirigeant_pp.libelle_second_role,
                     dirigeant_pp.mention_demission,
                     dirigeant_pp.date_mention_demission,
+                    dirigeant_pp.qualite_artisan,
                     dirigeant_pp.nationalite,
                     dirigeant_pp.situation_matrimoniale,
                     file_path,
