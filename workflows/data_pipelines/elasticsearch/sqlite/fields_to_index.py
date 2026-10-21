@@ -116,6 +116,7 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
                         'liste_uai',liste_uai,
                         'longitude',longitude,
                         'nom_commercial',nom_commercial,
+                        'a_opco',a_opco,
                         'numero_voie',numero_voie,
                         'dernier_numero_voie',dernier_numero_voie,
                         'siren',siren,
@@ -177,6 +178,7 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
                         rge.liste_rge,
                         uai.liste_uai,
                         etablissement.nom_commercial,
+                        opco.a_opco,
                         etablissement.numero_voie,
                         etablissement.dernier_numero_voie,
                         etablissement.siren,
@@ -211,6 +213,7 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
                         LEFT JOIN finess_geographique ON finess_geographique.siret = etablissement.siret
                         LEFT JOIN agence_bio ON agence_bio.siret = etablissement.siret
                         LEFT JOIN convention_collective ON convention_collective.siret = etablissement.siret
+                        LEFT JOIN opco ON opco.siret = etablissement.siret
                         LEFT JOIN rge ON rge.siret = etablissement.siret
                         LEFT JOIN uai ON uai.siret = etablissement.siret
                         WHERE etablissement.siren = unite_legale.siren

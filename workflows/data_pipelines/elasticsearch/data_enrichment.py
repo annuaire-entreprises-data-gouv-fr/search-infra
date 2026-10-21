@@ -591,6 +591,7 @@ def format_etablissements_and_complements(
         )
         etablissement["epci"] = label_epci_from_commune(etablissement["commune"])
         etablissement["est_siege"] = str_to_bool(etablissement["est_siege"])
+        etablissement["a_opco"] = sqlite_str_to_bool(etablissement["a_opco"])
         etablissement["liste_idcc"] = str_to_list(etablissement["liste_idcc"])
         etablissement["liste_rge"] = str_to_list(etablissement["liste_rge"])
         etablissement["liste_uai"] = str_to_list(etablissement["liste_uai"])

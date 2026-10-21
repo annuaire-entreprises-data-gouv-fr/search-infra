@@ -127,6 +127,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.formation.config import (
 from data_pipelines_annuaire.workflows.data_pipelines.marche_inclusion.config import (
     MARCHE_INCLUSION_CONFIG,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.opco.config import OPCO_CONFIG
 from data_pipelines_annuaire.workflows.data_pipelines.patrimoine_vivant.config import (
     PATRIMOINE_VIVANT_CONFIG,
 )
@@ -224,6 +225,7 @@ def database_constructor():
             SPECTACLE_CONFIG,
             UAI_CONFIG,
             CONVENTION_COLLECTIVE_CONFIG,
+            OPCO_CONFIG,
             MARCHE_INCLUSION_CONFIG,
             ACHATS_RESPONSABLES_CONFIG,
             PATRIMOINE_VIVANT_CONFIG,
