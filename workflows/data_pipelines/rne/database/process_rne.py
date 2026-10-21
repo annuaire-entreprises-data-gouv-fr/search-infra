@@ -41,9 +41,7 @@ def create_tables(cursor):
             forme_exercice_activite_principale TEXT,
             statut_diffusion TEXT,
             diffusion_commerciale INTEGER,
-            est_domicilie INTEGER,
             siren_domiciliataire TEXT,
-            denomination_domiciliataire TEXT,
             adresse TEXT,
             file_name TEXT
         )
@@ -423,9 +421,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
             "forme_exercice_activite_principale",
             "statut_diffusion",
             "diffusion_commerciale",
-            "est_domicilie",
             "siren_domiciliataire",
-            "denomination_domiciliataire",
             "adresse",
             "file_name",
         ]
@@ -451,9 +447,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 unite_legale.forme_exercice_activite_principale,
                 unite_legale.statut_diffusion,
                 unite_legale.diffusion_commerciale,
-                unite_legale.est_domicilie,
                 unite_legale.siren_domiciliataire,
-                unite_legale.denomination_domiciliataire,
                 unite_legale.format_address(),
                 file_path,
             ),

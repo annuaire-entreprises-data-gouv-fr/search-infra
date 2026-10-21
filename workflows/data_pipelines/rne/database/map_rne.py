@@ -79,14 +79,9 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
 
     adresse_entreprise = get_value(rne_company, "adresseEntreprise")
     if adresse_entreprise:
-        caracteristiques = adresse_entreprise.caracteristiques
         domiciliataire = adresse_entreprise.entrepriseDomiciliataire
-        unite_legale.est_domicilie = (
-            caracteristiques.domiciliataire if caracteristiques else None
-        )
         if domiciliataire:
             unite_legale.siren_domiciliataire = remove_spaces(domiciliataire.siren)
-            unite_legale.denomination_domiciliataire = domiciliataire.denomination
 
     company_dirigeants = get_dirigeants(rne_company)
     unite_legale.dirigeants = map_dirigeants_rne_to_dirigeants_list_ul(

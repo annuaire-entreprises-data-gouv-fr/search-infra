@@ -122,9 +122,7 @@ class UniteLegale(BaseModel):
     forme_exercice_activite_principale: str | None = None
     statut_diffusion: str | None = None
     diffusion_commerciale: bool | None = None
-    est_domicilie: bool | None = None
     siren_domiciliataire: str | None = None
-    denomination_domiciliataire: str | None = None
     adresse: Adresse | None = Adresse()
     dirigeants: list[DirigeantsPP | DirigeantsPM] | None = None
     siege: Siege | None = Siege()
