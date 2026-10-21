@@ -102,17 +102,12 @@ class Identite(BaseModel):
     nomsDeDomaine: list[NomDeDomaine] | None = []
 
 
-class Caracteristiques(BaseModel):
-    domiciliataire: bool | None = None
-
-
 class EntrepriseDomiciliataire(BaseModel):
     siren: str | None = None
-    denomination: str | None = None
 
 
 class AdresseEntreprise(BaseModel):
-    caracteristiques: Caracteristiques | None = None
+    caracteristiques: dict | None = None
     adresse: Adresse | None = Adresse()
     entrepriseDomiciliataire: EntrepriseDomiciliataire | None = None
 
