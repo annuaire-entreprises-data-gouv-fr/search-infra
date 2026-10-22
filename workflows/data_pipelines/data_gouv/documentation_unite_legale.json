@@ -183,6 +183,11 @@
       "name": "est_avocat",
       "type": "boolean",
       "description": "Unité légale enregistrée en tant qu'avocat (source : Conseil National des Barreaux)"
+    },
+    {
+      "name": "est_protege",
+      "type": "boolean",
+      "description": "Unité légale dont la diffusion est restreinte : nom et adresses sont masqués comme pour une unité légale non diffusible, statut_diffusion conservant la valeur de la base Sirene (source : Annuaire des Entreprises)"
     }
   ]
 }

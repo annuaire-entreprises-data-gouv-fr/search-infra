@@ -12,13 +12,19 @@ select_sitemap_fields_query = """SELECT
         st.code_pays_etranger,
         st.nom_commercial,
         ul.activite_principale_unite_legale,
-        ul.statut_diffusion_unite_legale,
+        -- Protected SIREN follow the non-diffusible rules
+        CASE WHEN sp.siren IS NOT NULL THEN 'P'
+            ELSE ul.statut_diffusion_unite_legale
+        END AS statut_diffusion_unite_legale,
         ul.nature_juridique_unite_legale
         FROM
             unite_legale ul
         JOIN
             etablissement st
-        ON st.siren = ul.siren AND st.est_siege = 'true';"""
+        ON st.siren = ul.siren AND st.est_siege = 'true'
+        LEFT JOIN
+            siren_protege sp
+        ON sp.siren = ul.siren;"""
 
 select_sitemap_fondations_query = """SELECT
         numero_rnf,

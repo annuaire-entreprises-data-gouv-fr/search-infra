@@ -77,6 +77,11 @@
       "items": {
         "type": "string"
       }
+    },
+    {
+      "name": "est_protege",
+      "type": "boolean",
+      "description": "Établissement d'une unité légale dont la diffusion est restreinte : l'adresse est masquée comme pour un établissement non diffusible, statut_diffusion conservant la valeur de la base Sirene (source : Annuaire des Entreprises)"
     }
   ]
 }

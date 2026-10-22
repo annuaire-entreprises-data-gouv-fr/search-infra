@@ -44,6 +44,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichm
 
 logger = logging.getLogger(__name__)
 
+NON_DIFFUSIBLE_MASK = "[NON-DIFFUSIBLE]"
+
 
 class DataGouvProcessor:
     DESCRIPTIONS_DIR = os.path.dirname(__file__)
@@ -92,6 +94,7 @@ class DataGouvProcessor:
             "liste_finess_juridique",
             "a_aide_ademe",
             "est_avocat",
+            "est_protege",
         ]
         self.etab_columns = [
             "siren",
@@ -106,6 +109,7 @@ class DataGouvProcessor:
             "liste_idcc",
             "liste_rge",
             "liste_uai",
+            "est_protege",
         ]
         self.ul_parquet_dtypes = {
             "nombre_etablissements": "int",
@@ -124,6 +128,7 @@ class DataGouvProcessor:
             "est_siae": "bool",
             "a_aide_ademe": "bool",
             "est_avocat": "bool",
+            "est_protege": "bool",
             "date_mise_a_jour_insee": "datetime",
             "date_mise_a_jour_rne": "datetime",
             "liste_elus": "list_str",
@@ -134,6 +139,7 @@ class DataGouvProcessor:
         self.etab_parquet_dtypes = {
             "est_siege": "bool",
             "ancien_siege": "bool",
+            "est_protege": "bool",
             "liste_finess_geographique": "list_str",
             "liste_id_bio": "list_str",
             "liste_idcc": "list_str",
@@ -150,6 +156,8 @@ class DataGouvProcessor:
 
     def process_ul_chunk(self, chunk):
         chunk["colter_elus"] = chunk["colter_elus"].apply(json.loads)
+        chunk["est_protege"] = chunk["est_protege"].astype(bool)
+        est_personne_morale = chunk["nature_juridique"].apply(is_personne_morale_insee)
         chunk["nom_complet"] = chunk.apply(
             lambda row: format_nom_complet(
                 row["nom"],
@@ -159,9 +167,14 @@ class DataGouvProcessor:
                 est_personne_morale_insee=is_personne_morale_insee(
                     row["nature_juridique"]
                 ),
-                is_non_diffusible=row["statut_diffusion"] != "O",
+                is_non_diffusible=row["statut_diffusion"] != "O" or row["est_protege"],
             ),
             axis=1,
+        )
+        # The identity of protected personnes physiques is diffusible in the SIRENE
+        # source, so it is not masked upstream like the non-diffusible ones.
+        chunk.loc[chunk["est_protege"] & ~est_personne_morale, "nom_complet"] = (
+            NON_DIFFUSIBLE_MASK
         )
         # Fill NA values in 'nombre_etablissements_ouverts'
         chunk["nombre_etablissements_ouverts"] = (
@@ -228,7 +241,10 @@ class DataGouvProcessor:
         return chunk
 
     def process_etablissement_chunk(self, chunk):
-        chunk["is_non_diffusible"] = chunk["statut_diffusion"] != "O"
+        chunk["est_protege"] = chunk["est_protege"].astype(bool)
+        chunk["is_non_diffusible"] = (chunk["statut_diffusion"] != "O") | chunk[
+            "est_protege"
+        ]
         chunk["adresse"] = chunk.apply(
             lambda row: format_adresse_complete(
                 row["complement_adresse"],

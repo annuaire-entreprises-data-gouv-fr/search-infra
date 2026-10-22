@@ -230,6 +230,7 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
             aides_minimis.aide_de_minimis_renseignee,
             aides_ademe.aide_ademe_renseignee,
             avocat.est_avocat,
+            siren_protege.siren IS NOT NULL AS est_protege,
             colter.colter_code_insee,
             colter.colter_code,
             colter.colter_niveau,
@@ -321,6 +322,7 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
             LEFT JOIN aides_minimis ON aides_minimis.siren = unite_legale.siren
             LEFT JOIN aides_ademe ON aides_ademe.siren = unite_legale.siren
             LEFT JOIN avocat ON avocat.siren = unite_legale.siren
+            LEFT JOIN siren_protege ON siren_protege.siren = unite_legale.siren
             LEFT JOIN colter ON colter.siren = unite_legale.siren
             LEFT JOIN ess_france ON ess_france.siren = unite_legale.siren
             LEFT JOIN organisme_formation ON organisme_formation.siren = unite_legale.siren

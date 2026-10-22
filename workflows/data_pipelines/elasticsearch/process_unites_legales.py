@@ -44,8 +44,13 @@ def process_unites_legales(chunk_unites_legales_sqlite):
                 unite_legale_processed[field] = json.loads(unite_legale[field])
             else:
                 unite_legale_processed[field] = unite_legale[field]
-        # Statut de diffusion
-        is_non_diffusible = unite_legale["statut_diffusion_unite_legale"] != "O"
+        # Statut de diffusion: protected SIREN follow the non-diffusible rules
+        est_protege = bool(unite_legale["est_protege"])
+        unite_legale_processed["est_protege"] = est_protege
+        statut_diffusion = (
+            "P" if est_protege else unite_legale["statut_diffusion_unite_legale"]
+        )
+        is_non_diffusible = statut_diffusion != "O"
 
         # Nom complet
         unite_legale_processed["nom_complet"] = format_nom_complet(
@@ -246,7 +251,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["siren"],
             unite_legale["sigle"],
             get_nom_commercial(unite_legale_processed),
-            unite_legale["statut_diffusion_unite_legale"],
+            statut_diffusion,
             unite_legale["nature_juridique_unite_legale"],
         )
 

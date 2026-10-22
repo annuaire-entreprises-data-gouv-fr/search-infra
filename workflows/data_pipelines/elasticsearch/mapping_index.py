@@ -367,6 +367,7 @@ class UniteLegaleMapping(InnerDoc):
     est_qualiopi = Boolean()
     est_l100_3 = Boolean()  # Deprecated
     est_patrimoine_vivant = Boolean()
+    est_protege = Boolean()
     est_rge = Boolean()
     est_service_public = Boolean()  # Deprecated
     est_siae = Boolean()

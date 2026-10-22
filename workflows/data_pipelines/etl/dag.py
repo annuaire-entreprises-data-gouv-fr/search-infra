@@ -132,6 +132,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.patrimoine_vivant.config i
     PATRIMOINE_VIVANT_CONFIG,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.rge.config import RGE_CONFIG
+from data_pipelines_annuaire.workflows.data_pipelines.siren_protege.config import (
+    SIREN_PROTEGE_CONFIG,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.spectacle.config import (
     SPECTACLE_CONFIG,
 )
@@ -245,6 +248,7 @@ def database_constructor():
             ADMINISTRATION_CODES_JURIDIQUES_CONFIG,
             ADMINISTRATION_WHITELIST_CONFIG,
             ADMINISTRATION_BLACKLIST_CONFIG,
+            SIREN_PROTEGE_CONFIG,
         ]
         tasks = []
         for config in config_list:

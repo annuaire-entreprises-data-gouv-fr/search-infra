@@ -65,7 +65,8 @@ SELECT unite_legale.etat_administratif_unite_legale as etat_administratif,
     marche_inclusion.type_siae,
     finess_juridique.liste_finess_juridique,
     aides_ademe.aide_ademe_renseignee,
-    avocat.est_avocat
+    avocat.est_avocat,
+    siren_protege.siren IS NOT NULL AS est_protege
 FROM unite_legale
     LEFT JOIN colter ON colter.siren = unite_legale.siren
     LEFT JOIN egapro ON egapro.siren = unite_legale.siren
@@ -81,6 +82,7 @@ FROM unite_legale
     LEFT JOIN finess_juridique ON finess_juridique.siren = unite_legale.siren
     LEFT JOIN aides_ademe ON aides_ademe.siren = unite_legale.siren
     LEFT JOIN avocat ON avocat.siren = unite_legale.siren
+    LEFT JOIN siren_protege ON siren_protege.siren = unite_legale.siren
     LEFT JOIN etablissement AS siege ON siege.siren = unite_legale.siren AND siege.est_siege = 'true'
 WHERE unite_legale.siren IS NOT NULL;
 """
@@ -124,11 +126,13 @@ etab_fields_to_select = """SELECT etablissement.activite_principale,
     etablissement.tranche_effectif_salarie,
     etablissement.annee_tranche_effectif_salarie,
     etablissement.date_mise_a_jour_insee,
-    etablissement.type_voie
+    etablissement.type_voie,
+    siren_protege.siren IS NOT NULL AS est_protege
 FROM etablissement
     LEFT JOIN finess_geographique ON finess_geographique.siret = etablissement.siret
     LEFT JOIN agence_bio ON agence_bio.siret = etablissement.siret
     LEFT JOIN convention_collective ON convention_collective.siret = etablissement.siret
     LEFT JOIN rge ON rge.siret = etablissement.siret
-    LEFT JOIN uai ON uai.siret = etablissement.siret;
+    LEFT JOIN uai ON uai.siret = etablissement.siret
+    LEFT JOIN siren_protege ON siren_protege.siren = etablissement.siren;
 """
