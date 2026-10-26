@@ -47,6 +47,7 @@ class DirigeantsPP(BaseModel):
     second_role: str | None = None
     mention_demission: bool | None = None
     date_mention_demission: date | None = None
+    qualite_artisan: str | None = None
     nationalite: str | None = None
     situation_matrimoniale: str | None = None
     type_dirigeant: Literal["personne physique"] = "personne physique"
@@ -60,6 +61,7 @@ class DirigeantsPM(BaseModel):
     second_role: str | None = None
     mention_demission: bool | None = None
     date_mention_demission: date | None = None
+    qualite_artisan: str | None = None
     pays: str | None = None
     forme_juridique: str | None = None
     type_dirigeant: Literal["personne morale"] = "personne morale"
@@ -79,9 +81,16 @@ class Activite(BaseModel):
     date_fin: date | None = None
     exercice_activite: str | None = None
     description_detaillee: str | None = None
+    code_aprm: str | None = None
     indicateur_activitee_ape: bool | None = None
     code_ape: str | None = None
     activite_rattachee_eirl: bool | None = None
+
+
+class NomDeDomaine(BaseModel):
+    siret: str | None = None
+    nom_domaine: str | None = None
+    date_effet: date | None = None
 
 
 class Siege(BaseModel):
@@ -113,11 +122,14 @@ class UniteLegale(BaseModel):
     etat_administratif: str | None = None
     forme_exercice_activite_principale: str | None = None
     statut_diffusion: str | None = None
+    diffusion_commerciale: bool | None = None
+    siren_domiciliataire: str | None = None
     adresse: Adresse | None = Adresse()
     dirigeants: list[DirigeantsPP | DirigeantsPM] | None = None
     siege: Siege | None = Siege()
     immatriculation: Immatriculation | None = Immatriculation()
     etablissements: list[Etablissement] | None = None
+    noms_de_domaine: list[NomDeDomaine] | None = None
 
     def get_dirigeants_list(self):
         dirigeants_pp_list = []

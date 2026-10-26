@@ -15,6 +15,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.rne.database.ul_model impo
     DirigeantsPM,
     DirigeantsPP,
     Etablissement,
+    NomDeDomaine,
     Siege,
     UniteLegale,
 )
@@ -26,6 +27,7 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     unite_legale.siren = rne_company.siren
     unite_legale.date_mise_a_jour = rne_company.updatedAt
     unite_legale.statut_diffusion = rne_company.formality.diffusionINSEE
+    unite_legale.diffusion_commerciale = rne_company.formality.diffusionCommerciale
     unite_legale.nature_juridique = get_forme_juridique(rne_company)
     unite_legale.date_creation = get_date_creation(rne_company)
     unite_legale.forme_exercice_activite_principale = (
@@ -75,6 +77,12 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
     if company_address:
         unite_legale.adresse = map_address_rne_to_ul(company_address)
 
+    adresse_entreprise = get_value(rne_company, "adresseEntreprise")
+    if adresse_entreprise:
+        domiciliataire = adresse_entreprise.entrepriseDomiciliataire
+        if domiciliataire:
+            unite_legale.siren_domiciliataire = remove_spaces(domiciliataire.siren)
+
     company_dirigeants = get_dirigeants(rne_company)
     unite_legale.dirigeants = map_dirigeants_rne_to_dirigeants_list_ul(
         company_dirigeants
@@ -94,6 +102,8 @@ def map_rne_company_to_ul(rne_company: RNECompany, unite_legale: UniteLegale):
         unite_legale.etablissements = map_rne_etablissements_to_ul(etablissements)
     else:
         unite_legale.etablissements = []
+
+    unite_legale.noms_de_domaine = get_noms_de_domaine(rne_company)
 
     return unite_legale
 
@@ -141,6 +151,27 @@ def get_nature_entreprise_list(rne_company: RNECompany) -> list[str] | None:
 
     # Return the list of nature_entreprise or None if it's empty
     return list(nature_entreprise) if nature_entreprise else None
+
+
+def get_noms_de_domaine(rne_company: RNECompany) -> list[NomDeDomaine]:
+    """Domain names of the company (siret None) and of its establishments."""
+    identite = get_value(rne_company, "identite")
+    sources = [(None, getattr(identite, "nomsDeDomaine", None))]
+    siege = get_siege(rne_company)
+    for etablissement in [siege, *(get_etablissements(rne_company) or [])]:
+        description = getattr(etablissement, "descriptionEtablissement", None)
+        sources.append(
+            (
+                getattr(description, "siret", None),
+                getattr(etablissement, "nomsDeDomaine", None),
+            )
+        )
+    return [
+        NomDeDomaine(siret=siret, nom_domaine=nom.nomDomaine, date_effet=nom.dateEffet)
+        for siret, noms in sources
+        for nom in noms or []
+        if nom.nomDomaine
+    ]
 
 
 def get_etablissements(rne_company: RNECompany):
@@ -280,7 +311,8 @@ def map_address_rne_to_ul(address_rne):
     return address_ul
 
 
-def map_rne_dirigeant_pp_to_ul(dirigeant_pp_rne, pouvoir=None):
+def map_rne_dirigeant_pp_to_ul(personne, pouvoir=None):
+    dirigeant_pp_rne = personne.descriptionPersonne
     dirigeant_pp_ul = DirigeantsPP()
     dirigeant_pp_ul.date_de_naissance = dirigeant_pp_rne.dateDeNaissance
     dirigeant_pp_ul.nom = dirigeant_pp_rne.nom
@@ -290,12 +322,16 @@ def map_rne_dirigeant_pp_to_ul(dirigeant_pp_rne, pouvoir=None):
     else:
         dirigeant_pp_ul.prenoms = dirigeant_pp_rne.prenoms
     dirigeant_pp_ul.genre = dirigeant_pp_rne.genre
+    dirigeant_pp_ul.qualite_artisan = personne.qualiteArtisan
     if pouvoir is not None:
         dirigeant_pp_ul.role = pouvoir.roleEntreprise
         dirigeant_pp_ul.autre_role = pouvoir.autreRoleEntreprise
         dirigeant_pp_ul.second_role = pouvoir.secondRoleEntreprise
         dirigeant_pp_ul.mention_demission = pouvoir.mentionDemissionOrdre
         dirigeant_pp_ul.date_mention_demission = pouvoir.dateMentionDemissionOrdre
+        dirigeant_pp_ul.qualite_artisan = (
+            pouvoir.qualiteArtisan or personne.qualiteArtisan
+        )
     dirigeant_pp_ul.nationalite = dirigeant_pp_rne.nationalite
     dirigeant_pp_ul.situation_matrimoniale = dirigeant_pp_rne.situationMatrimoniale
     return dirigeant_pp_ul
@@ -311,6 +347,7 @@ def map_rne_dirigeant_pm_to_ul(pouvoir):
     dirigeant_pm_ul.second_role = pouvoir.secondRoleEntreprise
     dirigeant_pm_ul.mention_demission = pouvoir.mentionDemissionOrdre
     dirigeant_pm_ul.date_mention_demission = pouvoir.dateMentionDemissionOrdre
+    dirigeant_pm_ul.qualite_artisan = pouvoir.qualiteArtisan
     dirigeant_pm_ul.pays = dirigeant_pm_rne.pays
     dirigeant_pm_ul.forme_juridique = dirigeant_pm_rne.formeJuridique
     return dirigeant_pm_ul
@@ -351,17 +388,13 @@ def map_dirigeants_rne_to_dirigeants_list_ul(dirigeants_rne):
         if hasattr(dirigeant, "typeDePersonne"):
             if dirigeant.typeDePersonne == "INDIVIDU":
                 list_dirigeants.append(
-                    map_rne_dirigeant_pp_to_ul(
-                        dirigeant.individu.descriptionPersonne, dirigeant
-                    )
+                    map_rne_dirigeant_pp_to_ul(dirigeant.individu, dirigeant)
                 )
             elif dirigeant.typeDePersonne == "ENTREPRISE":
                 list_dirigeants.append(map_rne_dirigeant_pm_to_ul(dirigeant))
         # Cas personne physique
         else:
-            list_dirigeants.append(
-                map_rne_dirigeant_pp_to_ul(dirigeant.descriptionPersonne)
-            )
+            list_dirigeants.append(map_rne_dirigeant_pp_to_ul(dirigeant))
 
     return list_dirigeants
 
@@ -427,6 +460,7 @@ def map_rne_activites_to_ul(activites_rne):
             activite_ul.description_detaillee = getattr(
                 activite_rne, "descriptionDetaillee", None
             )
+            activite_ul.code_aprm = getattr(activite_rne, "codeAprm", None)
             activite_ul.indicateur_activitee_ape = getattr(
                 activite_rne, "indicateurActiviteeApe", None
             )
