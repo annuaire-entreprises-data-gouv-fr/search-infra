@@ -280,7 +280,7 @@ def map_address_rne_to_ul(address_rne):
     return address_ul
 
 
-def map_rne_dirigeant_pp_to_ul(dirigeant_pp_rne, role_entreprise):
+def map_rne_dirigeant_pp_to_ul(dirigeant_pp_rne, pouvoir=None):
     dirigeant_pp_ul = DirigeantsPP()
     dirigeant_pp_ul.date_de_naissance = dirigeant_pp_rne.dateDeNaissance
     dirigeant_pp_ul.nom = dirigeant_pp_rne.nom
@@ -290,17 +290,23 @@ def map_rne_dirigeant_pp_to_ul(dirigeant_pp_rne, role_entreprise):
     else:
         dirigeant_pp_ul.prenoms = dirigeant_pp_rne.prenoms
     dirigeant_pp_ul.genre = dirigeant_pp_rne.genre
-    dirigeant_pp_ul.role = role_entreprise
+    if pouvoir is not None:
+        dirigeant_pp_ul.role = pouvoir.roleEntreprise
+        dirigeant_pp_ul.autre_role = pouvoir.autreRoleEntreprise
+        dirigeant_pp_ul.second_role = pouvoir.secondRoleEntreprise
     dirigeant_pp_ul.nationalite = dirigeant_pp_rne.nationalite
     dirigeant_pp_ul.situation_matrimoniale = dirigeant_pp_rne.situationMatrimoniale
     return dirigeant_pp_ul
 
 
-def map_rne_dirigeant_pm_to_ul(dirigeant_pm_rne, role_entreprise=None):
+def map_rne_dirigeant_pm_to_ul(pouvoir):
+    dirigeant_pm_rne = pouvoir.entreprise
     dirigeant_pm_ul = DirigeantsPM()
     dirigeant_pm_ul.siren = remove_spaces(dirigeant_pm_rne.siren)
     dirigeant_pm_ul.denomination = dirigeant_pm_rne.denomination
-    dirigeant_pm_ul.role = role_entreprise
+    dirigeant_pm_ul.role = pouvoir.roleEntreprise
+    dirigeant_pm_ul.autre_role = pouvoir.autreRoleEntreprise
+    dirigeant_pm_ul.second_role = pouvoir.secondRoleEntreprise
     dirigeant_pm_ul.pays = dirigeant_pm_rne.pays
     dirigeant_pm_ul.forme_juridique = dirigeant_pm_rne.formeJuridique
     return dirigeant_pm_ul
@@ -336,28 +342,21 @@ def map_rne_siege_to_ul(siege_rne):
 
 def map_dirigeants_rne_to_dirigeants_list_ul(dirigeants_rne):
     list_dirigeants = []
-    # Cas personne morale et exploitation
     for dirigeant in dirigeants_rne:
+        # Cas personne morale et exploitation
         if hasattr(dirigeant, "typeDePersonne"):
-            dirigeant_ul: DirigeantsPP | DirigeantsPM
             if dirigeant.typeDePersonne == "INDIVIDU":
-                dirigeant_ul = map_rne_dirigeant_pp_to_ul(
-                    dirigeant.individu.descriptionPersonne, dirigeant.roleEntreprise
+                list_dirigeants.append(
+                    map_rne_dirigeant_pp_to_ul(
+                        dirigeant.individu.descriptionPersonne, dirigeant
+                    )
                 )
             elif dirigeant.typeDePersonne == "ENTREPRISE":
-                dirigeant_ul = map_rne_dirigeant_pm_to_ul(
-                    dirigeant.entreprise, dirigeant.roleEntreprise
-                )
-            else:
-                continue
-            dirigeant_ul.autre_role = dirigeant.autreRoleEntreprise
-            dirigeant_ul.second_role = dirigeant.secondRoleEntreprise
-            dirigeant_ul.libelle_second_role = dirigeant.libelleSecondRoleEntreprise
-            list_dirigeants.append(dirigeant_ul)
+                list_dirigeants.append(map_rne_dirigeant_pm_to_ul(dirigeant))
         # Cas personne physique
         else:
             list_dirigeants.append(
-                map_rne_dirigeant_pp_to_ul(dirigeant.descriptionPersonne, None)
+                map_rne_dirigeant_pp_to_ul(dirigeant.descriptionPersonne)
             )
 
     return list_dirigeants
