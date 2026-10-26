@@ -61,6 +61,7 @@ class DirigeantsPM(BaseModel):
     second_role: str | None = None
     mention_demission: bool | None = None
     date_mention_demission: date | None = None
+    qualite_artisan: str | None = None
     pays: str | None = None
     forme_juridique: str | None = None
     type_dirigeant: Literal["personne morale"] = "personne morale"

@@ -58,6 +58,7 @@ class PouvoirEntreprise(BaseModel):
 class Entrepreneur(BaseModel):
     descriptionPersonne: DescriptionPersonne | None = DescriptionPersonne()
     adresseDomicile: Adresse | None = Adresse()
+    qualiteArtisan: str | None = None
 
 
 class Pouvoir(BaseModel):

@@ -107,6 +107,7 @@ def create_tables(cursor):
             second_role TEXT,
             mention_demission INTEGER,
             date_mention_demission DATE,
+            qualite_artisan TEXT,
             pays TEXT,
             forme_juridique TEXT,
             file_name TEXT
@@ -618,6 +619,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                 "second_role",
                 "mention_demission",
                 "date_mention_demission",
+                "qualite_artisan",
                 "pays",
                 "forme_juridique",
                 "file_name",
@@ -637,6 +639,7 @@ def insert_unites_legales_into_db(list_unites_legales, file_path, db_path):
                     dirigeant_pm.second_role,
                     dirigeant_pm.mention_demission,
                     dirigeant_pm.date_mention_demission,
+                    dirigeant_pm.qualite_artisan,
                     dirigeant_pm.pays,
                     dirigeant_pm.forme_juridique,
                     file_path,
