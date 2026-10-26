@@ -64,7 +64,6 @@ class Pouvoir(BaseModel):
     autreRoleEntreprise: str | None = None
     secondRoleEntreprise: str | None = None
     libelleSecondRoleEntreprise: str | None = None
-    representantId: str | None = None
     libelleRoleEntreprise: str | None = None
     typeDePersonne: str | None = None
     individu: PouvoirIndividu | None = PouvoirIndividu()
