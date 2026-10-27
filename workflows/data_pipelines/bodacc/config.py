@@ -128,6 +128,7 @@ RADIATIONS_CONFIG = DataSourceConfig(
             siren TEXT PRIMARY KEY,
             id_annonce TEXT,
             est_radie INTEGER,
+            motif TEXT,
             date DATE,
             date_publication DATE,
             greffe TEXT,
