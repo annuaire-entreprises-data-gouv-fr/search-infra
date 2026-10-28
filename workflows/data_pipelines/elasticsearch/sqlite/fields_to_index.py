@@ -19,6 +19,7 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
             unite_legale.nom,
             unite_legale.nom_raison_sociale,
             unite_legale.nom_usage,
+            unite_legale.opposition_diffusion_commerciale,
             unite_legale.prenom,
             unite_legale.sigle,
             unite_legale.siren,

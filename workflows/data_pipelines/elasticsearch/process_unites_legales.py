@@ -271,6 +271,12 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["date_mise_a_jour_rne"]
         )
 
+        # NULL when the RNE does not provide diffusionCommerciale
+        opposition = unite_legale["opposition_diffusion_commerciale"]
+        unite_legale_processed["opposition_diffusion_commerciale"] = (
+            None if opposition is None else bool(opposition)
+        )
+
         # Administration
         unite_legale_processed["est_administration"] = is_administration(
             unite_legale["nature_juridique_unite_legale"],
