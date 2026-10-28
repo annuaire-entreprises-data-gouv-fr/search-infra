@@ -11,7 +11,7 @@ dependencies = [
     "elasticsearch==9.2.1",
     "requests==2.34.2",
     "pytest==9.1.1",
-    "pydantic==2.13.5",
+    "pydantic==2.14.1",
     "pyproj==3.8.0",
     "redis==8.1.0",
     "pyarrow==25.0.1",
