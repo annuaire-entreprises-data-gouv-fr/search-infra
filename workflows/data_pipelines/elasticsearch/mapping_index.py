@@ -390,6 +390,7 @@ class UniteLegaleMapping(InnerDoc):
     nombre_etablissements = Integer()  # NaN can't be stored in an integer array
     nombre_etablissements_ouverts = Integer()
     numero_rnf = Keyword()
+    opposition_diffusion_commerciale = Boolean()
     prenom = Text(analyzer=annuaire_analyzer)
     section_activite_principale = Keyword()
     siege = Object(SiegeMapping)

@@ -28,7 +28,8 @@ create_table_unite_legale_query = """
             from_rne BOOLEAN DEFAULT FALSE,
             date_mise_a_jour_insee DATE,
             date_mise_a_jour_rne DATE,
-            date_fermeture_unite_legale DATE
+            date_fermeture_unite_legale DATE,
+            opposition_diffusion_commerciale BOOLEAN
         )
     """
 
@@ -139,6 +140,12 @@ update_main_table_fields_with_rne_data_query = """
                     SELECT MAX(r.date_mise_a_jour)
                     FROM db_rne.unite_legale r
                     WHERE unite_legale.siren = r.siren
+                    ),
+                opposition_diffusion_commerciale = (
+                    -- If a Siren is duplicated we prioritise an opposition
+                    SELECT NOT MIN(r.diffusion_commerciale)
+                    FROM db_rne.unite_legale r
+                    WHERE unite_legale.siren = r.siren
                     )
             WHERE siren IN (SELECT siren FROM db_rne.unite_legale)
         """
@@ -173,7 +180,8 @@ insert_remaining_rne_data_into_main_table_query = """
                 TRUE AS from_rne,
                 NULL AS date_mise_a_jour_insee,
                 date_mise_a_jour AS date_mise_a_jour_rne,
-                NULL AS date_fermeture_unite_legale
+                NULL AS date_fermeture_unite_legale,
+                NOT diffusion_commerciale AS opposition_diffusion_commerciale
             FROM db_rne.unite_legale
             WHERE siren NOT IN (SELECT siren FROM unite_legale)
         """
