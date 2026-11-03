@@ -68,7 +68,18 @@ class SireneStockProcessor(DataProcessor):
                 year_month = f"{year}-{month_num}"
                 break
         if not year_month:
-            raise Exception(f"Month not found in the title of {resource_id}")
+            # Fallback to the last modified date in case a file title has not date
+            # It happens when l'INSEE has issues uploading their files
+            last_modified = metadata["resource"].get("last_modified")
+            if not last_modified:
+                raise Exception(
+                    f"Month not found in the title nor last_modified of {resource_id}"
+                )
+            year_month = datetime.fromisoformat(last_modified).strftime("%Y-%m")
+            logger.warning(
+                f"Month not found in the title of {resource_id} ({title}), "
+                f"using last_modified instead: {year_month}"
+            )
 
         return original_filename.replace(CURRENT_MONTH, year_month)
 
