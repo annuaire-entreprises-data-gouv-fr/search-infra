@@ -22,7 +22,9 @@ default_args = {
 @dag(
     tags=["tva intracommunautaire"],
     default_args=default_args,
-    schedule="0 6 * * *",  # Daily at 6:00 AM
+    # Huwise reprocesses the dataset daily around 12:00-13:00 UTC
+    # The dataset on datagouv is updated around 06:00 UTC
+    schedule="30 7 * * *",
     start_date=datetime(2026, 1, 1, tzinfo=UTC),
     dagrun_timeout=timedelta(minutes=60),
     params={},

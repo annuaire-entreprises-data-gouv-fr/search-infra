@@ -9,6 +9,8 @@ from data_pipelines_annuaire.workflows.data_pipelines.tva.config import TVA_CONF
 
 
 class TvaProcessor(DataProcessor):
+    MIN_ROW_COUNT = 4_500_000
+
     def __init__(self):
         super().__init__(TVA_CONFIG)
 
@@ -16,6 +18,12 @@ class TvaProcessor(DataProcessor):
         df_tva = pd.read_csv(
             self.config.files_to_download["tva"]["destination"], dtype=str, sep=";"
         )
+        if len(df_tva) < self.MIN_ROW_COUNT:
+            raise ValueError(
+                f"Export TVA incomplet : {len(df_tva)} lignes reçues, "
+                f"{self.MIN_ROW_COUNT} attendues au minimum"
+            )
+
         df_tva["siren"] = df_tva["vat_no"].astype(str).str[-9:]
         df_tva["tva_no"] = "FR" + df_tva["vat_no"].astype(str)
 
