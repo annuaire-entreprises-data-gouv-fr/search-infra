@@ -109,8 +109,8 @@ requires-dist = [
 [package.metadata.requires-dev]
 airflow = [{ name = "apache-airflow", specifier = "==3.3.2" }]
 dev = [
-    { name = "mypy" },
-    { name = "ruff" },
+    { name = "mypy", specifier = ">=2.4" },
+    { name = "ruff", specifier = ">=0.16" },
     { name = "types-requests" },
 ]
 
