@@ -4,17 +4,7 @@
 
 Bienvenue sur le dépôt d’infra de [l’Annuaire des Entreprises](https://annuaire-entreprises.data.gouv.fr/).
 
-Ce dépôt héberge le code qui récupère et traite les données publiques françaises d'entreprises à partir desquelles est généré l'index Elastisearch alimentant [l'API Recherche des Entreprises](https://www.data.gouv.fr/dataservices/api-recherche-dentreprises/).
-
-## Objectif du dépôt
-
-L'objectif principal de ce dépôt est de fournir à l'API de Recherche des Entreprises un index Elasticsearch fiable et à jour :
-
-1. **Récupération des données** : Collecte des données publiques françaises d'entreprises à partir de diverses sources (Insee, INPI, Agence Bio, etc.).
-2. **Traitement des données** : Nettoyage, transformation et enrichissement des données pour les rendre exploitables.
-3. **Indexation des données** : Création d'un index Elasticsearch à partir des données traitées.
-4. **Génération de snapshots** : Création de snapshots de l'index Elasticsearch pour alimenter les différentes instances de l'API Recherche des Entreprises.
-
+Ce dépôt héberge le code qui récupère et traite les données publiques françaises d'entreprises à partir desquelles est généré l'index Elasticsearch alimentant [l'API Recherche des Entreprises](https://www.data.gouv.fr/dataservices/api-recherche-dentreprises/).
 
 ## Dépôts liés 🏗
 
@@ -30,36 +20,45 @@ ici 👉](https://annuaire-entreprises.data.gouv.fr/donnees/sources).
 
 | **Données** | **Administration responsable** | **Accès au jeu de données** |
 | ------- | -------------------------- | ----------------------- |
-| Données d'identifications des entreprises : dénomination, adresse, code NAF, forme juridique, effectif, etc. | `Insee` | [Fichier source](https://www.data.gouv.fr/datasets/5b7ffc618b4c4169d30727e0/) |
-| Informations sur les dirigeants | `INPI` | [FTP INPI](https://data.inpi.fr/content/editorial/Serveur_ftp_entreprises) |
+| Données d'identification des entreprises : dénomination, adresse, code NAF, forme juridique, effectif, etc. | `Insee` | [Fichier source](https://www.data.gouv.fr/datasets/5b7ffc618b4c4169d30727e0/) et API Sirene |
+| Informations sur les dirigeants | `INPI` | [FTP INPI](https://data.inpi.fr/content/editorial/Serveur_ftp_entreprises) et API RNE |
+| Annonces de radiations, procédures collectives et créations | `DILA` | [Annonces commerciales du BODACC](https://www.bodacc.fr/explore/dataset/annonces-commerciales/) |
 | Liste des professionnels engagés en BIO | `Agence Bio` | [API des professionnels du bio](https://www.data.gouv.fr/dataservices/api-professionnels-bio/) |
 | Liste des entreprises RGE | `ADEME` | [Fichier source](https://www.data.gouv.fr/datasets/liste-des-entreprises-rge-1/) |
-| Liste des entrepreneurs de spectacles vivants | `Ministère de la Culture` | [Fichier source](https://www.data.gouv.fr/datasets/66fde00a0d497789e7436d9f/) |
-| Liste des déclarations Egapro | `Ministère du travail` | [Fichier source](https://www.data.gouv.fr/datasets/61a73dcfe3171089843587bf) |
-| Liste des conventions collectives | `Ministère du travail` | Source [des données](https://www.data.gouv.fr/datasets/5e7201d522f2a43e9f736a9a/) et [des métadonnées](https://travail-emploi.gouv.fr/conventions-collectives-nomenclatures) |
-| Liste des organismes de formation | `Ministère du travail` | [Fichier source](https://www.data.gouv.fr/datasets/582c8978c751df788ec0bb7e/) |
+| Bilan des gaz à effet de serre des entreprises | `ADEME` | [Fichier source](https://www.data.gouv.fr/datasets/68c280f8be997b25ea05af20) |
+| Aides financières de l'ADEME | `ADEME` | [Fichier source](https://www.data.gouv.fr/datasets/640afdff7a07961cdc232d19) |
+| Liste des entrepreneurs de spectacles vivants | `Ministère de la Culture` | [Fichier source](https://www.data.gouv.fr/datasets/5fc9b4729dbf684fecb13bae/) |
+| Liste des déclarations Egapro | `Ministère du Travail` | [Fichier source](https://www.data.gouv.fr/datasets/61a73dcfe3171089843587bf) |
+| Liste des conventions collectives | `Ministère du Travail` | Source [des données](https://www.data.gouv.fr/datasets/5e7201d522f2a43e9f736a9a/) et [des métadonnées](https://travail-emploi.gouv.fr/conventions-collectives-nomenclatures) |
+| Liste des organismes de formation | `Ministère du Travail` | [Fichier source](https://www.data.gouv.fr/datasets/582c8978c751df788ec0bb7e/) |
+| Opérateurs de compétences (OPCO) des entreprises | `France compétences` | [Fichier source](https://www.data.gouv.fr/datasets/688a210c012cfbf595d7a99a) |
 | Liste des établissements du domaine sanitaire et social (FINESS) | `Ministère des Solidarités et de la Santé` | Fichiers sources des [Finess géographiques](https://www.data.gouv.fr/datasets/finess-extraction-du-fichier-des-etablissements/) et des [Finess juridiques](https://www.data.gouv.fr/datasets/finess-extraction-des-entites-juridiques/) |
-| Liste des organismes de formation | - `Ministère de l'Éducation Nationale et de la Jeunesse` <br />-`Ministère de l'Enseignement supérieur et de la Recherche`<br />-`Office national d'information sur les enseignements et les professions` | [Annuaire de l'éducation du MENJ](https://www.data.gouv.fr/datasets/5889d03fa3a72974cbf0d5b1/)<br />[Principaux établissements d'enseignement supérieur du MESR](https://www.data.gouv.fr/datasets/586dae5ea3a7290df6f4be88/)<br />[Idéo-Structures d'enseignement supérieur de l'ONISEP](https://www.data.gouv.fr/datasets/5fa5e386afdaa6152360f323/) |
+| Liste des établissements d'enseignement | - `Ministère de l'Éducation Nationale et de la Jeunesse` <br />- `Ministère de l'Enseignement supérieur et de la Recherche`<br />- `Office national d'information sur les enseignements et les professions` | [Annuaire de l'éducation du MENJ](https://www.data.gouv.fr/datasets/5889d03fa3a72974cbf0d5b1/)<br />[Principaux établissements d'enseignement supérieur du MESR](https://www.data.gouv.fr/datasets/586dae5ea3a7290df6f4be88/)<br />[Idéo-Structures d'enseignement supérieur de l'ONISEP](https://www.data.gouv.fr/datasets/5fa5e386afdaa6152360f323/) |
 | Liste des élus d'une collectivité territoriale | `Ministère de l'Intérieur et des Outre-Mer` | [Fichier source](https://www.data.gouv.fr/datasets/repertoire-national-des-elus-1/) |
+| Registre national des fonds et fondations | `Ministère de l'Intérieur et des Outre-Mer` | [Fichier source](https://www.data.gouv.fr/datasets/6a04750602ec619fc638a075) |
 | Liste des bilans financiers | `INPI`<br />`Équipe Signaux Faibles` | [Jeu de données INPI ratios financiers](https://www.data.gouv.fr/datasets/63cb2e29b22886911440440d/) |
 | Liste des collectivités territoriales | `Direction générale des collectivités locales` | [Comptes consolidés des régions](https://www.data.gouv.fr/datasets/5f68c4ec9920494bf28021e3)<br />[Comptes consolidés des départements](https://www.data.gouv.fr/datasets/5f68c4edc9ed7984245b654b)<br />[Liste des EPCI](https://www.collectivites-locales.gouv.fr/etudes-et-statistiques/acces-aux-statistiques-par-thematique/perimetre-des-intercommunalites/liste-et-composition-des-epci-fiscalite-propre)<br />[Liste des communes](https://www.data.gouv.fr/datasets/630f5173873064dd369479b4) |
 | Liste des entreprises de l'Économie Sociale et Solidaire (ESS) | `ESS France` | [Liste des entreprises de l'ESS](https://www.data.gouv.fr/datasets/646c8d45de96cc3428092c6b/) |
-| Liste des Structures d'Insertion par l'Activité Economique (SIAE) | `Le marché de l'inclusion` | [API Le marché de l'inclusion](https://lemarche.inclusion.beta.gouv.fr/) |
-| Bilan des gaz à effet de serre des entreprises | `ADEME` | [Source des données](https://www.data.gouv.fr/datasets/68c280f8be997b25ea05af20) |
-| Liste des labellisés relations fournisseurs et achats responsables  | `Ministère de l'Économie et des Finances` | [Source des données](https://www.data.gouv.fr/datasets/67abe64670ea0b9260c6a4a8) |
+| Liste des Structures d'Insertion par l'Activité Économique (SIAE) | `Le marché de l'inclusion` | [API Le marché de l'inclusion](https://lemarche.inclusion.beta.gouv.fr/) |
+| Liste des labellisés relations fournisseurs et achats responsables | `Ministères économiques et financiers` | [Fichier source](https://www.data.gouv.fr/datasets/67abe64670ea0b9260c6a4a8) |
+| Entreprises du patrimoine vivant (EPV) | `Ministères économiques et financiers` | [Fichier source](https://www.data.gouv.fr/datasets/66fde00a0d497789e7436d9f) |
+| Registre public des aides de minimis | `Ministères économiques et financiers` | [Fichier source](https://www.data.gouv.fr/datasets/6970b7d98239ebec02a4c6df) |
+| Numéros de TVA intracommunautaire | `Ministères économiques et financiers` | [Fichier source](https://www.data.gouv.fr/datasets/6a2b4e2393218f1e63d7389b) |
+| Résultats des contrôles sanitaires (Alim'confiance) | `Ministère de l'Agriculture et de la Souveraineté alimentaire` | [Fichier source](https://www.data.gouv.fr/datasets/5593aab9c751df35d8a453ba) |
+| Annuaire des avocats | `Conseil national des barreaux` | [Fichier source](https://www.data.gouv.fr/datasets/6357de8624b187e5486cbef3) |
 
 
 ## Description des Workflows
 
-Le processus de traitement des données est divisé en plusieurs parties :
+Chaque workflow est composé d'un ou plusieurs DAGs Airflow :
 
-1. **Prétraitement** : Ce workflow est responsable de la récupération des données à partir de diverses sources (DataGouv, API, sites web) et de leur stockage dans le service de stockage d'objet.
+1. **Prétraitement** : un DAG par source récupère les données (data.gouv, API, sites web), les nettoie et les dépose sur le service de stockage d'objet.
+2. **ETL** (`extract_transform_load_db`) : déclenché par le DAG du flux Sirene, il construit une base SQLite enrichie à partir des données prétraitées puis la téléverse sur le service de stockage d'objet.
+3. **Indexation** (`index_elasticsearch`) : déclenché par l'ETL, il crée l'index Elasticsearch à partir de la base SQLite et lance les tests de bout en bout de l'API.
+4. **Snapshot** (`snapshot_index`) : déclenché par l'indexation, il crée un snapshot de l'index qui alimente les différentes instances de l'API Recherche des Entreprises.
+5. **Export et publication** : des DAG d'extractions des données de la base SQLite publient chaque jour des fichiers sur data.gouv et le service de stockage d'objet.
 
-2. **ETL** : Ce workflow prend en charge la création d'une base de données SQLite à partir des données stockées dans le service de stockage d'objet. Il inclut des étapes d'enrichissement des données.
 
-3. **Indexation** : Ce workflow est responsable de la création de l'index Elasticsearch à partir des données traitées précédemment.
-
-4. **Snapshot** : Ce workflow est déclenché par le workflow Indexation et est responsable de la création de snapshots de l'index Elasticsearch. Ces snapshots sont ensuite utilisés pour alimenter les différentes instances de l'API Recherche des Entreprises.
 
 
 ## Flow des données
@@ -123,70 +122,47 @@ flowchart TD
 
 ## Tester localement
 
-1. Remplir les variables dans .env
-```bash
-cat .env.template > .env
-nano .env
-```
-> [!IMPORTANT]
-> Les variables commencant par `AIRFLOW_VAR_` sont obligatoires au bon fonctionnement des DAGs.
-
-2. Lancer Airflow et ses dépendances
-
-```bash
-docker-compose up --build -d
-```
-
-3. Gérer les traitements depuis http://localhost:8080/ (si le port n'a pas été modifié).
-
-4. Tester l'indexation :
-```bash
-# Les identifiants peuvent être modifiés dans le .env
-export ELASTIC_USER=elastic
-export ELASTIC_PASSWORD=elastic
-# Lister les indices:
-curl -u http://localhost:9200/_cat/indices?v
-# Vérifier l'état du status:
-curl -u http://localhost:9200/_cluster/health?pretty
-# Supprimer un index:
-curl -u -X DELETE http://localhost:9200/your-index-name
-# Voir le mapping d'un index:
-curl -u http://localhost:9200/your-index-name/_mapping?pretty
-# Lister les aliases:
-curl -u http://localhost:9200/_cat/aliases?v
-# Chercher tous les documents d'un index:
-curl -u http://localhost:9200/your-index-name/_search?pretty
-```
-
-> [!NOTE]
-> Vous pouvez aussi lancer une instance de l'API de Recherche en local pour faciliter les tests depuis [ce dépôt de code](https://github.com/annuaire-entreprises-data-gouv-fr/search-api).
-
-## Dépendances Python
-
-Les dépendances sont gérées avec [uv](https://docs.astral.sh/uv/) afin d'utiliser strictement le même environnement en local, dans la CI et dans l'image Docker.
-En local celui ci est utilisé par `pre-commit` et le LSP de l'IDE
-
-```bash
-# Créer l'environnement local (Airflow, ruff et mypy compris)
-uv python install 3.14 --default
-uv sync
-uv run pytest tests/unit_tests
-uv tool install --python 3.14 pre-commit
-pre-commit install
-```
-
-> [!IMPORTANT]
-> Renommer le dépôt lors du clone, les imports du code en dépendent (`from data_pipelines_annuaire.helpers import ...`).
+1. Cloner le dépôt en le renommant `data_pipelines_annuaire` : les imports du code en dépendent (`from data_pipelines_annuaire.helpers import ...`).
 ```bash
 git clone git@github.com:annuaire-entreprises-data-gouv-fr/search-infra.git data_pipelines_annuaire
 ```
 
-- **Ajouter ou mettre à jour une dépendance**
-Modifier `pyproject.toml` (ou utiliser `uv add`), puis lancer `uv lock` et commiter `uv.lock`. La CI et le build de l'image échouent si `uv.lock` ne correspond plus à `pyproject.toml`.
-- **Monter la version d'Airflow**
-Airflow est fourni par l'image de base et est déclaré dans le groupe `airflow` de `pyproject.toml`. Modifier en même temps `AIRFLOW_VERSION` dans `airflow.Dockerfile` et la version du groupe `airflow`, puis lancer `uv lock`. Le build de l'image échoue si les deux versions diffèrent.
-- **Monter la version de Python**
-Modifier en même temps `PYTHON_VERSION` dans `airflow.Dockerfile` et la version de Python dans `pyproject.toml`. Puis lancer `uv lock`. Le build de l'image échoue si les deux versions diffèrent.
+2. Remplir les variables dans `.env`
+```bash
+cp .env.template .env
+nano .env
+```
+> [!IMPORTANT]
+> Les variables commençant par `AIRFLOW_VAR_` sont obligatoires au bon fonctionnement des DAGs.
+
+3. Lancer Airflow et ses dépendances
+
+```bash
+docker compose up --build -d
+```
+
+4. Gérer les traitements depuis http://localhost:8080/ (si le port n'a pas été modifié).
+
+5. Tester l'indexation :
+```bash
+# Identifiants et port : AIRFLOW_VAR_ELASTIC_USER, AIRFLOW_VAR_ELASTIC_PASSWORD et AIRFLOW_VAR_ELASTIC_PORT du .env
+ES=http://elastic:elastic@localhost:9200
+# Lister les indices :
+curl "$ES/_cat/indices?v"
+# Vérifier l'état du cluster :
+curl "$ES/_cluster/health?pretty"
+# Supprimer un index :
+curl -X DELETE "$ES/your-index-name"
+# Voir le mapping d'un index :
+curl "$ES/your-index-name/_mapping?pretty"
+# Lister les alias :
+curl "$ES/_cat/aliases?v"
+# Chercher tous les documents d'un index :
+curl "$ES/your-index-name/_search?pretty"
+```
+
+> [!NOTE]
+> Vous pouvez aussi lancer une instance de l'API de Recherche en local pour faciliter les tests depuis [ce dépôt de code](https://github.com/annuaire-entreprises-data-gouv-fr/search-api).
 
 ### Object Storage local
 
@@ -215,6 +191,27 @@ aws s3 ls --endpoint-url http://127.0.0.1:8333 s3://ade/ --recursive
 ```
 
 Les données sont conservées dans `${LOCAL_TMP_PATH}/s3`.
+
+## Dépendances Python
+
+Les dépendances sont gérées avec [uv](https://docs.astral.sh/uv/) afin d'utiliser strictement le même environnement en local, dans la CI et dans l'image Docker.
+En local, cet environnement est utilisé par `pre-commit` et le LSP de l'IDE.
+
+```bash
+# Créer l'environnement local (Airflow, ruff et mypy compris)
+uv python install 3.14 --default
+uv sync
+uv run pytest tests/unit_tests
+uv tool install --python 3.14 pre-commit
+pre-commit install
+```
+
+- **Ajouter ou mettre à jour une dépendance**
+Modifier `pyproject.toml` (ou utiliser `uv add`), puis lancer `uv lock` et commiter `uv.lock`. La CI et le build de l'image échouent si `uv.lock` ne correspond plus à `pyproject.toml`.
+- **Monter la version d'Airflow**
+Airflow est fourni par l'image de base et est déclaré dans le groupe `airflow` de `pyproject.toml`. Modifier en même temps `AIRFLOW_VERSION` dans `airflow.Dockerfile` et la version du groupe `airflow`, puis lancer `uv lock`. Le build de l'image échoue si les deux versions diffèrent.
+- **Monter la version de Python**
+Modifier en même temps `AIRFLOW_PYTHON_VERSION` dans `airflow.Dockerfile` et la version de Python dans `pyproject.toml`. Puis lancer `uv lock`. Le build de l'image échoue si les deux versions diffèrent.
 
 ## Contact
 
