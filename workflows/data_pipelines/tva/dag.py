@@ -24,7 +24,7 @@ default_args = {
     default_args=default_args,
     # Huwise reprocesses the dataset daily around 12:00-13:00 UTC
     # The dataset on datagouv is updated around 06:00 UTC
-    schedule="30 7 * * *",
+    schedule="30 6 * * *",
     start_date=datetime(2026, 1, 1, tzinfo=UTC),
     dagrun_timeout=timedelta(minutes=60),
     params={},
