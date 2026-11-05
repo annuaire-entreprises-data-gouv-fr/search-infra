@@ -1,6 +1,8 @@
 [project]
 name = "annuaire-search-infra"
 version = "1.0.0"
+description = "Pipelines Airflow qui collectent, traitent et indexent les données d'entreprises de l'Annuaire des Entreprises"
+license = "MIT"
 requires-python = ">=3.14,<3.15"
 readme = "README.md"
 
@@ -20,10 +22,10 @@ dependencies = [
 [dependency-groups]
 # Fourni par l'image Docker, à garder aligné sur AIRFLOW_VERSION dans airflow.Dockerfile
 airflow = ["apache-airflow==3.3.2"]
-# Used by the CI and by the pre-commit hooks through `uv run`
+# Utilisé par la CI et par les hooks pre-commit via `uv run`
 dev = [
-    "ruff",
-    "mypy",
+    "ruff>=0.16",
+    "mypy>=2.4",
     "types-requests",
 ]
 
@@ -31,6 +33,8 @@ dev = [
 Repository = "https://github.com/annuaire-entreprises-data-gouv-fr/search-infra"
 
 [tool.uv]
+# Le code est importé depuis le dossier du dépôt, il n'est pas installé comme package
+package = false
 default-groups = ["airflow", "dev"]
 
 [tool.ruff]
@@ -43,6 +47,9 @@ extend-select = ["I"]
 [tool.ruff.lint.isort]
 known-first-party = ["data_pipelines_annuaire"]
 
+# ty sert pour le moment uniquement aux IDE
+# la CI et pre-commit vérifient les types avec mypy
+# possibilité de tout migrer sur ty dans le futur
 [tool.ty.environment]
 root = [".."]
 
