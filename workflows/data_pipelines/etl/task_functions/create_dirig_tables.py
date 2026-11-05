@@ -11,7 +11,7 @@ from data_pipelines_annuaire.helpers.object_storage import ObjectStorageClient
 from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 from data_pipelines_annuaire.workflows.data_pipelines.etl.data_fetch_clean.dirigeants import (
     preprocess_dirigeant_pm,
-    preprocess_personne_physique,
+    preprocess_dirigeant_pp,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.etl.sqlite.helpers import (
     create_index,
@@ -54,7 +54,7 @@ def create_dirig_pp_table():
         query = sqlite_client_dirig.execute(
             get_chunk_dirig_pp_from_db_query(chunk_size, i)
         )
-        dir_pp_clean = preprocess_personne_physique(query)
+        dir_pp_clean = preprocess_dirigeant_pp(query)
         dir_pp_clean.to_sql(
             "dirigeant_pp",
             sqlite_client_siren.db_conn,
