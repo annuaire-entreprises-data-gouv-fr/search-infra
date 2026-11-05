@@ -109,7 +109,7 @@ OBJECT_STORAGE_DATA_SOURCE_UPDATE_DATES_FILE = "data_source_updates.json"
 TCHAP_ENDPOINT = Variable.get("TCHAP_ENDPOINT", "")
 TCHAP_OPI_DATA_TOKEN = Variable.get("TCHAP_OPI_DATA_TOKEN", "")
 TCHAP_BOT_DEPLOIEMENT_ROOM_ID = Variable.get("TCHAP_BOT_DEPLOIEMENT_ROOM_ID", "")
-EMAIL_LIST = Variable.get("EMAIl_LIST", "")
+EMAIL_LIST = Variable.get("EMAIL_LIST", "")
 
 # Object Storage
 OBJECT_STORAGE_URL = Variable.get("OBJECT_STORAGE_URL", "")
