@@ -5,7 +5,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from data_pipelines_annuaire.helpers.utils import fetch_hyperlink_from_page
+from data_pipelines_annuaire.helpers.utils import (
+    fetch_file_urls_from_page,
+    fetch_hyperlink_from_page,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -136,3 +139,26 @@ def test_fetch_hyperlink_not_found(mock_page_response):
             "not_in_the_page",
             match_on="href",
         )
+
+
+FILES_PAGE_HTML = """
+<a href="/system/files/2026-06/Liste_ESS_Nord.xlsx">Nord</a>
+<a href="https://cdn.example.org/files/liste-ess-sud.XLSX">Sud</a>
+<a href="/system/files/2026-06/Liste_ESS_Nord.xlsx">Nord (bis)</a>
+<a href="/system/files/2026-06/notice.pdf">Notice</a>
+"""
+
+
+def test_fetch_file_urls_from_page():
+    with patch("data_pipelines_annuaire.helpers.utils.requests.get") as mock_get:
+        mock_get.return_value = MagicMock(text=FILES_PAGE_HTML)
+        result = fetch_file_urls_from_page("https://example.com/fr/page", ".xlsx")
+    assert result == [
+        "https://cdn.example.org/files/liste-ess-sud.XLSX",
+        "https://example.com/system/files/2026-06/Liste_ESS_Nord.xlsx",
+    ]
+
+
+def test_fetch_file_urls_from_page_not_found(mock_page_response):
+    with pytest.raises(ValueError):
+        fetch_file_urls_from_page("https://example.com/some-page", ".csv")

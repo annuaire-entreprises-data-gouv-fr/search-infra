@@ -11,8 +11,6 @@ from data_pipelines_annuaire.workflows.data_pipelines.ess_france.processor impor
     EssFranceProcessor,
 )
 
-ess_france_processor = EssFranceProcessor()
-
 default_args = {
     "depends_on_past": False,
     "retries": 1,
@@ -31,6 +29,8 @@ default_args = {
     on_success_callback=Notification(),
 )
 def data_processing_ess_france():
+    ess_france_processor = EssFranceProcessor()
+
     @task.bash
     def clean_previous_outputs():
         return f"rm -rf {ESS_CONFIG.tmp_folder} && mkdir -p {ESS_CONFIG.tmp_folder}"
