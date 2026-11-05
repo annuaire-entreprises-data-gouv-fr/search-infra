@@ -135,14 +135,6 @@ def add_years(d: date, years: int) -> date:
         return d.replace(year=d.year + years, day=28)
 
 
-def drop_exact_duplicates(list_dict):
-    # frozenset is used to assign a value to key in dictionary as a set. The repeated
-    # entries of dictionary are hence ignored
-    return list(
-        {frozenset(dictionary.items()): dictionary for dictionary in list_dict}.values()
-    )
-
-
 def compare_versions_file(
     original_file: str,
     new_file: str,
