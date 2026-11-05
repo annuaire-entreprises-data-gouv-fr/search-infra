@@ -9,7 +9,7 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Literal
 from unicodedata import normalize
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import pandas as pd
 import requests
@@ -636,6 +636,30 @@ def fetch_hyperlink_from_page(
     logger.info(f"Likely found the hyperlink: {hyperlink}")
 
     return hyperlink
+
+
+def fetch_file_urls_from_page(url: str, extension: str) -> list[str]:
+    """
+    Fetches the URLs of all the files with the given extension linked from a web page.
+
+    Args:
+        url (str): The URL of the web page to search.
+        extension (str): The file extension to look for in the links' href, e.g. ".xlsx".
+    Returns:
+        list[str]: The sorted and deduplicated absolute URLs of the files.
+    Raises:
+        ValueError: If no link to a file with this extension is found in the page.
+        requests.exceptions.RequestException: If there is an issue with the provided URL.
+    """
+    response = requests.get(url, timeout=60)
+    response.raise_for_status()
+
+    pattern = r'href="([^"]+' + re.escape(extension) + r')"'
+    hrefs = re.findall(pattern, response.text, flags=re.IGNORECASE)
+    if not hrefs:
+        raise ValueError(f"No {extension} file found on {url}")
+
+    return sorted({urljoin(url, href) for href in hrefs})
 
 
 def is_url_valid(url: str) -> bool:
