@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from data_pipelines_annuaire.helpers.utils import (
+    fetch_file_urls_from_page,
     fetch_hyperlink_from_page,
     sanitize_free_text_for_tabular_format,
 )
@@ -187,3 +188,26 @@ def test_sanitize_free_text_idempotent(value):
     once, _ = sanitize_free_text_for_tabular_format(value, max_length=5)
 
     assert sanitize_free_text_for_tabular_format(once, max_length=5) == (once, False)
+
+
+FILES_PAGE_HTML = """
+<a href="/system/files/2026-06/Liste_ESS_Nord.xlsx">Nord</a>
+<a href="https://cdn.example.org/files/liste-ess-sud.XLSX">Sud</a>
+<a href="/system/files/2026-06/Liste_ESS_Nord.xlsx">Nord (bis)</a>
+<a href="/system/files/2026-06/notice.pdf">Notice</a>
+"""
+
+
+def test_fetch_file_urls_from_page():
+    with patch("data_pipelines_annuaire.helpers.utils.requests.get") as mock_get:
+        mock_get.return_value = MagicMock(text=FILES_PAGE_HTML)
+        result = fetch_file_urls_from_page("https://example.com/fr/page", ".xlsx")
+    assert result == [
+        "https://cdn.example.org/files/liste-ess-sud.XLSX",
+        "https://example.com/system/files/2026-06/Liste_ESS_Nord.xlsx",
+    ]
+
+
+def test_fetch_file_urls_from_page_not_found(mock_page_response):
+    with pytest.raises(ValueError):
+        fetch_file_urls_from_page("https://example.com/some-page", ".csv")
