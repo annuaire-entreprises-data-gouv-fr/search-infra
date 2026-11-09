@@ -23,7 +23,7 @@ Seules les données suivantes sont intégrées :
 2. Pré-traitement : filtre les annulations/rectificatifs
 3. Applatissage des JSON : extrait les SIREN et données métiers (date de radiation, nature du jugement, etc.)
 4. Classifie les annonces de procédures collectives avec `rule.yml` pour les procédures collectives
-5. Masque les transferts de sièges
+5. Masque les transferts de sièges et les radiations suivies d'une activité au même greffe
 ```
 
 ## 1. Téléchargement
@@ -112,3 +112,16 @@ Une radiation publiée par le nouveau greffe plutôt que celui d'origine échapp
 Cas très rares plus compliqués à isoler. Malheureusement les annonces au BODACC ne sont pas toujours
 cohérentes.
 Exemple : 401226774.
+
+## 6. Activité au même greffe après radiation
+
+Certaines radiations restent publiées alors que l'entreprise continue d'exister : transfert de siège vers un greffe ensuite fusionné avec celui d'origine, annonce de transfert publiée avant la radiation, radiation erronée.
+
+La radiation est masquée lorsque les deux conditions sont réunies :
+
+- le **même greffe** a publié une annonce (dépôt des comptes, modification, etc.)
+  **plus d'un an** après la radiation
+- l'unité légale est **active dans SIRENE**
+
+Le délai d'un an écarte les dépôts de comptes et les clôtures de liquidation publiés peu après la radiation. La condition sur SIRENE écarte les entreprises réellement cessées qui déposent leurs comptes avec beaucoup de retard.
+Cela concerne ~3k radiations. Exemple : 409596244, radiée par Saintes en 2008 après une immatriculation à Marennes (tribunal rattaché à Saintes en 2009), et qui dépose depuis ses comptes à Saintes.
