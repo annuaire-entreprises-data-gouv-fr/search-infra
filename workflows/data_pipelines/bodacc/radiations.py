@@ -80,6 +80,40 @@ def _is_transfert_siege_hors_ressort(radiationaurcs_str: str) -> bool:
     return data.get("commentaire", "") == "Transfert du siège hors ressort"
 
 
+def _is_rapport_radiation_doffice(radiationaurcs_str: str) -> bool:
+    """
+    Vérifie si le champ radiationaurcs indique un rapport de radiation d'office.
+    Un rapport de radiation d'office correspond à l'annulation d'une radiation.
+    Le commentaire est parfois suivi d'une précision entre parenthèses.
+    """
+    data = parse_json_safe(radiationaurcs_str)
+    if not data:
+        return False
+    return fix_mojibake(data.get("commentaire", "")).startswith(
+        "Rapport de radiation d'office"
+    )
+
+
+def _remove_rapported_radiations(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Certaines radiations ne sont pas annulées via un avis d'annulation mais par un avis
+    dont le commentaire est un rapport de radiation d'office, le plus souvent une annonce
+    classique et plus rarement un rectificatif. Celui-ci ne précise pas toujours la
+    radiation annulée, on ignore donc le rapport et toutes les radiations du même Siren
+    publiées jusqu'à sa date de publication. Une radiation postérieure au rapport reste valable.
+    """
+    last_rapport = df[df["est_rapport"]].groupby("siren")["date_publication"].max()
+    if last_rapport.empty:
+        return df
+    rapport_date = df["siren"].map(last_rapport)
+    is_rapported = rapport_date.notna() & (df["date_publication"] <= rapport_date)
+    logger.info(
+        f"Rapports de radiation d'office : {len(last_rapport)} Siren, "
+        f"{is_rapported.sum()} annonces retirées"
+    )
+    return df[~is_rapported]
+
+
 def _process_radiation_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
     """Traiter un chunk de données radiations."""
     # Un avis de radiation ne concerne à chaque fois qu'une seule "personne"
@@ -103,6 +137,7 @@ def _process_radiation_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
     # Parser le JSON radiationaurcs pour extraire la date
     chunk["date"] = chunk["radiationaurcs"].apply(_parse_radiation_json)
     chunk["motif"] = chunk["radiationaurcs"].apply(_parse_radiation_motif)
+    chunk["est_rapport"] = chunk["radiationaurcs"].apply(_is_rapport_radiation_doffice)
 
     # Marquer comme radié (présent dans le fichier = radié)
     chunk["est_radie"] = 1
@@ -110,7 +145,7 @@ def _process_radiation_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
     # Garder uniquement les colonnes nécessaires
     chunk["date_publication"] = chunk["dateparution"]
     chunk["id_annonce"] = chunk["id"]
-    return chunk[_OUTPUT_COLUMNS]
+    return chunk[[*_OUTPUT_COLUMNS, "est_rapport"]]
 
 
 def process_radiations(raw_file_path: str, chunk_size: int) -> pd.DataFrame:
@@ -155,6 +190,8 @@ def process_radiations(raw_file_path: str, chunk_size: int) -> pd.DataFrame:
     df["date_publication"] = pd.to_datetime(
         df["date_publication"], errors="coerce", format="%Y-%m-%d"
     )
+
+    df = _remove_rapported_radiations(df)
 
     # Dédupliquer par Siren en gardant la radiation la plus récente
     df = df.sort_values(

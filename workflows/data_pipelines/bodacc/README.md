@@ -42,11 +42,12 @@ ou si `annonces_couples.csv` est absent de l'object storage. Il y a un risque de
 
 ## 2. Pré-traitement
 
-Le pipeline gère trois types de corrections d'annonces :
+Le pipeline gère quatre types de corrections d'annonces :
 
 - **Annulations** (`typeavis = "annulation"`) : l'annonce précédente (référencée par `parutionavisprecedent`) est exclue, ainsi que l'avis d'annulation lui-même
-- **Rectificatifs** (`typeavis = "rectificatif"`) : l'annonce précédente est exclue, mais le rectificatif est conservé car il contient la valeur à jour. Sauf pour les rectificatifs de type "rapport de radiation d'office" qui sont aussi exclus (équivalent à une annulation)
+- **Rectificatifs** (`typeavis = "rectificatif"`) : l'annonce précédente est exclue, mais le rectificatif est conservé car il contient la valeur à jour
 - **Rétractations sur tierce opposition** (procédures collectives uniquement) : l'annonce précédente est exclue ainsi que l'avis de rétractation
+- **Rapports de radiation d'office** (radiations uniquement) : le rapport annule la radiation d'office, mais il est presque toujours publié comme une annonce de radiation simple (`typeavis = "annonce"`), sans `parutionavisprecedent`, et plus rarement comme un rectificatif. Le rapport et toutes les radiations du même Siren publiées jusqu'à sa date de publication sont exclus ; une radiation publiée après le rapport reste valable.
 
 **Correction d'encodage** : réparation des chaînes UTF-8 mal décodées en Latin-1 (mojibake, ex : `clÃ´ture` → `clôture`).
 

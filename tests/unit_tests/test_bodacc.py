@@ -25,9 +25,11 @@ from data_pipelines_annuaire.workflows.data_pipelines.bodacc.procedures_collecti
     _parse_jugement_json,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.radiations import (
+    _is_rapport_radiation_doffice,
     _is_transfert_siege_hors_ressort,
     _parse_radiation_json,
     _parse_radiation_motif,
+    process_radiations,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.bodacc.utils import (
     _extract_sirens_from_personne,
@@ -280,7 +282,7 @@ def test_get_ids_to_discard_annulation():
     assert get_processed_ids_to_discard(df) == {"A20242000"}
 
 
-def test_get_ids_to_discard_radiation_doffice():
+def test_get_ids_to_discard_keeps_rectificatif_rapport_radiation_doffice():
     radiation_doffice = json.dumps({"commentaire": "Rapport de radiation d'office"})
     df = pd.DataFrame(
         {
@@ -290,7 +292,7 @@ def test_get_ids_to_discard_radiation_doffice():
             "radiationaurcs": ["", radiation_doffice],
         }
     )
-    assert get_processed_ids_to_discard(df) == {"A20243000"}
+    assert get_processed_ids_to_discard(df) == set()
 
 
 def test_get_ids_to_discard_keeps_normal_rectificatif():
@@ -346,7 +348,7 @@ def test_filter_discarded_keeps_unrelated_annonce():
     assert set(result["id"].tolist()) == {"A20245000", "A20243000"}
 
 
-def test_filter_discarded_removes_rectificatif_radiation_doffice():
+def test_filter_discarded_keeps_rectificatif_rapport_radiation_doffice():
     radiation_doffice = json.dumps({"commentaire": "Rapport de radiation d'office"})
     df = pd.DataFrame(
         {
@@ -357,7 +359,7 @@ def test_filter_discarded_removes_rectificatif_radiation_doffice():
         }
     )
     result = process_discarded_announcements(df)
-    assert result["id"].tolist() == []
+    assert result["id"].tolist() == ["A20243000"]
 
 
 def test_filter_discarded_keeps_normal_rectificatif_with_radiationaurcs():
@@ -742,6 +744,163 @@ def test_process_creations_filters_annulation(tmp_path):
     # A11 est annulée par A20, et l'avis d'annulation A20 est lui-même exclu.
     # Seule la création A30 subsiste.
     assert df["id_annonce"].tolist() == ["A30"]
+
+
+# _is_rapport_radiation_doffice()
+
+
+@pytest.mark.parametrize(
+    "radiationaurcs, expected",
+    [
+        ('{"commentaire": "Rapport de radiation d\'office"}', True),
+        (
+            json.dumps(
+                {
+                    "dateCessationActivitePP": "2023-03-15",
+                    "commentaire": "Rapport de radiation d'office (la date de cessation "
+                    "d'activité au 01/03/2023 n'a pas lieu d'être)",
+                }
+            ),
+            True,
+        ),
+        ('{"commentaire": "Radiation d\'office"}', False),
+        ('{"radiationPM": "O"}', False),
+        ("", False),
+        (None, False),
+    ],
+)
+def test_is_rapport_radiation_doffice(radiationaurcs, expected):
+    assert _is_rapport_radiation_doffice(radiationaurcs) is expected
+
+
+# process_radiations()
+
+
+def _radiation_row(
+    id_annonce: str,
+    siren: str,
+    dateparution: str,
+    commentaire: str,
+    typeavis: str = "annonce",
+    parutionavisprecedent: str = "",
+):
+    return {
+        "id": id_annonce,
+        "listepersonnes": json.dumps(
+            {
+                "personne": {
+                    "numeroImmatriculation": {
+                        "numeroIdentification": siren,
+                        "nomGreffeImmat": "Bobigny",
+                    }
+                }
+            }
+        ),
+        "dateparution": dateparution,
+        "typeavis": typeavis,
+        "radiationaurcs": json.dumps({"commentaire": commentaire}),
+        "parutionavisprecedent": parutionavisprecedent,
+    }
+
+
+def test_process_radiations_removes_rapported_radiation(tmp_path):
+    raw = tmp_path / "radiations-raw.csv"
+    pd.DataFrame(
+        [
+            # Radiation d'office rapportée un mois plus tard
+            _radiation_row("B1", "878 314 210", "2023-01-19", "Radiation d'office"),
+            _radiation_row(
+                "B2", "878 314 210", "2023-02-19", "Rapport de radiation d'office"
+            ),
+            # Radiation d'office rapportée puis nouvelle radiation : la dernière reste
+            _radiation_row("B3", "111 111 111", "2023-01-10", "Radiation d'office"),
+            _radiation_row(
+                "B4", "111 111 111", "2023-02-10", "Rapport de radiation d'office"
+            ),
+            _radiation_row("B5", "111 111 111", "2024-05-10", "Radiation d'office"),
+            # Radiation d'office sans rapport
+            _radiation_row("B6", "222 222 222", "2023-01-10", "Radiation d'office"),
+        ]
+    ).to_csv(raw, sep=";", index=False)
+
+    df = process_radiations(str(raw), chunk_size=2)
+
+    assert dict(zip(df["siren"], df["id_annonce"])) == {
+        "111111111": "B5",
+        "222222222": "B6",
+    }
+    assert "est_rapport" not in df.columns
+
+
+def test_process_radiations_removes_radiations_before_rectificatif_rapport(tmp_path):
+    raw = tmp_path / "radiations-raw.csv"
+    # build_bodacc_id => f"{lettre}{numeroParution}{numeroAnnonce}"
+    pd.DataFrame(
+        [
+            # Rapport rectifié par un second rapport : la radiation antérieure est
+            # retirée avec les deux rapports (cas 501407746)
+            _radiation_row("B201301214976", "501 407 746", "2013-06-26", "Radiation"),
+            _radiation_row(
+                "B202300443269",
+                "501 407 746",
+                "2023-03-03",
+                "Rapport de radiation d'office",
+            ),
+            _radiation_row(
+                "B202300542492",
+                "501 407 746",
+                "2023-03-17",
+                "Rapport de radiation d'office (la date de cessation d'activité "
+                "au 01/03/2023 n'a pas lieue d'être).",
+                typeavis="rectificatif",
+                parutionavisprecedent=json.dumps(
+                    {
+                        "nomPublication": "BODACC B",
+                        "numeroParution": "20230044",
+                        "numeroAnnonce": "3269",
+                    }
+                ),
+            ),
+            # Radiation annulée puis rapport en rectificatif de l'annulation
+            # (cas 833381940)
+            _radiation_row(
+                "B202401401652", "833 381 940", "2024-07-21", "Radiation d'office"
+            ),
+            _radiation_row(
+                "B202500071822",
+                "833 381 940",
+                "2025-01-10",
+                "",
+                typeavis="annulation",
+                parutionavisprecedent=json.dumps(
+                    {
+                        "nomPublication": "BODACC B",
+                        "numeroParution": "20240140",
+                        "numeroAnnonce": "1652",
+                    }
+                ),
+            ),
+            _radiation_row(
+                "B202500112343",
+                "833 381 940",
+                "2025-01-16",
+                "Rapport de radiation d'office",
+                typeavis="rectificatif",
+                parutionavisprecedent=json.dumps(
+                    {
+                        "nomPublication": "BODACC B",
+                        "numeroParution": "20250007",
+                        "numeroAnnonce": "1822",
+                    }
+                ),
+            ),
+            _radiation_row("B6", "222 222 222", "2023-01-10", "Radiation d'office"),
+        ]
+    ).to_csv(raw, sep=";", index=False)
+
+    df = process_radiations(str(raw), chunk_size=100)
+
+    assert df["siren"].tolist() == ["222222222"]
 
 
 # RADIATIONS_CONFIG.post_processing_queries
