@@ -201,6 +201,29 @@ RADIATIONS_CONFIG = DataSourceConfig(
                 AND a.date_publication > bodacc_radiations.date_publication
             )
             """,
+        # Une annonce du même greffe (dépôt des comptes, modification…) publiée plus
+        # d'un an après la radiation indique une entreprise toujours immatriculée.
+        # Le délai d'un an et la condition sur l'état SIRENE écartent les clôtures de
+        # liquidation et les dépôts de comptes tardifs des entreprises réellement cessées.
+        f"""
+            UPDATE bodacc_radiations
+            SET {_hide_radiation("annonce_meme_greffe_apres_radiation")}
+            WHERE bodacc_radiations.est_radie
+            AND bodacc_radiations.greffe IS NOT NULL
+            AND EXISTS (
+                SELECT 1
+                FROM unite_legale AS ul
+                WHERE ul.siren = bodacc_radiations.siren
+                AND ul.etat_administratif_unite_legale = 'A'
+            )
+            AND EXISTS (
+                SELECT 1
+                FROM bodacc_annonces_couples AS a
+                WHERE a.siren = bodacc_radiations.siren
+                AND a.greffe = bodacc_radiations.greffe
+                AND a.date_publication > DATE(bodacc_radiations.date_publication, '+1 year')
+            )
+            """,
     ],
 )
 

@@ -1085,6 +1085,44 @@ def test_radiation_reelle_when_other_greffe_is_anterior(radiations_db):
     assert _run_post_processing(radiations_db)["444444444"][0] == 1
 
 
+def _insert_unite_legale(conn, siren, etat):
+    conn.execute(
+        "INSERT INTO unite_legale VALUES (?, '5710', ?)",
+        (siren, etat),
+    )
+
+
+def test_annonce_meme_greffe_hides_radiation_of_active_unite_legale(radiations_db):
+    # Radiée par Saintes en 2008, dépose ses comptes au même greffe jusqu'en 2026
+    _insert_radiation(radiations_db, "409596244", "saintes", "2008-12-24")
+    _insert_annonce(radiations_db, "409596244", "saintes", "2026-09-22")
+    _insert_unite_legale(radiations_db, "409596244", "A")
+
+    visibility, reason = _run_post_processing(radiations_db)["409596244"]
+
+    assert visibility == 0
+    assert reason == "annonce_meme_greffe_apres_radiation"
+
+
+def test_annonce_meme_greffe_keeps_radiation_of_ceased_unite_legale(radiations_db):
+    # Dépôt de comptes tardif d'une entreprise cessée
+    _insert_radiation(radiations_db, "666666666", "metz", "2020-06-01")
+    _insert_annonce(radiations_db, "666666666", "metz", "2023-02-01")
+    _insert_unite_legale(radiations_db, "666666666", "C")
+
+    assert _run_post_processing(radiations_db)["666666666"][0] == 1
+
+
+def test_annonce_meme_greffe_keeps_radiation_when_annonce_within_a_year(
+    radiations_db,
+):
+    _insert_radiation(radiations_db, "777777777", "metz", "2020-06-01")
+    _insert_annonce(radiations_db, "777777777", "metz", "2021-05-31")
+    _insert_unite_legale(radiations_db, "777777777", "A")
+
+    assert _run_post_processing(radiations_db)["777777777"][0] == 1
+
+
 def test_transfert_de_siege_ignores_radiation_without_greffe(radiations_db):
     _insert_radiation(radiations_db, "555555555", None, "2020-06-01")
     _insert_annonce(radiations_db, "555555555", "bayonne", "2021-01-01")
