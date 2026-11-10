@@ -103,17 +103,6 @@ def _is_jugement_retractation(famille: str) -> bool:
     return any(kw in famille_lower for kw in FAMILLES_ANNULATION)
 
 
-def _is_radiationaurcs_radiation_doffice(radiationaurcs_str: str) -> bool:
-    """
-    Vérifie si le champ radiationaurcs indique un rapport de radiation d'office.
-    Un rapport de radiation d'office correspond à l'annulation d'une radiation.
-    """
-    data = parse_json_safe(radiationaurcs_str)
-    if not data:
-        return False
-    return data.get("commentaire", "") == "Rapport de radiation d'office"
-
-
 def build_bodacc_id(
     code_publication: str, numero_parution: str | int, numero_annonce: str | int
 ) -> str | None:
@@ -178,7 +167,6 @@ def get_processed_ids_to_discard(df: pd.DataFrame) -> set:
     """
     Extrait les IDs des :
        - avis d'annulation,
-       - rectificatifs avec rapport de radiation d'office,
        - jugements de rétractations.
     """
     ids_to_discard = set()
@@ -186,14 +174,6 @@ def get_processed_ids_to_discard(df: pd.DataFrame) -> set:
     # Avis d'annulations
     annulations = df[df["typeavis"] == "annulation"]
     ids_to_discard.update(annulations["id"].dropna())
-
-    # Rectificatifs de type "radiation d'office" (équivalent annulation)
-    if "radiationaurcs" in df.columns:
-        is_rectificatif = df["typeavis"] == "rectificatif"
-        is_rad_doffice = df["radiationaurcs"].apply(
-            _is_radiationaurcs_radiation_doffice
-        )
-        ids_to_discard.update(df.loc[is_rectificatif & is_rad_doffice, "id"].dropna())
 
     # Rétractations sur tierce opposition
     # Le filtre sur jugement permet d'identifier les procédures collectives des radiations
