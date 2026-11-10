@@ -29,5 +29,5 @@ RUN uv export --project /opt/airflow --locked --only-group airflow --no-hashes \
 # Installs uv.lock into the image's environment without the "airflow" group already provided by the base image.
 # --inexact keeps the packages absent from uv.lock, otherwise uv sync would uninstall them.
 # --python fails the build if the image's Python is different than requires-python
-RUN uv sync --project /opt/airflow --python "$VIRTUAL_ENV/bin/python" --locked --active --inexact --no-default-groups --no-install-project --no-cache \
+RUN uv sync --project /opt/airflow --python "$VIRTUAL_ENV/bin/python" --locked --active --inexact --no-default-groups --no-cache \
     && uv pip check
