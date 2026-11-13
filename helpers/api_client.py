@@ -2,11 +2,8 @@ import functools
 import logging
 import time
 from collections.abc import Callable
-from io import BytesIO
-from pathlib import Path
 from typing import Any, ParamSpec, TypeVar
 
-import pandas as pd
 from airflow.sdk import Variable
 from requests import RequestException, Response, Session
 
@@ -115,6 +112,29 @@ class ApiClient:
         """
         url = f"{self.base_url}{endpoint}"
         return self.session.get(url, params=params, timeout=API_TIMEOUT)
+
+    @retry_request()
+    def post(
+        self,
+        endpoint: str,
+        params: dict[str, Any] | None = None,
+        json: Any | None = None,
+    ) -> Response:
+        """
+        Make a POST request to the specified endpoint.
+
+        Args:
+            endpoint (str): The API endpoint to request.
+            params (dict[str, Any] | None): Optional query parameters.
+            json (Any | None): Optional JSON body.
+
+        Returns:
+            requests.Response: The response from the API.
+
+        This method is decorated with retry_request for automatic retries.
+        """
+        url = f"{self.base_url}{endpoint}"
+        return self.session.post(url, json=json, timeout=API_TIMEOUT)
 
     def fetch_all(
         self,
@@ -225,36 +245,3 @@ class AirflowApiClient(ApiClient):
         except Exception as e:
             logger.error("Failed to fetch Airflow API token: %s", e)
             raise RuntimeError("Failed to authenticate with Airflow API") from e
-
-
-class GristApiClient(ApiClient):
-    """Specialized API client for Grist REST API with token auth."""
-
-    BASE_URL = "https://grist.numerique.gouv.fr"
-
-    def __init__(self, api_token: str) -> None:
-        super().__init__(
-            base_url=self.BASE_URL,
-            headers={"Authorization": f"Bearer {api_token}"},
-        )
-
-    def download_table(
-        self,
-        document_id: str,
-        table_id: str,
-        output_path: str | Path,
-    ) -> None:
-        """Download a table from Grist and save it to a CSV file."""
-        response = self.get(
-            endpoint=f"/api/docs/{document_id}/download/csv",
-            params={"tableId": table_id, "header": "colId"},
-        )
-
-        df = pd.read_csv(
-            BytesIO(response.content),
-            dtype=str,
-            keep_default_na=False,
-        )
-        df.columns = df.columns.str.lower()
-
-        df.to_csv(output_path, index=False)
