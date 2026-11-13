@@ -3,6 +3,7 @@ import logging
 import time
 from collections.abc import Callable
 from typing import Any, ParamSpec, TypeVar
+from urllib.parse import urlsplit
 
 from airflow.sdk import Variable
 from requests import RequestException, Response, Session
@@ -43,29 +44,37 @@ def retry_request(
             while retries <= max_retries:
                 try:
                     response = func(*args, **kwargs)
-                    match response.status_code:
-                        case code if code < 400:
-                            logger.info(f"Status code : {code}")
-                            return response
-                        case 429 | 502 | 503 | 504:
-                            sleep_time = retry_delay(retries, base_delay=backoff_factor)
-                            logger.warning(
-                                f"Retryable error: {response.status_code}. "
-                                f"Sleeping for {sleep_time} seconds..."
-                            )
-                            time.sleep(sleep_time)
-                        case 500:
-                            logger.error(
-                                "Internal Server Error (500). "
-                                "Terminating retry attempts."
-                            )
-                            break
-                        case _:
-                            response.raise_for_status()
                 except RequestException as e:
                     logger.error(f"Request failed: {e}")
                     if retries == max_retries:
                         raise
+                    retries += 1
+                    continue
+                # Query parameters left out: they can hold personal data or keys.
+                request = f"{response.request.method} {urlsplit(response.url).path}"
+                match response.status_code:
+                    case code if code < 400:
+                        logger.info(f"{request}: {code}")
+                        return response
+                    case 429 | 502 | 503 | 504:
+                        sleep_time = retry_delay(retries, base_delay=backoff_factor)
+                        logger.warning(
+                            f"{request}: retryable error {response.status_code}. "
+                            f"Sleeping for {sleep_time} seconds..."
+                        )
+                        time.sleep(sleep_time)
+                    case 500:
+                        logger.error(
+                            f"{request}: Internal Server Error (500). "
+                            "Terminating retry attempts."
+                        )
+                        break
+                    case _:
+                        logger.error(
+                            f"{request}: non-retryable error {response.status_code}: "
+                            f"{response.text[:1000]}"
+                        )
+                        response.raise_for_status()
                 retries += 1
             raise Exception("Max retries exceeded or non-retryable error")
 
