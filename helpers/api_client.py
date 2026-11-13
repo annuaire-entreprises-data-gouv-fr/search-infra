@@ -3,9 +3,10 @@ import logging
 import time
 from collections.abc import Callable
 from typing import Any, ParamSpec, TypeVar
+from urllib.parse import urlsplit
 
 from airflow.sdk import Variable
-from requests import RequestException, Response, Session
+from requests import HTTPError, RequestException, Response, Session
 
 from data_pipelines_annuaire.helpers.retry import retry_delay
 
@@ -20,54 +21,58 @@ API_TIMEOUT = (10, 120)
 
 
 def retry_request(
-    max_retries: int = 10, backoff_factor: float = 0.3
+    max_retries: int = 3, backoff_factor: float = 0.3
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
-    A decorator that retries a request function on certain HTTP status codes.
+    A decorator that retries a request function on certain errors.
+    The decorator will retry the request on status codes 429, 500, 502, 503, and 504.
+    It will use exponential backoff between retries and log the retry attempts.
 
     Args:
         max_retries (int): Maximum number of retries before giving up. Default is 3.
-        backoff_factor (float): Factor to apply between attempts. Default is 0.3.
-
-    Returns:
-        Callable: A decorator function.
-
-    The decorator will retry the request on status codes 429, 502, 503, and 504.
-    It will use exponential backoff between retries and log the retry attempts.
+        backoff_factor (float): Delay before the first retry, in seconds. Default is 0.3.
     """
 
     def decorator(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             retries = 0
-            while retries <= max_retries:
+            while True:
                 try:
                     response = func(*args, **kwargs)
-                    match response.status_code:
-                        case code if code < 400:
-                            logger.info(f"Status code : {code}")
-                            return response
-                        case 429 | 502 | 503 | 504:
-                            sleep_time = retry_delay(retries, base_delay=backoff_factor)
-                            logger.warning(
-                                f"Retryable error: {response.status_code}. "
-                                f"Sleeping for {sleep_time} seconds..."
-                            )
-                            time.sleep(sleep_time)
-                        case 500:
-                            logger.error(
-                                "Internal Server Error (500). "
-                                "Terminating retry attempts."
-                            )
-                            break
-                        case _:
-                            response.raise_for_status()
                 except RequestException as e:
-                    logger.error(f"Request failed: {e}")
                     if retries == max_retries:
                         raise
+                    sleep_time = retry_delay(retries, base_delay=backoff_factor)
+                    logger.warning(
+                        f"Request failed: {e}. Sleeping for {sleep_time} seconds..."
+                    )
+                    time.sleep(sleep_time)
+                    retries += 1
+                    continue
+                # Query parameters left out: they can hold personal data or keys.
+                request = f"{response.request.method} {urlsplit(response.url).path}"
+                match response.status_code:
+                    case code if code < 400:
+                        logger.info(f"{request}: {code}")
+                        return response
+                    case 429 | 500 | 502 | 503 | 504 if retries < max_retries:
+                        sleep_time = retry_delay(retries, base_delay=backoff_factor)
+                        logger.warning(
+                            f"{request}: retryable error {response.status_code}. "
+                            f"Sleeping for {sleep_time} seconds..."
+                        )
+                        time.sleep(sleep_time)
+                    case _:
+                        logger.error(
+                            f"{request}: error {response.status_code} "
+                            f"after {retries} retries: {response.text[:1000]}"
+                        )
+                        raise HTTPError(
+                            f"{request}: {response.status_code} {response.reason}",
+                            response=response,
+                        )
                 retries += 1
-            raise Exception("Max retries exceeded or non-retryable error")
 
         return wrapper
 
