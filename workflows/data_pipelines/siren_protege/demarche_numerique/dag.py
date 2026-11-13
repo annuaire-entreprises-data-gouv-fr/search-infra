@@ -1,5 +1,6 @@
 from datetime import UTC, datetime, timedelta
 
+from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.sdk import dag, task
 
 from data_pipelines_annuaire.config import EMAIL_LIST
@@ -7,6 +8,9 @@ from data_pipelines_annuaire.helpers import EmailNotification, Notification
 from data_pipelines_annuaire.helpers.utils import check_if_prod
 from data_pipelines_annuaire.workflows.data_pipelines.siren_protege.demarche_numerique.processor import (
     DemarcheNumeriqueProcessor,
+)
+from data_pipelines_annuaire.workflows.data_pipelines.siren_protege.object_storage.config import (
+    SIREN_PROTEGE_DAG_NAME,
 )
 
 default_args = {
@@ -36,7 +40,23 @@ def data_processing_siren_protege_demarche_numerique():
     def notify_dossiers_with_issues(result):
         return DemarcheNumeriqueProcessor().notify_dossiers_with_issues(result)
 
-    notify_dossiers_with_issues(process_accepted_dossiers())
+    # Run the data_processing_siren_protege DAG even in case of failure to update the file
+    # on the object storage with any processed dossier
+    trigger_data_processing_siren_protege_dag = TriggerDagRunOperator(
+        task_id="trigger_siren_protege_dag",
+        trigger_dag_id=SIREN_PROTEGE_DAG_NAME,
+        logical_date=None,
+        wait_for_completion=False,
+        deferrable=False,
+        trigger_rule="all_done",
+    )
+
+    result = process_accepted_dossiers()
+    (
+        result
+        >> trigger_data_processing_siren_protege_dag
+        >> notify_dossiers_with_issues(result)
+    )
 
 
 data_processing_siren_protege_demarche_numerique()

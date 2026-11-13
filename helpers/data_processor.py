@@ -276,6 +276,7 @@ class DataProcessor(ABC):
                     content_type=None,
                 ),
             ],
+            is_public=self.config.is_public,
         )
 
     def compare_files_object_storage(self):
@@ -311,5 +312,6 @@ class DataProcessor(ABC):
                         content_type=None,
                     ),
                 ],
+                is_public=self.config.is_public,
             )
         return not is_same
