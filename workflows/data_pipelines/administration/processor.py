@@ -1,9 +1,8 @@
 import logging
 
 import pandas as pd
-from airflow.sdk import Variable
 
-from data_pipelines_annuaire.helpers import DataProcessor, GristApiClient
+from data_pipelines_annuaire.helpers import DataProcessor, GristTable
 from data_pipelines_annuaire.helpers.object_storage import File
 from data_pipelines_annuaire.workflows.data_pipelines.administration.config import (
     ADMINISTRATION_BLACKLIST_CONFIG,
@@ -65,34 +64,13 @@ class AdministrationProcessor(DataProcessor):
             raise ValueError(f"Unknown table_id passed to validate_table: {table_id!r}")
 
     def preprocess_data(self) -> None:
-        client = GristApiClient(
-            api_token=Variable.get("GRIST_API_TOKEN"),
-        )
-
         for table_id, filename in self.TABLES.items():
             logger.info("Downloading Grist table %s...", table_id)
 
             output_path = f"{self.config.tmp_folder}/{filename}.csv"
-
-            client.download_table(
-                document_id=self.DOCUMENT_ID,
-                table_id=table_id,
-                output_path=output_path,
-            )
-
-            # keep_default_na=False matches GristApiClient.download_table,
-            # so blank cells stay as empty strings on this re-read too.
-            df = pd.read_csv(
-                output_path,
-                dtype=str,
-                keep_default_na=False,
-            )
-
-            # Validate the downloaded data.
-            self.validate_table(
-                df=df,
-                table_id=table_id,
-            )
+            df = GristTable(self.DOCUMENT_ID, table_id).read()
+            self.validate_table(df=df, table_id=table_id)
+            df.to_csv(output_path, index=False)
 
             logger.info(
                 "Saved %s: %d rows -> %s",
