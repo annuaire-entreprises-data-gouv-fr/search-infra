@@ -8,7 +8,7 @@ from ast import literal_eval
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Literal
-from unicodedata import normalize
+from unicodedata import category, normalize
 from urllib.parse import urlparse
 
 import pandas as pd
@@ -713,3 +713,50 @@ def keep_only_numbers(input_string: str | None) -> str | None:
     if input_string is None:
         return None
     return re.sub(r"[^\d]", "", input_string)
+
+
+def sanitize_free_text_for_tabular_format(
+    value: str | None, max_length: int = 10000
+) -> tuple[str, bool]:
+    """Clean a text written by a user in a form, to store it in Grist or
+    publish it as a CSV.
+
+    The text keeps its original layout (spaces, line breaks, tabs) but:
+    1. hidden characters are removed, so what a reader sees is exactly what is
+       stored
+    2. double quotes are removed so we can quote the fields in the CSV
+    3. a text that would by identified as a formula in a spreadsheet is turned
+       into plain text by adding a simple quote in front
+    4. the length is truncated above a max length
+
+    Returns the cleaned text and whether it was truncated or not.
+
+    Warning : the text must still be passed as a query parameter or a field value
+    and escaped when displayed.
+    """
+    # Uniformise the text so any unicode character is always stored the same way
+    # Makes search, comparison, and so on, easier
+    text = normalize("NFC", value or "")
+
+    # Tabs and line breaks are the only control characters ("Cc") we keep
+    kept_control_characters = ("\t", "\n", "\r")
+
+    hidden_categories = (
+        "Cc",  # Control: ASCII/C1 control characters (NUL, ESC, DEL)
+        "Cf",  # Format: invisible formatting (bidi overrides, zero-width)
+        "Co",  # Private use: no standard meaning, rendered unpredictably
+        "Cs",  # Surrogate: lone UTF-16 halves, invalid in UTF-8
+        "Cn",  # Unassigned: code points with no character defined
+    )
+    text = "".join(
+        char
+        for char in text
+        if char in kept_control_characters or category(char) not in hidden_categories
+    )
+
+    text = text.replace('"', "")
+
+    if text.lstrip()[:1] in ("=", "+", "-", "@"):
+        text = f"'{text}"
+
+    return text[:max_length], len(text) > max_length

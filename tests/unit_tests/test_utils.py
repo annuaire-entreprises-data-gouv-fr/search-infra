@@ -5,7 +5,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from data_pipelines_annuaire.helpers.utils import fetch_hyperlink_from_page
+from data_pipelines_annuaire.helpers.utils import (
+    fetch_hyperlink_from_page,
+    sanitize_free_text_for_tabular_format,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -136,3 +139,51 @@ def test_fetch_hyperlink_not_found(mock_page_response):
             "not_in_the_page",
             match_on="href",
         )
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        (None, ""),
+        (
+            "  Harcèlement\r\n\tsuite à\u00a0un  article ",
+            "  Harcèlement\r\n\tsuite à\u00a0un  article ",
+        ),
+        ("abc\u202edef\u200b\x00\x1bghi", "abcdefghi"),
+        ('Il a dit "stop"', "Il a dit stop"),
+        ("=1+1", "'=1+1"),
+        ("+33 6", "'+33 6"),
+        ("-2", "'-2"),
+        ("@SUM(A1)", "'@SUM(A1)"),
+        ("\t=1+1", "'\t=1+1"),
+        (" \n=1+1", "' \n=1+1"),
+        ("'=1+1", "'=1+1"),
+        ("<script>alert(1)</script>", "<script>alert(1)</script>"),
+        ("e\u0301", "é"),
+    ],
+)
+def test_sanitize_free_text(value, expected):
+    assert sanitize_free_text_for_tabular_format(value) == (expected, False)
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        ("a" * 5, ("aaaaa", False)),
+        ("a" * 6, ("aaaaa", True)),
+        ("=" * 5, ("'====", True)),
+        ("=abc ", ("'=abc", True)),
+    ],
+)
+def test_sanitize_free_text_length(value, expected):
+    assert sanitize_free_text_for_tabular_format(value, max_length=5) == expected
+
+
+@pytest.mark.parametrize(
+    "value",
+    ['  =a "b"\r\n c ', "=" * 10, "=abc  def", "\t-\u202e1"],
+)
+def test_sanitize_free_text_idempotent(value):
+    once, _ = sanitize_free_text_for_tabular_format(value, max_length=5)
+
+    assert sanitize_free_text_for_tabular_format(once, max_length=5) == (once, False)
