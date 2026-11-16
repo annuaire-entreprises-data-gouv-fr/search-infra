@@ -201,7 +201,7 @@ def test_notify_dossiers_with_issues_expected_only_succeeds(monkeypatch):
 
     processor.notify_dossiers_with_issues(
         {
-            "to_review": [{"number": 12, "reason": "entreprise individuelle"}],
+            "to_review": [{"number": 12, "reason": "SIREN introuvable"}],
             "invalid": [],
             "failed": [],
             "truncated_texts": [34],
@@ -210,7 +210,7 @@ def test_notify_dossiers_with_issues_expected_only_succeeds(monkeypatch):
 
     message = send_message.call_args.args[0]
     assert "dag_id" in message
-    assert "dossier 12</a> : entreprise individuelle" in message
+    assert "dossier 12</a> : SIREN introuvable" in message
     assert f"texte tronqué à {MOTIF_MAX_LENGTH} caractères" in message
     assert "dossier 34</a>" in message
     ti.xcom_push.assert_not_called()
@@ -363,7 +363,7 @@ def processor_integrating(monkeypatch, dossiers, integrated=()):
     processor.grist_table.read.return_value = pd.DataFrame(
         {"numero_dossier": list(integrated)}, dtype=str
     )
-    monkeypatch.setattr(processor, "get_nature_juridique", lambda siren: "5710")
+    monkeypatch.setattr(processor, "siren_exists", lambda siren: True)
     return processor, ti
 
 
@@ -431,16 +431,16 @@ def test_process_accepted_dossiers_failed_archiving(monkeypatch):
 
 def test_process_accepted_dossiers_splits_invalid_and_to_review(monkeypatch):
     unreadable = numbered_dossier(1, {"Date de naissance": None})
-    ei = numbered_dossier(2)
-    processor, _ = processor_integrating(monkeypatch, [unreadable, ei])
-    monkeypatch.setattr(processor, "get_nature_juridique", lambda siren: "1000")
+    unknown = numbered_dossier(2)
+    processor, _ = processor_integrating(monkeypatch, [unreadable, unknown])
+    monkeypatch.setattr(processor, "siren_exists", lambda siren: False)
 
     result = processor.process_accepted_dossiers()
 
     assert result["invalid"] == [
         {"number": 1, "reason": "champ 'Date de naissance' absent ou vide"}
     ]
-    assert result["to_review"] == [{"number": 2, "reason": "entreprise individuelle"}]
+    assert result["to_review"] == [{"number": 2, "reason": "SIREN introuvable"}]
     processor.grist_table.append.assert_not_called()
 
 

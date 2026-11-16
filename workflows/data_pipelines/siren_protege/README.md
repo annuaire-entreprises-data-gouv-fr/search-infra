@@ -62,7 +62,6 @@ Les demandes mises de côté sont réparties en deux catégories :
 
 | Situation | Catégorie | Cause | Action attendue |
 | --- | --- | --- | --- |
-| Entreprise individuelle | Cas attendu | La diffusion des données d'un entrepreneur individuel relève de la diffusion partielle de l'INSEE et non de ce formulaire | Rediriger le demandeur vers l'INSEE, puis archiver la demande |
 | Siren introuvable | Cas attendu | Le SIREN ne correspond à aucune entreprise connue de l'Annuaire | Vérifier s'il s'agit d'un Siren doublon sinon voir avec le demandeur |
 | Motif tronqué | Cas attendu | Le motif dépasse la limite de caractères. La demande est bien ajoutée et archivée, avec un motif coupé dans Grist. Elle n'est signalée qu'une fois | Aucune. Le texte complet reste dans le dossier Démarche Numérique |
 | Champ absent, vide ou invalide | Erreur | Champ obligatoire du formulaire manquant, renommé ou dans un format inattendu (Siren mal formé, date non reconnue, motif vide) | Vérifier le formulaire et le dossier, adapter le code si le formulaire a changé |

@@ -109,15 +109,13 @@ class DemarcheNumeriqueProcessor:
         record["legacy"] = False
         return record, None
 
-    def get_nature_juridique(self, siren: str) -> str | None:
+    def siren_exists(self, siren: str) -> bool:
         results = (
             self.recherche_client.get("/search", params={"q": siren, "minimal": "true"})
             .json()
             .get("results", [])
         )
-        return next(
-            (r["nature_juridique"] for r in results if r["siren"] == siren), None
-        )
+        return any(r["siren"] == siren for r in results)
 
     def get_integrated_dossier_numbers(self) -> set[str]:
         df = self.grist_table.read()
@@ -136,7 +134,7 @@ class DemarcheNumeriqueProcessor:
 
         Returns, without personal data, in XCom:
         - to_review: the dossiers left for a manual review for an expected
-          reason (EI, unknown SIREN)
+          reason (unknown SIREN)
         - invalid: the dossiers whose champs could not be read, with the reason
         - failed: the dossiers where the copy or archiving failed
         - truncated_texts: the dossiers added with a truncated text
@@ -150,13 +148,8 @@ class DemarcheNumeriqueProcessor:
             issues = invalid
             if record is not None:
                 issues = to_review
-                nature_juridique = self.get_nature_juridique(record["siren"])
-                if nature_juridique is None:
+                if not self.siren_exists(record["siren"]):
                     reason = "SIREN introuvable"
-                elif nature_juridique == "1000":
-                    # An EI should have been redirected to the INSEE diffusion
-                    # partielle form
-                    reason = "entreprise individuelle"
             if reason is not None:
                 logger.warning(
                     f"Dossier {dossier.number}: left for a manual review ({reason})"
@@ -234,7 +227,7 @@ class DemarcheNumeriqueProcessor:
         """
         Report on Tchap the dossiers process_accepted_dossiers could not process.
 
-        Expected cases (EI, unknown SIREN, truncated motif) are handled by hand
+        Expected cases (unknown SIREN, truncated motif) are handled by hand
         in Démarche Numérique: they are sent to Tchap and the task succeeds.
         Unreadable dossiers (form changed, missing champ) and copy or archiving
         errors make the task fail, the failure callback sending the whole report.
