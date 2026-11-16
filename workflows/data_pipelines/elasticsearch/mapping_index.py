@@ -93,6 +93,22 @@ annuaire_analyzer = analyzer(
     char_filter=[remove_elision_char, remove_special_char],
 )
 
+# Same as annuaire_analyzer but without stemming: used to boost exact word
+# matches on proper names (e.g. "PARISSE" must not equal "PARIS")
+# It’s the same chain without the stemmer, and without synonyms
+# (they’re only useful for addresses I think)
+annuaire_exact_analyzer = analyzer(
+    "annuaire_exact_analyzer",
+    tokenizer=tokenizer("icu_tokenizer"),
+    filter=[
+        "lowercase",
+        french_stop,
+        "icu_folding",
+        "asciifolding",
+    ],
+    char_filter=[remove_elision_char, remove_special_char],
+)
+
 
 class DirigeantPPMapping(InnerDoc):
     # Indexing the field 'nom' as both a keyword (exactly how it is given to the index)
@@ -177,7 +193,13 @@ class EtablissementMapping(InnerDoc):
     longitude = Text()
     nom_commercial = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     a_opco = Boolean()
-    nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
+    nom_complet = Text(
+        analyzer=annuaire_analyzer,
+        fields={
+            "keyword": Keyword(),
+            "exact": Text(analyzer=annuaire_exact_analyzer),
+        },
+    )
     numero_voie = Text()
     dernier_numero_voie = Text()
     region = Keyword()
@@ -380,7 +402,10 @@ class UniteLegaleMapping(InnerDoc):
     from_rne = Boolean()
     identifiant_association_unite_legale = Keyword()
     immatriculation = Nested(ImmatriculationMapping)
-    liste_dirigeants = Text(analyzer=annuaire_analyzer)
+    liste_dirigeants = Text(
+        analyzer=annuaire_analyzer,
+        fields={"exact": Text(analyzer=annuaire_exact_analyzer)},
+    )
     liste_elus = Text(analyzer=annuaire_analyzer)
     liste_idcc_unite_legale = Text()
     liste_finess_juridique = Text()
@@ -411,7 +436,13 @@ class UniteLegaleMapping(InnerDoc):
 class StructureMapping(Document):
     identifiant = Keyword()
     type_structure = Keyword()
-    nom_complet = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
+    nom_complet = Text(
+        analyzer=annuaire_analyzer,
+        fields={
+            "keyword": Keyword(),
+            "exact": Text(analyzer=annuaire_exact_analyzer),
+        },
+    )
     adresse = Text(analyzer=annuaire_analyzer)
     unite_legale = Object(UniteLegaleMapping)
     fondation = Object(FondationMapping)
