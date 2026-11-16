@@ -138,7 +138,7 @@ class Dossier:
         >     dossier.archive()
     """
 
-    def __init__(self, demarche: Demarche, node: dict[str, Any]) -> None:
+    def __init__(self, demarche: DemarcheNumerique, node: dict[str, Any]) -> None:
         self.demarche = demarche
         self.id: str = node["id"]
         self.number: int = node["number"]
@@ -196,7 +196,7 @@ class Dossier:
         self.archived = True
 
 
-class Demarche:
+class DemarcheNumerique:
     """
     A form of Démarche Numérique.
 

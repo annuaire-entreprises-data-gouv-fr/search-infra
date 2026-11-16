@@ -4,7 +4,7 @@ from data_pipelines_annuaire.helpers.api_client import (
 )
 from data_pipelines_annuaire.helpers.data_processor import DataProcessor
 from data_pipelines_annuaire.helpers.data_quality import clean_sirent_column
-from data_pipelines_annuaire.helpers.demarche_numerique import Demarche
+from data_pipelines_annuaire.helpers.demarche_numerique import DemarcheNumerique
 from data_pipelines_annuaire.helpers.filesystem import LocalFile
 from data_pipelines_annuaire.helpers.grist import GristTable
 from data_pipelines_annuaire.helpers.notification import (
@@ -22,7 +22,7 @@ __all__ = [
     "AirflowApiClient",
     "ApiClient",
     "DataProcessor",
-    "Demarche",
+    "DemarcheNumerique",
     "EmailNotification",
     "GristTable",
     "LocalFile",

@@ -7,7 +7,7 @@ from airflow.sdk import Variable, get_current_context
 
 from data_pipelines_annuaire.helpers import (
     ApiClient,
-    Demarche,
+    DemarcheNumerique,
     GristTable,
     Notification,
     tchap,
@@ -37,7 +37,7 @@ class DemarcheNumeriqueProcessor:
     }
 
     def __init__(self) -> None:
-        self.demarche = Demarche(
+        self.demarche = DemarcheNumerique(
             int(Variable.get("SIREN_PROTEGE_DEMARCHE_NUMBER")),
             Variable.get("DEMARCHE_NUMERIQUE_INSTRUCTEUR_ID"),
         )

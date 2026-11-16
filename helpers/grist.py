@@ -22,7 +22,6 @@ class GristTable:
     Example:
         > table = GristTable("<document_id>", "Ma_Table")
         > df = table.read()
-        > ...
         > table.append([{"user": "1"}])
     """
 

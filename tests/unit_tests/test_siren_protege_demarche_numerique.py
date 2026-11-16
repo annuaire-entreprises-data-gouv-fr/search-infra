@@ -5,7 +5,7 @@ import pytest
 
 from data_pipelines_annuaire.helpers.demarche_numerique import (
     Champ,
-    Demarche,
+    DemarcheNumerique,
     Dossier,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.siren_protege.config import (
@@ -58,7 +58,7 @@ def dossier(
     }
     champs.update(overrides)
     return Dossier(
-        Demarche(1, "instructeur"),
+        DemarcheNumerique(1, "instructeur"),
         {
             "id": "RG9zc2llci0x",
             "number": 1,
@@ -168,7 +168,7 @@ def processor_with_context(monkeypatch):
         lambda: context,
     )
     processor = DemarcheNumeriqueProcessor.__new__(DemarcheNumeriqueProcessor)
-    processor.demarche = Demarche(1, "instructeur")
+    processor.demarche = DemarcheNumerique(1, "instructeur")
     return processor, context["ti"]
 
 
@@ -302,7 +302,7 @@ def test_accepted_dossiers_paginates(monkeypatch):
         ]
     )
     calls = []
-    demarche = Demarche(1, "instructeur")
+    demarche = DemarcheNumerique(1, "instructeur")
 
     def query(query, variables):
         calls.append(variables["after"])
