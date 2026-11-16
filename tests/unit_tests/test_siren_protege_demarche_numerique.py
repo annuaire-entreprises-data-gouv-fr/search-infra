@@ -161,7 +161,7 @@ def test_parse_dossier_invalid(champs, demandeur, reason):
 
 
 def processor_with_context(monkeypatch):
-    context = {"ti": MagicMock()}
+    context = {"ti": MagicMock(), "dag": MagicMock(dag_id="dag_id")}
     monkeypatch.setattr(
         "data_pipelines_annuaire.workflows.data_pipelines.siren_protege."
         "demarche_numerique.processor.get_current_context",
@@ -175,20 +175,73 @@ def processor_with_context(monkeypatch):
 def test_notify_dossiers_with_issues_nothing(monkeypatch):
     processor, ti = processor_with_context(monkeypatch)
 
+    send_message = mock_send_message(monkeypatch)
+
     processor.notify_dossiers_with_issues(
-        {"to_review": [], "failed": [], "truncated_texts": []}
+        {"to_review": [], "invalid": [], "failed": [], "truncated_texts": []}
     )
 
     ti.xcom_push.assert_not_called()
+    send_message.assert_not_called()
 
 
-def test_notify_dossiers_with_issues_reports_both(monkeypatch):
+def mock_send_message(monkeypatch):
+    send_message = MagicMock()
+    monkeypatch.setattr(
+        "data_pipelines_annuaire.workflows.data_pipelines.siren_protege."
+        "demarche_numerique.processor.tchap.send_message",
+        send_message,
+    )
+    return send_message
+
+
+def test_notify_dossiers_with_issues_expected_only_succeeds(monkeypatch):
     processor, ti = processor_with_context(monkeypatch)
+    send_message = mock_send_message(monkeypatch)
+
+    processor.notify_dossiers_with_issues(
+        {
+            "to_review": [{"number": 12, "reason": "entreprise individuelle"}],
+            "invalid": [],
+            "failed": [],
+            "truncated_texts": [34],
+        }
+    )
+
+    message = send_message.call_args.args[0]
+    assert "dag_id" in message
+    assert "dossier 12</a> : entreprise individuelle" in message
+    assert f"texte tronqué à {MOTIF_MAX_LENGTH} caractères" in message
+    assert "dossier 34</a>" in message
+    ti.xcom_push.assert_not_called()
+
+
+def test_notify_dossiers_with_issues_tchap_failure_fails(monkeypatch):
+    processor, _ = processor_with_context(monkeypatch)
+    mock_send_message(monkeypatch).side_effect = Exception("Failed to send message")
+
+    with pytest.raises(Exception, match="Failed to send message"):
+        processor.notify_dossiers_with_issues(
+            {
+                "to_review": [{"number": 12, "reason": "SIREN introuvable"}],
+                "invalid": [],
+                "failed": [],
+                "truncated_texts": [],
+            }
+        )
+
+
+def test_notify_dossiers_with_issues_errors_fail_with_whole_report(monkeypatch):
+    processor, ti = processor_with_context(monkeypatch)
+    send_message = mock_send_message(monkeypatch)
 
     with pytest.raises(ValueError) as error:
         processor.notify_dossiers_with_issues(
             {
                 "to_review": [{"number": 12, "reason": "SIREN introuvable"}],
+                "invalid": [
+                    {"number": 78, "reason": "champ 'Date de naissance' absent ou vide"}
+                ],
                 "failed": [{"number": 56, "reason": "archivage"}],
                 "truncated_texts": [34],
             }
@@ -196,10 +249,12 @@ def test_notify_dossiers_with_issues_reports_both(monkeypatch):
 
     message = str(error.value)
     assert "dossier 12</a> : SIREN introuvable" in message
+    assert "dossier 78</a> : champ 'Date de naissance' absent ou vide" in message
     assert f"texte tronqué à {MOTIF_MAX_LENGTH} caractères" in message
     assert "dossier 34</a>" in message
     assert "dossier 56</a> : archivage" in message
     ti.xcom_push.assert_called_once()
+    send_message.assert_not_called()
 
 
 def test_dossier_from_api():
@@ -328,7 +383,12 @@ def test_process_accepted_dossiers_one_at_a_time(monkeypatch):
     assert appended_numbers(processor) == ["1", "2"]
     first.archive.assert_called_once()
     second.archive.assert_called_once()
-    assert result == {"to_review": [], "failed": [], "truncated_texts": []}
+    assert result == {
+        "to_review": [],
+        "invalid": [],
+        "failed": [],
+        "truncated_texts": [],
+    }
     ti.xcom_push.assert_called_once()
 
 
@@ -367,3 +427,18 @@ def test_process_accepted_dossiers_failed_archiving(monkeypatch):
     assert appended_numbers(processor) == ["1"]
     assert result["failed"] == [{"number": 1, "reason": "archivage"}]
     assert result["truncated_texts"] == [1]
+
+
+def test_process_accepted_dossiers_splits_invalid_and_to_review(monkeypatch):
+    unreadable = numbered_dossier(1, {"Date de naissance": None})
+    ei = numbered_dossier(2)
+    processor, _ = processor_integrating(monkeypatch, [unreadable, ei])
+    monkeypatch.setattr(processor, "get_nature_juridique", lambda siren: "1000")
+
+    result = processor.process_accepted_dossiers()
+
+    assert result["invalid"] == [
+        {"number": 1, "reason": "champ 'Date de naissance' absent ou vide"}
+    ]
+    assert result["to_review"] == [{"number": 2, "reason": "entreprise individuelle"}]
+    processor.grist_table.append.assert_not_called()

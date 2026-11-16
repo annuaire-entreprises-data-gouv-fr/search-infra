@@ -10,6 +10,7 @@ from data_pipelines_annuaire.helpers import (
     Demarche,
     GristTable,
     Notification,
+    tchap,
 )
 from data_pipelines_annuaire.helpers.demarche_numerique import Champ, Dossier
 from data_pipelines_annuaire.helpers.utils import sanitize_free_text_for_tabular_format
@@ -118,16 +119,21 @@ class DemarcheNumeriqueProcessor:
         never archived unless it has been copied to Grist.
 
         Returns, without personal data, in XCom:
-        - to_review: the dossiers left for a manual review, with the reason
+        - to_review: the dossiers left for a manual review for an expected
+          reason (EI, unknown SIREN)
+        - invalid: the dossiers whose champs could not be read, with the reason
         - failed: the dossiers where the copy or archiving failed
         - truncated_texts: the dossiers added with a truncated text
         """
         to_review: list[dict[str, Any]] = []
+        invalid: list[dict[str, Any]] = []
         to_integrate: list[tuple[Dossier, dict[str, Any]]] = []
 
         for dossier in self.demarche.accepted_dossiers():
             record, reason = self.parse_dossier(dossier)
+            issues = invalid
             if record is not None:
+                issues = to_review
                 nature_juridique = self.get_nature_juridique(record["siren"])
                 if nature_juridique is None:
                     reason = "SIREN introuvable"
@@ -139,16 +145,18 @@ class DemarcheNumeriqueProcessor:
                 logger.warning(
                     f"Dossier {dossier.number}: left for a manual review ({reason})"
                 )
-                to_review.append({"number": dossier.number, "reason": reason})
+                issues.append({"number": dossier.number, "reason": reason})
             else:
                 to_integrate.append((dossier, record))
 
         logger.info(
-            f"{len(to_integrate) + len(to_review)} accepted dossiers not archived: "
-            f"{len(to_integrate)} to integrate, {len(to_review)} to review manually."
+            f"{len(to_integrate) + len(to_review) + len(invalid)} accepted dossiers "
+            f"not archived: {len(to_integrate)} to integrate, {len(to_review)} to "
+            f"review manually, {len(invalid)} unreadable."
         )
         result: dict[str, list] = {
             "to_review": to_review,
+            "invalid": invalid,
             "failed": [],
             "truncated_texts": [],
         }
@@ -208,38 +216,56 @@ class DemarcheNumeriqueProcessor:
 
     def notify_dossiers_with_issues(self, result: dict[str, list]) -> None:
         """
-        Fail with a Tchap and email notification listing the dossiers that
-        need attention and could not be processed by the process_accepted_dossiers task.
+        Report on Tchap the dossiers process_accepted_dossiers could not process.
+
+        Expected cases (EI, unknown SIREN, truncated motif) are handled by hand
+        in Démarche Numérique: they are sent to Tchap and the task succeeds.
+        Unreadable dossiers (form changed, missing champ) and copy or archiving
+        errors make the task fail, the failure callback sending the whole report.
         """
-        messages = []
-        if to_review := result["to_review"]:
-            messages.append(
-                f"<p>{len(to_review)} demande(s) acceptée(s) non intégrée(s) ni "
-                f"archivée(s), à traiter manuellement :</p>"
-                f"<ul>{self.dossier_items(to_review)}</ul>"
+        errors = []
+        expected = []
+        if invalid := result["invalid"]:
+            errors.append(
+                f"<p>{len(invalid)} demande(s) acceptée(s) illisible(s), non "
+                f"intégrée(s) ni archivée(s) :</p>"
+                f"<ul>{self.dossier_items(invalid)}</ul>"
             )
         if failed := result["failed"]:
-            messages.append(
+            errors.append(
                 f"<p>{len(failed)} demande(s) en erreur, réessayée(s) au prochain "
                 f"run (détail dans les logs) :</p>"
                 f"<ul>{self.dossier_items(failed)}</ul>"
             )
+        if to_review := result["to_review"]:
+            expected.append(
+                f"<p>{len(to_review)} demande(s) acceptée(s) non intégrée(s) ni "
+                f"archivée(s), à traiter manuellement :</p>"
+                f"<ul>{self.dossier_items(to_review)}</ul>"
+            )
         if truncated := result["truncated_texts"]:
             items = "".join(f"<li>{self.dossier_link(n)}</li>" for n in truncated)
-            messages.append(
+            expected.append(
                 f"<p>{len(truncated)} dossier(s) avec un texte tronqué à {MOTIF_MAX_LENGTH} "
                 f"caractères dans Grist, texte complet dans le dossier :</p>"
                 f"<ul>{items}</ul>"
             )
         logger.info(
-            f"{len(to_review)} dossiers to review manually, {len(failed)} in error, "
-            f"{len(truncated)} with a truncated motif."
+            f"{len(to_review)} dossiers to review manually, {len(invalid)} "
+            f"unreadable, {len(failed)} in error, {len(truncated)} with a "
+            "truncated motif."
         )
-        if not messages:
+        context = get_current_context()
+        if errors:
+            message = "".join(errors + expected)
+            context["ti"].xcom_push(
+                key=Notification.notification_xcom_key, value=message
+            )
+            raise ValueError(message)
+        if not expected:
             logger.info("Nothing to notify.")
             return
-        message = "".join(messages)
-        get_current_context()["ti"].xcom_push(
-            key=Notification.notification_xcom_key, value=message
+        tchap.send_message(
+            f"<p>{Notification.Status.WARNING.value} airflow : "
+            f"{context['dag'].dag_id}</p>" + "".join(expected)
         )
-        raise ValueError(message)
