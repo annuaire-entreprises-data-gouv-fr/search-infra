@@ -29,7 +29,7 @@ create_table_dirigeant_pm_query = """
 
 def get_chunk_dirig_pm_from_db_query(chunk_size, iterator):
     query = f"""
-        SELECT DISTINCT siren, date_mise_a_jour, denomination,
+        SELECT siren, date_mise_a_jour, denomination,
         siren_dirigeant, role, forme_juridique
         FROM dirigeant_pm
         WHERE siren IN
@@ -45,7 +45,7 @@ def get_chunk_dirig_pm_from_db_query(chunk_size, iterator):
 
 def get_chunk_dirig_pp_from_db_query(chunk_size, iterator):
     query = f"""
-        SELECT DISTINCT siren, date_mise_a_jour, date_de_naissance, role,
+        SELECT siren, date_mise_a_jour, date_de_naissance, role,
         nom, nom_usage, prenoms, nationalite
         FROM dirigeant_pp
         WHERE siren IN

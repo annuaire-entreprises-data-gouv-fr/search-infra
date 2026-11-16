@@ -4,17 +4,11 @@ import logging
 from slugify import slugify
 
 from data_pipelines_annuaire.helpers.utils import (
-    drop_exact_duplicates,
     get_empty_string_if_none,
     load_file,
     sqlite_str_to_bool,
     str_to_bool,
     str_to_list,
-)
-from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.clean_data import (
-    drop_duplicates_dirigeants_pm,
-    drop_duplicates_personnes_physiques,
-    unique_qualites,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.es_fields import (
     get_elasticsearch_field_name,
@@ -426,11 +420,6 @@ def format_personnes_physiques(
             personne_physique["nom"], personne_physique["nom_usage"]
         )
 
-        # Drop qualites exact and partial duplicates
-        personne_physique["role_description"] = unique_qualites(
-            personne_physique["role_description"]
-        )
-
         personnes_physiques_processed.append(
             {
                 "nom": personne_physique["nom"],
@@ -464,17 +453,6 @@ def format_personnes_physiques(
                 f"Missing personne_physique names for **** {personne_physique['siren']}"
             )
 
-    if personnes_physiques_processed:
-        # Case when two personne_physique have exactly the same fields/values
-        personnes_physiques_processed = drop_exact_duplicates(
-            personnes_physiques_processed
-        )
-        # Case when two personne_physique have partially the same fields/values
-        # (eg. same name, and firstname, different date or qualities)
-        personnes_physiques_processed = drop_duplicates_personnes_physiques(
-            personnes_physiques_processed
-        )
-
     return personnes_physiques_processed, list(set(list_all_personnes))
 
 
@@ -491,9 +469,6 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=None):
             logger.debug(
                 f"Missing denomination dirigeant for ***** {dirigeant_pm['siren']}"
             )
-        dirigeant_pm["role_description"] = unique_qualites(
-            dirigeant_pm["role_description"]
-        )
         dirigeants_pm_processed.append(
             {
                 "siren": dirigeant_pm["siren_dirigeant"],
@@ -503,13 +478,6 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=None):
                 "date_mise_a_jour": dirigeant_pm["date_mise_a_jour"],
             }
         )
-
-    if dirigeants_pm_processed:
-        # Case when two dirigeant have exactly the same fields/value
-        dirigeants_pm_processed = drop_exact_duplicates(dirigeants_pm_processed)
-        # Case when two dirigeant have partially the same fields/value
-        # (eg. same name, and fistname, different date or qualities)
-        dirigeants_pm_processed = drop_duplicates_dirigeants_pm(dirigeants_pm_processed)
 
     return dirigeants_pm_processed, list(set(list_all_dirigeants))
 

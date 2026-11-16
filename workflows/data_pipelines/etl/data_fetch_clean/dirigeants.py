@@ -1,114 +1,74 @@
 import pandas as pd
 
-# fmt: off
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichment import (
     map_roles,
 )
 
-# fmt: on
+DIRIGEANT_PP_KEYS = [
+    "siren",
+    "nom",
+    "prenoms",
+    "nom_usage",
+    "date_de_naissance",
+    "nationalite",
+    "date_mise_a_jour",
+]
+DIRIGEANT_PM_KEYS = ["siren", "siren_dirigeant", "denomination"]
 
 
 def concatenate_roles(roles):
     return ", ".join(str(role) for role in roles if pd.notna(role))
 
 
-def preprocess_personne_physique(query):
-    cols = [column[0] for column in query.description]
-    pp_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
-    pp_chunk.sort_values(
-        by=[
-            "siren",
-            "nom",
-            "nom_usage",
-            "prenoms",
-            "role",
-            "date_mise_a_jour",
-            "date_de_naissance",
-            "nationalite",
-        ],
-        inplace=True,
-        ascending=[True, True, True, True, True, True, False, False],
-    )
-
-    pp_chunk.drop_duplicates(
-        subset=[
-            "siren",
-            "nom",
-            "nom_usage",
-            "prenoms",
-            "date_de_naissance",
-            "role",
-            "date_mise_a_jour",
-            "nationalite",
-        ],
-        keep="first",
-        inplace=True,
-    )
-
-    # List of columns to convert to uppercase
-    columns_to_uppercase = ["nom", "nom_usage", "prenoms"]
-    for column in columns_to_uppercase:
-        pp_chunk[column] = pp_chunk[column].str.upper()
-
-    # Map role numbers to descriptions
-    pp_chunk["role_description"] = map_roles(pp_chunk["role"])
-
-    pp_clean = (
-        pp_chunk.groupby(
-            [
-                "siren",
-                "nom",
-                "prenoms",
-                "nom_usage",
-                "date_de_naissance",
-                "nationalite",
-                "date_mise_a_jour",
-            ],
-            dropna=False,
-        )
+def group_roles(df: pd.DataFrame, keys: list[str]) -> pd.DataFrame:
+    """
+    Aggregate the roles of each dirigeant into a single row. But if a dirigeant has
+    multiple time the same role then each occurrence of that role goes to a separate row.
+    Those may be fraud and need to be shown as duplicates.
+    Example of an extreme case :
+        Roles of a dirigeant = 75, 30, 30, 40, 40, 40, 40
+        Occurences (cumcount) = 0,  0,  1,  0,  1,  2,  3
+        Ouput :
+            - Row 0 : 75, 30, 40
+            - Row 1 : 30, 40
+            - Row 2 : 40
+            - Row 3 : 40
+    """
+    non_role_columns = [
+        column
+        for column in df.columns
+        if column not in keys and column not in ("role", "role_description")
+    ]
+    df = df.sort_values(by=keys + ["role"])
+    df["occurrence"] = df.groupby(keys + ["role"], dropna=False).cumcount()
+    return (
+        df.groupby(keys + ["occurrence"], dropna=False, sort=False)
         .agg(
             role=("role", concatenate_roles),
             role_description=("role_description", concatenate_roles),
+            **{column: (column, "first") for column in non_role_columns},
         )
         .reset_index()
+        .drop(columns="occurrence")
     )
-    return pp_clean
+
+
+def preprocess_dirigeant_pp(query):
+    cols = [column[0] for column in query.description]
+    pp_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
+
+    for column in ["nom", "prenoms", "nom_usage"]:
+        pp_chunk[column] = pp_chunk[column].str.upper()
+
+    pp_chunk["role_description"] = map_roles(pp_chunk["role"])
+    return group_roles(pp_chunk, DIRIGEANT_PP_KEYS)
 
 
 def preprocess_dirigeant_pm(query):
     cols = [column[0] for column in query.description]
     dirig_chunk = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
-    dirig_chunk = dirig_chunk.applymap(lambda x: None if pd.isna(x) else x)
-    dirig_chunk.sort_values(
-        by=[
-            "siren",
-            "date_mise_a_jour",
-            "denomination",
-            "siren_dirigeant",
-            "role",
-            "forme_juridique",
-        ],
-        inplace=True,
-        ascending=[True, True, False, False, False, False],
-    )
-    dirig_chunk.drop_duplicates(
-        subset=["siren", "date_mise_a_jour", "denomination", "siren_dirigeant", "role"],
-        keep="first",
-        inplace=True,
-    )
+
     dirig_chunk["denomination"] = dirig_chunk["denomination"].str.upper()
 
-    # Map role numbers to descriptions
     dirig_chunk["role_description"] = map_roles(dirig_chunk["role"])
-
-    dirig_clean = (
-        dirig_chunk.groupby(
-            by=["siren", "siren_dirigeant", "denomination"], dropna=False
-        )
-        .agg(
-            role=("role", concatenate_roles),
-            role_description=("role_description", concatenate_roles),
-        )
-        .reset_index()
-    )
-    return dirig_clean
+    return group_roles(dirig_chunk, DIRIGEANT_PM_KEYS)
