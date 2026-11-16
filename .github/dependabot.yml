@@ -1,6 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "uv"
+    directory: "/"
     cooldown:
       semver-major-days: 60
       semver-minor-days: 14
