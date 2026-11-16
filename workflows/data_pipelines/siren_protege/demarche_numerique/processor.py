@@ -67,7 +67,18 @@ class DemarcheNumeriqueProcessor:
         record: dict[str, Any] = {"truncated": False}
         for column, label in cls.MANDATORY_CHAMPS_FIELDS.items():
             champ = dossier.champ(label)
-            if champ is None or not champ.value.strip():
+            if champ is None:
+                # Labels and types only: the values are personal data.
+                available = ", ".join(f"'{c.label}' ({c.type})" for c in dossier.champs)
+                logger.warning(
+                    f"Dossier {dossier.number}: no champ '{label}', "
+                    f"champs of the dossier: {available}"
+                )
+                return None, f"champ '{label}' absent ou vide"
+            if not champ.value.strip():
+                logger.warning(
+                    f"Dossier {dossier.number}: champ '{label}' ({champ.type}) is empty"
+                )
                 return None, f"champ '{label}' absent ou vide"
             match column:
                 case "siren":
@@ -80,6 +91,11 @@ class DemarcheNumeriqueProcessor:
                     )
                     value = value or None
             if value is None:
+                logger.warning(
+                    f"Dossier {dossier.number}: champ '{label}' ({champ.type}) "
+                    f"could not be parsed, date set: {champ.date is not None}, "
+                    f"SIRET set: {champ.siret is not None}"
+                )
                 return None, f"champ '{label}' invalide"
             record[column] = value
         if not dossier.demandeur_nom.strip() or not dossier.demandeur_prenom.strip():
@@ -265,7 +281,9 @@ class DemarcheNumeriqueProcessor:
         if not expected:
             logger.info("Nothing to notify.")
             return
-        tchap.send_message(
+        message = (
             f"<p>{Notification.Status.WARNING.value} airflow : "
             f"{context['dag'].dag_id}</p>" + "".join(expected)
         )
+        logger.info(f"Tchap message: {message}")
+        tchap.send_message(message)

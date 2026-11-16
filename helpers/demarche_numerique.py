@@ -41,6 +41,7 @@ class Champ:
 
     Attributes:
         label: label of the field in the form as written by its creator.
+        type: GraphQL type of the field (TextChamp, DateChamp, SiretChamp…).
         value: the raw answer as text. Filled in for every field type. Empty
             string when the field was left blank.
         date: the YYYY-MM-DD format. Only for a date field. None otherwise.
@@ -57,6 +58,7 @@ class Champ:
 
     label: str
     value: str
+    type: str | None = None
     date: str | None = None
     siret: str | None = None
 
@@ -74,6 +76,7 @@ class Champ:
         return cls(
             label=node["label"],
             value=node.get("stringValue") or "",
+            type=node.get("__typename"),
             date=node.get("date"),
             siret=(node.get("etablissement") or {}).get("siret"),
         )
@@ -245,6 +248,7 @@ class Demarche:
                       }
                     }
                     champs {
+                      __typename
                       label
                       stringValue
                       ... on DateChamp {

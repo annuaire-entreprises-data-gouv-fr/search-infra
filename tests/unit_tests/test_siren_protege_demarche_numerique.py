@@ -442,3 +442,22 @@ def test_process_accepted_dossiers_splits_invalid_and_to_review(monkeypatch):
     ]
     assert result["to_review"] == [{"number": 2, "reason": "entreprise individuelle"}]
     processor.grist_table.append.assert_not_called()
+
+
+def test_parse_dossier_missing_champ_logs_labels_without_values(caplog):
+    renamed = dossier(
+        {
+            "Date de naissance": None,
+            "Date de naissance du dirigeant": {
+                "__typename": "DateChamp",
+                "stringValue": "15 janvier 1970",
+                "date": "1970-01-15",
+            },
+        }
+    )
+
+    with caplog.at_level("WARNING"):
+        DemarcheNumeriqueProcessor.parse_dossier(renamed)
+
+    assert "'Date de naissance du dirigeant' (DateChamp)" in caplog.text
+    assert "1970" not in caplog.text
