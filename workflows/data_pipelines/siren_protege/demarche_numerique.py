@@ -138,6 +138,7 @@ class DemarcheNumeriqueProcessor:
         - invalid: the dossiers whose champs could not be read, with the reason
         - failed: the dossiers where the copy or archiving failed
         - truncated_texts: the dossiers added with a truncated text
+        - processed: the dossiers in Grist and archived during this run
         """
         to_review: list[dict[str, Any]] = []
         invalid: list[dict[str, Any]] = []
@@ -168,6 +169,7 @@ class DemarcheNumeriqueProcessor:
             "invalid": invalid,
             "failed": [],
             "truncated_texts": [],
+            "processed": [],
         }
         if not to_integrate:
             return result
@@ -200,6 +202,7 @@ class DemarcheNumeriqueProcessor:
                 step = "archivage"
                 dossier.archive()
                 logger.info(f"Dossier {dossier.number}: archived")
+                result["processed"].append(dossier.number)
             except Exception as e:
                 logger.error(f"Dossier {dossier.number}, {step} failed: {e}")
                 result["failed"].append({"number": dossier.number, "reason": step})
@@ -207,11 +210,6 @@ class DemarcheNumeriqueProcessor:
         logger.info(
             f"{added} dossiers added to Grist, {len(result['failed'])} in error."
         )
-        if added:
-            get_current_context()["ti"].xcom_push(
-                key=Notification.notification_xcom_key,
-                value=f"{added} dirigeant(s) ajouté(s) dans Grist",
-            )
         return result
 
     def dossier_link(self, number: int) -> str:
@@ -223,17 +221,22 @@ class DemarcheNumeriqueProcessor:
             for d in dossiers
         )
 
-    def notify_dossiers_with_issues(self, result: dict[str, list]) -> None:
+    def notify_dossiers(self, result: dict[str, list]) -> None:
         """
-        Report on Tchap the dossiers process_accepted_dossiers could not process.
+        Report on Tchap the dossiers processed and the ones it could not process.
 
-        Expected cases (unknown SIREN, truncated motif) are handled by hand
-        in Démarche Numérique: they are sent to Tchap and the task succeeds.
+        Processed dossiers and expected cases (unknown SIREN, truncated motif)
+        handled manually in Démarche Numérique are sent to Tchap and the task succeeds.
         Unreadable dossiers (form changed, missing champ) and copy or archiving
         errors make the task fail, the failure callback sending the whole report.
         """
         errors = []
         expected = []
+        processed_report = []
+        if processed := result["processed"]:
+            processed_report.append(
+                f"<p>{len(processed)} demande(s) intégrée(s) dans Grist et archivée(s)</p>"
+            )
         if invalid := result["invalid"]:
             errors.append(
                 f"<p>{len(invalid)} demande(s) acceptée(s) illisible(s), non "
@@ -260,23 +263,25 @@ class DemarcheNumeriqueProcessor:
                 f"<ul>{items}</ul>"
             )
         logger.info(
-            f"{len(to_review)} dossiers to review manually, {len(invalid)} "
-            f"unreadable, {len(failed)} in error, {len(truncated)} with a "
-            "truncated motif."
+            f"{len(processed)} dossiers processed, {len(to_review)} to review "
+            f"manually, {len(invalid)} unreadable, {len(failed)} in error, "
+            f"{len(truncated)} with a truncated motif."
         )
         context = get_current_context()
         if errors:
-            message = "".join(errors + expected)
+            message = "".join(errors + expected + processed_report)
             context["ti"].xcom_push(
                 key=Notification.notification_xcom_key, value=message
             )
             raise ValueError(message)
-        if not expected:
+        if not expected and not processed:
             logger.info("Nothing to notify.")
             return
-        message = (
-            f"<p>{Notification.Status.WARNING.value} airflow : "
-            f"{context['dag'].dag_id}</p>" + "".join(expected)
+        status = (
+            Notification.Status.WARNING if expected else Notification.Status.SUCCESS
+        )
+        message = f"<p>{status.value} airflow : {context['dag'].dag_id}</p>" + "".join(
+            expected + processed_report
         )
         logger.info(f"Tchap message: {message}")
-        tchap.send_message(message)
+        tchap.send_message(message, "text" if expected else "notice")

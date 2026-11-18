@@ -172,13 +172,19 @@ def processor_with_context(monkeypatch):
     return processor, context["ti"]
 
 
-def test_notify_dossiers_with_issues_nothing(monkeypatch):
+def test_notify_dossiers_nothing(monkeypatch):
     processor, ti = processor_with_context(monkeypatch)
 
     send_message = mock_send_message(monkeypatch)
 
-    processor.notify_dossiers_with_issues(
-        {"to_review": [], "invalid": [], "failed": [], "truncated_texts": []}
+    processor.notify_dossiers(
+        {
+            "to_review": [],
+            "invalid": [],
+            "failed": [],
+            "truncated_texts": [],
+            "processed": [],
+        }
     )
 
     ti.xcom_push.assert_not_called()
@@ -195,20 +201,24 @@ def mock_send_message(monkeypatch):
     return send_message
 
 
-def test_notify_dossiers_with_issues_expected_only_succeeds(monkeypatch):
+def test_notify_dossiers_expected_only_succeeds(monkeypatch):
     processor, ti = processor_with_context(monkeypatch)
     send_message = mock_send_message(monkeypatch)
 
-    processor.notify_dossiers_with_issues(
+    processor.notify_dossiers(
         {
             "to_review": [{"number": 12, "reason": "SIREN introuvable"}],
             "invalid": [],
             "failed": [],
             "truncated_texts": [34],
+            "processed": [90],
         }
     )
 
     message = send_message.call_args.args[0]
+    assert "🟠" in message
+    assert "1 demande(s) intégrée(s) dans Grist" in message
+    assert "dossier 90</a>" not in message
     assert "dag_id" in message
     assert "dossier 12</a> : SIREN introuvable" in message
     assert f"texte tronqué à {MOTIF_MAX_LENGTH} caractères" in message
@@ -216,27 +226,50 @@ def test_notify_dossiers_with_issues_expected_only_succeeds(monkeypatch):
     ti.xcom_push.assert_not_called()
 
 
-def test_notify_dossiers_with_issues_tchap_failure_fails(monkeypatch):
+def test_notify_dossiers_tchap_failure_fails(monkeypatch):
     processor, _ = processor_with_context(monkeypatch)
     mock_send_message(monkeypatch).side_effect = Exception("Failed to send message")
 
     with pytest.raises(Exception, match="Failed to send message"):
-        processor.notify_dossiers_with_issues(
+        processor.notify_dossiers(
             {
                 "to_review": [{"number": 12, "reason": "SIREN introuvable"}],
                 "invalid": [],
                 "failed": [],
                 "truncated_texts": [],
+                "processed": [],
             }
         )
 
 
-def test_notify_dossiers_with_issues_errors_fail_with_whole_report(monkeypatch):
+def test_notify_dossiers_processed_only_succeeds(monkeypatch):
+    processor, ti = processor_with_context(monkeypatch)
+    send_message = mock_send_message(monkeypatch)
+
+    processor.notify_dossiers(
+        {
+            "to_review": [],
+            "invalid": [],
+            "failed": [],
+            "truncated_texts": [],
+            "processed": [90, 91],
+        }
+    )
+
+    message, message_type = send_message.call_args.args
+    assert "🟢" in message
+    assert "2 demande(s) intégrée(s) dans Grist et archivée(s)" in message
+    assert "dossier 90</a>" not in message
+    assert message_type == "notice"
+    ti.xcom_push.assert_not_called()
+
+
+def test_notify_dossiers_errors_fail_with_whole_report(monkeypatch):
     processor, ti = processor_with_context(monkeypatch)
     send_message = mock_send_message(monkeypatch)
 
     with pytest.raises(ValueError) as error:
-        processor.notify_dossiers_with_issues(
+        processor.notify_dossiers(
             {
                 "to_review": [{"number": 12, "reason": "SIREN introuvable"}],
                 "invalid": [
@@ -244,10 +277,12 @@ def test_notify_dossiers_with_issues_errors_fail_with_whole_report(monkeypatch):
                 ],
                 "failed": [{"number": 56, "reason": "archivage"}],
                 "truncated_texts": [34],
+                "processed": [90],
             }
         )
 
     message = str(error.value)
+    assert "1 demande(s) intégrée(s) dans Grist" in message
     assert "dossier 12</a> : SIREN introuvable" in message
     assert "dossier 78</a> : champ 'Date de naissance' absent ou vide" in message
     assert f"texte tronqué à {MOTIF_MAX_LENGTH} caractères" in message
@@ -376,7 +411,7 @@ def appended_numbers(processor):
 
 def test_process_accepted_dossiers_one_at_a_time(monkeypatch):
     first, second = numbered_dossier(1), numbered_dossier(2)
-    processor, ti = processor_integrating(monkeypatch, [first, second])
+    processor, _ = processor_integrating(monkeypatch, [first, second])
 
     result = processor.process_accepted_dossiers()
 
@@ -388,8 +423,8 @@ def test_process_accepted_dossiers_one_at_a_time(monkeypatch):
         "invalid": [],
         "failed": [],
         "truncated_texts": [],
+        "processed": [1, 2],
     }
-    ti.xcom_push.assert_called_once()
 
 
 def test_process_accepted_dossiers_failed_copy_not_archived(monkeypatch):
@@ -402,6 +437,7 @@ def test_process_accepted_dossiers_failed_copy_not_archived(monkeypatch):
     first.archive.assert_not_called()
     second.archive.assert_called_once()
     assert result["failed"] == [{"number": 1, "reason": "ajout dans Grist"}]
+    assert result["processed"] == [2]
 
 
 def test_process_accepted_dossiers_already_copied_only_archived(monkeypatch):
@@ -413,6 +449,7 @@ def test_process_accepted_dossiers_already_copied_only_archived(monkeypatch):
     processor.grist_table.append.assert_not_called()
     already.archive.assert_called_once()
     assert result["failed"] == []
+    assert result["processed"] == [1]
 
 
 def test_process_accepted_dossiers_failed_archiving(monkeypatch):
@@ -427,6 +464,7 @@ def test_process_accepted_dossiers_failed_archiving(monkeypatch):
     assert appended_numbers(processor) == ["1"]
     assert result["failed"] == [{"number": 1, "reason": "archivage"}]
     assert result["truncated_texts"] == [1]
+    assert result["processed"] == []
 
 
 def test_process_accepted_dossiers_splits_invalid_and_to_review(monkeypatch):

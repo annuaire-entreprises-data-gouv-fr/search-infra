@@ -43,8 +43,8 @@ def data_processing_siren_protege():
         return DemarcheNumeriqueProcessor().process_accepted_dossiers()
 
     @task
-    def notify_dossiers_with_issues(result):
-        return DemarcheNumeriqueProcessor().notify_dossiers_with_issues(result)
+    def notify_dossiers(result):
+        return DemarcheNumeriqueProcessor().notify_dossiers(result)
 
     # Publish the list even if some dossiers could not be processed
     # so the dossiers already copied and the manual edits in Grist are not delayed
@@ -74,7 +74,7 @@ def data_processing_siren_protege():
         return f"rm -rf {siren_protege_processor.config.tmp_folder}"
 
     result = process_accepted_dossiers()
-    notify_dossiers_with_issues(result)
+    notify_dossiers(result)
     (
         clean_previous_outputs()
         >> result

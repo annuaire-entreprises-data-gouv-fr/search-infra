@@ -20,7 +20,7 @@ Ce DAG copie les demandes acceptées dans la table de référence correspondante
 4. Il contrôle chaque demande (champs du formulaire, nature juridique de l'entreprise)
 5. Il ajoute une ligne dans Grist pour chaque demande valide
 6. Il archive la demande dans Démarche Numérique
-7. Il envoie sur Tchap la liste des demandes à traiter à la main ou qui méritent une attention particulière
+7. Il envoie sur Tchap un seul message avec le nombre de demandes insérées et la liste de celles à traiter à la main ou qui méritent une attention particulière
 8. Il publie la liste des dirigeants sur l'Object Storage sous format CSV
 ```
 
