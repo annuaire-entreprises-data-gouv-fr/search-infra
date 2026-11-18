@@ -10,7 +10,7 @@ dependencies = [
     "boto3==1.43.123",
     "pandas==2.3.3",
     "openpyxl==3.1.5",
-    "elasticsearch==9.2.1",
+    "elasticsearch==9.5.1",
     "requests==2.34.2",
     "pytest==9.2.0",
     "pydantic==2.14.2",
