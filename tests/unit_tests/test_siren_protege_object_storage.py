@@ -40,8 +40,7 @@ def row(
 
 
 def preprocess(tmp_path, monkeypatch, rows, columns=None):
-    """Run preprocess_data on a fake Grist table, return the CSV path and the
-    saved last insertion date."""
+    """Run preprocess_data on a fake Grist table and return the CSV path and the last insertion date."""
     module = "data_pipelines_annuaire.workflows.data_pipelines.siren_protege.processor"
     grist_df = pd.DataFrame(rows, columns=columns, dtype=str)
     monkeypatch.setattr(f"{module}.Variable.get", lambda key: key)
@@ -112,7 +111,7 @@ def test_preprocess_data_keeps_oldest_request_of_a_dirigeant(tmp_path, monkeypat
     )
 
     assert read(path) == [row("356000000", motif="première")]
-    # The newer request is dropped from the CSV but still counts as an insertion
+    # The newer request is not in the CSV but still counts as the last insertion
     assert last_insertion_date == "2026-11-10"
 
 

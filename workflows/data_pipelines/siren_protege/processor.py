@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class SirenProtegeProcessor(DataProcessor):
     # We receive around 40 accepted requests per month so a long pause
-    # suggests the Démarche Nunérique form or its integration no longer works.
+    # suggests the Démarche Numérique form or its integration no longer works.
     MAX_DAYS_WITHOUT_NEW_INSERT = 14
     METADATA_KEY_LAST_INSERT = "date_dernier_ajout"
 
@@ -45,10 +45,13 @@ class SirenProtegeProcessor(DataProcessor):
             )
 
         df = df[GRIST_COLUMN_NAMES]
+        # Before the deduplication so the newer dossiers of an already protected
+        # dirigeant also count as an insertion
         last_insertion_date = max(df["date_ajout"], default="")
         # Same format as in the RNE YYYY-MM
         df["date_de_naissance"] = df["date_de_naissance"].str.strip().str[:7]
-        # One row per dirigeant instead of one per démarche
+        # One row per dirigeant instead of one per dossier
+        # Grist keeps the rows in insertion order so the oldest dossier is kept
         df = (
             df[df["siren"] != ""]
             .drop_duplicates(subset=KEY_COLUMNS)
@@ -71,7 +74,7 @@ class SirenProtegeProcessor(DataProcessor):
             datetime.now(tz=UTC).date() - date.fromisoformat(date_last_addition)
         ) > timedelta(days=self.MAX_DAYS_WITHOUT_NEW_INSERT):
             message = (
-                "No accepted démarche added to Grist for more than "
+                "No accepted dossier added to Grist for more than "
                 f"{self.MAX_DAYS_WITHOUT_NEW_INSERT} days (last addition: "
                 f"{date_last_addition})."
             )

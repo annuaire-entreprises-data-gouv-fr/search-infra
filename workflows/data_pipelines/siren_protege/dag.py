@@ -21,8 +21,8 @@ default_args = {
 @dag(
     tags=["siren_protege", "diffusion", "demarche_numerique"],
     default_args=default_args,
-    # Scheduled to run every hour in production only.
-    # It can still be triggered by hand in other environments if needed.
+    # Every hour in production only
+    # It can still be triggered by hand in other environments
     schedule="0 * * * *" if check_if_prod() else None,
     start_date=datetime(2026, 1, 1, tzinfo=UTC),
     dagrun_timeout=timedelta(minutes=30),
@@ -46,8 +46,8 @@ def data_processing_siren_protege():
     def notify_dossiers_with_issues(result):
         return DemarcheNumeriqueProcessor().notify_dossiers_with_issues(result)
 
-    # Publish the list even if the dossiers could not be processed so the object
-    # storage gets all the démarches already copied and the manual edits done in Grist
+    # Publish the list even if some dossiers could not be processed
+    # so the dossiers already copied and the manual edits in Grist are not delayed
     @task(trigger_rule="all_done")
     def preprocess_data():
         return siren_protege_processor.preprocess_data()
