@@ -139,7 +139,7 @@ class ApiClient:
         This method is decorated with retry_request for automatic retries.
         """
         url = f"{self.base_url}{endpoint}"
-        return self.session.post(url, json=json, timeout=API_TIMEOUT)
+        return self.session.post(url, params=params, json=json, timeout=API_TIMEOUT)
 
     def fetch_all(
         self,
