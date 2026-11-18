@@ -2,14 +2,14 @@
 
 Un dirigeant personne physique peut demander que ses données personnelles soient masquées sur l'Annuaire. Il en fait la demande avec un formulaire [Démarche Numérique](https://demarche.numerique.gouv.fr/). Un instructeur accepte ou refuse chaque demande.
 
-Ce DAG copie les demandes acceptées dans la table de référence correspondante sur Grist. Une fois une demande copiée, celle ci est archivée dans Démarche Numérique.
+Ce DAG copie les demandes acceptées dans la table de référence correspondante sur Grist. Une fois une demande copiée, celle ci est archivée dans Démarche Numérique. Le DAG publie ensuite la table Grist sur l'Object Storage, sous forme d'un fichier CSV privé avec une ligne par dirigeant.
 
 | Information | Valeur |
 | -------- | -------- |
 | Fichier source | `dag.py` |
 | Fréquence | Toutes les heures en production. Ailleurs lancement manuel uniquement. |
 | Données sources | API GraphQL de Démarche Numérique, [API Recherche d'entreprises](https://recherche-entreprises.api.gouv.fr) pour la nature juridique |
-| Données de sorties | Table Grist |
+| Données de sorties | Table Grist et fichier CSV sur l'Object Storage |
 
 ## Parcours d'une demande
 
@@ -21,6 +21,7 @@ Ce DAG copie les demandes acceptées dans la table de référence correspondante
 5. Il ajoute une ligne dans Grist pour chaque demande valide
 6. Il archive la demande dans Démarche Numérique
 7. Il envoie sur Tchap la liste des demandes à traiter à la main ou qui méritent une attention particulière
+8. Il publie la liste des dirigeants sur l'Object Storage sous format CSV
 ```
 
 Les demandes refusées, en cours d'instruction ou déjà archivées ne sont jamais lues.

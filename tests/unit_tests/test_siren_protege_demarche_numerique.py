@@ -11,7 +11,7 @@ from data_pipelines_annuaire.helpers.demarche_numerique import (
 from data_pipelines_annuaire.workflows.data_pipelines.siren_protege.config import (
     MOTIF_MAX_LENGTH,
 )
-from data_pipelines_annuaire.workflows.data_pipelines.siren_protege.demarche_numerique.processor import (
+from data_pipelines_annuaire.workflows.data_pipelines.siren_protege.demarche_numerique import (
     DemarcheNumeriqueProcessor,
 )
 
@@ -164,7 +164,7 @@ def processor_with_context(monkeypatch):
     context = {"ti": MagicMock(), "dag": MagicMock(dag_id="dag_id")}
     monkeypatch.setattr(
         "data_pipelines_annuaire.workflows.data_pipelines.siren_protege."
-        "demarche_numerique.processor.get_current_context",
+        "demarche_numerique.get_current_context",
         lambda: context,
     )
     processor = DemarcheNumeriqueProcessor.__new__(DemarcheNumeriqueProcessor)
@@ -189,7 +189,7 @@ def mock_send_message(monkeypatch):
     send_message = MagicMock()
     monkeypatch.setattr(
         "data_pipelines_annuaire.workflows.data_pipelines.siren_protege."
-        "demarche_numerique.processor.tchap.send_message",
+        "demarche_numerique.tchap.send_message",
         send_message,
     )
     return send_message
