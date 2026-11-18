@@ -57,3 +57,35 @@ def get_chunk_dirig_pp_from_db_query(chunk_size, iterator):
             OFFSET {int(iterator * chunk_size)})
         """
     return query
+
+
+def add_boolean_column_query(table, column):
+    return f"""
+        ALTER TABLE {table}
+        ADD COLUMN {column} INTEGER DEFAULT 0
+    """
+
+
+get_dirigeant_pp_from_sirens_query = """
+        SELECT rowid, siren, nom, prenoms, date_de_naissance
+        FROM dirigeant_pp
+        WHERE siren IN (SELECT value FROM json_each(?))
+    """
+
+update_est_protege_in_dirigeant_pp_query = """
+        UPDATE dirigeant_pp
+        SET est_protege = 1
+        WHERE rowid IN (SELECT value FROM json_each(?))
+    """
+
+update_est_protege_unite_legale_query = """
+        UPDATE unite_legale
+        SET est_protege = 1
+        WHERE siren IN (SELECT value FROM json_each(?))
+    """
+
+update_est_protege_legacy_unite_legale_query = """
+        UPDATE unite_legale
+        SET est_protege_legacy = 1
+        WHERE siren IN (SELECT value FROM json_each(?))
+    """
