@@ -1,6 +1,6 @@
 import logging
 import re
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from airflow.sdk import Variable, get_current_context
@@ -36,6 +36,7 @@ class DemarcheNumeriqueProcessor:
         "date_de_naissance": "Date de naissance",
         "motif": "Motif de la demande",
     }
+    NAMES_CONFIRMATION_DELAY_DAYS = 7
 
     def __init__(self) -> None:
         self.demarche = DemarcheNumerique(
@@ -303,3 +304,48 @@ class DemarcheNumeriqueProcessor:
         )
         logger.info(f"Tchap message: {message}")
         tchap.send_message(message, "text" if expected else "notice")
+
+    def notify_names_not_confirmed(self) -> None:
+        """
+        Report on Tchap the dossiers added to Grist at least NAMES_CONFIRMATION_DELAY_DAYS
+        ago whose nom and prénoms are still not confirmed by an instructeur.
+        Grist is the reference since the confirmation is made there once
+        the dossier is archived in Démarche Numérique.
+        """
+        df = self.grist_table.read()
+        oldest_date_ajout = (
+            datetime.now(tz=UTC).date()
+            - timedelta(days=self.NAMES_CONFIRMATION_DELAY_DAYS)
+        ).isoformat()
+        # Legacy rows have no dossier and were never meant to be confirmed
+        not_confirmed = df[
+            (df["legacy"].str.strip().str.lower() != "true")
+            & (df["numero_dossier"].str.strip() != "")
+            & (df["ortographe_verifiee"].str.strip().str.lower() != "true")
+            & (df["date_ajout"].str.strip() != "")
+            & (df["date_ajout"].str.strip() <= oldest_date_ajout)
+        ].sort_values("date_ajout")
+        logger.info(
+            f"{len(not_confirmed)} dossiers with names not confirmed for at least "
+            f"{self.NAMES_CONFIRMATION_DELAY_DAYS} days."
+        )
+        if not_confirmed.empty:
+            return
+        items = "".join(
+            f"<li>{self.dossier_link(int(number))} (ajouté le {date_ajout})</li>"
+            for number, date_ajout in zip(
+                not_confirmed["numero_dossier"].str.strip(),
+                not_confirmed["date_ajout"].str.strip(),
+            )
+        )
+        message = (
+            f"<p>{Notification.Status.WARNING.value} airflow : "
+            f"{get_current_context()['dag'].dag_id}</p>"
+            f"<p>{len(not_confirmed)} dossier(s) ajouté(s) dans Grist depuis au moins "
+            f"{self.NAMES_CONFIRMATION_DELAY_DAYS} jours sans confirmation par "
+            f"l'instructeur que les nom et prénoms correspondent à ceux de "
+            f"l'Annuaire. La confirmation se fait dans la colonne "
+            f"ortographe_verifiee de Grist :</p>"
+            f"<ul>{items}</ul>"
+        )
+        tchap.send_message(message)

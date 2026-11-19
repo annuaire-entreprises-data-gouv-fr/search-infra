@@ -74,6 +74,14 @@ Si l'envoi du message Tchap échoue, le DAG échoue aussi.
 
 Les messages Tchap ne contiennent que le numéro de chaque dossier, un lien vers le dossier et la raison de la mise de côté, jamais de données personnelles.
 
+## Suivi hebdomadaire
+
+Le DAG `suivi_siren_protege` (`dag_suivi.py`) tourne tous les lundis à 10h (heure de Paris) en production. Ailleurs, il ne se lance qu'à la main.
+
+Il lit la table Grist et envoie sur Tchap un message 🟠 avec les dossiers dont `ortographe_verifiee` est toujours à `false` 7 jours ou plus après leur ajout. Après l'archivage du dossier, c'est dans Grist que l'instructeur confirme que les nom et prénoms correspondent à ceux de l'Annuaire. Un dossier est donc signalé chaque lundi tant que la colonne n'est pas passée à `true`. Les lignes legacy ne sont pas concernées.
+
+Rien n'est envoyé s'il n'y a aucun dossier à signaler. Comme pour les autres messages, seuls le numéro, le lien et la date d'ajout de chaque dossier sont envoyés.
+
 ## Nettoyage du motif
 
 Le motif est un texte libre écrit par le demandeur. Avant d'être enregistré dans Grist :

@@ -1,3 +1,4 @@
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
 
 import pandas as pd
@@ -539,3 +540,56 @@ def test_process_accepted_dossiers_names_not_confirmed(monkeypatch):
 
     assert result["names_not_confirmed"] == [2]
     assert result["processed"] == [1, 2]
+
+
+def grist_row(numero_dossier, date_ajout, ortographe_verifiee="false", legacy="false"):
+    return {
+        "numero_dossier": numero_dossier,
+        "date_ajout": date_ajout,
+        "ortographe_verifiee": ortographe_verifiee,
+        "legacy": legacy,
+    }
+
+
+def test_notify_names_not_confirmed(monkeypatch):
+    processor, _ = processor_with_context(monkeypatch)
+    send_message = mock_send_message(monkeypatch)
+    today = datetime.now(tz=UTC).date()
+
+    def days_ago(days):
+        return (today - timedelta(days=days)).isoformat()
+
+    processor.grist_table = MagicMock()
+    processor.grist_table.read.return_value = pd.DataFrame(
+        [
+            grist_row("1", days_ago(7)),
+            grist_row("2", days_ago(30)),
+            grist_row("3", days_ago(6)),
+            grist_row("4", days_ago(30), ortographe_verifiee="true"),
+            grist_row("", days_ago(30), ortographe_verifiee="", legacy="true"),
+            grist_row("5", ""),
+        ],
+        dtype=str,
+    )
+
+    processor.notify_names_not_confirmed()
+
+    message = send_message.call_args.args[0]
+    assert "🟠" in message
+    assert "2 dossier(s)" in message
+    assert message.index("dossier 2</a>") < message.index("dossier 1</a>")
+    for number in ("3", "4", "5"):
+        assert f"dossier {number}</a>" not in message
+
+
+def test_notify_names_not_confirmed_nothing(monkeypatch):
+    processor, _ = processor_with_context(monkeypatch)
+    send_message = mock_send_message(monkeypatch)
+    processor.grist_table = MagicMock()
+    processor.grist_table.read.return_value = pd.DataFrame(
+        [grist_row("1", "2026-01-01", ortographe_verifiee="true")], dtype=str
+    )
+
+    processor.notify_names_not_confirmed()
+
+    send_message.assert_not_called()
