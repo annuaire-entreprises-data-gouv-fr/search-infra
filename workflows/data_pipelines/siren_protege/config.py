@@ -8,6 +8,7 @@ GRIST_COLUMN_NAMES = [
     "nom",
     "date_de_naissance",
     "legacy",
+    "ortographe_verifiee",
     "date_ajout",
     "motif",
     "date_validation_demande",
@@ -19,6 +20,9 @@ GRIST_COLUMN_NAMES = [
 # Grist has one row per request, the published CSV one row per dirigeant.
 KEY_COLUMNS = ["siren", "prenoms", "nom", "date_de_naissance"]
 MOTIF_MAX_LENGTH = 10_000
+ORTOGRAPHE_VERIFIEE_ANNOTATION = (
+    "Le nom et prénoms sur le dossier matchent le nom et prénoms sur l'Annuaire."
+)
 
 SIREN_PROTEGE_CONFIG = DataSourceConfig(
     name="siren_protege",

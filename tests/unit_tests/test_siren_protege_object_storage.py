@@ -30,6 +30,7 @@ def row(
         "nom": nom,
         "date_de_naissance": date,
         "legacy": legacy,
+        "ortographe_verifiee": "false",
         "date_ajout": "2026-11-02",
         "motif": motif,
         "date_validation_demande": "2026-11-01",

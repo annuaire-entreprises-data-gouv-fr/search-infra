@@ -10,6 +10,7 @@ from data_pipelines_annuaire.helpers.demarche_numerique import (
 )
 from data_pipelines_annuaire.workflows.data_pipelines.siren_protege.config import (
     MOTIF_MAX_LENGTH,
+    ORTOGRAPHE_VERIFIEE_ANNOTATION,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.siren_protege.demarche_numerique import (
     DemarcheNumeriqueProcessor,
@@ -45,6 +46,7 @@ def dossier(
     demandeur=None,
     label_case=str,
     traitements=TRAITEMENTS,
+    annotations=(),
 ):
     # Labels and shape of the real form.
     overrides = champs or {}
@@ -71,6 +73,7 @@ def dossier(
                 for label, champ in champs.items()
                 if champ is not None
             ],
+            "annotations": list(annotations),
         },
     )
 
@@ -89,6 +92,7 @@ def test_parse_dossier():
             "date_depot_demande": "2026-10-20",
             "numero_dossier": "1",
             "legacy": False,
+            "ortographe_verifiee": False,
         },
         None,
     )
@@ -183,6 +187,7 @@ def test_notify_dossiers_nothing(monkeypatch):
             "invalid": [],
             "failed": [],
             "truncated_texts": [],
+            "names_not_confirmed": [],
             "processed": [],
         }
     )
@@ -211,6 +216,7 @@ def test_notify_dossiers_expected_only_succeeds(monkeypatch):
             "invalid": [],
             "failed": [],
             "truncated_texts": [34],
+            "names_not_confirmed": [35],
             "processed": [90],
         }
     )
@@ -223,6 +229,8 @@ def test_notify_dossiers_expected_only_succeeds(monkeypatch):
     assert "dossier 12</a> : SIREN introuvable" in message
     assert f"texte tronqué à {MOTIF_MAX_LENGTH} caractères" in message
     assert "dossier 34</a>" in message
+    assert "sans confirmation par l'instructeur que les nom et prénoms" in message
+    assert "dossier 35</a>" in message
     ti.xcom_push.assert_not_called()
 
 
@@ -237,6 +245,7 @@ def test_notify_dossiers_tchap_failure_fails(monkeypatch):
                 "invalid": [],
                 "failed": [],
                 "truncated_texts": [],
+                "names_not_confirmed": [],
                 "processed": [],
             }
         )
@@ -252,6 +261,7 @@ def test_notify_dossiers_processed_only_succeeds(monkeypatch):
             "invalid": [],
             "failed": [],
             "truncated_texts": [],
+            "names_not_confirmed": [],
             "processed": [90, 91],
         }
     )
@@ -277,6 +287,7 @@ def test_notify_dossiers_errors_fail_with_whole_report(monkeypatch):
                 ],
                 "failed": [{"number": 56, "reason": "archivage"}],
                 "truncated_texts": [34],
+                "names_not_confirmed": [35],
                 "processed": [90],
             }
         )
@@ -288,6 +299,7 @@ def test_notify_dossiers_errors_fail_with_whole_report(monkeypatch):
     assert f"texte tronqué à {MOTIF_MAX_LENGTH} caractères" in message
     assert "dossier 34</a>" in message
     assert "dossier 56</a> : archivage" in message
+    assert "dossier 35</a>" in message
     ti.xcom_push.assert_called_once()
     send_message.assert_not_called()
 
@@ -308,6 +320,18 @@ def test_dossier_from_api():
     assert result.champ("Date de naissance").date == "1970-01-15"
     assert result.champ("Justificatif d'identité").value == ""
     assert result.champ("Inconnu") is None
+
+
+def test_parse_dossier_ortographe_verifiee():
+    annotation = {"label": ORTOGRAPHE_VERIFIEE_ANNOTATION, "booleanValue": True}
+    # A form field with the same label must not be read as the annotation
+    result = dossier({ORTOGRAPHE_VERIFIEE_ANNOTATION: {"booleanValue": False}})
+    assert result.champ(ORTOGRAPHE_VERIFIEE_ANNOTATION, annotation=True) is None
+
+    record, _ = DemarcheNumeriqueProcessor.parse_dossier(
+        dossier(annotations=[annotation])
+    )
+    assert record["ortographe_verifiee"] is True
 
 
 @pytest.mark.parametrize(
@@ -423,6 +447,7 @@ def test_process_accepted_dossiers_one_at_a_time(monkeypatch):
         "invalid": [],
         "failed": [],
         "truncated_texts": [],
+        "names_not_confirmed": [1, 2],
         "processed": [1, 2],
     }
 
@@ -449,6 +474,7 @@ def test_process_accepted_dossiers_already_copied_only_archived(monkeypatch):
     processor.grist_table.append.assert_not_called()
     already.archive.assert_called_once()
     assert result["failed"] == []
+    assert result["names_not_confirmed"] == []
     assert result["processed"] == [1]
 
 
@@ -499,3 +525,17 @@ def test_parse_dossier_missing_champ_logs_labels_without_values(caplog):
 
     assert "'Date de naissance du dirigeant' (DateChamp)" in caplog.text
     assert "1970" not in caplog.text
+
+
+def test_process_accepted_dossiers_names_not_confirmed(monkeypatch):
+    confirmed = numbered_dossier(1)
+    confirmed.annotations = [
+        Champ(label=ORTOGRAPHE_VERIFIEE_ANNOTATION, value="Oui", boolean=True)
+    ]
+    not_confirmed = numbered_dossier(2)
+    processor, _ = processor_integrating(monkeypatch, [confirmed, not_confirmed])
+
+    result = processor.process_accepted_dossiers()
+
+    assert result["names_not_confirmed"] == [2]
+    assert result["processed"] == [1, 2]

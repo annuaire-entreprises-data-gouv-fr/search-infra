@@ -42,6 +42,7 @@ Grist contient une ligne par demande.
 | `numero_dossier` | Numéro unique du dossier Démarche Numérique |
 | `date_ajout` | Date de l'ajout dans Grist |
 | `legacy` | Toujours `false`. Les lignes `true` viennent de l'ancienne logique Siren protégés |
+| `ortographe_verifiee` | Annotation privée Oui / Non par laquelle l'instructeur confirme que les nom et prénoms du dossier correspondent à ceux de l'Annuaire (RNE). `false` par défaut. |
 
 ⚠️ Le libellé de chaque champ du formulaire est sa clé d'identification, donc changer le nom d'un libellé fera échouer le DAG.
 
@@ -65,6 +66,7 @@ Les demandes mises de côté sont réparties en deux catégories :
 | --- | --- | --- | --- |
 | Siren introuvable | Cas attendu | Le SIREN ne correspond à aucune entreprise connue de l'Annuaire | Vérifier s'il s'agit d'un Siren doublon sinon voir avec le demandeur |
 | Motif tronqué | Cas attendu | Le motif dépasse la limite de caractères. La demande est bien ajoutée et archivée, avec un motif coupé dans Grist. Elle n'est signalée qu'une fois | Aucune. Le texte complet reste dans le dossier Démarche Numérique |
+| Nom et prénoms non confirmés | Cas attendu | L'instructeur n'a pas confirmé, en répondant "Oui" à l'annotation privée, que les nom et prénoms du dossier correspondent à ceux de l'Annuaire. La demande est bien ajoutée et archivée avec `ortographe_verifiee` à `false`. Elle n'est signalée qu'une fois | Vérifier les nom et prénoms du dossier et corriger la ligne dans Grist si besoin |
 | Champ absent, vide ou invalide | Erreur | Champ obligatoire du formulaire manquant, renommé ou dans un format inattendu (Siren mal formé, date non reconnue, motif vide) | Vérifier le formulaire et le dossier, adapter le code si le formulaire a changé |
 | Échec de l'ajout dans Grist ou de l'archivage | Erreur | Indisponibilité de Grist ou de Démarche Numérique | Aucune si l'erreur est passagère : la demande est retentée à l'exécution suivante. Sinon, consulter les logs |
 
