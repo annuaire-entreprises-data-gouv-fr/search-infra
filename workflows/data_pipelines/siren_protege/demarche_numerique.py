@@ -19,6 +19,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.siren_protege.config impor
     GRIST_DOCUMENT_ID_VARIABLE,
     GRIST_TABLE_ID_VARIABLE,
     MOTIF_MAX_LENGTH,
+    ORTOGRAPHE_VERIFIEE_ANNOTATION,
 )
 
 logger = logging.getLogger(__name__)
@@ -107,6 +108,9 @@ class DemarcheNumeriqueProcessor:
         record["date_depot_demande"] = dossier.date_depot
         record["numero_dossier"] = str(dossier.number)
         record["legacy"] = False
+        # No answer from the instructeur defaults to not confirmed
+        annotation = dossier.champ(ORTOGRAPHE_VERIFIEE_ANNOTATION, annotation=True)
+        record["ortographe_verifiee"] = bool(annotation and annotation.boolean)
         return record, None
 
     def siren_exists(self, siren: str) -> bool:
@@ -138,6 +142,8 @@ class DemarcheNumeriqueProcessor:
         - invalid: the dossiers whose champs could not be read, with the reason
         - failed: the dossiers where the copy or archiving failed
         - truncated_texts: the dossiers added with a truncated text
+        - names_not_confirmed: the dossiers added without the instructeur
+          confirming the nom and prénoms match the ones of the Annuaire
         - processed: the dossiers in Grist and archived during this run
         """
         to_review: list[dict[str, Any]] = []
@@ -169,6 +175,7 @@ class DemarcheNumeriqueProcessor:
             "invalid": invalid,
             "failed": [],
             "truncated_texts": [],
+            "names_not_confirmed": [],
             "processed": [],
         }
         if not to_integrate:
@@ -199,6 +206,8 @@ class DemarcheNumeriqueProcessor:
                             f"{MOTIF_MAX_LENGTH} characters"
                         )
                         result["truncated_texts"].append(dossier.number)
+                    if not record["ortographe_verifiee"]:
+                        result["names_not_confirmed"].append(dossier.number)
                 step = "archivage"
                 dossier.archive()
                 logger.info(f"Dossier {dossier.number}: archived")
@@ -225,7 +234,7 @@ class DemarcheNumeriqueProcessor:
         """
         Report on Tchap the dossiers processed and the ones it could not process.
 
-        Processed dossiers and expected cases (unknown SIREN, truncated motif)
+        Processed dossiers and expected cases (unknown SIREN, truncated motif, names not confirmed)
         handled manually in Démarche Numérique are sent to Tchap and the task succeeds.
         Unreadable dossiers (form changed, missing champ) and copy or archiving
         errors make the task fail, the failure callback sending the whole report.
@@ -262,10 +271,19 @@ class DemarcheNumeriqueProcessor:
                 f"caractères dans Grist, texte complet dans le dossier :</p>"
                 f"<ul>{items}</ul>"
             )
+        if not_confirmed := result["names_not_confirmed"]:
+            items = "".join(f"<li>{self.dossier_link(n)}</li>" for n in not_confirmed)
+            expected.append(
+                f"<p>{len(not_confirmed)} dossier(s) ajouté(s) dans Grist sans "
+                f"confirmation par l'instructeur que les nom et prénoms correspondent "
+                f"à ceux de l'Annuaire :</p>"
+                f"<ul>{items}</ul>"
+            )
         logger.info(
             f"{len(processed)} dossiers processed, {len(to_review)} to review "
             f"manually, {len(invalid)} unreadable, {len(failed)} in error, "
-            f"{len(truncated)} with a truncated motif."
+            f"{len(truncated)} with a truncated motif, {len(not_confirmed)} with "
+            f"names not confirmed."
         )
         context = get_current_context()
         if errors:

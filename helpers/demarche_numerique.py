@@ -47,6 +47,8 @@ class Champ:
         date: the YYYY-MM-DD format. Only for a date field. None otherwise.
         siret: The SIRET of the établissement if validated by Démarche Numérique.
             None otherwise.
+        boolean: the answer of a Yes / No field. None when not filled in or for
+            any other field type.
 
     Prioritise date and siret when they are set and fall back to parsing
     value if those are empty.
@@ -61,6 +63,7 @@ class Champ:
     type: str | None = None
     date: str | None = None
     siret: str | None = None
+    boolean: bool | None = None
 
     @classmethod
     def from_api(cls, node: dict[str, Any]) -> Champ:
@@ -71,6 +74,7 @@ class Champ:
         `date`, `etablissement`, etc. are only returned for the types specifically request in the query:
             * `... on DateChamp`
             * `... on SiretChamp`
+            * `... on YesNoChamp`
         For example `etablissement` may be null if the SIRET could not be validated by Démarche Numérique.
         """
         return cls(
@@ -79,6 +83,7 @@ class Champ:
             type=node.get("__typename"),
             date=node.get("date"),
             siret=(node.get("etablissement") or {}).get("siret"),
+            boolean=node.get("booleanValue"),
         )
 
 
@@ -89,6 +94,8 @@ class Dossier:
     * `id` is a private unique GraphQL ID
     * `number` is the public ID shown in the Démarche Numérique interface and URLs
     * `champs` is a JSON containing all the custom fields setup by the creator of the démarche
+    * `annotations` has the same structure as `champs` for the private fields
+      but it is filled in by the instructeurs
     * `dateTraitement` is the date of the latest decision (accepted, refused, etc.)
     * `traitements` is the history of the state changes, with the email of the
       instructeur behind each one (null when made automatically)
@@ -126,6 +133,13 @@ class Dossier:
                     "label": "Votre question hier ou demain",
                     "stringValue": "Pourquoi pas aujourd'hui ?"
                 }
+            ],
+            "annotations": [
+                {
+                    "label": "Zéro relativité",
+                    "stringValue": "Oui",
+                    "booleanValue": true
+                }
             ]
         }
     }
@@ -134,7 +148,6 @@ class Dossier:
     Example:
         > for dossier in Demarche(123, instructeur_id).accepted_dossiers():
         >     siren = dossier.champ("SIREN")
-        >     ...
         >     dossier.archive()
     """
 
@@ -158,18 +171,23 @@ class Dossier:
         self.demandeur_nom: str = demandeur.get("nom") or ""
         self.demandeur_prenom: str = demandeur.get("prenom") or ""
         self.champs = [Champ.from_api(champ) for champ in node.get("champs", [])]
+        self.annotations = [
+            Champ.from_api(annotation) for annotation in node.get("annotations", [])
+        ]
 
     @property
     def url(self) -> str:
         return self.demarche.dossier_url(self.number)
 
-    def champ(self, label: str) -> Champ | None:
+    def champ(self, label: str, annotation: bool = False) -> Champ | None:
         """
-        Return the field with this label or None if the form has none.
+        Return the field with this label or None if there is none.
+        Looking for the champ into instructeur annotations when annotation is True.
         If several fields share a label, the first one is returned.
         """
         label = label.strip().lower()
-        return next((c for c in self.champs if c.label.strip().lower() == label), None)
+        champs = self.annotations if annotation else self.champs
+        return next((c for c in champs if c.label.strip().lower() == label), None)
 
     def archive(self) -> None:
         """Archive a dossier."""
@@ -258,6 +276,14 @@ class DemarcheNumerique:
                         etablissement {
                           siret
                         }
+                      }
+                    }
+                    annotations {
+                      __typename
+                      label
+                      stringValue
+                      ... on YesNoChamp {
+                        booleanValue: value
                       }
                     }
                   }
