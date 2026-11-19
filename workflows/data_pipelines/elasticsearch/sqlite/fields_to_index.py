@@ -19,6 +19,8 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
             unite_legale.nom,
             unite_legale.nom_raison_sociale,
             unite_legale.nom_usage,
+            unite_legale.est_protege,
+            unite_legale.est_protege_legacy,
             unite_legale.opposition_diffusion_commerciale,
             unite_legale.prenom,
             unite_legale.sigle,
@@ -51,12 +53,14 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
                     'nom_usage', nom_usage,
                     'prenoms', prenoms,
                     'nationalite', nationalite,
-                    'role_description', role_description
+                    'role_description', role_description,
+                    'est_protege', est_protege
                     )
                 ) FROM
                 (
                     SELECT siren, date_mise_a_jour, date_de_naissance, nom,
-                    nom_usage, prenoms, nationalite, role_description
+                    nom_usage, prenoms, nationalite, role_description,
+                    est_protege
                     FROM dirigeant_pp
                     WHERE siren = unite_legale.siren
                 )

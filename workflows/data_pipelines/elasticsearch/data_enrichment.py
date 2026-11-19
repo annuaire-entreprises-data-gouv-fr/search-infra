@@ -431,18 +431,24 @@ def format_personnes_physiques(
             personne_physique["role_description"]
         )
 
-        personnes_physiques_processed.append(
-            {
-                "nom": personne_physique["nom"],
-                "prenoms": personne_physique["prenoms"],
-                "date_de_naissance": personne_physique["date_de_naissance"],
-                "nationalite": personne_physique["nationalite"],
-                "role": personne_physique["role_description"],
-                "date_mise_a_jour": personne_physique["date_mise_a_jour"],
-            }
-        )
+        est_protege = sqlite_str_to_bool(personne_physique["est_protege"])
+        personne_physique_processed = {
+            "nom": personne_physique["nom"],
+            "prenoms": personne_physique["prenoms"],
+            "date_de_naissance": personne_physique["date_de_naissance"],
+            "nationalite": personne_physique["nationalite"],
+            "role": personne_physique["role_description"],
+            "date_mise_a_jour": personne_physique["date_mise_a_jour"],
+        }
+        # Only indexed when true so an absent field reads as false
+        if est_protege:
+            personne_physique_processed["est_protege"] = True
+        personnes_physiques_processed.append(personne_physique_processed)
 
-        # Liste personnes
+        # The text search reads this flat list so a protected dirigeant left in it
+        # would still make the company match on their name
+        if est_protege:
+            continue
         if personne_physique["prenoms"] and personne_physique["nom"]:
             list_all_personnes.append(
                 personne_physique["prenoms"] + " " + personne_physique["nom"]
@@ -538,6 +544,7 @@ def format_etablissements_and_complements(
     nom_complet,
     sigle,
     is_non_diffusible=False,
+    est_protege_legacy=False,
 ):
     etablissements = json.loads(list_etablissements_sqlite)
     etablissements_processed = []
@@ -551,6 +558,10 @@ def format_etablissements_and_complements(
     for etablissement in etablissements:
         etablissement["nom_complet"] = nom_complet
         etablissement["sigle"] = sigle
+        # The address search runs in nested queries on the etablissements
+        # so the API needs the flag here to exclude them. Only indexed when true
+        if est_protege_legacy:
+            etablissement["est_protege_legacy"] = True
         etablissement["adresse"] = format_adresse_complete(
             etablissement["complement_adresse"],
             etablissement["numero_voie"],
@@ -628,6 +639,7 @@ def format_etablissements_and_complements(
 ETABLISSEMENT_ONLY_FIELDS = (
     "ancien_siege",
     "concat_enseigne_adresse_siren_siret",
+    "est_protege_legacy",
     "nom_complet",
     "sigle",
 )

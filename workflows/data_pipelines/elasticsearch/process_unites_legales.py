@@ -171,6 +171,14 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale["est_avocat"]
         )
 
+        # Few unités légales are protected so the flags are only indexed when true
+        # and an absent field reads as false
+        for field in ("est_protege", "est_protege_legacy"):
+            if sqlite_str_to_bool(unite_legale[field]):
+                unite_legale_processed[field] = True
+            else:
+                unite_legale_processed.pop(field)
+
         # Bilans GES
         unite_legale_processed["bilan_ges_renseigne"] = sqlite_str_to_bool(
             unite_legale["bilan_ges_renseigne"]
@@ -202,6 +210,7 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["nom_complet"],
             unite_legale_processed["sigle"],
             is_non_diffusible,
+            unite_legale_processed.get("est_protege_legacy", False),
         )
         unite_legale_processed["etablissements"] = etablissements_processed
 

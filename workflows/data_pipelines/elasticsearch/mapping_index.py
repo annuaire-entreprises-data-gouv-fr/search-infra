@@ -122,6 +122,7 @@ class DirigeantPPMapping(InnerDoc):
     nationalite = Text()
     role = Text(analyzer=annuaire_analyzer)
     date_mise_a_jour = Date()
+    est_protege = Boolean()
 
 
 class DirigeantPMMapping(InnerDoc):
@@ -173,6 +174,7 @@ class EtablissementMapping(InnerDoc):
     enseigne_2 = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     enseigne_3 = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
     epci = Keyword()
+    est_protege_legacy = Boolean()
     est_siege = Boolean()
     etat_administratif = Keyword()
     geo_adresse = Text(analyzer=annuaire_analyzer)
@@ -389,6 +391,8 @@ class UniteLegaleMapping(InnerDoc):
     est_qualiopi = Boolean()
     est_l100_3 = Boolean()  # Deprecated
     est_patrimoine_vivant = Boolean()
+    est_protege = Boolean()
+    est_protege_legacy = Boolean()
     est_rge = Boolean()
     est_service_public = Boolean()  # Deprecated
     est_siae = Boolean()
