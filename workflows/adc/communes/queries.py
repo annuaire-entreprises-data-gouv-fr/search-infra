@@ -13,8 +13,7 @@ ETABLISSEMENTS_QUERY = """
     WHERE e.commune IS NOT NULL
         AND e.etat_administratif_etablissement = 'A'
         AND e.caractere_employeur = 'O'
-        AND ul.nature_juridique_unite_legale != '1000'
-        AND ul.nature_juridique_unite_legale NOT LIKE '2%'
+        AND ul.est_personne_morale_insee = 1
     ORDER BY e.commune, e.siret
 """
 

@@ -31,9 +31,7 @@ RADIATIONS_INCOHERENCES_QUERY = """
         r.siren,
         CASE
             WHEN ul.siren IS NULL THEN NULL
-            WHEN ul.nature_juridique_unite_legale = '1000'
-                OR ul.nature_juridique_unite_legale LIKE '2%'
-            THEN 'true'
+            WHEN ul.est_personne_morale_insee = 0 THEN 'true'
             ELSE 'false'
         END AS est_personne_physique,
         ul.etat_administratif_unite_legale AS etat_administratif_sirene,

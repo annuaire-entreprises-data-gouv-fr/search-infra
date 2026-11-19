@@ -11,7 +11,6 @@ from data_pipelines_annuaire.helpers.sqlite_client import SqliteClient
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichment import (
     format_nom_complet,
     format_slug,
-    is_personne_morale_insee,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.sqlite.sitemap import (
     select_sitemap_fields_query,
@@ -52,11 +51,7 @@ def create_sitemap():
         for ul in liste_unites_legales_sqlite:
             if (
                 ul["etat_administratif_unite_legale"] == "A"
-                and ul["nature_juridique_unite_legale"] != "1000"
-                and (
-                    ul["statut_diffusion_unite_legale"] == "O"
-                    or is_personne_morale_insee(ul["nature_juridique_unite_legale"])
-                )
+                and ul["est_personne_morale_insee"]
             ):
                 if not ul["activite_principale_unite_legale"]:
                     ul["activite_principale_unite_legale"] = ""
