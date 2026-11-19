@@ -1,5 +1,7 @@
 import pandas as pd
 
+from data_pipelines_annuaire.helpers.utils import normalize_string
+
 # fmt: off
 from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichment import (
     map_roles,
@@ -112,3 +114,63 @@ def preprocess_dirigeant_pm(query):
         .reset_index()
     )
     return dirig_clean
+
+
+def _normalize_dirigeant_name(value: str | None) -> str:
+    return " ".join((normalize_string(value) or "").split())
+
+
+def match_protected_dirigeants(
+    dirigeants: pd.DataFrame, protected_list: pd.DataFrame
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Find the dirigeants of the RNE present in the protected list.
+
+    A dirigeant matches when all these values are the same, ignoring case, accents and extra spaces:
+    * Siren
+    * birth date YYYY-MM, or no birth date on both sides
+    * full nom, which is mandatory
+    * first prénom, or no prénom on both sides
+
+    Args:
+        dirigeants: rowid, siren, nom, prenoms, date_de_naissance
+            from the dirigeant_pp table.
+        protected_list: siren, nom, prenoms, date_de_naissance
+            from the protected list.
+
+    Returns:
+        The matched dirigeants with rowid and siren.
+        And the rows of the protected list with a nom matching no dirigeant.
+        The rows without a nom are skipped since some legacy rows only have a Siren.
+    """
+    protected = pd.DataFrame(
+        {
+            "siren": protected_list["siren"],
+            "date_de_naissance": protected_list["date_de_naissance"],
+            "prenom": protected_list["prenoms"]
+            .map(_normalize_dirigeant_name)
+            .str.split(" ")
+            .str[0],
+            "nom": protected_list["nom"].map(_normalize_dirigeant_name),
+            "protected_row": protected_list.index,
+        }
+    )
+    protected = protected[protected["nom"] != ""]
+    candidates = pd.DataFrame(
+        {
+            "rowid": dirigeants["rowid"],
+            "siren": dirigeants["siren"],
+            # date_de_naissance is always an empty string in protected_list
+            "date_de_naissance": dirigeants["date_de_naissance"].fillna(""),
+            "prenom": dirigeants["prenoms"]
+            .map(_normalize_dirigeant_name)
+            .str.split(" ")
+            .str[0],
+            "nom": dirigeants["nom"].map(_normalize_dirigeant_name),
+        }
+    )
+    matched = candidates.merge(
+        protected, on=["siren", "date_de_naissance", "prenom", "nom"]
+    )
+    unmatched = protected_list.loc[protected.index.difference(matched["protected_row"])]
+    return matched[["rowid", "siren"]].drop_duplicates(), unmatched

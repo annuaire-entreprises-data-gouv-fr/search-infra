@@ -61,6 +61,7 @@ from data_pipelines_annuaire.workflows.data_pipelines.ess_france.config import (
     ESS_CONFIG,
 )
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_dirig_tables import (
+    add_protege_flags,
     create_dirig_pm_table,
     create_dirig_pp_table,
     get_latest_rne_database,
@@ -313,6 +314,7 @@ def database_constructor():
         >> validate_unite_legale_with_rne_table()
         >> add_rne_data_to_siege_etablissement()
         >> create_dirig_pp_table()
+        >> add_protege_flags()
         >> create_dirig_pm_table()
         >> copy_immatriculation_table()
         # Runs after RNE since RNE tasks do update unité légale
