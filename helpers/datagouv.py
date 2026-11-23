@@ -178,7 +178,7 @@ def fetch_last_modified_date(resource_id: str) -> str:
 
 
 def fetch_last_resource_from_dataset(
-    dataset_url: str, resource_extension: str = "csv"
+    dataset_url: str, resource_extension: str = "csv", title_prefix: str | None = None
 ) -> tuple[str, str]:
     """
     Fetch the last resource URL of a dataset with a specific extension.
@@ -186,6 +186,7 @@ def fetch_last_resource_from_dataset(
     Args:
         dataset_url (str): URL of the data.gouv dataset.
         resource_extension (str, optional): File extension of the resource to look for. Defaults to csv.
+        title_prefix (str, optional): Only look for resources whose title start with this prefix.
 
     Returns:
         Tuple[str, str]:
@@ -207,7 +208,12 @@ def fetch_last_resource_from_dataset(
     resources = dataset_metadata.get("resources", [])
     logger.info(f"Found {len(resources)} total resources in dataset")
 
-    matching_resources = [r for r in resources if r["format"] == resource_extension]
+    matching_resources = [
+        r
+        for r in resources
+        if r["format"] == resource_extension
+        and (title_prefix is None or r["title"].startswith(title_prefix))
+    ]
     logger.info(
         f"Found {len(matching_resources)} resources with extension '{resource_extension}'"
     )

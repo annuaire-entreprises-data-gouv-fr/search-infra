@@ -1,5 +1,5 @@
 from data_pipelines_annuaire.config import (
-    DATA_GOUV_BASE_URL,
+    DATAGOUV_URL,
     OBJECT_STORAGE_BASE_URL,
     DataSourceConfig,
 )
@@ -11,8 +11,11 @@ FONDATION_CONFIG = DataSourceConfig(
     file_name="fondation",
     files_to_download={
         "fondation": {
-            "url": f"{DATA_GOUV_BASE_URL}9e955947-a03b-4b6b-84a2-cd06179b1f19",
-            "resource_id": "9e955947-a03b-4b6b-84a2-cd06179b1f19",
+            # A new resource is added every month
+            "url": f"{DATAGOUV_URL}/api/1/datasets/6a04750602ec619fc638a075",
+            "dataset_id": "6a04750602ec619fc638a075",
+            "resource_extension": "zip",
+            "title_prefix": "opendata - Données fonds/fondations (csv/zip)",
             "destination": f"{DataSourceConfig.base_tmp_folder}/fondation/fondation-download.zip",
         },
     },
