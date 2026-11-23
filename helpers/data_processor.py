@@ -47,6 +47,8 @@ class DataProcessor(ABC):
             - url (str): The URL of the file or dataset.
             - destination (str): The local path to save the file.
             - dataset_id (optional, str): Indicates the resource has to be fetched from the dataset.
+            - resource_extension (optional, str): Format of the dataset resource to fetch. Defaults to csv.
+            - title_prefix (optional, str): Start of the title of the dataset resource to fetch.
             - pattern (optional, str): The pattern to search for in the URL page to find the actual file link.
             - huwise (optional, bool): If True indicates the updated date metadata can be fetched from their API.
         """
@@ -55,7 +57,11 @@ class DataProcessor(ABC):
         for name, params in self.config.files_to_download.items():
             try:
                 if "dataset_id" in params:
-                    _, file_url = fetch_last_resource_from_dataset(params["url"])
+                    _, file_url = fetch_last_resource_from_dataset(
+                        params["url"],
+                        params.get("resource_extension", "csv"),
+                        params.get("title_prefix"),
+                    )
                 elif "pattern" in params:
                     url = params["url"]
 
@@ -215,7 +221,11 @@ class DataProcessor(ABC):
                 if "resource_id" in params:
                     date_list.append(fetch_last_modified_date(params["resource_id"]))
                 elif "dataset_id" in params:
-                    resource_id, _ = fetch_last_resource_from_dataset(params["url"])
+                    resource_id, _ = fetch_last_resource_from_dataset(
+                        params["url"],
+                        params.get("resource_extension", "csv"),
+                        params.get("title_prefix"),
+                    )
                     date_list.append(fetch_last_modified_date(resource_id))
                 elif params.get("huwise", False):
                     date_list.append(fetch_data_processed_from_huwise(params["url"]))
