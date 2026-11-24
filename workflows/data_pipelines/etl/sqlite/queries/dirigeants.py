@@ -9,7 +9,8 @@ create_table_dirigeant_pp_query = """
             nom_usage,
             prenoms,
             nationalite,
-            role_description
+            role_description,
+            date_demission
         )
     """
 
@@ -22,15 +23,22 @@ create_table_dirigeant_pm_query = """
             siren_dirigeant TEXT,
             role TEXT,
             forme_juridique TEXT,
-            role_description TEXT
+            role_description TEXT,
+            date_demission DATE
         )
     """
+
+
+# mention_demission = 0 likely means the resignation has been canceled
+DATE_DEMISSION = """
+    CASE WHEN mention_demission = 1 THEN date_mention_demission END AS date_demission
+"""
 
 
 def get_chunk_dirig_pm_from_db_query(chunk_size, iterator):
     query = f"""
         SELECT siren, date_mise_a_jour, denomination,
-        siren_dirigeant, role, forme_juridique
+        siren_dirigeant, role, forme_juridique, {DATE_DEMISSION}
         FROM dirigeant_pm
         WHERE siren IN
         (
@@ -46,7 +54,7 @@ def get_chunk_dirig_pm_from_db_query(chunk_size, iterator):
 def get_chunk_dirig_pp_from_db_query(chunk_size, iterator):
     query = f"""
         SELECT siren, date_mise_a_jour, date_de_naissance, role,
-        nom, nom_usage, prenoms, nationalite
+        nom, nom_usage, prenoms, nationalite, {DATE_DEMISSION}
         FROM dirigeant_pp
         WHERE siren IN
             (

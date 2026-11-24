@@ -432,6 +432,10 @@ def format_personnes_physiques(
         # Only indexed when true so an absent field reads as false
         if est_protege:
             personne_physique_processed["est_protege"] = True
+        if personne_physique["date_demission"]:
+            personne_physique_processed["date_demission"] = personne_physique[
+                "date_demission"
+            ]
         personnes_physiques_processed.append(personne_physique_processed)
 
         # The text search reads this flat list so a protected dirigeant left in it
@@ -475,15 +479,17 @@ def format_dirigeants_pm(list_dirigeants_pm_sqlite, list_all_dirigeants=None):
             logger.debug(
                 f"Missing denomination dirigeant for ***** {dirigeant_pm['siren']}"
             )
-        dirigeants_pm_processed.append(
-            {
-                "siren": dirigeant_pm["siren_dirigeant"],
-                "denomination": dirigeant_pm["denomination"],
-                "role": dirigeant_pm["role_description"],
-                "forme_juridique": dirigeant_pm["forme_juridique"],
-                "date_mise_a_jour": dirigeant_pm["date_mise_a_jour"],
-            }
-        )
+        dirigeant_pm_processed = {
+            "siren": dirigeant_pm["siren_dirigeant"],
+            "denomination": dirigeant_pm["denomination"],
+            "role": dirigeant_pm["role_description"],
+            "forme_juridique": dirigeant_pm["forme_juridique"],
+            "date_mise_a_jour": dirigeant_pm["date_mise_a_jour"],
+        }
+        # Only indexed when set since less than 0.1% of dirigeants have a resignation date
+        if dirigeant_pm["date_demission"]:
+            dirigeant_pm_processed["date_demission"] = dirigeant_pm["date_demission"]
+        dirigeants_pm_processed.append(dirigeant_pm_processed)
 
     return dirigeants_pm_processed, list(set(list_all_dirigeants))
 

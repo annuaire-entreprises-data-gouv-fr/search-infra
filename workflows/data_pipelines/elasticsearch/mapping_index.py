@@ -123,6 +123,7 @@ class DirigeantPPMapping(InnerDoc):
     role = Text(analyzer=annuaire_analyzer)
     date_mise_a_jour = Date()
     est_protege = Boolean()
+    date_demission = Date()
 
 
 class DirigeantPMMapping(InnerDoc):
@@ -131,6 +132,7 @@ class DirigeantPMMapping(InnerDoc):
     role = Text(analyzer=annuaire_analyzer)
     forme_juridique = Keyword()
     date_mise_a_jour = Date()
+    date_demission = Date()
 
 
 class SuccessionEntryMapping(InnerDoc):
