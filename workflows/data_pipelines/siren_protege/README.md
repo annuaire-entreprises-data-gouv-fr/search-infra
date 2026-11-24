@@ -74,6 +74,13 @@ Si l'envoi du message Tchap échoue, le DAG échoue aussi.
 
 Les messages Tchap ne contiennent que le numéro de chaque dossier, un lien vers le dossier et la raison de la mise de côté, jamais de données personnelles.
 
+## Suivi hebdomadaire
+
+Le DAG `suivi_siren_protege` (`dag_suivi.py`, logique dans `suivi.py`) tourne tous les lundis à 10h heure de Paris en production. Sur les autres environnements, il ne se lance qu'à la main.
+Il lit la table Grist et envoie sur le canal dTchap de support un message d'avertissement avec les dossiers dont l'ortographe des dirigeants n'a toujours pas été vérifiée (`ortographe_verifiee = false`) 4 jours ou plus après leur ajout. Après l'archivage du dossier, c'est dans Grist que l'instructeur confirme que les nom et prénoms correspondent à ceux de l'Annuaire / RNE. Un dossier sera donc signalé chaque lundi tant que la colonne n'est pas passée à `true`. Les lignes legacy ne sont pas concernées.
+
+Il vérifie aussi que les lignes de Grist sont complètes. Une ligne n'est vérifiée que si `siren` est renseigné. Pour une ligne non legacy, toutes les colonnes sont obligatoires sauf `motif`, `prenoms` et `date_de_naissance`. Pour une ligne legacy, seuls `siren`, `date_ajout` et `legacy` le sont. Chaque ligne incomplète est signalée avec son numéro de ligne dans Grist, son siren, le lien vers son dossier s'il y en a un, et la liste des colonnes vides.
+
 ## Nettoyage du motif
 
 Le motif est un texte libre écrit par le demandeur. Avant d'être enregistré dans Grist :
