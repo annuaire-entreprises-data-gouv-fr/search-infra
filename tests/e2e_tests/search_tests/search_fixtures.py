@@ -50,6 +50,16 @@ DIRIGEANT_PRENOM_EXACT = "xavier"
 DIRIGEANT_PRENOMS_PARTIELS = "xavier erwan"
 DIRIGEANT_ANNEE_NAISSANCE = "1990"
 
+# Le stemmer `minimal_french` réduit « PARISSE » et « PARIS » au même token :
+# les sous-champs `.exact` (sans stemming) doivent départager les deux.
+DIRIGEANT_PARISSE_TERMS = "pascal parisse"
+# Dénomination contenant les mots exacts « PASCAL PARISSE ».
+DENOMINATION_PASCAL_PARISSE = "948696323"
+# Dirigeant PASCAL PARISSE, dénomination sans rapport.
+DIRIGEANT_PASCAL_PARISSE = "942956210"
+# Dénomination « PASCAL PARIS » qui ne correspond qu'après stemming.
+DENOMINATION_PASCAL_PARIS = "530635390"
+
 # Collectivité territoriale et une de ses élues.
 COMMUNE_DE_LAMBESC = "211300504"
 ELU_NOM = "allietta"
@@ -71,3 +81,13 @@ TERMES_INEXISTANTS = "azertyuiop zzzzqqqxxxyyy"
 # remonter des réseaux nationaux (LA POSTE, EDF) sans dépasser 10 000 résultats.
 POINT_LANGEAC_LAT = "45.123"
 POINT_LANGEAC_LON = "3.456"
+
+# Unités légales protégées Legacy
+# Ne pas mettre de données masquées dans les tests
+PROTEGE_LEGACY_PM = "130586043"
+PROTEGE_LEGACY_PM_NOM = "valthera capital"
+PROTEGE_LEGACY_PM_CODE_COMMUNE = "06088"
+PROTEGE_LEGACY_EI = "303233894"
+PROTEGE_LEGACY_NON_PM = "413891425"
+PROTEGE_LEGACY_NON_PM_FILTRES = "departement=84&activite_principale=01.49Z&nature_juridique=2900&etat_administratif=A"
+MASQUE_PROTEGE = "[PROTÉGÉ]"
