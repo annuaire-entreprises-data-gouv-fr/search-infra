@@ -54,13 +54,14 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
                     'prenoms', prenoms,
                     'nationalite', nationalite,
                     'role_description', role_description,
-                    'est_protege', est_protege
+                    'est_protege', est_protege,
+                    'date_demission', date_demission
                     )
                 ) FROM
                 (
                     SELECT siren, date_mise_a_jour, date_de_naissance, nom,
                     nom_usage, prenoms, nationalite, role_description,
-                    est_protege
+                    est_protege, date_demission
                     FROM dirigeant_pp
                     WHERE siren = unite_legale.siren
                 )
@@ -72,12 +73,13 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
                         'denomination', denomination,
                         'siren_dirigeant', siren_dirigeant,
                         'role_description', role_description,
-                        'forme_juridique', forme_juridique
+                        'forme_juridique', forme_juridique,
+                        'date_demission', date_demission
                         )
                     ) FROM
                     (
                         SELECT siren, date_mise_a_jour, denomination, siren_dirigeant,
-                        role_description, forme_juridique
+                        role_description, forme_juridique, date_demission
                         FROM dirigeant_pm
                         WHERE siren = unite_legale.siren
                     )

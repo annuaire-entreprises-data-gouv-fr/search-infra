@@ -13,8 +13,9 @@ DIRIGEANT_PP_KEYS = [
     "date_de_naissance",
     "nationalite",
     "date_mise_a_jour",
+    "date_demission",
 ]
-DIRIGEANT_PM_KEYS = ["siren", "siren_dirigeant", "denomination"]
+DIRIGEANT_PM_KEYS = ["siren", "siren_dirigeant", "denomination", "date_demission"]
 
 
 def concatenate_roles(roles):

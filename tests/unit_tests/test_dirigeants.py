@@ -1,12 +1,18 @@
+import json
+
 import pandas as pd
 
+from data_pipelines_annuaire.workflows.data_pipelines.elasticsearch.data_enrichment import (
+    format_dirigeants_pm,
+    format_personnes_physiques,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.etl.data_fetch_clean.dirigeants import (
     DIRIGEANT_PP_KEYS,
     group_roles,
 )
 
 
-def personne(prenoms, date_de_naissance, role, role_description):
+def personne(prenoms, date_de_naissance, role, role_description, date_demission=None):
     return {
         "siren": "123456789",
         "nom": "DE MAUPASSANT",
@@ -17,6 +23,7 @@ def personne(prenoms, date_de_naissance, role, role_description):
         "date_mise_a_jour": "1893-07-06",
         "role": role,
         "role_description": role_description,
+        "date_demission": date_demission,
     }
 
 
@@ -68,3 +75,43 @@ def test_group_roles_keeps_missing_keys():
     result = group_roles(df, DIRIGEANT_PP_KEYS)
     assert len(result) == 2
     assert set(result["role"]) == {"40, 75", "40"}
+
+
+def test_group_roles_keeps_resigned_role_apart():
+    df = pd.DataFrame(
+        [
+            personne("GUY", "1850-08", "30", "Gérant", date_demission="1890-06-30"),
+            personne("GUY", "1850-08", "75", "Associé indéfiniment responsable"),
+        ]
+    )
+    result = group_roles(df, DIRIGEANT_PP_KEYS)
+    assert sorted(zip(result["role"], result["date_demission"].fillna(""))) == [
+        ("30", "1890-06-30"),
+        ("75", ""),
+    ]
+
+
+def test_format_dirigeants_index_date_demission_only_when_set():
+    pp = personne("GUY", "1850-08", "30", "Gérant", date_demission="1890-06-30")
+    pm = {
+        "siren": "123456789",
+        "siren_dirigeant": "987654321",
+        "denomination": "BEL AMI",
+        "role_description": "Président de SAS",
+        "forme_juridique": "5710",
+        "date_mise_a_jour": "1893-07-06",
+    }
+    personnes, _ = format_personnes_physiques(
+        json.dumps(
+            [pp | {"est_protege": 0}, pp | {"est_protege": 0, "date_demission": None}]
+        )
+    )
+    dirigeants_pm, _ = format_dirigeants_pm(
+        json.dumps(
+            [pm | {"date_demission": "1890-06-30"}, pm | {"date_demission": None}]
+        )
+    )
+    assert [d.get("date_demission") for d in personnes] == ["1890-06-30", None]
+    assert "date_demission" not in personnes[1]
+    assert [d.get("date_demission") for d in dirigeants_pm] == ["1890-06-30", None]
+    assert "date_demission" not in dirigeants_pm[1]
