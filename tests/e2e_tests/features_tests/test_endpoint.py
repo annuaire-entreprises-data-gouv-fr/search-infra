@@ -1468,3 +1468,42 @@ def test_opco(api_response_tester):
     path = "search?q=979807245"
     api_response_tester.assert_api_response_code_200(path)
     api_response_tester.test_field_value(path, 0, "siege.a_opco", True)
+
+
+def test_dirigeant_pp_demissionnaire(api_response_tester):
+    """
+    test if a dirigeant PP who resigned from one role but holds the same role again
+    is returned twice, with `date_demission` only on the resigned entry.
+    """
+    path = "search?q=888179017"
+    api_response_tester.assert_api_response_code_200(path)
+    dirigeants = api_response_tester.get_api_response(path).json()["results"][0][
+        "dirigeants"
+    ]
+    entries = [
+        (dirigeant.get("annee_de_naissance"), dirigeant.get("date_demission"))
+        for dirigeant in dirigeants
+        if dirigeant["type_dirigeant"] == "personne physique"
+    ]
+    assert ("1969", "2026-10-01") in entries
+    assert ("1969", None) in entries
+
+
+def test_dirigeant_pm_demissionnaire(api_response_tester):
+    """Test if `date_demission` is exposed only on resigned dirigeants PM."""
+    path = "search?q=957520901"
+    api_response_tester.assert_api_response_code_200(path)
+    dirigeants = api_response_tester.get_api_response(path).json()["results"][0][
+        "dirigeants"
+    ]
+    date_demission_by_denomination = {
+        dirigeant.get("denomination"): dirigeant.get("date_demission")
+        for dirigeant in dirigeants
+        if dirigeant["type_dirigeant"] == "personne morale"
+    }
+    assert (
+        date_demission_by_denomination["DEPARTEMENT DES BOUCHES DU RHONE"]
+        == "2026-06-26"
+    )
+    assert date_demission_by_denomination["REGION AUVERGNE RHONE ALPES"] == "2024-12-20"
+    assert date_demission_by_denomination["CAISSE DES DEPOTS ET CONSIGNATIONS"] is None
