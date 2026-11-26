@@ -19,3 +19,9 @@ select_sitemap_fields_query = """SELECT
         JOIN
             etablissement st
         ON st.siren = ul.siren AND st.est_siege = 'true';"""
+
+select_sitemap_fondations_query = """SELECT
+        numero_rnf,
+        denomination,
+        code_postal
+        FROM fondation;"""
