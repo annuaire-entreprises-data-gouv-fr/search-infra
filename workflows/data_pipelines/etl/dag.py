@@ -87,6 +87,9 @@ from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_json_last_modified import (
     create_data_source_last_modified_file,
 )
+from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_nom_domaine_table import (
+    create_nom_domaine_table,
+)
 from data_pipelines_annuaire.workflows.data_pipelines.etl.task_functions.create_siege_tables import (
     add_rne_data_to_siege_etablissement,
     update_siege_fields_in_etablissement_table,
@@ -317,6 +320,7 @@ def database_constructor():
         >> add_protege_flags()
         >> create_dirig_pm_table()
         >> copy_immatriculation_table()
+        >> create_nom_domaine_table()
         # Runs after RNE since RNE tasks do update unité légale
         >> enrich_unite_legale()
         # Labels and others

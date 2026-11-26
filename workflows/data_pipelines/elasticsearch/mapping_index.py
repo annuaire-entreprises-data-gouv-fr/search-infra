@@ -418,6 +418,7 @@ class UniteLegaleMapping(InnerDoc):
     nature_juridique_unite_legale = Keyword()
     nom = Text(analyzer=annuaire_analyzer)
     nom_raison_sociale = Text(analyzer=annuaire_analyzer, fields={"keyword": Keyword()})
+    noms_de_domaine = Keyword()
     nombre_etablissements = Integer()  # NaN can't be stored in an integer array
     nombre_etablissements_ouverts = Integer()
     numero_rnf = Keyword()

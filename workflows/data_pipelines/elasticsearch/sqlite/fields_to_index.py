@@ -263,6 +263,14 @@ SELECT_FIELDS_TO_INDEX_QUERY = """SELECT
             marche_inclusion.est_siae,
             marche_inclusion.type_siae,
             tva.liste_tva,
+            (SELECT json_group_array(nom_domaine) FROM
+                (
+                    SELECT DISTINCT nom_domaine
+                    FROM nom_domaine
+                    WHERE siren = unite_legale.siren AND nom_domaine IS NOT NULL
+                    ORDER BY nom_domaine
+                )
+            ) as noms_de_domaine,
             CASE WHEN fondation.siren IS NOT NULL THEN json_object(
                 'numero_rnf', fondation.numero_rnf,
                 'denomination', fondation.denomination,
