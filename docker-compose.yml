@@ -13,10 +13,12 @@ services:
     environment:
       AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: True
       AIRFLOW__CORE__LOAD_DEFAULT_CONNECTIONS: False
+      AIRFLOW__CORE__PARALLELISM: 8
       AIRFLOW__LOGGING__MIN_LENGTH_MASKED_SECRET: 0
       # Pour prendre en compte une modification tout de suite : airflow dags reserialize
       AIRFLOW__DAG_PROCESSOR__MIN_FILE_PROCESS_INTERVAL: 300
       AIRFLOW__DAG_PROCESSOR__PARSING_PROCESSES: 1
+      TMPDIR: ${AIRFLOW_TMPDIR:-/var/tmp}
     env_file:
       - .env
     volumes:
