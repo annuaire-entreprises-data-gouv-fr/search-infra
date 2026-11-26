@@ -1507,3 +1507,14 @@ def test_dirigeant_pm_demissionnaire(api_response_tester):
     )
     assert date_demission_by_denomination["REGION AUVERGNE RHONE ALPES"] == "2024-12-20"
     assert date_demission_by_denomination["CAISSE DES DEPOTS ET CONSIGNATIONS"] is None
+
+
+def test_noms_de_domaine(api_response_tester):
+    """Test if the RNE hostnames are exposed and in alphabetical order."""
+    path = "search?q=808039259"
+    api_response_tester.assert_api_response_code_200(path)
+    noms_de_domaine = api_response_tester.get_api_response(path).json()["results"][0][
+        "noms_de_domaine"
+    ]
+    assert noms_de_domaine[0] == "balneo-bien-etre.com"
+    assert "portail-cloture.com" in noms_de_domaine
