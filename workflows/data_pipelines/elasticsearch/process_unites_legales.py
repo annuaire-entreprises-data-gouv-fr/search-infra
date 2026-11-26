@@ -317,6 +317,10 @@ def process_unites_legales(chunk_unites_legales_sqlite):
             unite_legale_processed["liste_tva"]
         )
 
+        unite_legale_processed["noms_de_domaine"] = json.loads(
+            unite_legale["noms_de_domaine"]
+        )
+
         # Fondations
         # Only the fondations with a SIRET are indexed in the fondation object at this point
         # See the fill_elastic_fondation_index() task for fondations without a SIRET

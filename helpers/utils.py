@@ -752,3 +752,34 @@ def sanitize_free_text_for_tabular_format(
         text = f"'{text}"
 
     return text[:max_length], len(text) > max_length
+
+
+def normalize_nom_domaine(value: str | None) -> str | None:
+    """
+    Nettoie un champ texte en un nom de domaine valide en minuscules, ou None si celui ci n'est pas valide.
+
+    - Trim les espaces et passe en minuscules
+    - Rejette les adresses e-mail
+    - Retire le schéma : `https://`, `http:/`, etc.
+    - S'arrête à la première valeur `/`, `?` ou `#` pour ne garder que le domaine
+    - Retire le port et les points au début ou à la fin
+    - Retire le préfixe `www.`
+    - Rejette ce qui n'est pas un hostname valide : labels alphanumériques
+      (accents compris) séparés par des points, tirets seulement à l'intérieur,
+      extension d'au moins 2 lettres, 253 caractères au plus
+    """
+    if not value:
+        return None
+    nom_domaine = value.strip().lower()
+    if "@" in nom_domaine:
+        return None
+    nom_domaine = re.sub(r"^[a-z]+:/*", "", nom_domaine)
+    nom_domaine = re.split(r"[/?#]", nom_domaine, maxsplit=1)[0]
+    nom_domaine = re.sub(r":\d+$", "", nom_domaine).strip(".")
+    nom_domaine = nom_domaine.removeprefix("www.")
+    label = r"[^\W_](?:(?:[^\W_]|-){0,61}[^\W_])?"
+    if len(nom_domaine) > 253 or not re.match(
+        rf"^(?:{label}\.)+[^\W\d_]{{2,63}}$", nom_domaine
+    ):
+        return None
+    return nom_domaine
